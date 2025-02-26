@@ -1,0 +1,143 @@
+global:
+  enabled: true
+  tlsDisable: true
+
+  psp:
+    enable: false
+
+  serverTelemetry:
+    prometheusOperator: false
+
+injector:
+  enabled: true
+
+  metrics:
+    enabled: true
+
+  agentDefaults:
+    cpuLimit: 500m
+    cpuRequest: 10m
+    memLimit: 128Mi
+    memRequest: 64Mi
+    ephemeralLimit: 128Mi
+    ephemeralRequest: 64Mi
+
+  authPath: "auth/kubernetes"
+
+  logLevel: info
+  logFormat: json
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 10m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+
+  annotations:
+    sidecar.istio.io/proxyCPU: "10m"
+
+server:
+  enabled: true
+
+  logLevel: info
+  logFormat: json
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 10m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+
+  # extraEnvironmentVars:
+  #   VAULT_CACERT: /vault/userconfig/vault-ha-tls/kubernetes-ca.crt
+  #   VAULT_TLSCERT: /vault/userconfig/vault-ha-tls/tls.crt
+  #   VAULT_TLSKEY: /vault/userconfig/vault-ha-tls/tls.key
+  # volumes:
+  #   - name: userconfig-vault-ha-tls
+  #     secret:
+  #       defaultMode: 420
+  #       secretName: vault-ha-tls
+  # volumeMounts:
+  #   - mountPath: /vault/userconfig/vault-ha-tls
+  #     name: userconfig-vault-ha-tls
+  #     readOnly: true
+
+  affinity: {}
+  # affinity: |
+  #   podAntiAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       - labelSelector:
+  #           matchLabels:
+  #             app.kubernetes.io/name: {{ template "vault.name" . }}
+  #             app.kubernetes.io/instance: "{{ .Release.Name }}"
+  #             component: server
+  #         topologyKey: kubernetes.io/hostname
+
+  annotations:
+    sidecar.istio.io/proxyCPU: "10m"
+
+  service:
+    enabled: true
+    active:
+      enabled: true
+    standby:
+      enabled: true
+    publishNotReadyAddresses: true
+
+  dev:
+    enabled: false
+
+  standalone:
+    enabled: false
+
+  ha:
+    enabled: true
+    replicas: 3
+
+    raft:
+      enabled: true
+      setNodeId: true
+      config: |
+        ui = true
+        listener "tcp" {
+           address = "[::]:8200"
+           cluster_address = "[::]:8201"
+           tls_disable = "true"
+           # tls_cert_file = "/vault/userconfig/vault-ha-tls/tls.crt"
+           # tls_key_file  = "/vault/userconfig/vault-ha-tls/tls.key"
+           # tls_client_ca_file = "/vault/userconfig/vault-ha-tls/kubernetes-ca.crt"
+        }
+        cluster_name = "vault-integrated-storage"
+        storage "raft" {
+           path    = "/vault/data/"
+        }
+        service_registration "kubernetes" {}
+
+ui:
+  enabled: true
+  publishNotReadyAddresses: true
+
+csi:
+  enabled: false
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 50m
+      memory: 128Mi
+  pod:
+    annotations: {}
+  agent:
+    enabled: true
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 10m
+      limits:
+        memory: 256Mi
+        cpu: 250m
