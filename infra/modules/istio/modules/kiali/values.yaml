@@ -1,0 +1,3 @@
+deployment:
+  pod_labels:
+    sidecar.istio.io/inject: "false"
