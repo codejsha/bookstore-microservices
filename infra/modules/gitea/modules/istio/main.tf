@@ -1,0 +1,121 @@
+resource "kubernetes_manifest" "istio_gateway" {
+  manifest = {
+    apiVersion = "networking.istio.io/v1"
+    kind       = "Gateway"
+    metadata = {
+      name      = "${var.name_prefix}-gw"
+      namespace = var.namespace
+    }
+    spec = {
+      selector = {
+        istio = "ingressgateway"
+      }
+      servers = [
+        {
+          port = {
+            number   = 80
+            name     = "http"
+            protocol = "HTTP"
+          }
+          hosts = [
+            var.host_address
+          ]
+        },
+        {
+          port = {
+            number   = 443
+            name     = "https"
+            protocol = "HTTPS"
+          }
+          hosts = [
+            var.host_address
+          ]
+          tls = {
+            mode           = "SIMPLE"
+            credentialName = "${var.name_prefix}-cert"
+          }
+        }
+      ]
+    }
+  }
+}
+
+resource "kubernetes_manifest" "istio_virtual_service" {
+  manifest = {
+    apiVersion = "networking.istio.io/v1"
+    kind       = "VirtualService"
+    metadata = {
+      name      = "${var.name_prefix}-vs"
+      namespace = var.namespace
+    }
+    spec = {
+      hosts = [
+        var.host_address
+      ]
+      gateways = [
+        kubernetes_manifest.istio_gateway.manifest.metadata.name,
+      ]
+      http = [
+        {
+          route = [
+            {
+              destination = {
+                host = var.host_fqdn
+                port = {
+                  number = 80
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+resource "kubernetes_manifest" "istio_destination_rule" {
+  manifest = {
+    apiVersion = "networking.istio.io/v1"
+    kind       = "DestinationRule"
+    metadata = {
+      name      = "${var.name_prefix}-dr"
+      namespace = var.namespace
+    }
+    spec = {
+      host = var.host_fqdn
+      trafficPolicy = {
+        loadBalancer = {
+          simple = "ROUND_ROBIN"
+        },
+        tls = {
+          mode = "DISABLE"
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_manifest" "service" {
+  manifest = {
+    apiVersion = "v1"
+    kind       = "Service"
+    metadata = {
+      name      = "${var.name_prefix}-http"
+      namespace = var.namespace
+    }
+    spec = {
+      selector = {
+        "app.kubernetes.io/instance" = var.name_prefix
+        "app.kubernetes.io/name"     = var.name_prefix
+      }
+      ports = [
+        {
+          name       = "http"
+          protocol   = "TCP"
+          port       = 80
+          targetPort = "http"
+        }
+      ]
+    }
+  }
+}

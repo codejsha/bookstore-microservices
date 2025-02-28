@@ -1,0 +1,35 @@
+serviceAccount:
+  create: true
+  name: "gitea-sa"
+  automountServiceAccountToken: true
+automountServiceAccountToken: true
+
+podAnnotations:
+  sidecar.istio.io/proxyCPU: "10m"
+resources:
+  requests:
+    cpu: 10m
+    memory: 1024Mi
+  limits:
+    cpu: 750m
+    memory: 1536Mi
+
+postgresql:
+  enabled: true
+  auth:
+    username: gitea
+    password: gitea
+    database: gitea_db
+  architecture: standalone
+  primary:
+    podAnnotations:
+      sidecar.istio.io/proxyCPU: "10m"
+    resources:
+      requests:
+        cpu: 10m
+        memory: 512Mi
+        ephemeral-storage: 50Mi
+      limits:
+        cpu: 750m
+        memory: 768Mi
+        ephemeral-storage: 2Gi
