@@ -1,0 +1,149 @@
+global:
+  domain: argocd.example.com
+
+configs:
+  params:
+    server.insecure: true
+  cm:
+    accounts.devadmin: apiKey, login
+    accounts.devopsadmin: apiKey, login
+  rbac:
+    create: true
+    policy.default: role:readonly
+    policy.csv: |
+      p, role:develop-role, applications, get, */*, allow
+      p, role:develop-role, applications, update, */*, allow
+      p, role:develop-role, applications, sync, */*, allow
+      g, devadmin, role:develop-role
+      g, devadmin@example.com, role:develop-role
+      g, devopsadmin, role:admin
+      g, devopsadmin@example.com, role:admin
+    scopes: "[groups, email]"
+
+controller:
+  podAnnotations:
+    sidecar.istio.io/proxyCPU: "10m"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 10m
+      memory: 256Mi
+
+dex:
+  initImage:
+    resources:
+      requests:
+        cpu: 5m
+        memory: 96Mi
+      limits:
+        cpu: 10m
+        memory: 144Mi
+  podAnnotations:
+    sidecar.istio.io/proxyCPU: "10m"
+  resources:
+    limits:
+      cpu: 50m
+      memory: 64Mi
+    requests:
+      cpu: 10m
+      memory: 32Mi
+
+redis:
+  exporter:
+    enabled: false
+    resources:
+      limits:
+        cpu: 50m
+        memory: 64Mi
+      requests:
+        cpu: 10m
+        memory: 32Mi
+  podAnnotations:
+    sidecar.istio.io/proxyCPU: "10m"
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+redisSecretInit:
+  enabled: true
+  podAnnotations:
+    sidecar.istio.io/inject: "false"
+    sidecar.istio.io/proxyCPU: "10m"
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+server:
+  extensions:
+    resources:
+      limits:
+        cpu: 50m
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+  podAnnotations:
+    sidecar.istio.io/proxyCPU: "10m"
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+repoServer:
+  podAnnotations:
+    sidecar.istio.io/proxyCPU: "10m"
+  resources:
+    limits:
+      cpu: 50m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+applicationSet:
+  podAnnotations:
+    sidecar.istio.io/proxyCPU: "10m"
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 128Mi
+
+notifications:
+  enabled: true
+  podAnnotations:
+    sidecar.istio.io/proxyCPU: "10m"
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 128Mi
+
+commitServer:
+  enabled: false
+  podAnnotations:
+    sidecar.istio.io/proxyCPU: "10m"
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 128Mi
