@@ -1,7 +1,3 @@
-data "vault_generic_secret" "admin_helm_ssh_keys" {
-  path = "kv/gitea/ssh/${local.admin_service}-helm"
-}
-
 data "vault_generic_secret" "catalog_helm_ssh_keys" {
   path = "kv/gitea/ssh/${local.catalog_service}-helm"
 }
