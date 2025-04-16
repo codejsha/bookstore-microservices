@@ -1,0 +1,18 @@
+{{- if .Values.istio.enabled -}}
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: {{ include "order.fullname" . }}-dr
+  labels:
+    {{- include "order.labels" . | nindent 4 }}
+  {{- with .Values.istio.destinationRule.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ include "order.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+  {{- with .Values.istio.trafficPolicy }}
+  trafficPolicy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

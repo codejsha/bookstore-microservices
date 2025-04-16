@@ -1,0 +1,8 @@
+istio:
+  enabled: true
+  host: "catalog-query.example.com"
+  tls:
+    enabled: false
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN

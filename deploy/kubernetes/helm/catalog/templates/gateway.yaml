@@ -1,0 +1,46 @@
+{{- if .Values.istio.enabled -}}
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "catalog.fullname" . }}-gw
+  labels:
+    {{- include "catalog.labels" . | nindent 4 }}
+  {{- with .Values.istio.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - {{ .Values.istio.host }}
+      {{- if .Values.istio.tls.httpsRedirect }}
+      tls:
+        httpsRedirect: true
+      {{- end }}
+    {{- if .Values.istio.tls.enabled }}
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - {{ .Values.istio.host }}
+      tls:
+        {{- if .Values.istio.tls.mode "SIMPLE" }}
+        mode: SIMPLE
+        credentialName: {{ .Values.istio.tls.credentialName }}
+        {{- end }}
+        {{- if .Values.istio.tls.mode "MUTUAL" }}
+        mode: MUTUAL
+        credentialName: {{ .Values.istio.tls.credentialName }}
+        {{- end }}
+        {{- if .Values.istio.tls.mode "PASSTHROUGH" }}
+        mode: PASSTHROUGH
+        {{- end }}
+    {{- end }}
+{{- end }}
