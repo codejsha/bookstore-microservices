@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package publisher.v1;
+
+service PublisherService {
+  rpc FindAllPublishers (PublisherFindAllProtoReq) returns (PublisherFindAllProtoResp) {}
+  rpc FindPublisher (PublisherFindProtoReq) returns (PublisherFindProtoResp) {}
+}
+
+message PublisherFindAllProtoReq {
+  optional string name = 1;
+  optional QueryFilter filter = 2;
+}
+
+message QueryFilter {
+  string sort = 1;
+  string order = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message PublisherFindAllProtoResp {
+  int64 total = 1;
+  repeated PublisherFindProtoResp items = 2;
+}
+
+message PublisherFindProtoReq {
+  int64 id = 1;
+}
+
+message PublisherFindProtoResp {
+  int64 id = 1;
+  string name = 2;
+  optional string address = 3;
+}

@@ -1,0 +1,29 @@
+{{! SPDX-License-Identifier: APACHE-2.0 }}
+{{! SPDX-FileCopyrightText: Copyright 2025 Jinseong Ha }}
+{{>partial_header}}
+package {{packageName}}
+{{#operations}}
+{{#operation}}
+
+{{#hasBodyParam}}
+{{#summary}}
+// {{{.}}}
+{{/summary}}
+{{#notes}}
+// {{{unescapedNotes}}}
+{{/notes}}
+{{#bodyParam}}
+{{#isModel}}
+// (model: {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}})
+{{/isModel}}
+{{^isModel}}
+type {{#vendorExtensions.x-go-request-class}}{{{.}}}{{/vendorExtensions.x-go-request-class}}{{^vendorExtensions.x-go-request-class}}{{operationId}}Request{{/vendorExtensions.x-go-request-class}} struct {
+    {{#items}}
+    {{#lambda.titlecase}}{{name}}{{/lambda.titlecase}} {{#isNullable}}*{{/isNullable}}{{{dataType}}} `json:"{{baseName}}{{^required}},omitempty{{/required}}"{{#vendorExtensions.x-go-custom-tag}} {{{.}}}{{/vendorExtensions.x-go-custom-tag}}`
+    {{/items}}
+}
+{{/isModel}}
+{{/bodyParam}}
+{{/hasBodyParam}}
+{{/operation}}
+{{/operations}}

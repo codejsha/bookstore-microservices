@@ -1,0 +1,336 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Keycloak OpenID Connect API",
+    "description": "Keycloak OpenID Connect API of Bookstore microservices",
+    "version": "0.0.0",
+    "contact": {
+      "name": "Admin",
+      "email": "admin@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://keycloak.keycloak.svc.cluster.local",
+      "description": "keycloak service"
+    },
+    {
+      "url": "http://localhost:8080",
+      "description": "localhost"
+    }
+  ],
+  "tags": [
+    {
+      "name": "OpenIDConnect",
+      "description": "Operations about OpenID Connect"
+    }
+  ],
+  "paths": {
+    "/realms/{realm}/protocol/openid-connect/token": {
+      "$ref": "./paths/realms__realm__protocol_openid-connect_token.json"
+    },
+    "/realms/{realm}/protocol/openid-connect/token/introspect": {
+      "$ref": "./paths/realms__realm__protocol_openid-connect_token_introspect.json"
+    },
+    "/realms/{realm}/protocol/openid-connect/userinfo": {
+      "$ref": "./paths/realms__realm__protocol_openid-connect_userinfo.json"
+    },
+    "/realms/{realm}/protocol/openid-connect/logout": {
+      "$ref": "./paths/realms__realm__protocol_openid-connect_logout.json"
+    }
+  },
+  "components": {
+    "parameters": {
+    },
+    "schemas": {
+      "GrantType": {
+        "type": "string",
+        "enum": [
+          "password",
+          "refresh_token"
+        ]
+      },
+      "TokenExchangeWebReq": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string"
+          },
+          "client_secret": {
+            "type": "string"
+          },
+          "grant_type": {
+            "$ref": "#/components/schemas/GrantType"
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_id",
+          "client_secret",
+          "grant_type",
+          "scope"
+        ]
+      },
+      "TokenExchangeWebResp": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "integer"
+          },
+          "refresh_expires_in": {
+            "type": "integer"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string"
+          },
+          "id_token": {
+            "type": "string",
+            "description": "openid scope"
+          },
+          "not-before-policy": {
+            "type": "integer"
+          },
+          "session_state": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_in",
+          "refresh_expires_in",
+          "refresh_token",
+          "token_type",
+          "not-before-policy",
+          "session_state",
+          "scope"
+        ]
+      },
+      "TokenIntrospectWebReq": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string"
+          },
+          "client_secret": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_id",
+          "client_secret",
+          "token"
+        ]
+      },
+      "TokenIntrospectWebResp": {
+        "type": "object",
+        "properties": {
+          "exp": {
+            "type": "integer"
+          },
+          "iat": {
+            "type": "integer"
+          },
+          "jti": {
+            "type": "string"
+          },
+          "iss": {
+            "type": "string"
+          },
+          "aud": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sub": {
+            "type": "string"
+          },
+          "typ": {
+            "type": "string"
+          },
+          "azp": {
+            "type": "string"
+          },
+          "sid": {
+            "type": "string"
+          },
+          "acr": {
+            "type": "string"
+          },
+          "allowed-origins": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "realm_access": {
+            "type": "object",
+            "properties": {
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "resource_access": {
+            "type": "object",
+            "properties": {
+              "realm-management": {
+                "type": "object",
+                "properties": {
+                  "roles": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "account": {
+                "type": "object",
+                "properties": {
+                  "roles": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "scope": {
+            "type": "string"
+          },
+          "email_verified": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "preferred_username": {
+            "type": "string"
+          },
+          "given_name": {
+            "type": "string"
+          },
+          "family_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UserinfoWebReq": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token"
+        ]
+      },
+      "UserinfoWebResp": {
+        "type": "object",
+        "properties": {
+          "sub": {
+            "type": "string"
+          },
+          "email_verified": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "preferred_username": {
+            "type": "string"
+          },
+          "given_name": {
+            "type": "string"
+          },
+          "family_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sub",
+          "email_verified",
+          "name",
+          "preferred_username",
+          "given_name",
+          "family_name",
+          "email"
+        ]
+      },
+      "LogoutWebRequest": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string"
+          },
+          "client_secret": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_id",
+          "client_secret",
+          "refresh_token"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

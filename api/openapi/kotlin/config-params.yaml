@@ -1,0 +1,21 @@
+generatorName: kotlin-spring
+globalProperties:
+  apis: ""
+additionalProperties:
+  apiPackage: com.codejsha.bookstore.service.application.port.openapi.model
+  modelPackage: com.codejsha.bookstore.service.application.port.openapi.model
+  sourceFolder: ""
+  useSpringBoot3: true
+  interfaceOnly: true
+  useTags: true
+  documentationProvider: none
+  annotationLibrary: none
+  useSwaggerUI: false
+inputSpec: api/openapi/openapi-bundle.json
+outputDir: src/main/generated
+ignoreFileOverride: ../../api/openapi/kotlin/config-params.openapi-generator-ignore
+templateDir: ../../api/openapi/kotlin/templates
+files:
+  params.mustache:
+    templateType: API
+    destinationFilename: Params.kt

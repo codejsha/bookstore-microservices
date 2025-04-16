@@ -1,0 +1,18 @@
+generatorName: go
+globalProperties:
+  apis: ""
+additionalProperties:
+  packageName: idp
+  generateInterfaces: true
+inputSpec: api/idp/admin-openapi-bundle.json
+outputDir: internal/application/port/idp
+ignoreFileOverride: ../../api/idp/config-params.openapi-generator-ignore
+validateSpec: false
+templateDir: ../../api/idp/templates
+files:
+  params.mustache:
+    templateType: API
+    destinationFilename: _params.go
+  request.mustache:
+    templateType: API
+    destinationFilename: _requests.go

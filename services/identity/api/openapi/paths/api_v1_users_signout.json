@@ -1,0 +1,40 @@
+{
+  "post": {
+    "tags": [
+      "Identity"
+    ],
+    "summary": "Sign-out user (Logout)",
+    "description": "Sign-out user",
+    "x-go-params-class": "SignOutWebParam",
+    "parameters": [
+      {
+        "name": "X-Refresh-Token",
+        "in": "header",
+        "description": "Refresh token",
+        "schema": {
+          "type": "string"
+        },
+        "required": true
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Signed out"
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

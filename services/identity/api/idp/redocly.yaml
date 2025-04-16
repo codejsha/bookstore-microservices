@@ -1,0 +1,12 @@
+apis:
+  oidc@v1:
+    root: ./oidc-openapi.json
+    output: ./oidc-openapi-bundle.json
+    decorators:
+      info-override:
+        version: "0.1.0"
+
+  admin@v1:
+    root: ./admin-openapi.json
+    output: ./admin-openapi-bundle.json
+    # decorators:

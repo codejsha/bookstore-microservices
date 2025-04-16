@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package order.v1;
+
+service OrderService {
+  rpc FindAllOrders (OrderFindAllProtoReq) returns (OrderFindAllProtoResp) {}
+  rpc FindOrder (OrderFindProtoReq) returns (OrderFindProtoResp) {}
+}
+
+message OrderFindAllProtoReq {
+  optional string user_id = 1;
+  optional OrderStatus status = 2;
+  optional QueryFilter filter = 3;
+}
+
+message QueryFilter {
+  string sort = 1;
+  string order = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message OrderFindAllProtoResp {
+  int64 total = 1;
+  repeated OrderFindProtoResp items = 2;
+}
+
+message OrderFindProtoReq {
+  int64 id = 1;
+}
+
+message OrderFindProtoResp {
+  int64 id = 1;
+  string user_id = 2;
+  repeated OrderItem orderItems = 3;
+  double total_price = 4;
+  OrderStatus status = 5;
+}
+
+enum OrderStatus {
+  UNKNOWN = 0;
+  PENDING = 1;
+  PAID = 2;
+  SHIPPING = 3;
+  COMPLETED = 4;
+  CANCELLED = 5;
+}
+
+message OrderItem {
+  int64 book_id = 1;
+  int32 quantity = 2;
+}

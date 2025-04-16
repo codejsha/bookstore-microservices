@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package book.v1;
+
+import "modules/category/v1/category.proto";
+import "modules/publisher/v1/publisher.proto";
+import "modules/author/v1/author.proto";
+
+service BookService {
+  rpc FindAllBooks (BookFindAllProtoReq) returns (BookFindAllProtoResp) {}
+  rpc FindBook (BookFindProtoReq) returns (BookFindProtoResp) {}
+}
+
+message BookFindAllProtoReq {
+  optional string title = 1;
+  optional string publisher = 2;
+  repeated int64 author_ids = 3;
+  optional QueryFilter filter = 4;
+}
+
+message QueryFilter {
+  string sort = 1;
+  string order = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message BookFindAllProtoResp {
+  int64 total = 1;
+  repeated BookFindProtoResp items = 2;
+}
+
+message BookFindProtoReq {
+  int64 id = 1;
+}
+
+message BookFindProtoResp {
+  int64 id = 1;
+  string title = 2;
+  optional string isbn = 3;
+  optional double price = 4;
+  optional string description = 5;
+  optional category.v1.CategoryFindProtoResp category = 6;
+  optional publisher.v1.PublisherFindProtoResp publisher = 7;
+  repeated author.v1.AuthorFindProtoResp authors = 8;
+  optional int64 quantity = 9;
+  optional int64 reserved_quantity = 10;
+}

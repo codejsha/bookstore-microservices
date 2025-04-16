@@ -1,0 +1,36 @@
+{
+  "get": {
+    "tags": [
+      "Payment"
+    ],
+    "summary": "Find all payments",
+    "description": "Find all payments",
+    "x-kotlin-params-class": "PaymentFindAllWebParam",
+    "parameters": [
+      {
+        "$ref": "../openapi.json#/components/parameters/Sort"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Order"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Limit"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Offset"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/PaymentFindAllWebResp"
+            }
+          }
+        }
+      }
+    }
+  }
+}

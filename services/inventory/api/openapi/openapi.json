@@ -1,0 +1,293 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Inventory service API",
+    "description": "Inventory service API of Bookstore microservices",
+    "version": "0.0.0",
+    "contact": {
+      "name": "Admin",
+      "email": "admin@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://inventory-command.bookstore.svc.cluster.local",
+      "description": "inventory command service"
+    },
+    {
+      "url": "http://inventory-query.bookstore.svc.cluster.local",
+      "description": "inventory query service"
+    },
+    {
+      "url": "http://localhost:8080",
+      "description": "localhost"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Stock",
+      "description": "Operations about stock"
+    },
+    {
+      "name": "Warehouse",
+      "description": "Operations about warehouses"
+    }
+  ],
+  "paths": {
+    "/api/v1/stocks": {
+      "$ref": "./paths/api_v1_stocks.json"
+    },
+    "/api/v1/stocks/{id}": {
+      "$ref": "./paths/api_v1_stocks__id_.json"
+    },
+    "/api/v1/warehouses": {
+      "$ref": "./paths/api_v1_warehouses.json"
+    },
+    "/api/v1/warehouses/{id}": {
+      "$ref": "./paths/api_v1_warehouses__id_.json"
+    }
+  },
+  "components": {
+    "parameters": {
+      "Sort": {
+        "name": "sort",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "default": "created_at"
+        },
+        "description": "Field to sort by"
+      },
+      "Order": {
+        "name": "order",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "default": "desc"
+        },
+        "description": "Sorting order"
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int",
+          "minimum": 1,
+          "default": 10
+        },
+        "description": "Number of items to return"
+      },
+      "Offset": {
+        "name": "offset",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int",
+          "minimum": 0,
+          "default": 0
+        },
+        "description": "The number of items to skip"
+      }
+    },
+    "schemas": {
+      "Stock": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "book_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "warehouse_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reserved_quantity": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "StockFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockFindWebResp"
+            }
+          }
+        }
+      },
+      "StockFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Stock"
+          }
+        ]
+      },
+      "StockUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/StockFindWebResp"
+          }
+        ]
+      },
+      "StockWebReq": {
+        "type": "object",
+        "properties": {
+          "book_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "warehouse_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reserved_quantity": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "StockCreateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/StockWebReq"
+          }
+        ]
+      },
+      "StockUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/StockWebReq"
+          }
+        ]
+      },
+      "StockDeleteWebReq": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Warehouse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "WarehouseFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WarehouseFindWebResp"
+            }
+          }
+        }
+      },
+      "WarehouseFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Warehouse"
+          }
+        ]
+      },
+      "WarehouseUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WarehouseFindWebResp"
+          }
+        ]
+      },
+      "WarehouseWebReq": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "WarehouseCreateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WarehouseWebReq"
+          }
+        ]
+      },
+      "WarehouseUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WarehouseWebReq"
+          }
+        ]
+      },
+      "WarehouseDeleteWebReq": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

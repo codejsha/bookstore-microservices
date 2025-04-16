@@ -1,0 +1,130 @@
+{
+  "get": {
+    "tags": [
+      "Book"
+    ],
+    "summary": "Find book",
+    "description": "Find book",
+    "x-go-params-class": "BookFindWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/BookFindWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    }
+  },
+  "put": {
+    "tags": [
+      "Book"
+    ],
+    "summary": "Update book",
+    "description": "Update book",
+    "x-go-params-class": "BookUpdateWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/BookUpdateWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Book updated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/BookUpdateWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    }
+  },
+  "delete": {
+    "tags": [
+      "Book"
+    ],
+    "summary": "Delete book",
+    "description": "Delete book",
+    "x-go-params-class": "BookDeleteWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Book deleted"
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "post": {
+    "tags": [
+      "OpenIDConnect"
+    ],
+    "summary": "Logout",
+    "description": "Logout",
+    "x-go-params-class": "LogoutWebParam",
+    "x-go-request-class": "LogoutRequest",
+    "parameters": [
+      {
+        "name": "realm",
+        "in": "path",
+        "schema": {
+          "type": "string",
+          "default": "bookstore"
+        },
+        "required": true
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/x-www-form-urlencoded": {
+          "schema": {
+            "$ref": "../oidc-openapi.json#/components/schemas/LogoutWebRequest"
+          }
+        }
+      }
+    },
+    "responses": {
+      "204": {
+        "description": "Logged out"
+      }
+    },
+    "security": [
+    ]
+  }
+}

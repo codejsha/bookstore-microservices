@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package user.v1;
+
+service UserService {
+  rpc FindAllUsers (UserFindAllProtoReq) returns (UserFindAllProtoResp) {}
+  rpc FindUser (UserFindProtoReq) returns (UserFindProtoResp) {}
+  rpc UpdateUser (UserUpdateProtoReq) returns (UserUpdateProtoResp) {}
+  rpc DeleteUser (UserDeleteProtoReq) returns (UserDeleteProtoResp) {}
+}
+
+message UserFindAllProtoReq {
+  optional string email = 1;
+  optional string name = 2;
+  optional string phone = 3;
+  optional QueryFilter filter = 4;
+}
+
+message QueryFilter {
+  string sort = 1;
+  string order = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message UserFindAllProtoResp {
+  int64 total = 1;
+  repeated UserFindProtoResp items = 2;
+}
+
+message UserFindProtoReq {
+  string id = 1;
+}
+
+message UserFindProtoResp {
+  string id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  optional string phone = 5;
+  repeated AuthRole roles = 6;
+}
+
+enum AuthRole {
+  UNKNOWN = 0;
+  SYSTEM = 1;
+  MANAGE = 2;
+  PROFILE = 3;
+  ORDER = 4;
+  VIEW = 5;
+}
+
+message UserUpdateProtoReq {
+  string id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  optional string phone = 5;
+  repeated AuthRole roles = 6;
+}
+
+message UserUpdateProtoResp {
+  string id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  optional string phone = 5;
+  repeated AuthRole roles = 6;
+}
+
+message UserDeleteProtoReq {
+  string id = 1;
+}
+
+message UserDeleteProtoResp {
+  string id = 1;
+}

@@ -1,0 +1,120 @@
+{
+  "get": {
+    "tags": [
+      "Warehouse"
+    ],
+    "summary": "Find warehouse",
+    "description": "Find warehouse",
+    "x-go-params-class": "WarehouseFindWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/WarehouseFindWebResp"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    }
+  },
+  "put": {
+    "tags": [
+      "Warehouse"
+    ],
+    "summary": "Update warehouse",
+    "description": "Update warehouse",
+    "x-go-params-class": "WarehouseUpdateWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/WarehouseUpdateWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Warehouse updated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/WarehouseUpdateWebResp"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  },
+  "delete": {
+    "tags": [
+      "Warehouse"
+    ],
+    "summary": "Delete warehouse",
+    "description": "Delete warehouse",
+    "x-go-params-class": "WarehouseDeleteWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Successful operation"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

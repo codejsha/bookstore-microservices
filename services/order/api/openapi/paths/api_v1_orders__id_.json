@@ -1,0 +1,35 @@
+{
+  "get": {
+    "tags": [
+      "Order"
+    ],
+    "summary": "Find order",
+    "description": "Find order",
+    "x-kotlin-params-class": "OrderFindWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true,
+        "description": "Order ID"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/OrderFindWebResp"
+            }
+          }
+        }
+      }
+    }
+  }
+}

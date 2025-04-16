@@ -1,0 +1,220 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Order service API",
+    "description": "Order service API of Bookstore microservices",
+    "version": "0.0.0",
+    "contact": {
+      "name": "Admin",
+      "email": "admin@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://order-command.bookstore.svc.cluster.local",
+      "description": "order command service"
+    },
+    {
+      "url": "http://order-query.bookstore.svc.cluster.local",
+      "description": "order query service"
+    },
+    {
+      "url": "http://localhost:8080",
+      "description": "localhost"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Order",
+      "description": "Operations about customer's orders"
+    }
+  ],
+  "paths": {
+    "/api/v1/orders": {
+      "$ref": "./paths/api_v1_orders.json"
+    },
+    "/api/v1/orders/{id}": {
+      "$ref": "./paths/api_v1_orders__id_.json"
+    }
+  },
+  "components": {
+    "parameters": {
+      "Sort": {
+        "name": "sort",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "default": "created_at"
+        },
+        "description": "Field to sort by"
+      },
+      "Order": {
+        "name": "order",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "default": "desc"
+        },
+        "description": "Sorting order"
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int",
+          "minimum": 1,
+          "default": 10
+        },
+        "description": "Number of items to return"
+      },
+      "Offset": {
+        "name": "offset",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int",
+          "minimum": 0,
+          "default": 0
+        },
+        "description": "The number of items to skip"
+      }
+    },
+    "schemas": {
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "order_items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "total_price": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          }
+        }
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "unknown",
+          "pending",
+          "paid",
+          "shipping",
+          "completed",
+          "cancelled"
+        ]
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "book_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrderFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderFindWebResp"
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
+      },
+      "OrderFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Order"
+          }
+        ]
+      },
+      "OrderUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OrderFindWebResp"
+          }
+        ]
+      },
+      "OrderWebReq": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "order_items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "total_price": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          }
+        }
+      },
+      "OrderCreateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OrderWebReq"
+          }
+        ]
+      },
+      "OrderUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OrderWebReq"
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

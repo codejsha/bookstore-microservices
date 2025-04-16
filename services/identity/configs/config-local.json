@@ -1,0 +1,14 @@
+{
+  "server": {
+    "port": "8080",
+    "mode": "debug"
+  },
+  "keycloak": {
+    "url": "http://keycloak.keycloak.svc.cluster.local",
+    "realm": "bookstore",
+    "client_id": "identity",
+    "client_secret": "password",
+    "realm_admin_username": "devopsadmin@example.com",
+    "realm_admin_password": "h1mQTlx6CzQrcvRA7BdBbVPJZpRiA9LD"
+  }
+}

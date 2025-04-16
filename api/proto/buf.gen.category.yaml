@@ -1,0 +1,36 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package
+      value: pb/categorypb
+    - file_option: java_multiple_files
+      value: true
+    - file_option: java_package
+      path: modules/category/v1/category.proto
+      value: com.codejsha.bookstore.service.application.port.pb.categorypb
+inputs:
+  - directory: .
+    paths:
+      - modules/category/v1/category.proto
+plugins:
+  ### catalog
+  - local: protoc-gen-go
+    out: ../../services/catalog/internal/application/port
+    opt: paths=import
+  - local: protoc-gen-go-grpc
+    out: ../../services/catalog/internal/application/port
+    opt: paths=import
+  ### inventory
+  - local: protoc-gen-go
+    out: ../../services/inventory/internal/application/port
+    opt: paths=import
+  - local: protoc-gen-go-grpc
+    out: ../../services/inventory/internal/application/port
+    opt: paths=import
+  ### order
+  - protoc_builtin: java
+    protoc_path: /opt/homebrew/bin/protoc
+    out: ../../services/order/src/main/generated
+  - local: protoc-gen-grpc-java
+    out: ../../services/order/src/main/generated

@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package category.v1;
+
+service CategoryService {
+  rpc FindAllCategories (CategoryFindAllProtoReq) returns (CategoryFindAllProtoResp) {}
+}
+
+message CategoryFindAllProtoReq {
+  optional QueryFilter filter = 1;
+}
+
+message QueryFilter {
+  string sort = 1;
+  string order = 2;
+}
+
+message CategoryFindAllProtoResp {
+  int64 total = 1;
+  repeated CategoryFindProtoResp items = 2;
+}
+
+message CategoryFindProtoResp {
+  int64 id = 1;
+  string name = 2;
+}

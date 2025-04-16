@@ -1,0 +1,210 @@
+{
+  "get": {
+    "tags": [
+      "Wishlist"
+    ],
+    "summary": "Find user's wishlist",
+    "description": "Find user's wishlist",
+    "x-go-params-class": "WishlistFindAllWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "string"
+        },
+        "required": true,
+        "description": "User ID"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/WishlistFindWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  },
+  "post": {
+    "tags": [
+      "Wishlist"
+    ],
+    "summary": "Create user's wishlist",
+    "description": "Create user's wishlist",
+    "x-go-params-class": "WishlistCreateWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "string"
+        },
+        "required": true,
+        "description": "User ID"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/WishlistCreateWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Resource created",
+        "headers": {
+          "Location": {
+            "description": "Location of the created resource",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  },
+  "put": {
+    "tags": [
+      "Wishlist"
+    ],
+    "summary": "Update user's wishlist",
+    "description": "Update user's wishlist",
+    "x-go-params-class": "WishlistUpdateWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "string"
+        },
+        "required": true,
+        "description": "User ID"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/WishlistUpdateWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Wishlist updated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/WishlistUpdateWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  },
+  "delete": {
+    "tags": [
+      "Wishlist"
+    ],
+    "summary": "Delete user's wishlist",
+    "description": "Delete user's wishlist",
+    "x-go-params-class": "WishlistDeleteWebParam",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "style": "simple",
+        "schema": {
+          "type": "string"
+        },
+        "required": true,
+        "description": "User ID"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/WishlistDeleteWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "204": {
+        "description": "Wishlist deleted"
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

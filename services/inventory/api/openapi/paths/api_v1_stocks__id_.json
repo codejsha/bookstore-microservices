@@ -1,0 +1,113 @@
+{
+  "get": {
+    "tags": [
+      "stocks"
+    ],
+    "summary": "Find stock",
+    "description": "Find stock",
+    "x-go-params-class": "StockFindWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/StockFindWebResp"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    }
+  },
+  "put": {
+    "tags": [
+      "stocks"
+    ],
+    "summary": "Update stock",
+    "description": "Update stock",
+    "x-go-params-class": "StockUpdateWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/StockUpdateWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Stock updated"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  },
+  "delete": {
+    "tags": [
+      "stocks"
+    ],
+    "summary": "Delete stock",
+    "description": "Delete stock",
+    "x-go-params-class": "StockDeleteWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Stock deleted"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

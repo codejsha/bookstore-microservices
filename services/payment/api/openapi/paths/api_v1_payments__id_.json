@@ -1,0 +1,35 @@
+{
+  "get": {
+    "tags": [
+      "Payment"
+    ],
+    "summary": "Find payment",
+    "description": "Find payment",
+    "x-kotlin-params-class": "PaymentFindWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "required": true,
+        "description": "Payment ID"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/PaymentFindWebResp"
+            }
+          }
+        }
+      }
+    }
+  }
+}

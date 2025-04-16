@@ -1,0 +1,2 @@
+TRUNCATE TABLE stock;
+TRUNCATE TABLE warehouse;

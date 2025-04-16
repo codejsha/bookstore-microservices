@@ -1,0 +1,8 @@
+{
+  "server": {
+    "port": "8080"
+  },
+  "database": {
+    "dsn": "root:password@tcp(127.0.0.1:3306)/inventory_db?charset=utf8mb4&parseTime=True&loc=Local"
+  }
+}

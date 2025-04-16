@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package payment.v1;
+
+import "google/protobuf/timestamp.proto";
+
+service PaymentService {
+  rpc FindAllPayments (PaymentFindAllProtoReq) returns (PaymentFindAllProtoResp) {}
+  rpc FindPayment (PaymentFindProtoReq) returns (PaymentFindProtoResp) {}
+}
+
+message PaymentFindAllProtoReq {
+  optional string user_id = 1;
+  optional int64 order_id = 2;
+  optional QueryFilter filter = 3;
+}
+
+message QueryFilter {
+  string sort = 1;
+  string order = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message PaymentFindAllProtoResp {
+  int64 total = 1;
+  repeated PaymentFindProtoResp items = 2;
+}
+
+message PaymentFindProtoReq {
+  int64 id = 1;
+}
+
+message PaymentFindProtoResp {
+  int64 id = 1;
+  int64 order_id = 2;
+  string user_id = 3;
+  string payment_type = 4;
+  string card_number = 5;
+  double amount = 6;
+  google.protobuf.Timestamp payment_date = 7;
+}

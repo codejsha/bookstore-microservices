@@ -1,0 +1,605 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Customer service API",
+    "description": "Customer service API of Bookstore microservices",
+    "version": "0.0.0",
+    "contact": {
+      "name": "Admin",
+      "email": "admin@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://customer-command.bookstore.svc.cluster.local",
+      "description": "customer command service"
+    },
+    {
+      "url": "http://customer-query.bookstore.svc.cluster.local",
+      "description": "customer query service"
+    },
+    {
+      "url": "http://localhost:8080",
+      "description": "localhost"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Customer",
+      "description": "Operations about customers"
+    },
+    {
+      "name": "Wishlist",
+      "description": "Operations about customer's wishlist"
+    },
+    {
+      "name": "Point",
+      "description": "Operations about customer's point"
+    },
+    {
+      "name": "Order",
+      "description": "Operations about customer's orders"
+    },
+    {
+      "name": "Payment",
+      "description": "Operations about customer's payments"
+    }
+  ],
+  "paths": {
+    "/api/v1/customers": {
+      "$ref": "./paths/api_v1_customers.json"
+    },
+    "/api/v1/customers/{id}:": {
+      "$ref": "./paths/api_v1_customers__id_.json"
+    },
+    "/api/v1/customers/{id}/wishlist": {
+      "$ref": "./paths/api_v1_customers__id__wishlist.json"
+    },
+    "/api/v1/customers/{id}/point": {
+      "$ref": "./paths/api_v1_customers__id__point.json"
+    },
+    "/api/v1/customers/{id}/orders": {
+      "$ref": "./paths/api_v1_customers__id__orders.json"
+    },
+    "/api/v1/customers/{id}/orders/{orderId}": {
+      "$ref": "./paths/api_v1_customers__id__orders__orderId_.json"
+    },
+    "/api/v1/customers/{id}/payments": {
+      "$ref": "./paths/api_v1_customers__id__payments.json"
+    },
+    "/api/v1/customers/{id}/payments/{paymentId}": {
+      "$ref": "./paths/api_v1_customers__id__payments__paymentId_.json"
+    }
+  },
+  "components": {
+    "parameters": {
+      "Sort": {
+        "name": "sort",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "default": "created_at"
+        },
+        "description": "Field to sort by"
+      },
+      "Order": {
+        "name": "order",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "default": "desc"
+        },
+        "description": "Sorting order"
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1,
+          "default": 10
+        },
+        "description": "Number of items to return"
+      },
+      "Offset": {
+        "name": "offset",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "default": 0
+        },
+        "description": "The number of items to skip"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "AuthRole": {
+        "type": "string",
+        "enum": [
+          "unknown",
+          "system",
+          "manage",
+          "profile",
+          "order",
+          "view"
+        ]
+      },
+      "CustomerFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerFindWebResp"
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
+      },
+      "CustomerFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/User"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "roles": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AuthRole"
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              }
+            }
+          },
+          {
+            "required": [
+              "id",
+              "email",
+              "roles"
+            ]
+          }
+        ]
+      },
+      "CustomerUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CustomerFindWebResp"
+          }
+        ]
+      },
+      "CustomerWebReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CustomerUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CustomerWebReq"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "roles": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AuthRole"
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              }
+            }
+          },
+          {
+            "required": [
+              "email",
+              "password",
+              "roles"
+            ]
+          }
+        ]
+      },
+      "Wishlist": {
+        "type": "object",
+        "properties": {
+          "book_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        }
+      },
+      "WishlistFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Wishlist"
+          }
+        ]
+      },
+      "WishlistUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WishlistFindWebResp"
+          }
+        ]
+      },
+      "WishlistWebReq": {
+        "type": "object",
+        "properties": {
+          "book_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        }
+      },
+      "WishlistCreateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WishlistWebReq"
+          }
+        ]
+      },
+      "WishlistUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WishlistWebReq"
+          }
+        ]
+      },
+      "WishlistDeleteWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WishlistWebReq"
+          }
+        ]
+      },
+      "Point": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "point": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PointFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Point"
+          }
+        ]
+      },
+      "PointUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PointFindWebResp"
+          }
+        ]
+      },
+      "PointWebReq": {
+        "type": "object",
+        "properties": {
+          "point": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PointUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PointWebReq"
+          }
+        ]
+      },
+      "Payment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "order_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "PaymentType": {
+            "type": "string",
+            "enum": [
+              "card"
+            ]
+          },
+          "card_number": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "payment_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaymentFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentFindWebResp"
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
+      },
+      "PaymentFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Payment"
+          }
+        ]
+      },
+      "PaymentUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PaymentFindWebResp"
+          }
+        ]
+      },
+      "PaymentWebReq": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "PaymentType": {
+            "type": "string",
+            "enum": [
+              "card"
+            ]
+          },
+          "card_number": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "payment_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaymentCreateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PaymentWebReq"
+          }
+        ]
+      },
+      "PaymentUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PaymentWebReq"
+          }
+        ]
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "order_items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "total_price": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          }
+        }
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "unknown",
+          "pending",
+          "paid",
+          "shipping",
+          "completed",
+          "cancelled"
+        ]
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "book_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrderFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderFindWebResp"
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
+      },
+      "OrderFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Order"
+          }
+        ]
+      },
+      "OrderUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OrderFindWebResp"
+          }
+        ]
+      },
+      "OrderWebReq": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "order_items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "total_price": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          }
+        }
+      },
+      "OrderCreateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OrderWebReq"
+          }
+        ]
+      },
+      "OrderUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OrderWebReq"
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

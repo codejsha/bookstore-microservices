@@ -1,0 +1,20 @@
+generatorName: go
+globalProperties:
+  apis: ""
+  models: ""
+  supportingFiles: ""
+additionalProperties:
+  packageName: idp
+  generateInterfaces: true
+  enumClassPrefix: true
+inputSpec: api/idp/admin-openapi-bundle.json
+outputDir: internal/application/port/idp
+ignoreFileOverride: ../../api/idp/config-all.openapi-generator-ignore
+validateSpec: false
+templateDir: ../../api/idp/templates
+files:
+  port.mustache:
+    templateType: API
+    destinationFilename: _port.go
+# openapiNormalizer:
+#   FILTER: ""

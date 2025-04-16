@@ -1,0 +1,47 @@
+{
+  "post": {
+    "tags": [
+      "OpenIDConnect"
+    ],
+    "summary": "Token introspection",
+    "description": "Token introspection",
+    "x-go-params-class": "TokenIntrospectWebParam",
+    "x-go-request-class": "TokenIntrospectRequest",
+    "x-go-response-class": "TokenIntrospectResponse",
+    "parameters": [
+      {
+        "name": "realm",
+        "in": "path",
+        "schema": {
+          "type": "string",
+          "default": "bookstore"
+        },
+        "required": true
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/x-www-form-urlencoded": {
+          "schema": {
+            "$ref": "../oidc-openapi.json#/components/schemas/TokenIntrospectWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Token introspected",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../oidc-openapi.json#/components/schemas/TokenIntrospectWebResp"
+            }
+          }
+        }
+      }
+    },
+    "security": [
+    ]
+  }
+}
