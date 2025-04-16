@@ -1,0 +1,95 @@
+{
+  "get": {
+    "tags": [
+      "Publisher"
+    ],
+    "summary": "Find all publishers",
+    "description": "Find all publishers",
+    "x-go-params-class": "PublisherFindAllWebParam",
+    "parameters": [
+      {
+        "name": "name",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Sort"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Order"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Limit"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Offset"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/PublisherFindAllWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "Publisher"
+    ],
+    "summary": "Add new publisher",
+    "description": "Add new publisher",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/PublisherCreateWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Resource created",
+        "headers": {
+          "Location": {
+            "description": "Location of the created resource",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

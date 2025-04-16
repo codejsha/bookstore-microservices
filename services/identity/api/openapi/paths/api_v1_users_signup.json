@@ -1,0 +1,48 @@
+{
+  "post": {
+    "tags": [
+      "Identity"
+    ],
+    "summary": "Sign-up user (Register)",
+    "description": "Sign-up user",
+    "x-go-request-class": "SignUpRequest",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/SignUpWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Signed up",
+        "headers": {
+          "Set-Cookie": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/SignUpWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    }
+  }
+}

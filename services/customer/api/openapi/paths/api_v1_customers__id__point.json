@@ -1,0 +1,104 @@
+{
+  "get": {
+    "tags": [
+      "Point"
+    ],
+    "summary": "Find customer's point",
+    "description": "Find customer's point",
+    "x-go-params-class": "PointFindAllWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "string"
+        },
+        "required": true,
+        "description": "User ID"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/PointFindWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  },
+  "put": {
+    "tags": [
+      "Point"
+    ],
+    "summary": "Update customer's point",
+    "description": "Update customer's point",
+    "x-go-params-class": "PointUpdateWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "string"
+        },
+        "required": true,
+        "description": "User ID"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/PointUpdateWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Point updated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/PointUpdateWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

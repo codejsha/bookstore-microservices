@@ -1,0 +1,77 @@
+{
+  "get": {
+    "tags": [
+      "Customer"
+    ],
+    "summary": "Find all customers",
+    "description": "Find all customers",
+    "x-go-params-class": "CustomerFindAllWebParam",
+    "parameters": [
+      {
+        "name": "email",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      {
+        "name": "name",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      {
+        "name": "phone",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Sort"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Order"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Limit"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Offset"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/CustomerFindAllWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

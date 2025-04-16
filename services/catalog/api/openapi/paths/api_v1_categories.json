@@ -1,0 +1,36 @@
+{
+  "get": {
+    "tags": [
+      "Category"
+    ],
+    "summary": "Find all categories",
+    "description": "Find all categories",
+    "x-go-params-class": "CategoryFindAllWebParam",
+    "parameters": [
+      {
+        "$ref": "../openapi.json#/components/parameters/Sort"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Order"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/CategoryFindAllWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    }
+  }
+}

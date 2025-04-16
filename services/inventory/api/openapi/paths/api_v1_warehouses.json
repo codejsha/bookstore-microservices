@@ -1,0 +1,81 @@
+{
+  "get": {
+    "tags": [
+      "Warehouse"
+    ],
+    "summary": "Find all warehouses",
+    "description": "Find all warehouses",
+    "x-go-params-class": "WarehouseFindAllWebParam",
+    "parameters": [
+      {
+        "name": "name",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Sort"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Order"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Limit"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Offset"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/WarehouseFindAllWebResp"
+            }
+          }
+        }
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "Warehouse"
+    ],
+    "summary": "Add new warehouse",
+    "description": "Add new warehouse",
+    "x-go-params-class": "WarehouseAddWebParam",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/WarehouseCreateWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Resource created",
+        "headers": {
+          "Location": {
+            "description": "Location of the created resource",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

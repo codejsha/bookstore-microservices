@@ -1,0 +1,17 @@
+{
+  "server": {
+    "port": "8080",
+    "mode": "debug"
+  },
+  "grpc": {
+    "port": "9090"
+  },
+  "database": {
+    "command_db": {
+      "dsn": "root:password@tcp(127.0.0.1:3306)/catalog_command_db?charset=utf8mb4&parseTime=True&loc=Local"
+    },
+    "query_db": {
+      "dsn": "root:password@tcp(127.0.0.1:3306)/catalog_query_db?charset=utf8mb4&parseTime=True&loc=Local"
+    }
+  }
+}

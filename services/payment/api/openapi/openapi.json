@@ -1,0 +1,212 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Payment service API",
+    "description": "Payment service API of Bookstore microservices",
+    "version": "0.0.0",
+    "contact": {
+      "name": "Admin",
+      "email": "admin@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://payment-command.bookstore.svc.cluster.local",
+      "description": "payment command service"
+    },
+    {
+      "url": "http://payment-query.bookstore.svc.cluster.local",
+      "description": "payment query service"
+    },
+    {
+      "url": "http://localhost:8080",
+      "description": "localhost"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Payment",
+      "description": "Operations about payments"
+    }
+  ],
+  "paths": {
+    "/api/v1/payments": {
+      "$ref": "./paths/api_v1_payments.json"
+    },
+    "/api/v1/payments/{id}": {
+      "$ref": "./paths/api_v1_payments__id_.json"
+    }
+  },
+  "components": {
+    "parameters": {
+      "Sort": {
+        "name": "sort",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "default": "created_at"
+        },
+        "description": "Field to sort by"
+      },
+      "Order": {
+        "name": "order",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "default": "desc"
+        },
+        "description": "Sorting order"
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int",
+          "minimum": 1,
+          "default": 10
+        },
+        "description": "Number of items to return"
+      },
+      "Offset": {
+        "name": "offset",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int",
+          "minimum": 0,
+          "default": 0
+        },
+        "description": "The number of items to skip"
+      }
+    },
+    "schemas": {
+      "Payment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "order_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "PaymentType": {
+            "$ref": "#/components/schemas/PaymentType"
+          },
+          "card_number": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "payment_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaymentType": {
+        "type": "string",
+        "enum": [
+          "card"
+        ]
+      },
+      "PaymentFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentFindWebResp"
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
+      },
+      "PaymentFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Payment"
+          }
+        ]
+      },
+      "PaymentUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PaymentFindWebResp"
+          }
+        ]
+      },
+      "PaymentWebReq": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "PaymentType": {
+            "$ref": "#/components/schemas/PaymentType"
+          },
+          "card_number": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "payment_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaymentCreateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PaymentWebReq"
+          }
+        ]
+      },
+      "PaymentUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PaymentWebReq"
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

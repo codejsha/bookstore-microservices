@@ -1,0 +1,12 @@
+generatorName: go-gin-server
+globalProperties:
+  apis: ""
+  models: ""
+additionalProperties:
+  apiPath: openapi
+  packageName: openapi
+  interfaceOnly: true
+  enumClassPrefix: true
+inputSpec: api/openapi/openapi-bundle.json
+outputDir: internal/application/port
+templateDir: ../../api/openapi/golang/templates

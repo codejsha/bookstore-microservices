@@ -1,0 +1,74 @@
+{
+  "get": {
+    "tags": [
+      "Payment"
+    ],
+    "summary": "Find customer's payments",
+    "description": "Find customer's payments",
+    "x-go-params-class": "PaymentFindAllWebParam",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "style": "simple",
+        "schema": {
+          "type": "string"
+        },
+        "required": true,
+        "description": "User ID"
+      },
+      {
+        "name": "order_id",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int64",
+          "nullable": true
+        },
+        "description": "Order ID"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Sort"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Order"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Limit"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Offset"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../openapi.json#/components/schemas/PaymentFindAllWebResp"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

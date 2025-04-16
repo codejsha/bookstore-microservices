@@ -1,0 +1,75 @@
+{
+  "get": {
+    "tags": [
+      "Order"
+    ],
+    "summary": "Find all orders",
+    "description": "Find all orders",
+    "x-kotlin-params-class": "OrderFindAllWebParam",
+    "parameters": [
+      {
+        "name": "user_id",
+        "in": "query",
+        "style": "simple",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Sort"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Order"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Limit"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Offset"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/OrderFindAllWebResp"
+            }
+          }
+        }
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "Order"
+    ],
+    "summary": "Create order",
+    "description": "Create order",
+    "x-kotlin-params-class": "OrderCreateWebParam",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/OrderCreateWebReq"
+          }
+        }
+      },
+    },
+    "responses": {
+      "201": {
+        "description": "Resource created",
+        "headers": {
+          "Location": {
+            "description": "Location of the created resource",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

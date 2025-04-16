@@ -1,0 +1,48 @@
+{
+  "post": {
+    "tags": [
+      "Identity"
+    ],
+    "summary": "Sign-in user (Login)",
+    "description": "Sign-in user",
+    "x-go-request-class": "SignInRequest",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/SignInWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Signed in",
+        "headers": {
+          "Set-Cookie": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/SignInWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    }
+  }
+}
