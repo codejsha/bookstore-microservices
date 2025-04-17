@@ -9,15 +9,16 @@ import org.springframework.data.domain.Page
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
-interface PaymentHandler {
-    fun handleFindAll(query: PaymentQuery.FindAllPayments): Page<PaymentEntity>
-    fun handleFind(query: PaymentQuery.FindPayment): PaymentEntity
-}
+@Component
+class PaymentHandler(
+    val handle: PaymentCommandHandlerImpl,
+    val paymentQueryHandler: PaymentQueryHandlerImpl
+) : PaymentQueryHandler by paymentQueryHandler
 
 @Component
-class PaymentHandlerImpl(
+class PaymentCommandHandlerImpl(
     private val paymentRepo: PaymentRepo
-) : PaymentHandler {
+) {
 
     @Transactional
     @WithSpan
@@ -36,6 +37,18 @@ class PaymentHandlerImpl(
     operator fun invoke(command: PaymentCommand.DeletePayment) {
         paymentRepo.deleteById(command.id)
     }
+}
+
+interface PaymentQueryHandler {
+    fun handleFindAll(query: PaymentQuery.FindAllPayments): Page<PaymentEntity>
+    fun handleFind(query: PaymentQuery.FindPayment): PaymentEntity
+}
+
+@Component
+class PaymentQueryHandlerImpl(
+    private val paymentRepo: PaymentRepo,
+    private val paymentCommandHandler: PaymentCommandHandlerImpl
+) : PaymentQueryHandler {
 
     @Transactional(readOnly = true)
     @WithSpan
