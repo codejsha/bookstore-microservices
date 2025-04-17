@@ -1,8 +1,8 @@
-package com.codejsha.bookstore.payment.infrastructure.server
+package com.codejsha.bookstore.order.infrastructure.support
 
-import com.codejsha.bookstore.payment.config.MetadataConfig
-import com.codejsha.bookstore.payment.config.properties.SpringConfig
-import com.codejsha.bookstore.payment.config.properties.TelemetryConfig
+import com.codejsha.bookstore.order.config.MetadataConfig
+import com.codejsha.bookstore.order.config.properties.SpringConfig
+import com.codejsha.bookstore.order.config.properties.TelemetryConfig
 import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator

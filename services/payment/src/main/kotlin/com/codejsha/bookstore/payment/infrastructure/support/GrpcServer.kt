@@ -1,4 +1,4 @@
-package com.codejsha.bookstore.payment.infrastructure.server
+package com.codejsha.bookstore.payment.infrastructure.support
 
 import com.codejsha.bookstore.payment.config.properties.GrpcConfig
 import com.codejsha.bookstore.payment.infrastructure.adapter.protosvc.PaymentGrpcServer
