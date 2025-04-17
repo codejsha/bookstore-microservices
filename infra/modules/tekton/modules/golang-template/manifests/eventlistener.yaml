@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: APACHE-2.0
+# SPDX-FileCopyrightText: Copyright 2025 Jinseong Ha
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: bookstore-golang
+spec:
+  serviceAccountName: git-source-sa
+  triggers:
+    - name: git-push-event-trigger
+      interceptors:
+        - ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: "header.match('X-Gitea-Event', 'push')"
+            - name: "overlays"
+              value:
+                - key: "service.name"
+                  expression: "body.repository.name.split('-')[0]"
+                - key: "repo.url"
+                  expression: "body.repository.ssh_url"
+                - key: "repo.name"
+                  expression: "body.repository.name"
+                - key: "ref"
+                  expression: "body.ref"
+                - key: "after"
+                  expression: "body.after"
+      bindings:
+        - ref: git-triggerbinding
+      template:
+        ref: golang-triggertemplate
+  resources:
+    kubernetesResource:
+      spec:
+        template:
+          metadata:
+            annotations:
+              sidecar.istio.io/proxyCPU: "10m"
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    cpu: 10m
+                    memory: 128Mi
+                  limits:
+                    cpu: 1
+                    memory: 1Gi
