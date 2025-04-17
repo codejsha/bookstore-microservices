@@ -34,19 +34,19 @@ class PaymentService(
     @WithSpan
     override fun createPayment(paymentDto: PaymentDto): PaymentEntity {
         val paymentEnt = paymentDto.toEntity()
-        val payment = paymentHandler.handleCommand(PaymentCommand.CreatePayment(paymentEnt))
+        val payment = paymentHandler.handle(PaymentCommand.CreatePayment(paymentEnt))
         return payment
     }
 
     @WithSpan
     override fun updatePayment(paymentDto: PaymentDto): PaymentEntity {
         val paymentEnt = paymentDto.toEntity()
-        val payment = paymentHandler.handleCommand(PaymentCommand.UpdatePayment(paymentEnt))
+        val payment = paymentHandler.handle(PaymentCommand.UpdatePayment(paymentEnt))
         return payment
     }
 
     @WithSpan
     override fun deletePayment(id: Long) {
-        return paymentHandler.handleCommand(PaymentCommand.DeletePayment(id))
+        return paymentHandler.handle(PaymentCommand.DeletePayment(id))
     }
 }
