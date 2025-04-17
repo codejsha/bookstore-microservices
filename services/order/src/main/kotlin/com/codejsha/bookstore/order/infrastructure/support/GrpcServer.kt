@@ -1,4 +1,4 @@
-package com.codejsha.bookstore.order.infrastructure.server
+package com.codejsha.bookstore.order.infrastructure.support
 
 import com.codejsha.bookstore.order.config.properties.GrpcConfig
 import com.codejsha.bookstore.order.infrastructure.adapter.protosvc.OrderGrpcServer

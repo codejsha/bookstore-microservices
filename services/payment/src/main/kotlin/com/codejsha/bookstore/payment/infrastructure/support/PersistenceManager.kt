@@ -1,4 +1,4 @@
-package com.codejsha.bookstore.payment.infrastructure.server
+package com.codejsha.bookstore.payment.infrastructure.support
 
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager
