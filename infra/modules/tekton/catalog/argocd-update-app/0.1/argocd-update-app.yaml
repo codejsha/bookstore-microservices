@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: APACHE-2.0
+# SPDX-FileCopyrightText: Copyright 2025 Jinseong Ha
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: argocd-update-app
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Deployment
+    tekton.dev/tags: deploy
+    tekton.dev/displayName: "Argo CD set application"
+spec:
+  description: >-
+    This task updates an Argo CD application with the specified parameters.
+  params:
+    - name: APPLICATION_NAME
+      description: name of the application to set
+      type: string
+    - name: FLAGS
+      description: arguments to pass to the command
+      type: array
+      default:
+        - ""
+    - name: ARGOCD_VERSION
+      default: latest
+  stepTemplate:
+    envFrom:
+      - configMapRef:
+          name: argocd-env-configmap
+      - secretRef:
+          name: argocd-env-secret
+  steps:
+    - name: update-app-params
+      image: docker.io/argoproj/argocd:$(params.ARGOCD_VERSION)
+      command: ["argocd"]
+      args:
+        - app
+        - set
+        - "$(params.APPLICATION_NAME)"
+        - "$(params.FLAGS[*])"

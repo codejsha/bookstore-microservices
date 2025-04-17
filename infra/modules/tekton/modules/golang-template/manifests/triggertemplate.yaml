@@ -1,0 +1,120 @@
+# SPDX-License-Identifier: APACHE-2.0
+# SPDX-FileCopyrightText: Copyright 2025 Jinseong Ha
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: golang-triggertemplate
+  namespace: "${namespace}"
+spec:
+  params:
+    - name: service-name
+    - name: git-repo-url
+    - name: git-repo-name
+    - name: git-ref
+    - name: git-revision
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: pipelinerun-golang-
+      spec:
+        pipelineRef:
+          resolver: git
+          params:
+            - name: url
+              value: http://gitea.gitea.svc.cluster.local/example-corp/tektoncd-catalog.git
+            - name: revision
+              value: main
+            - name: pathInRepo
+              value: task/golang-pipeline/0.1/golang-pipeline.yaml
+        taskRunSpecs:
+          - pipelineTaskName: clone-source-repo
+            taskServiceAccountName: git-source-sa
+          - pipelineTaskName: clone-deploy-repo
+            taskServiceAccountName: git-deploy-sa
+          - pipelineTaskName: commit-deploy-repo
+            taskServiceAccountName: git-deploy-sa
+        workspaces:
+          - name: shared-workspace
+            persistentvolumeclaim:
+              claimName: tekton-shared-workspace-pvc
+          - name: dockerconfig
+            configMap:
+              name: dockerconfig-configmap
+          - name: kubeconfig
+            configMap:
+              name: kubeconfig-configmap
+          - name: git-source-ssh-auth
+            secret:
+              secretName: $(tt.params.service-name)-repo-ssh-auth
+          - name: git-deploy-ssh-auth
+            secret:
+              secretName: $(tt.params.service-name)-helm-repo-ssh-auth
+
+        params:
+          ### git (code repo) params
+          - name: git-source-repo-url
+            value: $(tt.params.git-repo-url)
+          - name: git-source-revision
+            value: $(tt.params.git-revision)
+          - name: git-source-subdir
+            value: ./
+
+          ### make params
+          - name: working-dir
+            value: $(workspaces.source.path)
+          - name: args
+            value:
+              - replace
+              - LIB_REPO=gitea.gitea.svc.cluster.local/example-corp/commonlib-go
+              - LIB_VERSION=0.0.1
+              - build
+
+          ### kaniko params
+          - name: kaniko-image
+            value: harbor.harbor.svc.cluster.local/library/bookstore/$(tt.params.service-name):latest
+          - name: kaniko-dockerfile
+            value: ./ci/package/Dockerfile
+          - name: kaniko-context
+            value: ./
+          - name: kaniko-extra-args
+            value:
+              - --insecure-registry=harbor.harbor.svc.cluster.local
+              # - --insecure-registry=docker-group.nexus.example.com
+              # - --registry-mirror=docker-group.nexus.example.com
+              - --verbosity=info
+          - name: kaniko-builder-image
+            value: gcr.io/kaniko-project/executor:latest
+
+          ### git (deploy repo) params
+          - name: git-deploy-repo-url
+            value: http://gitea.gitea.svc.cluster.local/example-org/$(tt.params.git-repo-name)-helm.git
+          - name: git-deploy-revision
+            value: main
+          - name: git-deploy-subdir
+            value: ""
+
+          ### git (deploy repo) commit params
+          - name: git-deploy-user-name
+            value: devopsadmin
+          - name: git-deploy-user-email
+            value: devopsadmin@example.com
+          - name: git-deploy-script
+            value: |
+
+              git add .
+              git status
+              git commit -m "$(tt.params.git-ref)" --allow-empty
+              git remote set-url origin http://gitea.gitea.svc.cluster.local/example-org/$(tt.params.git-repo-name)-helm.git
+              git push origin HEAD:main
+
+          ### argocd (set and sync) params
+          - name: argocd-app-name
+            value: $(tt.params.service-name)
+          - name: argocd-set-flags
+            value:
+              - --insecure
+          - name: argocd-sync-flags
+            value: --insecure
+          - name: argocd-version
+            value: latest

@@ -1,0 +1,43 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: tekton-kustomization
+resources:
+  - https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.68.0/release.yaml
+  - https://storage.googleapis.com/tekton-releases/triggers/previous/v0.31.0/release.yaml
+  - https://storage.googleapis.com/tekton-releases/triggers/previous/v0.31.0/interceptors.yaml
+  - https://storage.googleapis.com/tekton-releases/dashboard/previous/v0.54.0/release.yaml
+  # - https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
+  # - https://storage.googleapis.com/tekton-releases/triggers/latest/release.yaml
+  # - https://storage.googleapis.com/tekton-releases/triggers/latest/interceptors.yaml
+  # - https://storage.googleapis.com/tekton-releases/dashboard/latest/release.yaml
+patches:
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: "/spec/template/spec/securityContext"
+        value:
+          seccompProfile:
+            type: RuntimeDefault
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: "/spec/template/metadata/annotations"
+        value:
+          sidecar.istio.io/proxyCPU: "10m"
+  - target:
+      kind: Deployment
+      name: "tekton-pipelines-webhook"
+    patch: |-
+      - op: replace
+        path: "/spec/template/spec/containers/0/resources/requests/cpu"
+        value: "10m"
+  - target:
+      kind: Deployment
+      name: "tekton-pipelines-remote-resolvers"
+    patch: |-
+      - op: replace
+        path: "/spec/template/spec/containers/0/resources/requests/cpu"
+        value: "10m"

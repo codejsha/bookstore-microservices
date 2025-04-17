@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: APACHE-2.0
+# SPDX-FileCopyrightText: Copyright 2025 Jinseong Ha
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: make
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Cli
+    tekton.dev/tags: build
+    tekton.dev/displayName: "Make"
+spec:
+  description: >-
+    This task runs make with the specified parameters.
+  workspaces:
+    - name: source
+  params:
+    - name: CONTEXT_DIR
+      description: context directory
+      type: string
+      default: ./
+    - name: TARGET_DIR
+      description: target directory
+      type: string
+      default: ./
+    - name: ARGS
+      description: arguments to pass
+      type: array
+      default:
+        - ""
+  steps:
+    - name: set-app-params
+      image: docker.io/alpine/make:latest
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
+      script: |
+        make -C $(params.TARGET_DIR) $(params.ARGS[*])
