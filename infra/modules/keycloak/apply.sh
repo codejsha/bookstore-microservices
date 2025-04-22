@@ -10,4 +10,4 @@ terraform init -upgrade
 terraform apply -auto-approve -target module.realm
 terraform apply -auto-approve -target module.helm || true
 terraform apply -auto-approve -target module.istio
- terraform apply -auto-approve -target module.cert
+terraform apply -auto-approve -target module.cert
