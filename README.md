@@ -260,7 +260,6 @@ Kubernetes 클러스터에 인프라 서비스 및 어플리케이션을 배포�
 
 - Building Microservices, 2E (O'Reilly) | 마이크로서비스 아키텍처 구축
 - Microservices Patterns (Manning) | 마이크로서비스 패턴
-- Building Event-Driven Microservices (O'Reilly) | 이벤트 기반 마이크로서비스 구축
 - Learning Domain-Driven Design (O'Reilly) | 도메인 주도 설계 첫걸음
 - Automating API Delivery (Manning)
 - gRPC: Up and Running (O'Reilly) | gRPC 시작에서 운영까지
