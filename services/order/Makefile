@@ -74,7 +74,7 @@ run:
 test:
 	sh gradlew test
 
-.PHONY: migrate-create
-migrate-create:
-	### make migrate-create VAR=create_table
-	migrate create -ext sql -dir db/migrations -seq $(VAR)
+.PHONY: migrate
+migrate:
+	sh gradlew flywayInfo
+	sh gradlew flywayMigrate

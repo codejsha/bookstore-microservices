@@ -1,12 +1,15 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.springframework.boot.gradle.tasks.bundling.BootJar
+import java.util.*
 
 plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
     id("org.springframework.boot") version "3.4.3"
     id("io.spring.dependency-management") version "1.1.7"
+
+    id("org.flywaydb.flyway") version "11.8.0"
 }
 
 group = findProperty("group") as String
@@ -91,6 +94,20 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
     }
+}
+
+val dbProps = Properties().apply {
+    val secretFile = file("/vault/secrets/db.properties")
+    if (secretFile.exists()) {
+        load(secretFile.inputStream())
+    }
+}
+
+flyway {
+    url = dbProps.getProperty("db.url", "")
+    user = dbProps.getProperty("db.user", "")
+    password = dbProps.getProperty("db.password", "")
+    locations = arrayOf("classpath:db/migrations")
 }
 
 tasks.withType<Test> {
