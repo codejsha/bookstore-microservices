@@ -59,7 +59,7 @@ openapi-gen:
 openapi: openapi-bundle openapi-gen
 
 .PHONY: gen
-gen: version buf openapi style
+gen: spec buf openapi style
 
 .PHONY: wire
 wire:
