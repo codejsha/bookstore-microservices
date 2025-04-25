@@ -84,7 +84,7 @@ idpapi-gen:
 idpapi: idpapi-download idpapi-bundle idpapi-gen
 
 .PHONY: gen
-gen: version buf openapi idpapi style
+gen: spec buf openapi idpapi style
 
 .PHONY: wire
 wire:
