@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class OrderWorker(
-    val orderUseCase: OrderUseCase,
-    val orderHandler: OrderHandler
+    val orderHandler: OrderHandler,
+    val orderUseCase: OrderUseCase
 ) {
 
     @WorkerTask(value = "place_order")
@@ -27,7 +27,7 @@ class OrderWorker(
         return result
     }
 
-    @WorkerTask(value = "change_status_to_paid")
+    @WorkerTask(value = "change_order_status")
     @WithSpan
     fun changeStatusToPaid(orderId: Long): TaskResult {
         val orderAgg = orderUseCase.findOrder(orderId).block()
