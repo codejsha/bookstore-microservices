@@ -2,7 +2,6 @@ package com.codejsha.bookstore.order.infrastructure.adapter.web
 
 import com.codejsha.bookstore.order.application.usecase.OrderUseCase
 import com.codejsha.bookstore.order.domain.model.FilterCondition
-import com.codejsha.bookstore.order.domain.model.OrderMapper
 import com.codejsha.bookstore.service.application.port.openapi.api.OrderApi
 import com.codejsha.bookstore.service.application.port.openapi.model.OrderCreateWebReq
 import com.codejsha.bookstore.service.application.port.openapi.model.OrderFindAllWebResp
@@ -46,8 +45,7 @@ class OrderController(
     }
 
     override fun apiV1OrdersPost(orderCreateWebReq: OrderCreateWebReq): Mono<Unit> {
-        val order = OrderMapper.toOrderEntity(orderCreateWebReq)
-        return orderUseCase.createOrder(order)
-            .then(Mono.empty())
+        // TODO implement me
+        throw UnsupportedOperationException("Not yet implemented")
     }
 }
