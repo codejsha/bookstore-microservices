@@ -76,7 +76,7 @@ public final class PaymentProto {
       " \001(\003R\007orderId\022\027\n\007user_id\030\003 \001(\tR\006userId\022!" +
       "\n\014payment_type\030\004 \001(\tR\013paymentType\022\037\n\013car" +
       "d_number\030\005 \001(\tR\ncardNumber\022\026\n\006amount\030\006 \001" +
-      "(\001R\006amount\022=\n\014payment_date\030\007 \001(\0132\032.googl" +
+      "(\tR\006amount\022=\n\014payment_date\030\007 \001(\0132\032.googl" +
       "e.protobuf.TimestampR\013paymentDate2\302\001\n\016Pa" +
       "ymentService\022\\\n\017FindAllPayments\022\".paymen" +
       "t.v1.PaymentFindAllProtoReq\032#.payment.v1" +

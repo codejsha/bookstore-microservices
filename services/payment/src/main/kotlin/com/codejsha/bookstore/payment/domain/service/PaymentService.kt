@@ -21,32 +21,35 @@ class PaymentService(
 
     @WithSpan
     override fun findAllPayments(cond: FilterCondition): List<PaymentEntity> {
-        val payments = paymentHandler.handleFindAll(PaymentQuery.FindAllPayments(cond)).toList()
+        val query = PaymentQuery.FindAllPayments(cond)
+        val payments = paymentHandler.handleFindAll(query).toList()
         return payments
     }
 
     @WithSpan
     override fun findPayment(id: Long): PaymentEntity {
-        val payment = paymentHandler.handleFind(PaymentQuery.FindPayment(id))
+        val query = PaymentQuery.FindPayment(id)
+        val payment = paymentHandler.handleFind(query)
         return payment
     }
 
     @WithSpan
     override fun createPayment(paymentDto: PaymentDto): PaymentEntity {
-        val paymentEnt = paymentDto.toEntity()
-        val payment = paymentHandler.handle(PaymentCommand.CreatePayment(paymentEnt))
+        val command = PaymentCommand.CreatePayment(paymentDto)
+        val payment = paymentHandler.handle(command)
         return payment
     }
 
     @WithSpan
     override fun updatePayment(paymentDto: PaymentDto): PaymentEntity {
-        val paymentEnt = paymentDto.toEntity()
-        val payment = paymentHandler.handle(PaymentCommand.UpdatePayment(paymentEnt))
+        val command = PaymentCommand.UpdatePayment(paymentDto)
+        val payment = paymentHandler.handle(command)
         return payment
     }
 
     @WithSpan
     override fun deletePayment(id: Long) {
-        return paymentHandler.handle(PaymentCommand.DeletePayment(id))
+        val command = PaymentCommand.DeletePayment(id)
+        return paymentHandler.handle(command)
     }
 }

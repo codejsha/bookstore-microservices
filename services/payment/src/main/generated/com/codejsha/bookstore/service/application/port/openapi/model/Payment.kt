@@ -38,7 +38,7 @@ data class Payment(
 
     @get:JsonProperty("card_number") val cardNumber: kotlin.String? = null,
 
-    @get:JsonProperty("amount") val amount: kotlin.Double? = null,
+    @get:JsonProperty("amount") val amount: java.math.BigDecimal? = null,
 
     @get:JsonProperty("payment_date") val paymentDate: java.time.OffsetDateTime? = null
     ) {

@@ -1,5 +1,16 @@
 spring:
+  application:
+    name: payment
   config:
     activate:
-      on-profile: local
+      on-profile: local-command,local-query
+    import: configserver:http://localhost:8888
+
+---
+spring:
+  application:
+    name: payment
+  config:
+    activate:
+      on-profile: dev-command,dev-query,qa-command,qa-query,stg-command,stg-query,prod-command,prod-query
     import: configserver:http://config-server.cloud-config.svc.cluster.local:8888
