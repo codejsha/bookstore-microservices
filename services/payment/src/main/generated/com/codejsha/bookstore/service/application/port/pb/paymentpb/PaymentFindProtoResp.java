@@ -30,6 +30,7 @@ private static final long serialVersionUID = 0L;
     userId_ = "";
     paymentType_ = "";
     cardNumber_ = "";
+    amount_ = "";
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
@@ -186,14 +187,42 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int AMOUNT_FIELD_NUMBER = 6;
-  private double amount_ = 0D;
+  @SuppressWarnings("serial")
+  private volatile java.lang.Object amount_ = "";
   /**
-   * <code>double amount = 6 [json_name = "amount"];</code>
+   * <code>string amount = 6 [json_name = "amount"];</code>
    * @return The amount.
    */
   @java.lang.Override
-  public double getAmount() {
-    return amount_;
+  public java.lang.String getAmount() {
+    java.lang.Object ref = amount_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      amount_ = s;
+      return s;
+    }
+  }
+  /**
+   * <code>string amount = 6 [json_name = "amount"];</code>
+   * @return The bytes for amount.
+   */
+  @java.lang.Override
+  public com.google.protobuf.ByteString
+      getAmountBytes() {
+    java.lang.Object ref = amount_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      amount_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
   }
 
   public static final int PAYMENT_DATE_FIELD_NUMBER = 7;
@@ -251,8 +280,8 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(cardNumber_)) {
       com.google.protobuf.GeneratedMessage.writeString(output, 5, cardNumber_);
     }
-    if (java.lang.Double.doubleToRawLongBits(amount_) != 0) {
-      output.writeDouble(6, amount_);
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(amount_)) {
+      com.google.protobuf.GeneratedMessage.writeString(output, 6, amount_);
     }
     if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(7, getPaymentDate());
@@ -283,9 +312,8 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(cardNumber_)) {
       size += com.google.protobuf.GeneratedMessage.computeStringSize(5, cardNumber_);
     }
-    if (java.lang.Double.doubleToRawLongBits(amount_) != 0) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeDoubleSize(6, amount_);
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(amount_)) {
+      size += com.google.protobuf.GeneratedMessage.computeStringSize(6, amount_);
     }
     if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
@@ -316,9 +344,8 @@ private static final long serialVersionUID = 0L;
         .equals(other.getPaymentType())) return false;
     if (!getCardNumber()
         .equals(other.getCardNumber())) return false;
-    if (java.lang.Double.doubleToLongBits(getAmount())
-        != java.lang.Double.doubleToLongBits(
-            other.getAmount())) return false;
+    if (!getAmount()
+        .equals(other.getAmount())) return false;
     if (hasPaymentDate() != other.hasPaymentDate()) return false;
     if (hasPaymentDate()) {
       if (!getPaymentDate()
@@ -348,8 +375,7 @@ private static final long serialVersionUID = 0L;
     hash = (37 * hash) + CARD_NUMBER_FIELD_NUMBER;
     hash = (53 * hash) + getCardNumber().hashCode();
     hash = (37 * hash) + AMOUNT_FIELD_NUMBER;
-    hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-        java.lang.Double.doubleToLongBits(getAmount()));
+    hash = (53 * hash) + getAmount().hashCode();
     if (hasPaymentDate()) {
       hash = (37 * hash) + PAYMENT_DATE_FIELD_NUMBER;
       hash = (53 * hash) + getPaymentDate().hashCode();
@@ -496,7 +522,7 @@ private static final long serialVersionUID = 0L;
       userId_ = "";
       paymentType_ = "";
       cardNumber_ = "";
-      amount_ = 0D;
+      amount_ = "";
       paymentDate_ = null;
       if (paymentDateBuilder_ != null) {
         paymentDateBuilder_.dispose();
@@ -596,8 +622,10 @@ private static final long serialVersionUID = 0L;
         bitField0_ |= 0x00000010;
         onChanged();
       }
-      if (other.getAmount() != 0D) {
-        setAmount(other.getAmount());
+      if (!other.getAmount().isEmpty()) {
+        amount_ = other.amount_;
+        bitField0_ |= 0x00000020;
+        onChanged();
       }
       if (other.hasPaymentDate()) {
         mergePaymentDate(other.getPaymentDate());
@@ -653,11 +681,11 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000010;
               break;
             } // case 42
-            case 49: {
-              amount_ = input.readDouble();
+            case 50: {
+              amount_ = input.readStringRequireUtf8();
               bitField0_ |= 0x00000020;
               break;
-            } // case 49
+            } // case 50
             case 58: {
               input.readMessage(
                   getPaymentDateFieldBuilder().getBuilder(),
@@ -962,34 +990,74 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private double amount_ ;
+    private java.lang.Object amount_ = "";
     /**
-     * <code>double amount = 6 [json_name = "amount"];</code>
+     * <code>string amount = 6 [json_name = "amount"];</code>
      * @return The amount.
      */
-    @java.lang.Override
-    public double getAmount() {
-      return amount_;
+    public java.lang.String getAmount() {
+      java.lang.Object ref = amount_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        amount_ = s;
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
     }
     /**
-     * <code>double amount = 6 [json_name = "amount"];</code>
+     * <code>string amount = 6 [json_name = "amount"];</code>
+     * @return The bytes for amount.
+     */
+    public com.google.protobuf.ByteString
+        getAmountBytes() {
+      java.lang.Object ref = amount_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        amount_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>string amount = 6 [json_name = "amount"];</code>
      * @param value The amount to set.
      * @return This builder for chaining.
      */
-    public Builder setAmount(double value) {
-
+    public Builder setAmount(
+        java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
       amount_ = value;
       bitField0_ |= 0x00000020;
       onChanged();
       return this;
     }
     /**
-     * <code>double amount = 6 [json_name = "amount"];</code>
+     * <code>string amount = 6 [json_name = "amount"];</code>
      * @return This builder for chaining.
      */
     public Builder clearAmount() {
+      amount_ = getDefaultInstance().getAmount();
       bitField0_ = (bitField0_ & ~0x00000020);
-      amount_ = 0D;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>string amount = 6 [json_name = "amount"];</code>
+     * @param value The bytes for amount to set.
+     * @return This builder for chaining.
+     */
+    public Builder setAmountBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      checkByteStringIsUtf8(value);
+      amount_ = value;
+      bitField0_ |= 0x00000020;
       onChanged();
       return this;
     }

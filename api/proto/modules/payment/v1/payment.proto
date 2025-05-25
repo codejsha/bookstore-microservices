@@ -37,6 +37,6 @@ message PaymentFindProtoResp {
   string user_id = 3;
   string payment_type = 4;
   string card_number = 5;
-  double amount = 6;
+  string amount = 6;
   google.protobuf.Timestamp payment_date = 7;
 }

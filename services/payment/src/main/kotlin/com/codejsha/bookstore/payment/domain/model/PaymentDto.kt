@@ -1,7 +1,7 @@
 package com.codejsha.bookstore.payment.domain.model
 
-import com.codejsha.bookstore.payment.domain.aggregate.entity.PaymentEntity
 import com.codejsha.bookstore.service.application.port.openapi.model.PaymentType
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 data class PaymentDto(
@@ -10,19 +10,6 @@ data class PaymentDto(
     val userId: String?,
     val paymentType: PaymentType?,
     val cardNumber: String?,
-    val amount: Double?,
-    val paymentDate: LocalDateTime?
-) {
-
-    fun toEntity() = PaymentEntity(
-        id = this.id!!,
-        orderId = this.orderId!!,
-        userId = this.userId!!,
-        paymentType = this.paymentType!!,
-        cardNumber = this.cardNumber!!,
-        amount = this.amount!!,
-        paymentDate = this.paymentDate!!,
-        createdAt = null,
-        updatedAt = null
-    )
-}
+    val amount: BigDecimal?,
+    val paymentDate: LocalDateTime? = null
+)

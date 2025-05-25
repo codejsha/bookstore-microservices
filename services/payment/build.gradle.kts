@@ -53,7 +53,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2024.0.0")
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2024.0.1")
         mavenBom("io.github.openfeign.querydsl:querydsl-bom:6.10.1")
         mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.14.0")
     }

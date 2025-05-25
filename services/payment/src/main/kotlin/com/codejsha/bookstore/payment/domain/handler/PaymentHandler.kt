@@ -23,13 +23,17 @@ class PaymentCommandHandlerImpl(
     @Transactional
     @WithSpan
     operator fun invoke(command: PaymentCommand.CreatePayment): PaymentEntity {
-        return paymentRepo.save(command.ent)
+        val entity = command.newEntity()
+        return paymentRepo.save(entity)
     }
 
     @Transactional
     @WithSpan
     operator fun invoke(command: PaymentCommand.UpdatePayment): PaymentEntity {
-        return paymentRepo.save(command.ent)
+        val entity = paymentRepo.findById(command.id)
+            .orElseThrow { IllegalArgumentException("Payment with id ${command.id} not found") }
+        entity.update(command)
+        return paymentRepo.save(entity)
     }
 
     @Transactional
@@ -53,12 +57,14 @@ class PaymentQueryHandlerImpl(
     @Transactional(readOnly = true)
     @WithSpan
     override fun handleFindAll(query: PaymentQuery.FindAllPayments): Page<PaymentEntity> {
-        return paymentRepo.findAll((query.cond.filter.toPageable()))
+        val pageable = query.cond.filter.toPageable()
+        return paymentRepo.findAll(pageable)
     }
 
     @Transactional(readOnly = true)
     @WithSpan
     override fun handleFind(query: PaymentQuery.FindPayment): PaymentEntity {
-        return paymentRepo.findById(query.id).orElseThrow()
+        return paymentRepo.findById(query.id)
+            .orElseThrow { IllegalArgumentException("Payment with id ${query.id} not found") }
     }
 }
