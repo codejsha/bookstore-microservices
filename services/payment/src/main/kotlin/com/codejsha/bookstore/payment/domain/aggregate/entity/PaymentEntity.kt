@@ -10,38 +10,37 @@ import jakarta.persistence.*
 import org.hibernate.Hibernate
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.ZoneId
 
 @Entity
 @Table(name = "payment")
+@EntityListeners(AuditingEntityListener::class)
 data class PaymentEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-    @Column var orderId: Long,
-    @Column var userId: String,
-    @Column @Enumerated(EnumType.STRING) var paymentType: PaymentType,
-    @Column var cardNumber: String,
-    @Column var amount: BigDecimal,
-    @Column var paymentDate: LocalDateTime,
-    @Column @CreatedDate var createdAt: LocalDateTime? = null,
-    @Column @LastModifiedDate var updatedAt: LocalDateTime? = null,
+    var orderId: Long,
+    var userId: String,
+    @Enumerated(EnumType.STRING) var paymentType: PaymentType,
+    var cardNumber: String,
+    var amount: BigDecimal,
+    var paymentDate: LocalDateTime,
+    @CreatedDate var createdAt: LocalDateTime? = null,
+    @LastModifiedDate var updatedAt: LocalDateTime? = null,
     @Version var version: Long? = null
 ) {
 
-    fun update(command: PaymentCommand.UpdatePayment) {
-        updateIfChanged(orderId, command.orderId) { this.orderId = it }
-        updateIfChanged(userId, command.userId) { this.userId = it }
-        updateIfChanged(paymentType, command.paymentType) { this.paymentType = it }
-        updateIfChanged(cardNumber, command.cardNumber) { this.cardNumber = it }
-        updateIfChanged(amount, command.amount) { this.amount = it }
-    }
-
-    fun <T> updateIfChanged(current: T, new: T?, setter: (T) -> Unit) {
-        if (new != null && current != new) setter(new)
-    }
+    fun update(command: PaymentCommand.UpdatePayment) =
+        apply {
+            orderId = command.orderId ?: orderId
+            userId = command.userId ?: userId
+            paymentType = command.paymentType ?: paymentType
+            cardNumber = command.cardNumber ?: cardNumber
+            amount = command.amount ?: amount
+        }
 
     fun toMap(): Map<String, Any?> {
         val map = mapOf(
@@ -56,6 +55,19 @@ data class PaymentEntity(
             "updatedAt" to updatedAt
         )
         return map
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false
+        other as PaymentEntity
+        return id == other.id &&
+                orderId == other.orderId &&
+                userId == other.userId
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hashCode(id, orderId, userId)
     }
 
     fun toPaymentFindWebResp(): PaymentFindWebResp {
@@ -78,42 +90,14 @@ data class PaymentEntity(
         val instant = paymentDate.toInstant(zoneOffset)
         val timestamp = Timestamp.newBuilder().setSeconds(instant.epochSecond).setNanos(instant.nano).build()
         val response = PaymentFindProtoResp.newBuilder()
-            .setId(id!!)
+            .setId(requireNotNull(id))
             .setOrderId(orderId)
             .setUserId(userId)
             .setPaymentType(paymentType.value)
             .setCardNumber(cardNumber)
-            .setAmount(amount.toString())
+            .setAmount(amount.toPlainString())
             .setPaymentDate(timestamp)
             .build()
         return response
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false
-        other as PaymentEntity
-        return id == other.id &&
-                orderId == other.orderId &&
-                userId == other.userId
-    }
-
-    override fun hashCode(): Int {
-        return Objects.hashCode(id, orderId, userId)
-    }
-
-    @Override
-    override fun toString(): String {
-        return this::class.simpleName + "(" +
-                "id = $id" +
-                ", orderId = $orderId" +
-                ", userId = $userId" +
-                ", paymentType = $paymentType" +
-                ", cardNumber = $cardNumber" +
-                ", amount = $amount" +
-                ", paymentDate = $paymentDate" +
-                ", createdAt = $createdAt" +
-                ", updatedAt = $updatedAt" +
-                ")"
     }
 }
