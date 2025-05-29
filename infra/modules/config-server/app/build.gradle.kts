@@ -7,8 +7,8 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 }
 
-group = "com.codejsha"
-version = "0.1.0"
+group = findProperty("group") as String
+version = findProperty("version") as String
 
 java {
     toolchain {
