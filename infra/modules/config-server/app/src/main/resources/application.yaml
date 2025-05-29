@@ -4,33 +4,34 @@ server:
 spring:
   application:
     name: config-server
+    version: 0.1.0
   cloud:
     config:
       server:
         git:
-          uri: http://gitea.gitea.svc.cluster.local/example-corp/cloud-config.git
+          uri: http://gitea.gitea.svc.cluster.local:3000/example-corp/cloud-config.git
           repos:
             catalog:
               pattern: catalog/*
-              uri: http://gitea.gitea.svc.cluster.local/example-corp/cloud-config.git
+              uri: http://gitea.gitea.svc.cluster.local:3000/example-corp/cloud-config.git
               search-paths: catalog
             customer:
               pattern: customer/*
-              uri: http://gitea.gitea.svc.cluster.local/example-corp/cloud-config.git
+              uri: http://gitea.gitea.svc.cluster.local:3000/example-corp/cloud-config.git
               search-paths: customer
             identity:
               pattern: identity/*
-              uri: http://gitea.gitea.svc.cluster.local/example-corp/cloud-config.git
+              uri: http://gitea.gitea.svc.cluster.local:3000/example-corp/cloud-config.git
               search-paths: identity
             inventory:
               pattern: inventory/*
-              uri: http://gitea.gitea.svc.cluster.local/example-corp/cloud-config.git
+              uri: http://gitea.gitea.svc.cluster.local:3000/example-corp/cloud-config.git
               search-paths: inventory
             order:
               pattern: order/*
-              uri: http://gitea.gitea.svc.cluster.local/example-corp/cloud-config.git
+              uri: http://gitea.gitea.svc.cluster.local:3000/example-corp/cloud-config.git
               search-paths: order
             payment:
               pattern: payment/*
-              uri: http://gitea.gitea.svc.cluster.local/example-corp/cloud-config.git
+              uri: http://gitea.gitea.svc.cluster.local:3000/example-corp/cloud-config.git
               search-paths: payment
