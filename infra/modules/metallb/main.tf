@@ -14,44 +14,29 @@ resource "kubernetes_namespace" "metallb" {
   }
 }
 
-resource "helm_release" "metallb" {
-  namespace  = kubernetes_namespace.metallb.metadata.0.name
-  name       = "metallb"
-  repository = "https://metallb.github.io/metallb"
-  chart      = "metallb"
-  version    = "0.9.3"
-}
+# module "legacy" {
+#   source         = "./modules/legacy"
+#   namespace      = kubernetes_namespace.metallb.metadata.0.name
+#   pool_addresses = var.pool_addresses
+#   providers = {
+#     kubernetes = kubernetes
+#     helm       = helm
+#   }
+# }
 
-resource "null_resource" "enable_strict_arp" {
-  provisioner "local-exec" {
-    command = <<EOT
-    kubectl get configmap kube-proxy -n kube-system -o yaml | \
-    sed -e "s/strictARP: false/strictARP: true/" | \
-    kubectl apply -f - -n kube-system
-    EOT
-  }
-  triggers = {
-    helm_release_name = helm_release.metallb.metadata.0.name
+module "helm" {
+  source    = "./modules/helm"
+  namespace = kubernetes_namespace.metallb.metadata.0.name
+  providers = {
+    helm = helm
   }
 }
 
-resource "kubernetes_manifest" "address_pool" {
-  depends_on = [null_resource.enable_strict_arp]
-  manifest = {
-    apiVersion = "v1"
-    kind       = "ConfigMap"
-    metadata = {
-      name      = "config"
-      namespace = kubernetes_namespace.metallb.metadata.0.name
-    }
-    data = {
-      config = <<EOT
-      address-pools:
-       - name: default
-         protocol: layer2
-         addresses:
-          - ${var.pool_addresses}
-      EOT
-    }
+module "pool" {
+  source         = "./modules/pool"
+  namespace      = kubernetes_namespace.metallb.metadata.0.name
+  pool_addresses = var.pool_addresses
+  providers = {
+    kubernetes = kubernetes
   }
 }
