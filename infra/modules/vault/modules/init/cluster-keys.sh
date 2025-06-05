@@ -3,9 +3,12 @@ trap 'echo "${BASH_SOURCE[0]}: line ${LINENO}: status ${?}: user ${USER}: func $
 set -o errexit
 set -o errtrace
 
-init_status=$(kubectl exec -n vault vault-0 -- vault status -format=json | jq -r '.initialized')
+pod_name="vault-0"
+namespace="vault"
+
+init_status=$(kubectl exec -n $namespace $pod_name -- vault status -format=json | jq -r '.initialized')
 if [ "${init_status}" == "false" ]; then
-    kubectl exec -n vault vault-0 -- vault operator init \
+    kubectl exec -n $namespace $pod_name -- vault operator init \
         -key-shares=1 \
         -key-threshold=1 \
         -format=json \

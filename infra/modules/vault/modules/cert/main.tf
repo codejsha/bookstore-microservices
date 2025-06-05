@@ -13,7 +13,6 @@ resource "tls_cert_request" "vault_csr" {
     organization = "system:nodes"
   }
   dns_names = [
-    "localhost",
     "vault.example.com",
     "vault.vault.svc",
     "*.vault.vault.svc",
@@ -22,7 +21,8 @@ resource "tls_cert_request" "vault_csr" {
     "vault-internal.vault.svc",
     "*.vault-internal.vault.svc",
     "vault-internal.vault.svc.cluster.local",
-    "*.vault-internal.vault.svc.cluster.local"
+    "*.vault-internal.vault.svc.cluster.local",
+    "localhost"
   ]
   ip_addresses = [
     "127.0.0.1"
@@ -52,9 +52,9 @@ resource "kubernetes_secret" "vault_ha_tls" {
     namespace = var.namespace
   }
   data = {
-    "tls.key"           = local_file.vault_key.content
-    "tls.crt"           = local_file.vault_crt.content
-    "kubernetes-ca.crt" = var.kube_ca_crt
+    "tls.key" = local_file.vault_key.content
+    "tls.crt" = local_file.vault_crt.content
+    "ca.crt"  = var.kube_ca_crt
   }
 }
 
