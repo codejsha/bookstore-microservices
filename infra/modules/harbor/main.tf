@@ -59,8 +59,8 @@ module "storage" {
 }
 
 module "helm" {
-  source    = "./modules/helm"
-  namespace = kubernetes_namespace.harbor.metadata.0.name
+  source         = "./modules/helm"
+  namespace      = kubernetes_namespace.harbor.metadata.0.name
   admin_password = var.harbor_password
   aws_access_key = var.aws_access_key
   aws_secret_key = var.aws_secret_key
@@ -78,9 +78,16 @@ module "istio" {
 }
 
 module "user" {
-  source = "./modules/user"
+  source         = "./modules/user"
   admin_password = var.harbor_password
   providers = {
     harbor = harbor
   }
+}
+
+module "project" {
+  source        = "./modules/project"
+  project_name  = "main"
+  project_users = module.user.harbor_users
+  user_role     = "projectadmin"
 }
