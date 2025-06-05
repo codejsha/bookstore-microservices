@@ -8,13 +8,18 @@ variable "minio_api_address" {
   type        = string
 }
 
-variable "minio_ui_address" {
-  description = "MinIO UI address"
+variable "minio_console_address" {
+  description = "MinIO Console address"
   type        = string
 }
 
 variable "minio_fqdn" {
   description = "MinIO FQDN"
+  type        = string
+}
+
+variable "minio_console_fqdn" {
+  description = "MinIO Console FQDN"
   type        = string
 }
 
