@@ -15,16 +15,18 @@ resource "helm_release" "gitea" {
   values = [
     file("${path.module}/values.yaml")
   ]
-  set {
-    name  = "adminUsername"
-    value = var.admin_username
-  }
-  set {
-    name  = "adminPassword"
-    value = var.admin_password
-  }
+  timeout = 120
+
   set {
     name  = "adminEmail"
     value = var.admin_email
+  }
+  set_sensitive {
+    name  = "adminUsername"
+    value = var.admin_username
+  }
+  set_sensitive {
+    name  = "adminPassword"
+    value = var.admin_password
   }
 }
