@@ -149,11 +149,12 @@ bin/
 temp/
 
 .terraform.lock.hcl
-kubernetes-ca.crt
+ca.crt
 int-ca.crt
+
 /infra/modules/argocd/modules/organization/keys/
-/infra/modules/reverse-proxy/proxy.crt
-/infra/modules/reverse-proxy/proxy.key
+/infra/kubernetes/minikube/proxy.crt
+/infra/kubernetes/minikube/proxy.key
 /infra/modules/vault/cluster-keys.json
 /infra/modules/vault/vault.key
 /infra/modules/vault/vault.crt
