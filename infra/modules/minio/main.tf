@@ -53,8 +53,8 @@ module "istio_api" {
 module "istio_ui" {
   source       = "./modules/istio"
   namespace    = kubernetes_namespace.minio.metadata.0.name
-  host_address = var.minio_ui_address
-  host_fqdn    = var.minio_fqdn
-  dest_port    = 9001
-  name_prefix  = "minio-ui"
+  host_address = var.minio_console_address
+  host_fqdn    = var.minio_console_fqdn
+  dest_port    = 9090
+  name_prefix  = "minio-console"
 }
