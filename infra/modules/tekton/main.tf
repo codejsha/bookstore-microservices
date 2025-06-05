@@ -14,22 +14,13 @@ provider "vault" {
   ca_cert_file = var.kube_ca_crt_path
 }
 
-resource "kubernetes_namespace" "tekton" {
-  metadata {
-    name = var.namespace
-    labels = {
-      "istio-injection" = "enabled"
-    }
-  }
-}
-
 module "component" {
   source = "./modules/component"
 }
 
 module "istio" {
   source       = "./modules/istio"
-  namespace    = kubernetes_namespace.tekton.metadata.0.name
+  namespace    = var.namespace
   host_address = var.tekton_address
   host_fqdn    = var.tekton_fqdn
   name_prefix  = var.name_prefix
@@ -38,21 +29,21 @@ module "istio" {
 module "service_account" {
   for_each = toset(var.service_accounts)
   source          = "./modules/serviceaccount"
-  namespace       = kubernetes_namespace.tekton.metadata.0.name
+  namespace       = var.namespace
   service_account = each.key
 }
 
 module "trigger_binding" {
   source    = "./modules/triggerbinding"
-  namespace = kubernetes_namespace.tekton.metadata.0.name
+  namespace = var.namespace
 }
 
 module "golnag_template" {
   source          = "./modules/golang-template"
-  namespace       = kubernetes_namespace.tekton.metadata.0.name
+  namespace       = var.namespace
   argocd_address  = var.argocd_address
   argocd_token    = var.argocd_token
-  gitea_fqdn      = var.gitea_fqdn
+  gitea_address   = var.gitea_address
   harbor_fqdn     = var.harbor_fqdn
   harbor_username = var.harbor_username
   harbor_token    = var.harbor_token

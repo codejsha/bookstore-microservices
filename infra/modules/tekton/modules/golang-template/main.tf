@@ -37,9 +37,9 @@ resource "kubernetes_manifest" "repo_ssh_auth" {
 
   }
   manifest = yamldecode(templatefile("${path.module}/manifests/repo-ssh-auth.yaml", {
-    name       = "${each.key}-repo-ssh-auth"
-    namespace  = var.namespace
-    gitea_fqdn = var.gitea_fqdn
+    name          = "${each.key}-repo-ssh-auth"
+    namespace     = var.namespace
+    gitea_address = var.gitea_address
     ssh_private_key = base64encode(chomp(each.value["private"])) # Encode it
   }))
 }

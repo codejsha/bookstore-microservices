@@ -30,7 +30,7 @@ variable "harbor_token" {
   sensitive   = true
 }
 
-variable "gitea_fqdn" {
+variable "gitea_address" {
   description = "Host FQDN"
   type        = string
 }
