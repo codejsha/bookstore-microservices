@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: harbor.harbor.svc.cluster.local/library/config-server
+  repository: harbor.example.com/main/config-server
   pullPolicy: IfNotPresent
   tag: ""
 
