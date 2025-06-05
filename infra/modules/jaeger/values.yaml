@@ -1,0 +1,4 @@
+cassandra:
+  config:
+    cluster_size: 1
+    seed_size: 1
