@@ -34,6 +34,9 @@ resource "kubernetes_manifest" "istio_gateway" {
             mode           = "SIMPLE"
             credentialName = "${var.name_prefix}-cert"
           }
+          # tls = {
+          #   mode = "PASSTHROUGH"
+          # }
         }
       ]
     }

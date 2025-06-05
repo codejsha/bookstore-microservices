@@ -68,6 +68,6 @@ resource "vault_policy" "pki_int" {
 }
 
 resource "local_file" "pki_int" {
-  filename = "${path.module}/int-ca.crt"
+  filename = "int-ca.crt"
   content  = vault_pki_secret_backend_intermediate_set_signed.pki_int.certificate
 }

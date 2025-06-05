@@ -10,7 +10,7 @@ provider "helm" {
 
 provider "vault" {
   address      = var.vault_url
-  token        = module.helm.vault_token
+  token        = module.init.vault_token
   ca_cert_file = var.kube_ca_crt_path
 }
 
@@ -30,14 +30,16 @@ module "cert" {
 }
 
 module "helm" {
-  source            = "./modules/helm"
-  namespace         = kubernetes_namespace.vault.metadata.0.name
-  vault_tls_crt     = module.cert.vault_tls_crt
-  vault_tls_key     = module.cert.vault_tls_key
-  vault_kube_ca_crt = module.cert.vault_kube_ca_crt
+  source    = "./modules/helm"
+  namespace = kubernetes_namespace.vault.metadata.0.name
   providers = {
     helm = helm
   }
+}
+
+module "init" {
+  source    = "./modules/init"
+  namespace = kubernetes_namespace.vault.metadata.0.name
 }
 
 module "pki" {
