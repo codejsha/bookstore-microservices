@@ -1,5 +1,16 @@
 externalURL: http://harbor.example.com
 
+service:
+  type: NodePort
+  ports:
+    http: 80
+    https: 443
+  nodePorts:
+    http: ""
+    https: ""
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+
 persistence:
   enabled: true
   persistentVolumeClaim:
@@ -48,6 +59,8 @@ nginx:
       memory: 768Mi
       ephemeral-storage: 2Gi
   automountServiceAccountToken: true
+  networkPolicy:
+    enabled: false
 
 portal:
   podAnnotations:
@@ -62,6 +75,8 @@ portal:
       memory: 768Mi
       ephemeral-storage: 2Gi
   automountServiceAccountToken: true
+  networkPolicy:
+    enabled: false
 
 core:
   podAnnotations:
@@ -76,6 +91,8 @@ core:
       memory: 768Mi
       ephemeral-storage: 2Gi
   automountServiceAccountToken: true
+  networkPolicy:
+    enabled: false
 
 jobservice:
   podAnnotations:
@@ -90,6 +107,8 @@ jobservice:
       memory: 768Mi
       ephemeral-storage: 2Gi
   automountServiceAccountToken: true
+  networkPolicy:
+    enabled: false
 
 registry:
   automountServiceAccountToken: true
@@ -115,6 +134,8 @@ registry:
         cpu: 750m
         memory: 768Mi
         ephemeral-storage: 2Gi
+  networkPolicy:
+    enabled: false
 
 trivy:
   enabled: true
@@ -130,6 +151,8 @@ trivy:
       memory: 768Mi
       ephemeral-storage: 2Gi
   automountServiceAccountToken: true
+  networkPolicy:
+    enabled: false
 
 exporter:
   podAnnotations:
@@ -163,6 +186,8 @@ postgresql:
         cpu: 750m
         memory: 768Mi
         ephemeral-storage: 2Gi
+    networkPolicy:
+      enabled: false
 
 redis:
   enabled: true
@@ -183,5 +208,7 @@ redis:
         cpu: 750m
         memory: 768Mi
         ephemeral-storage: 2Gi
+  networkPolicy:
+    enabled: false
 
 logLevel: debug

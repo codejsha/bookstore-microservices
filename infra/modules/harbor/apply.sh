@@ -8,3 +8,4 @@ terraform apply -auto-approve -target module.storage
 terraform apply -auto-approve -target module.helm
 terraform apply -auto-approve -target module.istio
 terraform apply -auto-approve -target module.user
+terraform apply -auto-approve -target module.project
