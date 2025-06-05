@@ -74,7 +74,7 @@ spec:
           - name: kaniko-image
             value: harbor.harbor.svc.cluster.local/library/bookstore/$(tt.params.service-name):latest
           - name: kaniko-dockerfile
-            value: ./ci/package/Dockerfile
+            value: ./ci/Dockerfile
           - name: kaniko-context
             value: ./
           - name: kaniko-extra-args
