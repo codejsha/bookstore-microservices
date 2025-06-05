@@ -1,0 +1,91 @@
+clusterName: clusterlocal
+
+opentelemetry-operator:
+  manager:
+    collectorImage:
+      repository: otel/opentelemetry-collector-contrib
+  admissionWebhooks:
+    certManager:
+      enabled: true
+      issuerRef:
+        name: selfsigned-cluster-issuer
+        kind: ClusterIssuer
+
+defaultCRConfig:
+  image:
+    repository: otel/opentelemetry-collector-contrib
+command:
+  name: otelcontribcol
+
+collectors:
+  daemon:
+    presets:
+      hostMetrics:
+        enabled: false
+
+  cluster:
+    config:
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+
+      processors:
+        batch:
+          send_batch_size: 1000
+          timeout: 1s
+          send_batch_max_size: 1500
+        resourcedetection/env:
+          detectors: [env]
+          timeout: 2s
+          override: false
+
+      exporters:
+        debug: {}
+        otlp:
+          endpoint: "jaeger-collector.jaeger.svc.cluster.local:4317"
+          tls:
+            insecure: true
+        otlphttp:
+          endpoint: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090/api/v1/otlp/v1/metrics"
+          tls:
+            insecure: true
+        loki:
+          endpoint: "http://loki-gateway.loki.svc.cluster.local/loki/api/v1/push"
+          tls:
+            insecure: true
+          headers:
+            X-Scope-OrgID: otel
+
+      service:
+        pipelines:
+          traces:
+            receivers:
+              - otlp
+            processors:
+              - resourcedetection/env
+              - batch
+            exporters:
+              - debug
+              - otlp
+          metrics:
+            receivers:
+              - otlp
+            processors:
+              - resourcedetection/env
+              - batch
+            exporters:
+              - debug
+              - otlphttp
+          logs:
+            receivers:
+              - otlp
+            processors:
+              - resourcedetection/env
+              - batch
+            exporters:
+              - debug
+              - loki
