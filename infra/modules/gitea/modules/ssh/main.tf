@@ -13,7 +13,7 @@ resource "vault_policy" "gitea_ssh_keys" {
 
 resource "vault_kubernetes_auth_backend_role" "gitea_ssh_keys" {
   role_name = "gitea-ssh-role"
-  bound_service_account_names = ["gitea-sa"]
+  bound_service_account_names = ["gitea"]
   bound_service_account_namespaces = [var.namespace]
   token_policies = [vault_policy.gitea_ssh_keys.name]
 }

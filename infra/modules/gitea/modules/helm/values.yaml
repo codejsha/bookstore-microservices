@@ -1,8 +1,8 @@
+automountServiceAccountToken: true
 serviceAccount:
   create: true
-  name: "gitea-sa"
+  name: "gitea"
   automountServiceAccountToken: true
-automountServiceAccountToken: true
 
 podAnnotations:
   sidecar.istio.io/proxyCPU: "10m"
@@ -14,12 +14,28 @@ resources:
     cpu: 750m
     memory: 1536Mi
 
+networkPolicy:
+  enabled: false
+
+service:
+  # type: LoadBalancer
+  type: NodePort
+  ports:
+    http: 80
+    ssh: 22
+  loadBalancerSourceRanges: []
+  loadBalancerIP: ""
+  nodePorts:
+    http: ""
+    ssh: ""
+
 postgresql:
   enabled: true
   auth:
     username: gitea
     password: gitea
     database: gitea_db
+
   architecture: standalone
   primary:
     podAnnotations:
@@ -33,3 +49,5 @@ postgresql:
         cpu: 750m
         memory: 768Mi
         ephemeral-storage: 2Gi
+    networkPolicy:
+      enabled: false
