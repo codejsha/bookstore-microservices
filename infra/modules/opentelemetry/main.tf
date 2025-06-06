@@ -17,13 +17,18 @@ resource "kubernetes_namespace" "opentelemetry" {
   }
 }
 
-resource "helm_release" "opentelemetry" {
-  namespace  = kubernetes_namespace.opentelemetry.metadata.0.name
-  name       = "opentelemetry"
-  repository = "https://open-telemetry.github.io/opentelemetry-helm-charts"
-  chart      = "opentelemetry-kube-stack"
-  version    = "0.6.1"
-  values = [
-    file("${path.module}/values.yaml")
-  ]
+module "helm" {
+  source    = "./modules/helm"
+  namespace = kubernetes_namespace.opentelemetry.metadata.0.name
+  providers = {
+    helm = helm
+  }
+}
+
+module "istio_collector" {
+  source       = "./modules/istio"
+  namespace    = kubernetes_namespace.opentelemetry.metadata.0.name
+  name_prefix  = "otel-collector"
+  host_address = var.otel_collector_address
+  host_fqdn    = var.otel_collector_fqdn
 }

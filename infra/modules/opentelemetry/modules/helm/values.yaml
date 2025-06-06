@@ -4,6 +4,13 @@ opentelemetry-operator:
   manager:
     collectorImage:
       repository: otel/opentelemetry-collector-contrib
+    resources:
+      limits:
+        cpu: "2"
+        memory: 1Gi
+      requests:
+        cpu: 10m
+        memory: 128Mi
   admissionWebhooks:
     certManager:
       enabled: true
@@ -11,19 +18,27 @@ opentelemetry-operator:
         name: selfsigned-cluster-issuer
         kind: ClusterIssuer
 
-defaultCRConfig:
-  image:
-    repository: otel/opentelemetry-collector-contrib
-command:
-  name: otelcontribcol
-
 collectors:
   daemon:
     presets:
       hostMetrics:
         enabled: false
+    resources:
+      limits:
+        cpu: 200m
+        memory: 500Mi
+      requests:
+        cpu: 10m
+        memory: 250Mi
 
   cluster:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 500Mi
+      requests:
+        cpu: 10m
+        memory: 250Mi
     config:
       receivers:
         otlp:
@@ -32,7 +47,6 @@ collectors:
               endpoint: 0.0.0.0:4317
             http:
               endpoint: 0.0.0.0:4318
-
       processors:
         batch:
           send_batch_size: 1000
@@ -63,29 +77,14 @@ collectors:
       service:
         pipelines:
           traces:
-            receivers:
-              - otlp
-            processors:
-              - resourcedetection/env
-              - batch
-            exporters:
-              - debug
-              - otlp
+            receivers: ["otlp"]
+            processors: ["resourcedetection/env", "batch"]
+            exporters: ["otlp", "debug"]
           metrics:
-            receivers:
-              - otlp
-            processors:
-              - resourcedetection/env
-              - batch
-            exporters:
-              - debug
-              - otlphttp
+            receivers: ["otlp"]
+            processors: ["resourcedetection/env", "batch"]
+            exporters: ["otlphttp", "debug"]
           logs:
-            receivers:
-              - otlp
-            processors:
-              - resourcedetection/env
-              - batch
-            exporters:
-              - debug
-              - loki
+            receivers: ["otlp"]
+            processors: ["resourcedetection/env", "batch"]
+            exporters: ["loki", "debug"]
