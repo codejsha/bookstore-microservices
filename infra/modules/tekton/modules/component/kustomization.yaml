@@ -29,13 +29,6 @@ patches:
             type: RuntimeDefault
   - target:
       kind: Deployment
-    patch: |-
-      - op: add
-        path: "/spec/template/metadata/annotations"
-        value:
-          sidecar.istio.io/proxyCPU: "10m"
-  - target:
-      kind: Deployment
       name: "tekton-pipelines-webhook"
     patch: |-
       - op: replace

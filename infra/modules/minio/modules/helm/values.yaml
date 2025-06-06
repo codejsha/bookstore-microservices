@@ -7,7 +7,6 @@ mode: standalone
 #
 # podAnnotations:
 #   traffic.sidecar.istio.io/excludeOutboundPorts: "8200"
-#   sidecar.istio.io/proxyCPU: "10m"
 #   vault.hashicorp.com/agent-inject: "true"
 #   vault.hashicorp.com/agent-inject-status: "update"
 #   vault.hashicorp.com/agent-init-first: "true"

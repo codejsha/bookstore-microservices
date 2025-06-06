@@ -25,6 +25,10 @@ resource "helm_release" "istio_istiod" {
     name  = "pilot.cni.enabled"
     value = "true"
   }
+  set {
+    name  = "global.proxy.resources.requests.cpu"
+    value = "10m"
+  }
 }
 
 resource "helm_release" "istio_cni" {

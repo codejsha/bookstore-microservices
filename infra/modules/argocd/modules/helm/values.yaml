@@ -21,8 +21,6 @@ configs:
     scopes: "[groups, email]"
 
 controller:
-  podAnnotations:
-    sidecar.istio.io/proxyCPU: "10m"
   resources:
     limits:
       cpu: 500m
@@ -40,8 +38,6 @@ dex:
       limits:
         cpu: 10m
         memory: 144Mi
-  podAnnotations:
-    sidecar.istio.io/proxyCPU: "10m"
   resources:
     limits:
       cpu: 50m
@@ -60,8 +56,6 @@ redis:
       requests:
         cpu: 10m
         memory: 32Mi
-  podAnnotations:
-    sidecar.istio.io/proxyCPU: "10m"
   resources:
     limits:
       cpu: 200m
@@ -74,7 +68,6 @@ redisSecretInit:
   enabled: true
   podAnnotations:
     sidecar.istio.io/inject: "false"
-    sidecar.istio.io/proxyCPU: "10m"
   resources:
     limits:
       cpu: 200m
@@ -92,8 +85,6 @@ server:
       requests:
         cpu: 10m
         memory: 64Mi
-  podAnnotations:
-    sidecar.istio.io/proxyCPU: "10m"
   resources:
     limits:
       cpu: 100m
@@ -103,8 +94,6 @@ server:
       memory: 64Mi
 
 repoServer:
-  podAnnotations:
-    sidecar.istio.io/proxyCPU: "10m"
   resources:
     limits:
       cpu: 50m
@@ -114,8 +103,6 @@ repoServer:
       memory: 64Mi
 
 applicationSet:
-  podAnnotations:
-    sidecar.istio.io/proxyCPU: "10m"
   resources:
     limits:
       cpu: 100m
@@ -126,8 +113,6 @@ applicationSet:
 
 notifications:
   enabled: true
-  podAnnotations:
-    sidecar.istio.io/proxyCPU: "10m"
   resources:
     limits:
       cpu: 100m
@@ -138,8 +123,6 @@ notifications:
 
 commitServer:
   enabled: false
-  podAnnotations:
-    sidecar.istio.io/proxyCPU: "10m"
   resources:
     limits:
       cpu: 100m
