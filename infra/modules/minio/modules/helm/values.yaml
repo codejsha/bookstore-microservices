@@ -56,3 +56,10 @@ console:
   automountServiceAccountToken: true
   networkPolicy:
     enabled: false
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+    limits:
+      cpu: 3
+      memory: 1024Mi
