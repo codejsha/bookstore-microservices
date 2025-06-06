@@ -5,4 +5,4 @@ set -o errtrace
 set -o xtrace
 
 terraform init -upgrade
-terraform apply -auto-approve
+terraform apply -auto-approve -target module.helm

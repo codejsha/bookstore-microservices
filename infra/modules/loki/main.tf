@@ -17,13 +17,12 @@ resource "kubernetes_namespace" "loki" {
   }
 }
 
-resource "helm_release" "loki" {
-  namespace  = kubernetes_namespace.loki.metadata.0.name
-  name       = "loki"
-  repository = "https://grafana.github.io/helm-charts"
-  chart      = "loki"
-  version    = "6.30.1"
-  values = [
-    file("${path.module}/values.yaml"),
-  ]
+module "helm" {
+  source         = "./modules/helm"
+  namespace      = kubernetes_namespace.loki.metadata.0.name
+  minio_username = var.minio_username
+  minio_password = var.minio_password
+  providers = {
+    helm = helm
+  }
 }
