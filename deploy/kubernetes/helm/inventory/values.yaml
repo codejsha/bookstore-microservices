@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: harbor.harbor.svc.cluster.local/library/bookstore/inventory
+  repository: harbor.example.com/main/bookstore/inventory
   pullPolicy: IfNotPresent
   tag: ""
 
