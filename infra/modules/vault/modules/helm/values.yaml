@@ -28,9 +28,6 @@ injector:
       memory: 256Mi
       cpu: 250m
 
-  annotations:
-    sidecar.istio.io/proxyCPU: "10m"
-
 server:
   enabled: true
   image:
@@ -74,9 +71,6 @@ server:
   #             app.kubernetes.io/instance: "{{ .Release.Name }}"
   #             component: server
   #         topologyKey: kubernetes.io/hostname
-
-  annotations:
-    sidecar.istio.io/proxyCPU: "10m"
 
   dataStorage:
     enabled: true

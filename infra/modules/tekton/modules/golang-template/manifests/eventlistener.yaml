@@ -34,9 +34,6 @@ spec:
     kubernetesResource:
       spec:
         template:
-          metadata:
-            annotations:
-              sidecar.istio.io/proxyCPU: "10m"
           spec:
             containers:
               - resources:

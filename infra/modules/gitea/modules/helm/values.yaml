@@ -4,8 +4,6 @@ serviceAccount:
   name: "gitea"
   automountServiceAccountToken: true
 
-podAnnotations:
-  sidecar.istio.io/proxyCPU: "10m"
 resources:
   requests:
     cpu: 10m
@@ -38,8 +36,6 @@ postgresql:
 
   architecture: standalone
   primary:
-    podAnnotations:
-      sidecar.istio.io/proxyCPU: "10m"
     resources:
       requests:
         cpu: 10m
