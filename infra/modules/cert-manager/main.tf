@@ -14,27 +14,11 @@ resource "kubernetes_namespace" "cert_manager" {
   }
 }
 
-resource "helm_release" "cert_manager" {
-  namespace  = kubernetes_namespace.cert_manager.metadata.0.name
-  name       = "cert-manager"
-  repository = "https://charts.jetstack.io"
-  chart      = "cert-manager"
-  version    = "v1.17.0"
-  set {
-    name  = "crds.enabled"
-    value = true
-  }
+module "helm" {
+  source    = "./modules/helm"
+  namespace = kubernetes_namespace.cert_manager.metadata.0.name
 }
 
-resource "kubernetes_manifest" "cluster_issuer" {
-  manifest = {
-    apiVersion = "cert-manager.io/v1"
-    kind       = "ClusterIssuer"
-    metadata = {
-      name = "selfsigned-cluster-issuer"
-    }
-    spec = {
-      selfSigned = {}
-    }
-  }
+module "issuer" {
+  source = "./modules/issuer"
 }
