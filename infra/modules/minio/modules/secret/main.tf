@@ -17,7 +17,6 @@ resource "vault_kubernetes_auth_backend_role" "minio" {
   bound_service_account_namespaces = [var.namespace]
   token_policies = [vault_policy.minio.name]
   token_ttl = "3600" # 1 hour
-  audience  = "https://kubernetes.default.svc.cluster.local"
 }
 
 resource "vault_kv_secret_v2" "minio" {
