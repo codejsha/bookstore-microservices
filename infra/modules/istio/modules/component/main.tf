@@ -38,6 +38,10 @@ resource "helm_release" "istio_cni" {
   repository = "https://istio-release.storage.googleapis.com/charts"
   chart      = "cni"
   version    = local.istio_version
+  # set {
+  #   name  = "global.platform"
+  #   value = "k3s"
+  # }
 }
 
 resource "helm_release" "istio_ingressgateway" {
