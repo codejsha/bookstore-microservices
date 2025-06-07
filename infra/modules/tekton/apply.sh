@@ -4,7 +4,7 @@ set -o errexit
 set -o errtrace
 set -o xtrace
 
-/bin/cp -f ../vault/int-ca.crt .
+/bin/cp -f ../vault/example-int-ca.crt .
 ROOT_TOKEN=$(jq -r '.root_token' ../vault/cluster-keys.json)
 perl -pi -e "s/^vault_token.*/vault_token = \"${ROOT_TOKEN}\"/" terraform.tfvars
 

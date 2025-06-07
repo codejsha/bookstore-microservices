@@ -31,6 +31,11 @@ resource "vault_policy" "pki" {
   policy = file("${path.module}/pki-policy.hcl")
 }
 
+resource "local_file" "pki" {
+  filename = "example-ca.crt"
+  content  = vault_pki_secret_backend_root_cert.pki.certificate
+}
+
 resource "vault_mount" "pki_int" {
   type        = "pki"
   path        = "pki_int"
@@ -68,6 +73,6 @@ resource "vault_policy" "pki_int" {
 }
 
 resource "local_file" "pki_int" {
-  filename = "int-ca.crt"
+  filename = "example-int-ca.crt"
   content  = vault_pki_secret_backend_intermediate_set_signed.pki_int.certificate
 }
