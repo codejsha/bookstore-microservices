@@ -1,0 +1,42 @@
+{
+  "cniVersion": "0.3.1",
+  "name": "k8s-pod-network",
+  "plugins": [
+    {
+      "datastore_type": "kubernetes",
+      "ipam": {
+        "type": "calico-ipam"
+      },
+      "kubernetes": {
+        "kubeconfig": "/etc/cni/net.d/calico-kubeconfig"
+      },
+      "log_file_path": "/var/log/calico/cni/cni.log",
+      "log_level": "info",
+      "mtu": 0,
+      "nodename": "workstation",
+      "policy": {
+        "type": "k8s"
+      },
+      "type": "calico"
+    },
+    {
+      "capabilities": {
+        "portMappings": true
+      },
+      "snat": true,
+      "type": "portmap"
+    },
+    {
+      "ambient_enabled": false,
+      "cni_agent_run_dir": "/var/run/istio-cni",
+      "dns": {},
+      "exclude_namespaces": [
+        ""
+      ],
+      "ipam": {},
+      "name": "istio-cni",
+      "plugin_log_level": "info",
+      "type": "istio-cni"
+    }
+  ]
+}
