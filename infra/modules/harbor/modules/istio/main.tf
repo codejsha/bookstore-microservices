@@ -87,6 +87,9 @@ resource "kubernetes_manifest" "istio_destination_rule" {
         loadBalancer = {
           simple = "ROUND_ROBIN"
         },
+        tls = {
+          mode = "DISABLE"
+        }
       }
     }
   }

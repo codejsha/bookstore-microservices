@@ -21,6 +21,12 @@ provider "helm" {
   }
 }
 
+provider "vault" {
+  address      = var.vault_url
+  token        = var.vault_token
+  ca_cert_file = var.kube_ca_crt_path
+}
+
 provider "aws" {
   region                      = "us-west-1"
   access_key                  = var.aws_access_key
@@ -90,4 +96,14 @@ module "project" {
   project_name  = "main"
   project_users = module.user.harbor_users
   user_role     = "projectadmin"
+}
+
+module "cert" {
+  source           = "./modules/cert"
+  namespace        = kubernetes_namespace.harbor.metadata.0.name
+  harbor_address   = var.harbor_address
+  kube_ca_crt_path = var.kube_ca_crt_path
+  providers = {
+    vault = vault
+  }
 }
