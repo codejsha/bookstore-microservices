@@ -1,3 +1,9 @@
+prometheusOperator:
+  admissionWebhooks:
+    patch:
+      podAnnotations:
+        sidecar.istio.io/inject: "false"
+
 prometheus:
   prometheusSpec:
     additionalConfig:
@@ -24,6 +30,7 @@ prometheus:
           - k8s.statefulset.name
       tsdb:
         outOfOrderTimeWindow: 30m
+
 grafana:
   additionalDataSources:
     - name: Loki
