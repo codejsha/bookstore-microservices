@@ -117,6 +117,10 @@ server:
         service_registration "kubernetes" {}
         disable_mlock = true
 
+  serviceAccount:
+    create: true
+    createSecret: true
+
 ui:
   enabled: true
   publishNotReadyAddresses: true

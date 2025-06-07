@@ -59,6 +59,7 @@ module "kv" {
 
 module "kube" {
   source                  = "./modules/kube"
+  namespace               = kubernetes_namespace.vault.metadata.0.name
   kube_api_server_address = var.kube_api_server_address
   kube_ca_crt = trimspace(file("${path.module}/${var.kube_ca_crt_path}"))
   providers = {
