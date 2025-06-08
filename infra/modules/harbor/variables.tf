@@ -23,6 +23,7 @@ variable "harbor_username" {
   type        = string
   sensitive   = true
 }
+
 variable "harbor_password" {
   description = "Harbor password"
   type        = string
@@ -70,4 +71,24 @@ variable "aws_secret_key" {
 variable "bucket_names" {
   description = "List of bucket names"
   type = list(string)
+}
+
+variable "harbor_users" {
+  description = "List of user mappings"
+  type = set(object({
+    user_name     = string
+    user_password = string
+  }))
+}
+
+variable "harbor_projects" {
+  description = "Harbor project configuration with members"
+  type = map(object({
+    project_name = string
+    is_public    = bool
+    members = list(object({
+      user_name = string
+      user_role = string
+    }))
+  }))
 }
