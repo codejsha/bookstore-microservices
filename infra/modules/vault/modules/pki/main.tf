@@ -49,7 +49,7 @@ resource "vault_pki_secret_backend_intermediate_cert_request" "pki_int" {
 }
 
 resource "vault_pki_secret_backend_root_sign_intermediate" "pki_int" {
-  backend     = "pki"
+  backend     = vault_mount.pki.path
   common_name = vault_pki_secret_backend_intermediate_cert_request.pki_int.common_name
   csr         = vault_pki_secret_backend_intermediate_cert_request.pki_int.csr
   format      = "pem_bundle"
