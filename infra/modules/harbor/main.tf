@@ -84,18 +84,16 @@ module "istio" {
 }
 
 module "user" {
-  source         = "./modules/user"
-  admin_password = var.harbor_password
+  source       = "./modules/user"
+  harbor_users = var.harbor_users
   providers = {
     harbor = harbor
   }
 }
 
 module "project" {
-  source        = "./modules/project"
-  project_name  = "main"
-  project_users = module.user.harbor_users
-  user_role     = "projectadmin"
+  source          = "./modules/project"
+  harbor_projects = var.harbor_projects
 }
 
 module "cert" {
