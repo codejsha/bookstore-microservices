@@ -22,9 +22,9 @@ spec:
 	### helm chart
 	yq -i '.appVersion = "$(VERSION)"' ../helm/$(SERVICE_NAME)/Chart.yaml
 	### gradle
-	perl -pi -e 's/version = ".*"/version = "$(VERSION)"/' gradle.properties
+	perl -pi -e 's/version = ".*"/version=$(VERSION)/' gradle.properties
 	### application
-	yq -i '.spring.application.name = $(APP_NAME)' src/main/resources/application.yml
+	yq -i '.spring.application.name = $(SERVICE_NAME)' src/main/resources/application.yml
 	yq -i '.spring.application.version = $(VERSION)' src/main/resources/application.yml
 
 .PHONY: clean
@@ -39,14 +39,17 @@ style:
 gen: spec style
 
 .PHONY: build
-build:
+build: spec
 	sh gradlew build
 
 .PHONY: docker-build
 docker-build:
 	docker buildx build -f ./ci/Dockerfile \
 		--build-arg SERVICE_NAME=$(SERVICE_NAME) \
-		-t harbor.harbor.svc.cluster.local/library/bookstore/$(SERVICE_NAME):$(VERSION) .
+		-t harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) .
+
+docker-push:
+	docker image push harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION)
 
 .PHONY: run
 run:

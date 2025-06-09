@@ -4,13 +4,15 @@ WORKDIR /service
 COPY . /service
 RUN gradle build
 
-FROM openjdk:21 AS runtime
+FROM alpine/java:21-jre AS runtime
 
 ARG SERVICE_NAME
 ENV SERVICE_NAME=${SERVICE_NAME}
 
 WORKDIR /app
-COPY --from=build /service/build/libs/${SERVICE_NAME}.jar /app/${SERVICE_NAME}.jar
+COPY --from=build /service/build/libs/${SERVICE_NAME}.jar .
+COPY ./ci/entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
 EXPOSE 8888
-ENTRYPOINT ["/bin/sh", "-c", "java -jar /app/${SERVICE_NAME}.jar"]
+ENTRYPOINT ["/app/entrypoint.sh"]

@@ -18,8 +18,9 @@ resource "kubernetes_namespace" "config_server" {
 }
 
 module "helm" {
-  source    = "./modules/helm"
-  namespace = kubernetes_namespace.config_server.metadata.0.name
+  source             = "./modules/helm"
+  namespace          = kubernetes_namespace.config_server.metadata.0.name
+  repository_ca_file = var.repository_ca_file
   providers = {
     helm = helm
   }
