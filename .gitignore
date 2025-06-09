@@ -153,9 +153,10 @@ ca.crt
 example-ca.crt
 example-int-ca.crt
 
-/infra/modules/argocd/modules/organization/keys/
 /infra/kubernetes/minikube/proxy.crt
 /infra/kubernetes/minikube/proxy.key
+/infra/modules/argocd/modules/organization/keys/
+/infra/modules/config-server/config-server-*.tgz
 /infra/modules/vault/cluster-keys.json
-/infra/modules/vault/vault.key
 /infra/modules/vault/vault.crt
+/infra/modules/vault/vault.key

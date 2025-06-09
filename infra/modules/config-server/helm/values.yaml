@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: harbor.example.com/main/config-server
+  repository: harbor.example.com/bookstore/config-server
   pullPolicy: IfNotPresent
   tag: ""
 
@@ -15,7 +15,8 @@ serviceAccount:
   annotations: {}
   name: ""
 
-podAnnotations: {}
+podAnnotations:
+  sidecar.istio.io/rewriteAppHTTPProbers: "false"
 podLabels:
   app.kubernetes.io/group: config-server
 
@@ -24,10 +25,10 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 80
+  port: 8888
   https:
     enabled: false
-    port: 443
+    port: 8443
 
 ingress:
   enabled: false
@@ -45,11 +46,12 @@ resources: {}
 
 livenessProbe:
   httpGet:
-    path: /
+    path: /actuator/health
     port: http
+
 readinessProbe:
   httpGet:
-    path: /
+    path: /actuator/health
     port: http
 
 autoscaling:
@@ -65,3 +67,21 @@ volumeMounts: []
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+istio:
+  enabled: false
+  host: "example.com"
+  tls:
+    enabled: false
+    httpsRedirect: false
+    mode: "SIMPLE"
+    credentialName: ""
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+  gateway:
+    annotations: {}
+  virtualService:
+    annotations: {}
+  destinationRule:
+    annotations: {}
