@@ -17,13 +17,16 @@ resource "kubernetes_namespace" "jaeger" {
   }
 }
 
-resource "helm_release" "jaeger" {
-  namespace  = kubernetes_namespace.jaeger.metadata.0.name
-  name       = "jaeger"
-  repository = "https://jaegertracing.github.io/helm-charts"
-  chart      = "jaeger"
-  version    = "3.4.1"
-  values = [
-    file("${path.module}/values-memory.yaml")
-  ]
+module "helm" {
+  source    = "./modules/helm"
+  namespace = kubernetes_namespace.jaeger.metadata.0.name
+}
+
+module "istio" {
+  source       = "./modules/istio"
+  namespace    = kubernetes_namespace.jaeger.metadata.0.name
+  host_address = var.jaeger_address
+  host_fqdn    = var.jaeger_fqdn
+  dest_port    = 16686
+  name_prefix  = "jaeger"
 }
