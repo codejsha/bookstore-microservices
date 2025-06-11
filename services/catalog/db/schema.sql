@@ -1,2 +1,1 @@
-CREATE SCHEMA catalog_command_db COLLATE utf8mb4_unicode_ci;
-CREATE SCHEMA catalog_query_db COLLATE utf8mb4_unicode_ci;
+CREATE SCHEMA catalog_db COLLATE utf8mb4_unicode_ci;
