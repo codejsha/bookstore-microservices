@@ -10,7 +10,6 @@
 package openapi
 
 type StockWebReq struct {
-
 	BookId int64 `json:"book_id,omitempty"`
 
 	WarehouseId int64 `json:"warehouse_id,omitempty"`

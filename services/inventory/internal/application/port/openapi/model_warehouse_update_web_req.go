@@ -10,7 +10,6 @@
 package openapi
 
 type WarehouseUpdateWebReq struct {
-
 	Name string `json:"name,omitempty"`
 
 	Address string `json:"address,omitempty"`

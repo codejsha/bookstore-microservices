@@ -10,7 +10,6 @@
 package openapi
 
 type StockUpdateWebResp struct {
-
 	Id int64 `json:"id,omitempty"`
 
 	BookId int64 `json:"book_id,omitempty"`

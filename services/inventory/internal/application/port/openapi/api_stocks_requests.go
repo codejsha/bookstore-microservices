@@ -9,9 +9,6 @@
 
 package openapi
 
-
-
-
 // Update stock
 // Update stock
 // (model: StockUpdateWebReq)

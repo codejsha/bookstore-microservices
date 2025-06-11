@@ -10,7 +10,6 @@
 package openapi
 
 type StockFindAllWebResp struct {
-
 	Total int64 `json:"total,omitempty"`
 
 	Items []StockFindWebResp `json:"items,omitempty"`

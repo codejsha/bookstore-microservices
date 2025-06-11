@@ -12,33 +12,32 @@ package openapi
 // Find all stocks
 // Find all stocks (operationId: ApiV1StocksGet)
 type StockFindAllWebParam struct {
-    BookId *int64 `form:"book_id,omitempty"`
-    WarehouseId *int64 `form:"warehouse_id,omitempty"`
-    // Field to sort by
-    Sort string `form:"sort,omitempty"`
-    // Sorting order
-    Order string `form:"order,omitempty"`
-    // Number of items to return
-    Limit int32 `form:"limit,omitempty"`
-    // The number of items to skip
-    Offset int32 `form:"offset,omitempty"`
+	BookId      *int64 `form:"book_id,omitempty"`
+	WarehouseId *int64 `form:"warehouse_id,omitempty"`
+	// Field to sort by
+	Sort string `form:"sort,omitempty"`
+	// Sorting order
+	Order string `form:"order,omitempty"`
+	// Number of items to return
+	Limit int32 `form:"limit,omitempty"`
+	// The number of items to skip
+	Offset int32 `form:"offset,omitempty"`
 }
 
 // Delete stock
 // Delete stock (operationId: ApiV1StocksIdDelete)
 type StockDeleteWebParam struct {
-    Id int64 `uri:"id"`
+	Id int64 `uri:"id"`
 }
 
 // Find stock
 // Find stock (operationId: ApiV1StocksIdGet)
 type StockFindWebParam struct {
-    Id int64 `uri:"id"`
+	Id int64 `uri:"id"`
 }
 
 // Update stock
 // Update stock (operationId: ApiV1StocksIdPut)
 type StockUpdateWebParam struct {
-    Id int64 `uri:"id"`
+	Id int64 `uri:"id"`
 }
-

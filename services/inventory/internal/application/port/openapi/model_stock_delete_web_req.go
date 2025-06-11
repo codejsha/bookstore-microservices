@@ -10,6 +10,5 @@
 package openapi
 
 type StockDeleteWebReq struct {
-
 	Id int64 `json:"id,omitempty"`
 }

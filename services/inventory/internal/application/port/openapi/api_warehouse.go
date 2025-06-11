@@ -15,25 +15,23 @@ import (
 
 type WarehouseAPI interface {
 
+	// ApiV1WarehousesGet Get /api/v1/warehouses
+	// Find all warehouses
+	ApiV1WarehousesGet(c *gin.Context)
 
-    // ApiV1WarehousesGet Get /api/v1/warehouses
-    // Find all warehouses 
-     ApiV1WarehousesGet(c *gin.Context)
+	// ApiV1WarehousesIdDelete Delete /api/v1/warehouses/:id
+	// Delete warehouse
+	ApiV1WarehousesIdDelete(c *gin.Context)
 
-    // ApiV1WarehousesIdDelete Delete /api/v1/warehouses/:id
-    // Delete warehouse 
-     ApiV1WarehousesIdDelete(c *gin.Context)
+	// ApiV1WarehousesIdGet Get /api/v1/warehouses/:id
+	// Find warehouse
+	ApiV1WarehousesIdGet(c *gin.Context)
 
-    // ApiV1WarehousesIdGet Get /api/v1/warehouses/:id
-    // Find warehouse 
-     ApiV1WarehousesIdGet(c *gin.Context)
+	// ApiV1WarehousesIdPut Put /api/v1/warehouses/:id
+	// Update warehouse
+	ApiV1WarehousesIdPut(c *gin.Context)
 
-    // ApiV1WarehousesIdPut Put /api/v1/warehouses/:id
-    // Update warehouse 
-     ApiV1WarehousesIdPut(c *gin.Context)
-
-    // ApiV1WarehousesPost Post /api/v1/warehouses
-    // Add new warehouse 
-     ApiV1WarehousesPost(c *gin.Context)
-
+	// ApiV1WarehousesPost Post /api/v1/warehouses
+	// Add new warehouse
+	ApiV1WarehousesPost(c *gin.Context)
 }
