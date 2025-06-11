@@ -1,2 +1,1 @@
-CREATE SCHEMA inventory_command_db COLLATE utf8mb4_unicode_ci;
-CREATE SCHEMA inventory_query_db COLLATE utf8mb4_unicode_ci;
+CREATE SCHEMA inventory_db COLLATE utf8mb4_unicode_ci;

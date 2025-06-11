@@ -1,10 +1,11 @@
 CREATE TABLE IF NOT EXISTS wishlist
 (
-    id         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id    VARCHAR(36)     NOT NULL,
-    book_id    BIGINT UNSIGNED NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    book_id    BIGINT NOT NULL,
+    created_at TIMESTAMP       NOT NULL,
+    updated_at TIMESTAMP       NOT NULL,
+    version    BIGINT,
     UNIQUE (user_id, book_id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
@@ -12,11 +13,12 @@ CREATE TABLE IF NOT EXISTS wishlist
 
 CREATE TABLE IF NOT EXISTS point
 (
-    id         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id    VARCHAR(36)  NOT NULL,
-    point      INT UNSIGNED NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    point      INT NOT NULL,
+    created_at TIMESTAMP    NOT NULL,
+    updated_at TIMESTAMP    NOT NULL,
+    version    BIGINT,
     UNIQUE (user_id),
     INDEX idx_point_user_id (user_id)
 ) ENGINE = InnoDB

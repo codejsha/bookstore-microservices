@@ -1,2 +1,1 @@
-CREATE SCHEMA payment_command_db COLLATE utf8mb4_unicode_ci;
-CREATE SCHEMA payment_query_db COLLATE utf8mb4_unicode_ci;
+CREATE SCHEMA payment_db COLLATE utf8mb4_unicode_ci;
