@@ -24,7 +24,10 @@ spec:
 	### helm chart
 	yq -i '.appVersion = "$(VERSION)"' ../../deploy/kubernetes/helm/$(SERVICE_NAME)/Chart.yaml
 	### gradle
-	perl -pi -e 's/version = ".*"/version = "$(VERSION)"/' gradle.properties
+	perl -pi -e 's/version = ".*"/version=$(VERSION)/' gradle.properties
+	### application
+	yq -i '.spring.application.name = $(SERVICE_NAME)' src/main/resources/application.yml
+	yq -i '.spring.application.version = $(VERSION)' src/main/resources/application.yml
 
 .PHONY: clean
 clean:
@@ -56,15 +59,17 @@ openapi: openapi-bundle openapi-gen
 gen: spec buf openapi style
 
 .PHONY: build
-build:
+build: spec
 	sh gradlew build
 
 .PHONY: docker-build
 docker-build:
-	docker buildx build -f ./ci/package/Dockerfile \
-		--platform linux/amd64,darwin/arm64 \
+	docker buildx build -f ./ci/Dockerfile \
 		--build-arg SERVICE_NAME=$(SERVICE_NAME) \
-		-t harbor.harbor.svc.cluster.local/library/bookstore/$(SERVICE_NAME):$(VERSION) .
+		-t harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) .
+
+docker-push:
+	docker image push harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION)
 
 .PHONY: run
 run:

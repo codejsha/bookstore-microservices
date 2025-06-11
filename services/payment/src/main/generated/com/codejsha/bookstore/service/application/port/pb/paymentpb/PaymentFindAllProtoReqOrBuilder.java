@@ -5,50 +5,61 @@
 
 package com.codejsha.bookstore.service.application.port.pb.paymentpb;
 
-public interface PaymentFindAllProtoReqOrBuilder extends
+public interface PaymentFindAllProtoReqOrBuilder
+    extends
     // @@protoc_insertion_point(interface_extends:payment.v1.PaymentFindAllProtoReq)
     com.google.protobuf.MessageOrBuilder {
 
   /**
    * <code>optional string user_id = 1 [json_name = "userId"];</code>
+   *
    * @return Whether the userId field is set.
    */
   boolean hasUserId();
+
   /**
    * <code>optional string user_id = 1 [json_name = "userId"];</code>
+   *
    * @return The userId.
    */
   java.lang.String getUserId();
+
   /**
    * <code>optional string user_id = 1 [json_name = "userId"];</code>
+   *
    * @return The bytes for userId.
    */
-  com.google.protobuf.ByteString
-      getUserIdBytes();
+  com.google.protobuf.ByteString getUserIdBytes();
 
   /**
    * <code>optional int64 order_id = 2 [json_name = "orderId"];</code>
+   *
    * @return Whether the orderId field is set.
    */
   boolean hasOrderId();
+
   /**
    * <code>optional int64 order_id = 2 [json_name = "orderId"];</code>
+   *
    * @return The orderId.
    */
   long getOrderId();
 
   /**
    * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
+   *
    * @return Whether the filter field is set.
    */
   boolean hasFilter();
+
   /**
    * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
+   *
    * @return The filter.
    */
   com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter getFilter();
-  /**
-   * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
-   */
-  com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder getFilterOrBuilder();
+
+  /** <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code> */
+  com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder
+      getFilterOrBuilder();
 }

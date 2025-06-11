@@ -5,37 +5,35 @@
 
 package com.codejsha.bookstore.service.application.port.pb.userpb;
 
-public interface UserFindAllProtoRespOrBuilder extends
+public interface UserFindAllProtoRespOrBuilder
+    extends
     // @@protoc_insertion_point(interface_extends:user.v1.UserFindAllProtoResp)
     com.google.protobuf.MessageOrBuilder {
 
   /**
    * <code>int64 total = 1 [json_name = "total"];</code>
+   *
    * @return The total.
    */
   long getTotal();
 
-  /**
-   * <code>repeated .user.v1.UserFindProtoResp items = 2 [json_name = "items"];</code>
-   */
-  java.util.List<com.codejsha.bookstore.service.application.port.pb.userpb.UserFindProtoResp> 
+  /** <code>repeated .user.v1.UserFindProtoResp items = 2 [json_name = "items"];</code> */
+  java.util.List<com.codejsha.bookstore.service.application.port.pb.userpb.UserFindProtoResp>
       getItemsList();
-  /**
-   * <code>repeated .user.v1.UserFindProtoResp items = 2 [json_name = "items"];</code>
-   */
+
+  /** <code>repeated .user.v1.UserFindProtoResp items = 2 [json_name = "items"];</code> */
   com.codejsha.bookstore.service.application.port.pb.userpb.UserFindProtoResp getItems(int index);
-  /**
-   * <code>repeated .user.v1.UserFindProtoResp items = 2 [json_name = "items"];</code>
-   */
+
+  /** <code>repeated .user.v1.UserFindProtoResp items = 2 [json_name = "items"];</code> */
   int getItemsCount();
-  /**
-   * <code>repeated .user.v1.UserFindProtoResp items = 2 [json_name = "items"];</code>
-   */
-  java.util.List<? extends com.codejsha.bookstore.service.application.port.pb.userpb.UserFindProtoRespOrBuilder> 
+
+  /** <code>repeated .user.v1.UserFindProtoResp items = 2 [json_name = "items"];</code> */
+  java.util.List<
+          ? extends
+              com.codejsha.bookstore.service.application.port.pb.userpb.UserFindProtoRespOrBuilder>
       getItemsOrBuilderList();
-  /**
-   * <code>repeated .user.v1.UserFindProtoResp items = 2 [json_name = "items"];</code>
-   */
-  com.codejsha.bookstore.service.application.port.pb.userpb.UserFindProtoRespOrBuilder getItemsOrBuilder(
-      int index);
+
+  /** <code>repeated .user.v1.UserFindProtoResp items = 2 [json_name = "items"];</code> */
+  com.codejsha.bookstore.service.application.port.pb.userpb.UserFindProtoRespOrBuilder
+      getItemsOrBuilder(int index);
 }

@@ -2,7 +2,7 @@ package com.codejsha.bookstore.payment.domain.handler
 
 import com.codejsha.bookstore.payment.application.port.repo.PaymentRepo
 import com.codejsha.bookstore.payment.application.usecase.PaymentCommand
-import com.codejsha.bookstore.payment.application.usecase.PaymentQuery
+import com.codejsha.bookstore.payment.application.usecase.PaymentRead
 import com.codejsha.bookstore.payment.domain.aggregate.entity.PaymentEntity
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.data.domain.Page
@@ -12,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 class PaymentHandler(
     val handle: PaymentCommandHandlerImpl,
-    val paymentQueryHandler: PaymentQueryHandlerImpl
-) : PaymentQueryHandler by paymentQueryHandler
+    val paymentQueryHandler: PaymentReadHandlerImpl
+) : PaymentReadHandler by paymentQueryHandler
 
 @Component
 class PaymentCommandHandlerImpl(
@@ -22,14 +22,14 @@ class PaymentCommandHandlerImpl(
 
     @Transactional
     @WithSpan
-    operator fun invoke(command: PaymentCommand.CreatePayment): PaymentEntity {
+    operator fun invoke(command: PaymentCommand.CreatePaymentCommand): PaymentEntity {
         val entity = command.newEntity()
         return paymentRepo.save(entity)
     }
 
     @Transactional
     @WithSpan
-    operator fun invoke(command: PaymentCommand.UpdatePayment): PaymentEntity {
+    operator fun invoke(command: PaymentCommand.UpdatePaymentCommand): PaymentEntity {
         val entity = paymentRepo.findById(command.id)
             .orElseThrow { IllegalArgumentException("Payment with id ${command.id} not found") }
         entity.update(command)
@@ -38,33 +38,33 @@ class PaymentCommandHandlerImpl(
 
     @Transactional
     @WithSpan
-    operator fun invoke(command: PaymentCommand.DeletePayment) {
+    operator fun invoke(command: PaymentCommand.DeletePaymentCommand) {
         paymentRepo.deleteById(command.id)
     }
 }
 
-interface PaymentQueryHandler {
-    fun handleFindAll(query: PaymentQuery.FindAllPayments): Page<PaymentEntity>
-    fun handleFind(query: PaymentQuery.FindPayment): PaymentEntity
+interface PaymentReadHandler {
+    fun handleFindAll(read: PaymentRead.FindAllPaymentsRead): Page<PaymentEntity>
+    fun handleFind(read: PaymentRead.FindPaymentRead): PaymentEntity
 }
 
 @Component
-class PaymentQueryHandlerImpl(
+class PaymentReadHandlerImpl(
     private val paymentRepo: PaymentRepo,
     private val paymentCommandHandler: PaymentCommandHandlerImpl
-) : PaymentQueryHandler {
+) : PaymentReadHandler {
 
     @Transactional(readOnly = true)
     @WithSpan
-    override fun handleFindAll(query: PaymentQuery.FindAllPayments): Page<PaymentEntity> {
-        val pageable = query.cond.filter.toPageable()
+    override fun handleFindAll(read: PaymentRead.FindAllPaymentsRead): Page<PaymentEntity> {
+        val pageable = read.cond.filter.toPageable()
         return paymentRepo.findAll(pageable)
     }
 
     @Transactional(readOnly = true)
     @WithSpan
-    override fun handleFind(query: PaymentQuery.FindPayment): PaymentEntity {
-        return paymentRepo.findById(query.id)
-            .orElseThrow { IllegalArgumentException("Payment with id ${query.id} not found") }
+    override fun handleFind(read: PaymentRead.FindPaymentRead): PaymentEntity {
+        return paymentRepo.findById(read.id)
+            .orElseThrow { IllegalArgumentException("Payment with id ${read.id} not found") }
     }
 }

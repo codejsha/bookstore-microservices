@@ -48,6 +48,7 @@ java {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -55,7 +56,8 @@ dependencyManagement {
     imports {
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:2024.0.1")
         mavenBom("io.github.openfeign.querydsl:querydsl-bom:6.10.1")
-        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.14.0")
+        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.16.0")
+        mavenBom("io.micrometer:micrometer-bom:1.15.0")
     }
 }
 
@@ -86,15 +88,17 @@ dependencies {
     // conductor
     implementation("org.conductoross:conductor-client-spring:4.0.6")
 
-    // opentelemetry
-    implementation("io.opentelemetry:opentelemetry-sdk")
-    implementation("io.opentelemetry:opentelemetry-exporter-otlp")
-    // opentelemetry instrumentation
-    implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations")
-    implementation("io.opentelemetry.semconv:opentelemetry-semconv")
+    // observability
+    implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.16.0-alpha")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5:2.16.0-alpha")
+    implementation("io.micrometer:micrometer-registry-otlp")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    // custom
+    implementation("com.codejsha.bookstore:commonlib-kotlin:0.1.0")
 
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.cloud:spring-cloud-starter-config")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

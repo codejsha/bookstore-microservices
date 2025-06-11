@@ -5,27 +5,28 @@
 
 package com.codejsha.bookstore.service.application.port.pb.userpb;
 
-/**
- * Protobuf type {@code user.v1.UserUpdateProtoResp}
- */
-public final class UserUpdateProtoResp extends
-    com.google.protobuf.GeneratedMessage implements
+/** Protobuf type {@code user.v1.UserUpdateProtoResp} */
+public final class UserUpdateProtoResp extends com.google.protobuf.GeneratedMessage
+    implements
     // @@protoc_insertion_point(message_implements:user.v1.UserUpdateProtoResp)
     UserUpdateProtoRespOrBuilder {
-private static final long serialVersionUID = 0L;
+  private static final long serialVersionUID = 0L;
+
   static {
     com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-      com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-      /* major= */ 4,
-      /* minor= */ 29,
-      /* patch= */ 3,
-      /* suffix= */ "",
-      UserUpdateProtoResp.class.getName());
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 29,
+        /* patch= */ 3,
+        /* suffix= */ "",
+        UserUpdateProtoResp.class.getName());
   }
+
   // Use UserUpdateProtoResp.newBuilder() to construct.
   private UserUpdateProtoResp(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
     super(builder);
   }
+
   private UserUpdateProtoResp() {
     id_ = "";
     email_ = "";
@@ -35,25 +36,31 @@ private static final long serialVersionUID = 0L;
     roles_ = emptyIntList();
   }
 
-  public static final com.google.protobuf.Descriptors.Descriptor
-      getDescriptor() {
-    return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.internal_static_user_v1_UserUpdateProtoResp_descriptor;
+  public static final com.google.protobuf.Descriptors.Descriptor getDescriptor() {
+    return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto
+        .internal_static_user_v1_UserUpdateProtoResp_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.internal_static_user_v1_UserUpdateProtoResp_fieldAccessorTable
+    return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto
+        .internal_static_user_v1_UserUpdateProtoResp_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.class, com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.Builder.class);
+            com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.class,
+            com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.Builder
+                .class);
   }
 
   private int bitField0_;
   public static final int ID_FIELD_NUMBER = 1;
+
   @SuppressWarnings("serial")
   private volatile java.lang.Object id_ = "";
+
   /**
    * <code>string id = 1 [json_name = "id"];</code>
+   *
    * @return The id.
    */
   @java.lang.Override
@@ -62,25 +69,24 @@ private static final long serialVersionUID = 0L;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
+      com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       id_ = s;
       return s;
     }
   }
+
   /**
    * <code>string id = 1 [json_name = "id"];</code>
+   *
    * @return The bytes for id.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString
-      getIdBytes() {
+  public com.google.protobuf.ByteString getIdBytes() {
     java.lang.Object ref = id_;
     if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+      com.google.protobuf.ByteString b =
+          com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
       id_ = b;
       return b;
     } else {
@@ -89,10 +95,13 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int EMAIL_FIELD_NUMBER = 2;
+
   @SuppressWarnings("serial")
   private volatile java.lang.Object email_ = "";
+
   /**
    * <code>string email = 2 [json_name = "email"];</code>
+   *
    * @return The email.
    */
   @java.lang.Override
@@ -101,25 +110,24 @@ private static final long serialVersionUID = 0L;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
+      com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       email_ = s;
       return s;
     }
   }
+
   /**
    * <code>string email = 2 [json_name = "email"];</code>
+   *
    * @return The bytes for email.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString
-      getEmailBytes() {
+  public com.google.protobuf.ByteString getEmailBytes() {
     java.lang.Object ref = email_;
     if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+      com.google.protobuf.ByteString b =
+          com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
       email_ = b;
       return b;
     } else {
@@ -128,10 +136,13 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int FIRST_NAME_FIELD_NUMBER = 3;
+
   @SuppressWarnings("serial")
   private volatile java.lang.Object firstName_ = "";
+
   /**
    * <code>string first_name = 3 [json_name = "firstName"];</code>
+   *
    * @return The firstName.
    */
   @java.lang.Override
@@ -140,25 +151,24 @@ private static final long serialVersionUID = 0L;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
+      com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       firstName_ = s;
       return s;
     }
   }
+
   /**
    * <code>string first_name = 3 [json_name = "firstName"];</code>
+   *
    * @return The bytes for firstName.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString
-      getFirstNameBytes() {
+  public com.google.protobuf.ByteString getFirstNameBytes() {
     java.lang.Object ref = firstName_;
     if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+      com.google.protobuf.ByteString b =
+          com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
       firstName_ = b;
       return b;
     } else {
@@ -167,10 +177,13 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int LAST_NAME_FIELD_NUMBER = 4;
+
   @SuppressWarnings("serial")
   private volatile java.lang.Object lastName_ = "";
+
   /**
    * <code>string last_name = 4 [json_name = "lastName"];</code>
+   *
    * @return The lastName.
    */
   @java.lang.Override
@@ -179,25 +192,24 @@ private static final long serialVersionUID = 0L;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
+      com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       lastName_ = s;
       return s;
     }
   }
+
   /**
    * <code>string last_name = 4 [json_name = "lastName"];</code>
+   *
    * @return The bytes for lastName.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString
-      getLastNameBytes() {
+  public com.google.protobuf.ByteString getLastNameBytes() {
     java.lang.Object ref = lastName_;
     if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+      com.google.protobuf.ByteString b =
+          com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
       lastName_ = b;
       return b;
     } else {
@@ -206,18 +218,23 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int PHONE_FIELD_NUMBER = 5;
+
   @SuppressWarnings("serial")
   private volatile java.lang.Object phone_ = "";
+
   /**
    * <code>optional string phone = 5 [json_name = "phone"];</code>
+   *
    * @return Whether the phone field is set.
    */
   @java.lang.Override
   public boolean hasPhone() {
     return ((bitField0_ & 0x00000001) != 0);
   }
+
   /**
    * <code>optional string phone = 5 [json_name = "phone"];</code>
+   *
    * @return The phone.
    */
   @java.lang.Override
@@ -226,25 +243,24 @@ private static final long serialVersionUID = 0L;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
+      com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       phone_ = s;
       return s;
     }
   }
+
   /**
    * <code>optional string phone = 5 [json_name = "phone"];</code>
+   *
    * @return The bytes for phone.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString
-      getPhoneBytes() {
+  public com.google.protobuf.ByteString getPhoneBytes() {
     java.lang.Object ref = phone_;
     if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+      com.google.protobuf.ByteString b =
+          com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
       phone_ = b;
       return b;
     } else {
@@ -253,36 +269,52 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ROLES_FIELD_NUMBER = 6;
+
   @SuppressWarnings("serial")
   private com.google.protobuf.Internal.IntList roles_;
+
   private static final com.google.protobuf.Internal.IntListAdapter.IntConverter<
-      com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole> roles_converter_ =
+          com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole>
+      roles_converter_ =
           new com.google.protobuf.Internal.IntListAdapter.IntConverter<
               com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole>() {
-            public com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole convert(int from) {
-              com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole result = com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole.forNumber(from);
-              return result == null ? com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole.UNRECOGNIZED : result;
+            public com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole convert(
+                int from) {
+              com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole result =
+                  com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole.forNumber(
+                      from);
+              return result == null
+                  ? com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole.UNRECOGNIZED
+                  : result;
             }
           };
+
   /**
    * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+   *
    * @return A list containing the roles.
    */
   @java.lang.Override
-  public java.util.List<com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole> getRolesList() {
+  public java.util.List<com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole>
+      getRolesList() {
     return new com.google.protobuf.Internal.IntListAdapter<
-        com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole>(roles_, roles_converter_);
+        com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole>(
+        roles_, roles_converter_);
   }
+
   /**
    * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+   *
    * @return The count of roles.
    */
   @java.lang.Override
   public int getRolesCount() {
     return roles_.size();
   }
+
   /**
    * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+   *
    * @param index The index of the element to return.
    * @return The roles at the given index.
    */
@@ -290,17 +322,20 @@ private static final long serialVersionUID = 0L;
   public com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole getRoles(int index) {
     return roles_converter_.convert(roles_.getInt(index));
   }
+
   /**
    * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+   *
    * @return A list containing the enum numeric values on the wire for roles.
    */
   @java.lang.Override
-  public java.util.List<java.lang.Integer>
-  getRolesValueList() {
+  public java.util.List<java.lang.Integer> getRolesValueList() {
     return roles_;
   }
+
   /**
    * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+   *
    * @param index The index of the value to return.
    * @return The enum numeric value on the wire of roles at the given index.
    */
@@ -308,9 +343,11 @@ private static final long serialVersionUID = 0L;
   public int getRolesValue(int index) {
     return roles_.getInt(index);
   }
+
   private int rolesMemoizedSerializedSize;
 
   private byte memoizedIsInitialized = -1;
+
   @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -322,8 +359,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public void writeTo(com.google.protobuf.CodedOutputStream output)
-                      throws java.io.IOException {
+  public void writeTo(com.google.protobuf.CodedOutputStream output) throws java.io.IOException {
     getSerializedSize();
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
       com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
@@ -374,14 +410,14 @@ private static final long serialVersionUID = 0L;
     {
       int dataSize = 0;
       for (int i = 0; i < roles_.size(); i++) {
-        dataSize += com.google.protobuf.CodedOutputStream
-          .computeEnumSizeNoTag(roles_.getInt(i));
+        dataSize += com.google.protobuf.CodedOutputStream.computeEnumSizeNoTag(roles_.getInt(i));
       }
       size += dataSize;
-      if (!getRolesList().isEmpty()) {  size += 1;
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt32SizeNoTag(dataSize);
-      }rolesMemoizedSerializedSize = dataSize;
+      if (!getRolesList().isEmpty()) {
+        size += 1;
+        size += com.google.protobuf.CodedOutputStream.computeUInt32SizeNoTag(dataSize);
+      }
+      rolesMemoizedSerializedSize = dataSize;
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -391,25 +427,22 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public boolean equals(final java.lang.Object obj) {
     if (obj == this) {
-     return true;
+      return true;
     }
-    if (!(obj instanceof com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp)) {
+    if (!(obj
+        instanceof com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp)) {
       return super.equals(obj);
     }
-    com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp other = (com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp) obj;
+    com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp other =
+        (com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp) obj;
 
-    if (!getId()
-        .equals(other.getId())) return false;
-    if (!getEmail()
-        .equals(other.getEmail())) return false;
-    if (!getFirstName()
-        .equals(other.getFirstName())) return false;
-    if (!getLastName()
-        .equals(other.getLastName())) return false;
+    if (!getId().equals(other.getId())) return false;
+    if (!getEmail().equals(other.getEmail())) return false;
+    if (!getFirstName().equals(other.getFirstName())) return false;
+    if (!getLastName().equals(other.getLastName())) return false;
     if (hasPhone() != other.hasPhone()) return false;
     if (hasPhone()) {
-      if (!getPhone()
-          .equals(other.getPhone())) return false;
+      if (!getPhone().equals(other.getPhone())) return false;
     }
     if (!roles_.equals(other.roles_)) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
@@ -444,128 +477,138 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseFrom(
-      java.nio.ByteBuffer data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseFrom(java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseFrom(
-      java.nio.ByteBuffer data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseFrom(
-      com.google.protobuf.ByteString data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseFrom(
-      com.google.protobuf.ByteString data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseFrom(byte[] data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseFrom(
-      byte[] data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseDelimitedFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseDelimitedWithIOException(PARSER, input);
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseFrom(
+          java.nio.ByteBuffer data, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseDelimitedFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseFrom(com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
   }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseFrom(
-      com.google.protobuf.CodedInputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input);
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp parseFrom(
-      com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input, extensionRegistry);
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseFrom(byte[] data) throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseFrom(byte[] data, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseFrom(java.io.InputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(PARSER, input);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseFrom(
+          java.io.InputStream input, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(
+        PARSER, input, extensionRegistry);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseDelimitedFrom(java.io.InputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseDelimitedWithIOException(PARSER, input);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseDelimitedFrom(
+          java.io.InputStream input, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseDelimitedWithIOException(
+        PARSER, input, extensionRegistry);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseFrom(com.google.protobuf.CodedInputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(PARSER, input);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(
+        PARSER, input, extensionRegistry);
   }
 
   @java.lang.Override
-  public Builder newBuilderForType() { return newBuilder(); }
+  public Builder newBuilderForType() {
+    return newBuilder();
+  }
+
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp prototype) {
+
+  public static Builder newBuilder(
+      com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-  }
-  @java.lang.Override
-  public Builder toBuilder() {
-    return this == DEFAULT_INSTANCE
-        ? new Builder() : new Builder().mergeFrom(this);
   }
 
   @java.lang.Override
-  protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+  public Builder toBuilder() {
+    return this == DEFAULT_INSTANCE ? new Builder() : new Builder().mergeFrom(this);
+  }
+
+  @java.lang.Override
+  protected Builder newBuilderForType(com.google.protobuf.GeneratedMessage.BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
-  /**
-   * Protobuf type {@code user.v1.UserUpdateProtoResp}
-   */
-  public static final class Builder extends
-      com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+
+  /** Protobuf type {@code user.v1.UserUpdateProtoResp} */
+  public static final class Builder extends com.google.protobuf.GeneratedMessage.Builder<Builder>
+      implements
       // @@protoc_insertion_point(builder_implements:user.v1.UserUpdateProtoResp)
       com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoRespOrBuilder {
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.internal_static_user_v1_UserUpdateProtoResp_descriptor;
+    public static final com.google.protobuf.Descriptors.Descriptor getDescriptor() {
+      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto
+          .internal_static_user_v1_UserUpdateProtoResp_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.internal_static_user_v1_UserUpdateProtoResp_fieldAccessorTable
+      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto
+          .internal_static_user_v1_UserUpdateProtoResp_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.class, com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.Builder.class);
+              com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.class,
+              com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.Builder
+                  .class);
     }
 
-    // Construct using com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.newBuilder()
-    private Builder() {
+    // Construct using
+    // com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.newBuilder()
+    private Builder() {}
 
-    }
-
-    private Builder(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+    private Builder(com.google.protobuf.GeneratedMessage.BuilderParent parent) {
       super(parent);
-
     }
+
     @java.lang.Override
     public Builder clear() {
       super.clear();
@@ -581,19 +624,22 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor
-        getDescriptorForType() {
-      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.internal_static_user_v1_UserUpdateProtoResp_descriptor;
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto
+          .internal_static_user_v1_UserUpdateProtoResp_descriptor;
     }
 
     @java.lang.Override
-    public com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp getDefaultInstanceForType() {
-      return com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.getDefaultInstance();
+    public com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+        getDefaultInstanceForType() {
+      return com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+          .getDefaultInstance();
     }
 
     @java.lang.Override
     public com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp build() {
-      com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp result = buildPartial();
+      com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp result =
+          buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -601,15 +647,20 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp buildPartial() {
-      com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp result = new com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp(this);
+    public com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+        buildPartial() {
+      com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp result =
+          new com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp(this);
       buildPartialRepeatedFields(result);
-      if (bitField0_ != 0) { buildPartial0(result); }
+      if (bitField0_ != 0) {
+        buildPartial0(result);
+      }
       onBuilt();
       return result;
     }
 
-    private void buildPartialRepeatedFields(com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp result) {
+    private void buildPartialRepeatedFields(
+        com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp result) {
       if (((bitField0_ & 0x00000020) != 0)) {
         roles_.makeImmutable();
         bitField0_ = (bitField0_ & ~0x00000020);
@@ -617,7 +668,8 @@ private static final long serialVersionUID = 0L;
       result.roles_ = roles_;
     }
 
-    private void buildPartial0(com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp result) {
+    private void buildPartial0(
+        com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp result) {
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         result.id_ = id_;
@@ -641,16 +693,22 @@ private static final long serialVersionUID = 0L;
 
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp) {
-        return mergeFrom((com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp)other);
+      if (other
+          instanceof
+          com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp) {
+        return mergeFrom(
+            (com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp) other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp other) {
-      if (other == com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp.getDefaultInstance()) return this;
+    public Builder mergeFrom(
+        com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp other) {
+      if (other
+          == com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+              .getDefaultInstance()) return this;
       if (!other.getId().isEmpty()) {
         id_ = other.id_;
         bitField0_ |= 0x00000001;
@@ -712,54 +770,62 @@ private static final long serialVersionUID = 0L;
             case 0:
               done = true;
               break;
-            case 10: {
-              id_ = input.readStringRequireUtf8();
-              bitField0_ |= 0x00000001;
-              break;
-            } // case 10
-            case 18: {
-              email_ = input.readStringRequireUtf8();
-              bitField0_ |= 0x00000002;
-              break;
-            } // case 18
-            case 26: {
-              firstName_ = input.readStringRequireUtf8();
-              bitField0_ |= 0x00000004;
-              break;
-            } // case 26
-            case 34: {
-              lastName_ = input.readStringRequireUtf8();
-              bitField0_ |= 0x00000008;
-              break;
-            } // case 34
-            case 42: {
-              phone_ = input.readStringRequireUtf8();
-              bitField0_ |= 0x00000010;
-              break;
-            } // case 42
-            case 48: {
-              int tmpRaw = input.readEnum();
-              ensureRolesIsMutable();
-              roles_.addInt(tmpRaw);
-              break;
-            } // case 48
-            case 50: {
-              int length = input.readRawVarint32();
-              int oldLimit = input.pushLimit(length);
-              while(input.getBytesUntilLimit() > 0) {
+            case 10:
+              {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+            case 18:
+              {
+                email_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+            case 26:
+              {
+                firstName_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+            case 34:
+              {
+                lastName_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+            case 42:
+              {
+                phone_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+            case 48:
+              {
                 int tmpRaw = input.readEnum();
                 ensureRolesIsMutable();
                 roles_.addInt(tmpRaw);
-              }
-              input.popLimit(oldLimit);
-              break;
-            } // case 50
-            default: {
-              if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                done = true; // was an endgroup tag
-              }
-              break;
-            } // default:
+                break;
+              } // case 48
+            case 50:
+              {
+                int length = input.readRawVarint32();
+                int oldLimit = input.pushLimit(length);
+                while (input.getBytesUntilLimit() > 0) {
+                  int tmpRaw = input.readEnum();
+                  ensureRolesIsMutable();
+                  roles_.addInt(tmpRaw);
+                }
+                input.popLimit(oldLimit);
+                break;
+              } // case 50
+            default:
+              {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
           } // switch (tag)
         } // while (!done)
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -769,18 +835,20 @@ private static final long serialVersionUID = 0L;
       } // finally
       return this;
     }
+
     private int bitField0_;
 
     private java.lang.Object id_ = "";
+
     /**
      * <code>string id = 1 [json_name = "id"];</code>
+     *
      * @return The id.
      */
     public java.lang.String getId() {
       java.lang.Object ref = id_;
       if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
+        com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         id_ = s;
         return s;
@@ -788,38 +856,43 @@ private static final long serialVersionUID = 0L;
         return (java.lang.String) ref;
       }
     }
+
     /**
      * <code>string id = 1 [json_name = "id"];</code>
+     *
      * @return The bytes for id.
      */
-    public com.google.protobuf.ByteString
-        getIdBytes() {
+    public com.google.protobuf.ByteString getIdBytes() {
       java.lang.Object ref = id_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
         id_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
+
     /**
      * <code>string id = 1 [json_name = "id"];</code>
+     *
      * @param value The id to set.
      * @return This builder for chaining.
      */
-    public Builder setId(
-        java.lang.String value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setId(java.lang.String value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       id_ = value;
       bitField0_ |= 0x00000001;
       onChanged();
       return this;
     }
+
     /**
      * <code>string id = 1 [json_name = "id"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearId() {
@@ -828,14 +901,17 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>string id = 1 [json_name = "id"];</code>
+     *
      * @param value The bytes for id to set.
      * @return This builder for chaining.
      */
-    public Builder setIdBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setIdBytes(com.google.protobuf.ByteString value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       checkByteStringIsUtf8(value);
       id_ = value;
       bitField0_ |= 0x00000001;
@@ -844,15 +920,16 @@ private static final long serialVersionUID = 0L;
     }
 
     private java.lang.Object email_ = "";
+
     /**
      * <code>string email = 2 [json_name = "email"];</code>
+     *
      * @return The email.
      */
     public java.lang.String getEmail() {
       java.lang.Object ref = email_;
       if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
+        com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         email_ = s;
         return s;
@@ -860,38 +937,43 @@ private static final long serialVersionUID = 0L;
         return (java.lang.String) ref;
       }
     }
+
     /**
      * <code>string email = 2 [json_name = "email"];</code>
+     *
      * @return The bytes for email.
      */
-    public com.google.protobuf.ByteString
-        getEmailBytes() {
+    public com.google.protobuf.ByteString getEmailBytes() {
       java.lang.Object ref = email_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
         email_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
+
     /**
      * <code>string email = 2 [json_name = "email"];</code>
+     *
      * @param value The email to set.
      * @return This builder for chaining.
      */
-    public Builder setEmail(
-        java.lang.String value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setEmail(java.lang.String value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       email_ = value;
       bitField0_ |= 0x00000002;
       onChanged();
       return this;
     }
+
     /**
      * <code>string email = 2 [json_name = "email"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearEmail() {
@@ -900,14 +982,17 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>string email = 2 [json_name = "email"];</code>
+     *
      * @param value The bytes for email to set.
      * @return This builder for chaining.
      */
-    public Builder setEmailBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setEmailBytes(com.google.protobuf.ByteString value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       checkByteStringIsUtf8(value);
       email_ = value;
       bitField0_ |= 0x00000002;
@@ -916,15 +1001,16 @@ private static final long serialVersionUID = 0L;
     }
 
     private java.lang.Object firstName_ = "";
+
     /**
      * <code>string first_name = 3 [json_name = "firstName"];</code>
+     *
      * @return The firstName.
      */
     public java.lang.String getFirstName() {
       java.lang.Object ref = firstName_;
       if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
+        com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         firstName_ = s;
         return s;
@@ -932,38 +1018,43 @@ private static final long serialVersionUID = 0L;
         return (java.lang.String) ref;
       }
     }
+
     /**
      * <code>string first_name = 3 [json_name = "firstName"];</code>
+     *
      * @return The bytes for firstName.
      */
-    public com.google.protobuf.ByteString
-        getFirstNameBytes() {
+    public com.google.protobuf.ByteString getFirstNameBytes() {
       java.lang.Object ref = firstName_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
         firstName_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
+
     /**
      * <code>string first_name = 3 [json_name = "firstName"];</code>
+     *
      * @param value The firstName to set.
      * @return This builder for chaining.
      */
-    public Builder setFirstName(
-        java.lang.String value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setFirstName(java.lang.String value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       firstName_ = value;
       bitField0_ |= 0x00000004;
       onChanged();
       return this;
     }
+
     /**
      * <code>string first_name = 3 [json_name = "firstName"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearFirstName() {
@@ -972,14 +1063,17 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>string first_name = 3 [json_name = "firstName"];</code>
+     *
      * @param value The bytes for firstName to set.
      * @return This builder for chaining.
      */
-    public Builder setFirstNameBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setFirstNameBytes(com.google.protobuf.ByteString value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       checkByteStringIsUtf8(value);
       firstName_ = value;
       bitField0_ |= 0x00000004;
@@ -988,15 +1082,16 @@ private static final long serialVersionUID = 0L;
     }
 
     private java.lang.Object lastName_ = "";
+
     /**
      * <code>string last_name = 4 [json_name = "lastName"];</code>
+     *
      * @return The lastName.
      */
     public java.lang.String getLastName() {
       java.lang.Object ref = lastName_;
       if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
+        com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         lastName_ = s;
         return s;
@@ -1004,38 +1099,43 @@ private static final long serialVersionUID = 0L;
         return (java.lang.String) ref;
       }
     }
+
     /**
      * <code>string last_name = 4 [json_name = "lastName"];</code>
+     *
      * @return The bytes for lastName.
      */
-    public com.google.protobuf.ByteString
-        getLastNameBytes() {
+    public com.google.protobuf.ByteString getLastNameBytes() {
       java.lang.Object ref = lastName_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
         lastName_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
+
     /**
      * <code>string last_name = 4 [json_name = "lastName"];</code>
+     *
      * @param value The lastName to set.
      * @return This builder for chaining.
      */
-    public Builder setLastName(
-        java.lang.String value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setLastName(java.lang.String value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       lastName_ = value;
       bitField0_ |= 0x00000008;
       onChanged();
       return this;
     }
+
     /**
      * <code>string last_name = 4 [json_name = "lastName"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearLastName() {
@@ -1044,14 +1144,17 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>string last_name = 4 [json_name = "lastName"];</code>
+     *
      * @param value The bytes for lastName to set.
      * @return This builder for chaining.
      */
-    public Builder setLastNameBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setLastNameBytes(com.google.protobuf.ByteString value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       checkByteStringIsUtf8(value);
       lastName_ = value;
       bitField0_ |= 0x00000008;
@@ -1060,22 +1163,25 @@ private static final long serialVersionUID = 0L;
     }
 
     private java.lang.Object phone_ = "";
+
     /**
      * <code>optional string phone = 5 [json_name = "phone"];</code>
+     *
      * @return Whether the phone field is set.
      */
     public boolean hasPhone() {
       return ((bitField0_ & 0x00000010) != 0);
     }
+
     /**
      * <code>optional string phone = 5 [json_name = "phone"];</code>
+     *
      * @return The phone.
      */
     public java.lang.String getPhone() {
       java.lang.Object ref = phone_;
       if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
+        com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         phone_ = s;
         return s;
@@ -1083,38 +1189,43 @@ private static final long serialVersionUID = 0L;
         return (java.lang.String) ref;
       }
     }
+
     /**
      * <code>optional string phone = 5 [json_name = "phone"];</code>
+     *
      * @return The bytes for phone.
      */
-    public com.google.protobuf.ByteString
-        getPhoneBytes() {
+    public com.google.protobuf.ByteString getPhoneBytes() {
       java.lang.Object ref = phone_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
         phone_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
+
     /**
      * <code>optional string phone = 5 [json_name = "phone"];</code>
+     *
      * @param value The phone to set.
      * @return This builder for chaining.
      */
-    public Builder setPhone(
-        java.lang.String value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setPhone(java.lang.String value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       phone_ = value;
       bitField0_ |= 0x00000010;
       onChanged();
       return this;
     }
+
     /**
      * <code>optional string phone = 5 [json_name = "phone"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearPhone() {
@@ -1123,14 +1234,17 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>optional string phone = 5 [json_name = "phone"];</code>
+     *
      * @param value The bytes for phone to set.
      * @return This builder for chaining.
      */
-    public Builder setPhoneBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setPhoneBytes(com.google.protobuf.ByteString value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       checkByteStringIsUtf8(value);
       phone_ = value;
       bitField0_ |= 0x00000010;
@@ -1138,39 +1252,49 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private com.google.protobuf.Internal.IntList roles_ =
-      emptyIntList();
+    private com.google.protobuf.Internal.IntList roles_ = emptyIntList();
+
     private void ensureRolesIsMutable() {
       if (!((bitField0_ & 0x00000020) != 0)) {
         roles_ = makeMutableCopy(roles_);
         bitField0_ |= 0x00000020;
       }
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @return A list containing the roles.
      */
-    public java.util.List<com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole> getRolesList() {
+    public java.util.List<com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole>
+        getRolesList() {
       return new com.google.protobuf.Internal.IntListAdapter<
-          com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole>(roles_, roles_converter_);
+          com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole>(
+          roles_, roles_converter_);
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @return The count of roles.
      */
     public int getRolesCount() {
       return roles_.size();
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @param index The index of the element to return.
      * @return The roles at the given index.
      */
     public com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole getRoles(int index) {
       return roles_converter_.convert(roles_.getInt(index));
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @param index The index to set the value at.
      * @param value The roles to set.
      * @return This builder for chaining.
@@ -1185,12 +1309,15 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @param value The roles to add.
      * @return This builder for chaining.
      */
-    public Builder addRoles(com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole value) {
+    public Builder addRoles(
+        com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -1199,13 +1326,17 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @param values The roles to add.
      * @return This builder for chaining.
      */
     public Builder addAllRoles(
-        java.lang.Iterable<? extends com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole> values) {
+        java.lang.Iterable<
+                ? extends com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole>
+            values) {
       ensureRolesIsMutable();
       for (com.codejsha.bookstore.service.application.port.pb.userpb.AuthRole value : values) {
         roles_.addInt(value.getNumber());
@@ -1213,8 +1344,10 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearRoles() {
@@ -1223,37 +1356,43 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @return A list containing the enum numeric values on the wire for roles.
      */
-    public java.util.List<java.lang.Integer>
-    getRolesValueList() {
+    public java.util.List<java.lang.Integer> getRolesValueList() {
       return java.util.Collections.unmodifiableList(roles_);
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @param index The index of the value to return.
      * @return The enum numeric value on the wire of roles at the given index.
      */
     public int getRolesValue(int index) {
       return roles_.getInt(index);
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @param index The index to set the value at.
      * @param value The enum numeric value on the wire for roles to set.
      * @return This builder for chaining.
      */
-    public Builder setRolesValue(
-        int index, int value) {
+    public Builder setRolesValue(int index, int value) {
       ensureRolesIsMutable();
       roles_.setInt(index, value);
       onChanged();
       return this;
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @param value The enum numeric value on the wire for roles to add.
      * @return This builder for chaining.
      */
@@ -1263,13 +1402,14 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>repeated .user.v1.AuthRole roles = 6 [json_name = "roles"];</code>
+     *
      * @param values The enum numeric values on the wire for roles to add.
      * @return This builder for chaining.
      */
-    public Builder addAllRolesValue(
-        java.lang.Iterable<java.lang.Integer> values) {
+    public Builder addAllRolesValue(java.lang.Iterable<java.lang.Integer> values) {
       ensureRolesIsMutable();
       for (int value : values) {
         roles_.addInt(value);
@@ -1282,36 +1422,40 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:user.v1.UserUpdateProtoResp)
-  private static final com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp DEFAULT_INSTANCE;
+  private static final com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      DEFAULT_INSTANCE;
+
   static {
-    DEFAULT_INSTANCE = new com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp();
+    DEFAULT_INSTANCE =
+        new com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp();
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp getDefaultInstance() {
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<UserUpdateProtoResp>
-      PARSER = new com.google.protobuf.AbstractParser<UserUpdateProtoResp>() {
-    @java.lang.Override
-    public UserUpdateProtoResp parsePartialFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      Builder builder = newBuilder();
-      try {
-        builder.mergeFrom(input, extensionRegistry);
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(builder.buildPartial());
-      } catch (com.google.protobuf.UninitializedMessageException e) {
-        throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(e)
-            .setUnfinishedMessage(builder.buildPartial());
-      }
-      return builder.buildPartial();
-    }
-  };
+  private static final com.google.protobuf.Parser<UserUpdateProtoResp> PARSER =
+      new com.google.protobuf.AbstractParser<UserUpdateProtoResp>() {
+        @java.lang.Override
+        public UserUpdateProtoResp parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
 
   public static com.google.protobuf.Parser<UserUpdateProtoResp> parser() {
     return PARSER;
@@ -1323,9 +1467,8 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp getDefaultInstanceForType() {
+  public com.codejsha.bookstore.service.application.port.pb.userpb.UserUpdateProtoResp
+      getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
-
 }
-

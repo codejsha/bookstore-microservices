@@ -5,37 +5,37 @@
 
 package com.codejsha.bookstore.service.application.port.pb.paymentpb;
 
-public interface PaymentFindAllProtoRespOrBuilder extends
+public interface PaymentFindAllProtoRespOrBuilder
+    extends
     // @@protoc_insertion_point(interface_extends:payment.v1.PaymentFindAllProtoResp)
     com.google.protobuf.MessageOrBuilder {
 
   /**
    * <code>int64 total = 1 [json_name = "total"];</code>
+   *
    * @return The total.
    */
   long getTotal();
 
-  /**
-   * <code>repeated .payment.v1.PaymentFindProtoResp items = 2 [json_name = "items"];</code>
-   */
-  java.util.List<com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindProtoResp> 
+  /** <code>repeated .payment.v1.PaymentFindProtoResp items = 2 [json_name = "items"];</code> */
+  java.util.List<com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindProtoResp>
       getItemsList();
-  /**
-   * <code>repeated .payment.v1.PaymentFindProtoResp items = 2 [json_name = "items"];</code>
-   */
-  com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindProtoResp getItems(int index);
-  /**
-   * <code>repeated .payment.v1.PaymentFindProtoResp items = 2 [json_name = "items"];</code>
-   */
-  int getItemsCount();
-  /**
-   * <code>repeated .payment.v1.PaymentFindProtoResp items = 2 [json_name = "items"];</code>
-   */
-  java.util.List<? extends com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindProtoRespOrBuilder> 
-      getItemsOrBuilderList();
-  /**
-   * <code>repeated .payment.v1.PaymentFindProtoResp items = 2 [json_name = "items"];</code>
-   */
-  com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindProtoRespOrBuilder getItemsOrBuilder(
+
+  /** <code>repeated .payment.v1.PaymentFindProtoResp items = 2 [json_name = "items"];</code> */
+  com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindProtoResp getItems(
       int index);
+
+  /** <code>repeated .payment.v1.PaymentFindProtoResp items = 2 [json_name = "items"];</code> */
+  int getItemsCount();
+
+  /** <code>repeated .payment.v1.PaymentFindProtoResp items = 2 [json_name = "items"];</code> */
+  java.util.List<
+          ? extends
+              com.codejsha.bookstore.service.application.port.pb.paymentpb
+                  .PaymentFindProtoRespOrBuilder>
+      getItemsOrBuilderList();
+
+  /** <code>repeated .payment.v1.PaymentFindProtoResp items = 2 [json_name = "items"];</code> */
+  com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindProtoRespOrBuilder
+      getItemsOrBuilder(int index);
 }

@@ -5,50 +5,56 @@
 
 package com.codejsha.bookstore.service.application.port.pb.orderpb;
 
-/**
- * Protobuf type {@code order.v1.QueryFilter}
- */
-public final class QueryFilter extends
-    com.google.protobuf.GeneratedMessage implements
+/** Protobuf type {@code order.v1.QueryFilter} */
+public final class QueryFilter extends com.google.protobuf.GeneratedMessage
+    implements
     // @@protoc_insertion_point(message_implements:order.v1.QueryFilter)
     QueryFilterOrBuilder {
-private static final long serialVersionUID = 0L;
+  private static final long serialVersionUID = 0L;
+
   static {
     com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-      com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-      /* major= */ 4,
-      /* minor= */ 29,
-      /* patch= */ 3,
-      /* suffix= */ "",
-      QueryFilter.class.getName());
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 29,
+        /* patch= */ 3,
+        /* suffix= */ "",
+        QueryFilter.class.getName());
   }
+
   // Use QueryFilter.newBuilder() to construct.
   private QueryFilter(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
     super(builder);
   }
+
   private QueryFilter() {
     sort_ = "";
     order_ = "";
   }
 
-  public static final com.google.protobuf.Descriptors.Descriptor
-      getDescriptor() {
-    return com.codejsha.bookstore.service.application.port.pb.orderpb.OrderProto.internal_static_order_v1_QueryFilter_descriptor;
+  public static final com.google.protobuf.Descriptors.Descriptor getDescriptor() {
+    return com.codejsha.bookstore.service.application.port.pb.orderpb.OrderProto
+        .internal_static_order_v1_QueryFilter_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.codejsha.bookstore.service.application.port.pb.orderpb.OrderProto.internal_static_order_v1_QueryFilter_fieldAccessorTable
+    return com.codejsha.bookstore.service.application.port.pb.orderpb.OrderProto
+        .internal_static_order_v1_QueryFilter_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.class, com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.Builder.class);
+            com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.class,
+            com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.Builder.class);
   }
 
   public static final int SORT_FIELD_NUMBER = 1;
+
   @SuppressWarnings("serial")
   private volatile java.lang.Object sort_ = "";
+
   /**
    * <code>string sort = 1 [json_name = "sort"];</code>
+   *
    * @return The sort.
    */
   @java.lang.Override
@@ -57,25 +63,24 @@ private static final long serialVersionUID = 0L;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
+      com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       sort_ = s;
       return s;
     }
   }
+
   /**
    * <code>string sort = 1 [json_name = "sort"];</code>
+   *
    * @return The bytes for sort.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString
-      getSortBytes() {
+  public com.google.protobuf.ByteString getSortBytes() {
     java.lang.Object ref = sort_;
     if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+      com.google.protobuf.ByteString b =
+          com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
       sort_ = b;
       return b;
     } else {
@@ -84,10 +89,13 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ORDER_FIELD_NUMBER = 2;
+
   @SuppressWarnings("serial")
   private volatile java.lang.Object order_ = "";
+
   /**
    * <code>string order = 2 [json_name = "order"];</code>
+   *
    * @return The order.
    */
   @java.lang.Override
@@ -96,25 +104,24 @@ private static final long serialVersionUID = 0L;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
+      com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       order_ = s;
       return s;
     }
   }
+
   /**
    * <code>string order = 2 [json_name = "order"];</code>
+   *
    * @return The bytes for order.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString
-      getOrderBytes() {
+  public com.google.protobuf.ByteString getOrderBytes() {
     java.lang.Object ref = order_;
     if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+      com.google.protobuf.ByteString b =
+          com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
       order_ = b;
       return b;
     } else {
@@ -124,8 +131,10 @@ private static final long serialVersionUID = 0L;
 
   public static final int LIMIT_FIELD_NUMBER = 3;
   private int limit_ = 0;
+
   /**
    * <code>int32 limit = 3 [json_name = "limit"];</code>
+   *
    * @return The limit.
    */
   @java.lang.Override
@@ -135,8 +144,10 @@ private static final long serialVersionUID = 0L;
 
   public static final int OFFSET_FIELD_NUMBER = 4;
   private int offset_ = 0;
+
   /**
    * <code>int32 offset = 4 [json_name = "offset"];</code>
+   *
    * @return The offset.
    */
   @java.lang.Override
@@ -145,6 +156,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+
   @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -156,8 +168,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public void writeTo(com.google.protobuf.CodedOutputStream output)
-                      throws java.io.IOException {
+  public void writeTo(com.google.protobuf.CodedOutputStream output) throws java.io.IOException {
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sort_)) {
       com.google.protobuf.GeneratedMessage.writeString(output, 1, sort_);
     }
@@ -186,12 +197,10 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.GeneratedMessage.computeStringSize(2, order_);
     }
     if (limit_ != 0) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(3, limit_);
+      size += com.google.protobuf.CodedOutputStream.computeInt32Size(3, limit_);
     }
     if (offset_ != 0) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(4, offset_);
+      size += com.google.protobuf.CodedOutputStream.computeInt32Size(4, offset_);
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -201,21 +210,18 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public boolean equals(final java.lang.Object obj) {
     if (obj == this) {
-     return true;
+      return true;
     }
     if (!(obj instanceof com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter)) {
       return super.equals(obj);
     }
-    com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter other = (com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter) obj;
+    com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter other =
+        (com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter) obj;
 
-    if (!getSort()
-        .equals(other.getSort())) return false;
-    if (!getOrder()
-        .equals(other.getOrder())) return false;
-    if (getLimit()
-        != other.getLimit()) return false;
-    if (getOffset()
-        != other.getOffset()) return false;
+    if (!getSort().equals(other.getSort())) return false;
+    if (!getOrder().equals(other.getOrder())) return false;
+    if (getLimit() != other.getLimit()) return false;
+    if (getOffset() != other.getOffset()) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -241,127 +247,131 @@ private static final long serialVersionUID = 0L;
   }
 
   public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(
-      java.nio.ByteBuffer data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
+      java.nio.ByteBuffer data) throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
+
   public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(
-      java.nio.ByteBuffer data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      java.nio.ByteBuffer data, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
+
   public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
+
   public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(byte[] data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
+
+  public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(
+      byte[] data) throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
+
   public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(
-      byte[] data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      byte[] data, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input);
-  }
+
   public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input, extensionRegistry);
+      java.io.InputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(PARSER, input);
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseDelimitedFrom(java.io.InputStream input)
+  public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(
+      java.io.InputStream input, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseDelimitedWithIOException(PARSER, input);
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(
+        PARSER, input, extensionRegistry);
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseDelimitedFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+  public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter
+      parseDelimitedFrom(java.io.InputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseDelimitedWithIOException(PARSER, input);
   }
+
+  public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter
+      parseDelimitedFrom(
+          java.io.InputStream input, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseDelimitedWithIOException(
+        PARSER, input, extensionRegistry);
+  }
+
   public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(
-      com.google.protobuf.CodedInputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input);
+      com.google.protobuf.CodedInputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(PARSER, input);
   }
+
   public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input, extensionRegistry);
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(
+        PARSER, input, extensionRegistry);
   }
 
   @java.lang.Override
-  public Builder newBuilderForType() { return newBuilder(); }
+  public Builder newBuilderForType() {
+    return newBuilder();
+  }
+
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter prototype) {
+
+  public static Builder newBuilder(
+      com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-  }
-  @java.lang.Override
-  public Builder toBuilder() {
-    return this == DEFAULT_INSTANCE
-        ? new Builder() : new Builder().mergeFrom(this);
   }
 
   @java.lang.Override
-  protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+  public Builder toBuilder() {
+    return this == DEFAULT_INSTANCE ? new Builder() : new Builder().mergeFrom(this);
+  }
+
+  @java.lang.Override
+  protected Builder newBuilderForType(com.google.protobuf.GeneratedMessage.BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
-  /**
-   * Protobuf type {@code order.v1.QueryFilter}
-   */
-  public static final class Builder extends
-      com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+
+  /** Protobuf type {@code order.v1.QueryFilter} */
+  public static final class Builder extends com.google.protobuf.GeneratedMessage.Builder<Builder>
+      implements
       // @@protoc_insertion_point(builder_implements:order.v1.QueryFilter)
       com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilterOrBuilder {
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.codejsha.bookstore.service.application.port.pb.orderpb.OrderProto.internal_static_order_v1_QueryFilter_descriptor;
+    public static final com.google.protobuf.Descriptors.Descriptor getDescriptor() {
+      return com.codejsha.bookstore.service.application.port.pb.orderpb.OrderProto
+          .internal_static_order_v1_QueryFilter_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.codejsha.bookstore.service.application.port.pb.orderpb.OrderProto.internal_static_order_v1_QueryFilter_fieldAccessorTable
+      return com.codejsha.bookstore.service.application.port.pb.orderpb.OrderProto
+          .internal_static_order_v1_QueryFilter_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.class, com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.Builder.class);
+              com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.class,
+              com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.Builder.class);
     }
 
-    // Construct using com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.newBuilder()
-    private Builder() {
+    // Construct using
+    // com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.newBuilder()
+    private Builder() {}
 
-    }
-
-    private Builder(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+    private Builder(com.google.protobuf.GeneratedMessage.BuilderParent parent) {
       super(parent);
-
     }
+
     @java.lang.Override
     public Builder clear() {
       super.clear();
@@ -374,19 +384,22 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor
-        getDescriptorForType() {
-      return com.codejsha.bookstore.service.application.port.pb.orderpb.OrderProto.internal_static_order_v1_QueryFilter_descriptor;
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return com.codejsha.bookstore.service.application.port.pb.orderpb.OrderProto
+          .internal_static_order_v1_QueryFilter_descriptor;
     }
 
     @java.lang.Override
-    public com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter getDefaultInstanceForType() {
-      return com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.getDefaultInstance();
+    public com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter
+        getDefaultInstanceForType() {
+      return com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter
+          .getDefaultInstance();
     }
 
     @java.lang.Override
     public com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter build() {
-      com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter result = buildPartial();
+      com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter result =
+          buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -395,13 +408,17 @@ private static final long serialVersionUID = 0L;
 
     @java.lang.Override
     public com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter buildPartial() {
-      com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter result = new com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter(this);
-      if (bitField0_ != 0) { buildPartial0(result); }
+      com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter result =
+          new com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter(this);
+      if (bitField0_ != 0) {
+        buildPartial0(result);
+      }
       onBuilt();
       return result;
     }
 
-    private void buildPartial0(com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter result) {
+    private void buildPartial0(
+        com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter result) {
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         result.sort_ = sort_;
@@ -420,15 +437,19 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter) {
-        return mergeFrom((com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter)other);
+        return mergeFrom(
+            (com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter) other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter other) {
-      if (other == com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter.getDefaultInstance()) return this;
+    public Builder mergeFrom(
+        com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter other) {
+      if (other
+          == com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter
+              .getDefaultInstance()) return this;
       if (!other.getSort().isEmpty()) {
         sort_ = other.sort_;
         bitField0_ |= 0x00000001;
@@ -471,32 +492,37 @@ private static final long serialVersionUID = 0L;
             case 0:
               done = true;
               break;
-            case 10: {
-              sort_ = input.readStringRequireUtf8();
-              bitField0_ |= 0x00000001;
-              break;
-            } // case 10
-            case 18: {
-              order_ = input.readStringRequireUtf8();
-              bitField0_ |= 0x00000002;
-              break;
-            } // case 18
-            case 24: {
-              limit_ = input.readInt32();
-              bitField0_ |= 0x00000004;
-              break;
-            } // case 24
-            case 32: {
-              offset_ = input.readInt32();
-              bitField0_ |= 0x00000008;
-              break;
-            } // case 32
-            default: {
-              if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                done = true; // was an endgroup tag
-              }
-              break;
-            } // default:
+            case 10:
+              {
+                sort_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+            case 18:
+              {
+                order_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+            case 24:
+              {
+                limit_ = input.readInt32();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+            case 32:
+              {
+                offset_ = input.readInt32();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+            default:
+              {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
           } // switch (tag)
         } // while (!done)
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -506,18 +532,20 @@ private static final long serialVersionUID = 0L;
       } // finally
       return this;
     }
+
     private int bitField0_;
 
     private java.lang.Object sort_ = "";
+
     /**
      * <code>string sort = 1 [json_name = "sort"];</code>
+     *
      * @return The sort.
      */
     public java.lang.String getSort() {
       java.lang.Object ref = sort_;
       if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
+        com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sort_ = s;
         return s;
@@ -525,38 +553,43 @@ private static final long serialVersionUID = 0L;
         return (java.lang.String) ref;
       }
     }
+
     /**
      * <code>string sort = 1 [json_name = "sort"];</code>
+     *
      * @return The bytes for sort.
      */
-    public com.google.protobuf.ByteString
-        getSortBytes() {
+    public com.google.protobuf.ByteString getSortBytes() {
       java.lang.Object ref = sort_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
         sort_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
+
     /**
      * <code>string sort = 1 [json_name = "sort"];</code>
+     *
      * @param value The sort to set.
      * @return This builder for chaining.
      */
-    public Builder setSort(
-        java.lang.String value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setSort(java.lang.String value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       sort_ = value;
       bitField0_ |= 0x00000001;
       onChanged();
       return this;
     }
+
     /**
      * <code>string sort = 1 [json_name = "sort"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearSort() {
@@ -565,14 +598,17 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>string sort = 1 [json_name = "sort"];</code>
+     *
      * @param value The bytes for sort to set.
      * @return This builder for chaining.
      */
-    public Builder setSortBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setSortBytes(com.google.protobuf.ByteString value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       checkByteStringIsUtf8(value);
       sort_ = value;
       bitField0_ |= 0x00000001;
@@ -581,15 +617,16 @@ private static final long serialVersionUID = 0L;
     }
 
     private java.lang.Object order_ = "";
+
     /**
      * <code>string order = 2 [json_name = "order"];</code>
+     *
      * @return The order.
      */
     public java.lang.String getOrder() {
       java.lang.Object ref = order_;
       if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
+        com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         order_ = s;
         return s;
@@ -597,38 +634,43 @@ private static final long serialVersionUID = 0L;
         return (java.lang.String) ref;
       }
     }
+
     /**
      * <code>string order = 2 [json_name = "order"];</code>
+     *
      * @return The bytes for order.
      */
-    public com.google.protobuf.ByteString
-        getOrderBytes() {
+    public com.google.protobuf.ByteString getOrderBytes() {
       java.lang.Object ref = order_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
         order_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
+
     /**
      * <code>string order = 2 [json_name = "order"];</code>
+     *
      * @param value The order to set.
      * @return This builder for chaining.
      */
-    public Builder setOrder(
-        java.lang.String value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setOrder(java.lang.String value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       order_ = value;
       bitField0_ |= 0x00000002;
       onChanged();
       return this;
     }
+
     /**
      * <code>string order = 2 [json_name = "order"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearOrder() {
@@ -637,14 +679,17 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>string order = 2 [json_name = "order"];</code>
+     *
      * @param value The bytes for order to set.
      * @return This builder for chaining.
      */
-    public Builder setOrderBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setOrderBytes(com.google.protobuf.ByteString value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       checkByteStringIsUtf8(value);
       order_ = value;
       bitField0_ |= 0x00000002;
@@ -652,17 +697,21 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private int limit_ ;
+    private int limit_;
+
     /**
      * <code>int32 limit = 3 [json_name = "limit"];</code>
+     *
      * @return The limit.
      */
     @java.lang.Override
     public int getLimit() {
       return limit_;
     }
+
     /**
      * <code>int32 limit = 3 [json_name = "limit"];</code>
+     *
      * @param value The limit to set.
      * @return This builder for chaining.
      */
@@ -673,8 +722,10 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>int32 limit = 3 [json_name = "limit"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearLimit() {
@@ -684,17 +735,21 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private int offset_ ;
+    private int offset_;
+
     /**
      * <code>int32 offset = 4 [json_name = "offset"];</code>
+     *
      * @return The offset.
      */
     @java.lang.Override
     public int getOffset() {
       return offset_;
     }
+
     /**
      * <code>int32 offset = 4 [json_name = "offset"];</code>
+     *
      * @param value The offset to set.
      * @return This builder for chaining.
      */
@@ -705,8 +760,10 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>int32 offset = 4 [json_name = "offset"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearOffset() {
@@ -720,36 +777,39 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:order.v1.QueryFilter)
-  private static final com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter DEFAULT_INSTANCE;
+  private static final com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter
+      DEFAULT_INSTANCE;
+
   static {
     DEFAULT_INSTANCE = new com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter();
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter getDefaultInstance() {
+  public static com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter
+      getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<QueryFilter>
-      PARSER = new com.google.protobuf.AbstractParser<QueryFilter>() {
-    @java.lang.Override
-    public QueryFilter parsePartialFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      Builder builder = newBuilder();
-      try {
-        builder.mergeFrom(input, extensionRegistry);
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(builder.buildPartial());
-      } catch (com.google.protobuf.UninitializedMessageException e) {
-        throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(e)
-            .setUnfinishedMessage(builder.buildPartial());
-      }
-      return builder.buildPartial();
-    }
-  };
+  private static final com.google.protobuf.Parser<QueryFilter> PARSER =
+      new com.google.protobuf.AbstractParser<QueryFilter>() {
+        @java.lang.Override
+        public QueryFilter parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
 
   public static com.google.protobuf.Parser<QueryFilter> parser() {
     return PARSER;
@@ -761,9 +821,8 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter getDefaultInstanceForType() {
+  public com.codejsha.bookstore.service.application.port.pb.orderpb.QueryFilter
+      getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
-
 }
-

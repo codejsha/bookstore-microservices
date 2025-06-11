@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 
 sealed class PaymentCommand {
 
-    data class CreatePayment(
+    data class CreatePaymentCommand(
         val orderId: Long,
         val userId: String,
         val paymentType: PaymentType,
@@ -18,11 +18,11 @@ sealed class PaymentCommand {
     ) : PaymentCommand() {
 
         constructor(dto: PaymentDto) : this(
-            orderId = dto.orderId!!,
-            userId = dto.userId!!,
-            paymentType = dto.paymentType!!,
-            cardNumber = dto.cardNumber!!,
-            amount = dto.amount!!,
+            orderId = requireNotNull(dto.orderId),
+            userId = requireNotNull(dto.userId),
+            paymentType = requireNotNull(dto.paymentType),
+            cardNumber = requireNotNull(dto.cardNumber),
+            amount = requireNotNull(dto.amount),
         )
 
         fun newEntity(): PaymentEntity {
@@ -38,7 +38,7 @@ sealed class PaymentCommand {
         }
     }
 
-    data class UpdatePayment(
+    data class UpdatePaymentCommand(
         val id: Long,
         val orderId: Long?,
         val userId: String?,
@@ -48,7 +48,7 @@ sealed class PaymentCommand {
     ) : PaymentCommand() {
 
         constructor(dto: PaymentDto) : this(
-            id = dto.id!!,
+            id = requireNotNull(dto.id),
             orderId = dto.orderId,
             userId = dto.userId,
             paymentType = dto.paymentType,
@@ -57,10 +57,10 @@ sealed class PaymentCommand {
         )
     }
 
-    data class DeletePayment(val id: Long) : PaymentCommand()
+    data class DeletePaymentCommand(val id: Long) : PaymentCommand()
 }
 
-sealed class PaymentQuery {
-    data class FindAllPayments(val cond: FilterCondition) : PaymentQuery()
-    data class FindPayment(val id: Long) : PaymentQuery()
+sealed class PaymentRead {
+    data class FindAllPaymentsRead(val cond: FilterCondition) : PaymentRead()
+    data class FindPaymentRead(val id: Long) : PaymentRead()
 }

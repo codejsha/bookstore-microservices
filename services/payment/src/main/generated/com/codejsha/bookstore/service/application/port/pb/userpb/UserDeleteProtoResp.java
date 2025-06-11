@@ -5,49 +5,56 @@
 
 package com.codejsha.bookstore.service.application.port.pb.userpb;
 
-/**
- * Protobuf type {@code user.v1.UserDeleteProtoResp}
- */
-public final class UserDeleteProtoResp extends
-    com.google.protobuf.GeneratedMessage implements
+/** Protobuf type {@code user.v1.UserDeleteProtoResp} */
+public final class UserDeleteProtoResp extends com.google.protobuf.GeneratedMessage
+    implements
     // @@protoc_insertion_point(message_implements:user.v1.UserDeleteProtoResp)
     UserDeleteProtoRespOrBuilder {
-private static final long serialVersionUID = 0L;
+  private static final long serialVersionUID = 0L;
+
   static {
     com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-      com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-      /* major= */ 4,
-      /* minor= */ 29,
-      /* patch= */ 3,
-      /* suffix= */ "",
-      UserDeleteProtoResp.class.getName());
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 29,
+        /* patch= */ 3,
+        /* suffix= */ "",
+        UserDeleteProtoResp.class.getName());
   }
+
   // Use UserDeleteProtoResp.newBuilder() to construct.
   private UserDeleteProtoResp(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
     super(builder);
   }
+
   private UserDeleteProtoResp() {
     id_ = "";
   }
 
-  public static final com.google.protobuf.Descriptors.Descriptor
-      getDescriptor() {
-    return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.internal_static_user_v1_UserDeleteProtoResp_descriptor;
+  public static final com.google.protobuf.Descriptors.Descriptor getDescriptor() {
+    return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto
+        .internal_static_user_v1_UserDeleteProtoResp_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.internal_static_user_v1_UserDeleteProtoResp_fieldAccessorTable
+    return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto
+        .internal_static_user_v1_UserDeleteProtoResp_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.class, com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.Builder.class);
+            com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.class,
+            com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.Builder
+                .class);
   }
 
   public static final int ID_FIELD_NUMBER = 1;
+
   @SuppressWarnings("serial")
   private volatile java.lang.Object id_ = "";
+
   /**
    * <code>string id = 1 [json_name = "id"];</code>
+   *
    * @return The id.
    */
   @java.lang.Override
@@ -56,25 +63,24 @@ private static final long serialVersionUID = 0L;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
+      com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       id_ = s;
       return s;
     }
   }
+
   /**
    * <code>string id = 1 [json_name = "id"];</code>
+   *
    * @return The bytes for id.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString
-      getIdBytes() {
+  public com.google.protobuf.ByteString getIdBytes() {
     java.lang.Object ref = id_;
     if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+      com.google.protobuf.ByteString b =
+          com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
       id_ = b;
       return b;
     } else {
@@ -83,6 +89,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+
   @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -94,8 +101,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public void writeTo(com.google.protobuf.CodedOutputStream output)
-                      throws java.io.IOException {
+  public void writeTo(com.google.protobuf.CodedOutputStream output) throws java.io.IOException {
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
       com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
     }
@@ -119,15 +125,16 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public boolean equals(final java.lang.Object obj) {
     if (obj == this) {
-     return true;
+      return true;
     }
-    if (!(obj instanceof com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp)) {
+    if (!(obj
+        instanceof com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp)) {
       return super.equals(obj);
     }
-    com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp other = (com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp) obj;
+    com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp other =
+        (com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp) obj;
 
-    if (!getId()
-        .equals(other.getId())) return false;
+    if (!getId().equals(other.getId())) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -146,128 +153,138 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseFrom(
-      java.nio.ByteBuffer data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseFrom(java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseFrom(
-      java.nio.ByteBuffer data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseFrom(
-      com.google.protobuf.ByteString data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseFrom(
-      com.google.protobuf.ByteString data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseFrom(byte[] data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseFrom(
-      byte[] data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseDelimitedFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseDelimitedWithIOException(PARSER, input);
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseFrom(
+          java.nio.ByteBuffer data, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseDelimitedFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseFrom(com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
   }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseFrom(
-      com.google.protobuf.CodedInputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input);
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp parseFrom(
-      com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input, extensionRegistry);
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseFrom(byte[] data) throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseFrom(byte[] data, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseFrom(java.io.InputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(PARSER, input);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseFrom(
+          java.io.InputStream input, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(
+        PARSER, input, extensionRegistry);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseDelimitedFrom(java.io.InputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseDelimitedWithIOException(PARSER, input);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseDelimitedFrom(
+          java.io.InputStream input, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseDelimitedWithIOException(
+        PARSER, input, extensionRegistry);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseFrom(com.google.protobuf.CodedInputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(PARSER, input);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(
+        PARSER, input, extensionRegistry);
   }
 
   @java.lang.Override
-  public Builder newBuilderForType() { return newBuilder(); }
+  public Builder newBuilderForType() {
+    return newBuilder();
+  }
+
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp prototype) {
+
+  public static Builder newBuilder(
+      com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-  }
-  @java.lang.Override
-  public Builder toBuilder() {
-    return this == DEFAULT_INSTANCE
-        ? new Builder() : new Builder().mergeFrom(this);
   }
 
   @java.lang.Override
-  protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+  public Builder toBuilder() {
+    return this == DEFAULT_INSTANCE ? new Builder() : new Builder().mergeFrom(this);
+  }
+
+  @java.lang.Override
+  protected Builder newBuilderForType(com.google.protobuf.GeneratedMessage.BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
-  /**
-   * Protobuf type {@code user.v1.UserDeleteProtoResp}
-   */
-  public static final class Builder extends
-      com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+
+  /** Protobuf type {@code user.v1.UserDeleteProtoResp} */
+  public static final class Builder extends com.google.protobuf.GeneratedMessage.Builder<Builder>
+      implements
       // @@protoc_insertion_point(builder_implements:user.v1.UserDeleteProtoResp)
       com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoRespOrBuilder {
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.internal_static_user_v1_UserDeleteProtoResp_descriptor;
+    public static final com.google.protobuf.Descriptors.Descriptor getDescriptor() {
+      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto
+          .internal_static_user_v1_UserDeleteProtoResp_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.internal_static_user_v1_UserDeleteProtoResp_fieldAccessorTable
+      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto
+          .internal_static_user_v1_UserDeleteProtoResp_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.class, com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.Builder.class);
+              com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.class,
+              com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.Builder
+                  .class);
     }
 
-    // Construct using com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.newBuilder()
-    private Builder() {
+    // Construct using
+    // com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.newBuilder()
+    private Builder() {}
 
-    }
-
-    private Builder(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+    private Builder(com.google.protobuf.GeneratedMessage.BuilderParent parent) {
       super(parent);
-
     }
+
     @java.lang.Override
     public Builder clear() {
       super.clear();
@@ -277,19 +294,22 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor
-        getDescriptorForType() {
-      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.internal_static_user_v1_UserDeleteProtoResp_descriptor;
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto
+          .internal_static_user_v1_UserDeleteProtoResp_descriptor;
     }
 
     @java.lang.Override
-    public com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp getDefaultInstanceForType() {
-      return com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.getDefaultInstance();
+    public com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+        getDefaultInstanceForType() {
+      return com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+          .getDefaultInstance();
     }
 
     @java.lang.Override
     public com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp build() {
-      com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp result = buildPartial();
+      com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp result =
+          buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -297,14 +317,19 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp buildPartial() {
-      com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp result = new com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp(this);
-      if (bitField0_ != 0) { buildPartial0(result); }
+    public com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+        buildPartial() {
+      com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp result =
+          new com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp(this);
+      if (bitField0_ != 0) {
+        buildPartial0(result);
+      }
       onBuilt();
       return result;
     }
 
-    private void buildPartial0(com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp result) {
+    private void buildPartial0(
+        com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp result) {
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         result.id_ = id_;
@@ -313,16 +338,22 @@ private static final long serialVersionUID = 0L;
 
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp) {
-        return mergeFrom((com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp)other);
+      if (other
+          instanceof
+          com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp) {
+        return mergeFrom(
+            (com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp) other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp other) {
-      if (other == com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp.getDefaultInstance()) return this;
+    public Builder mergeFrom(
+        com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp other) {
+      if (other
+          == com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+              .getDefaultInstance()) return this;
       if (!other.getId().isEmpty()) {
         id_ = other.id_;
         bitField0_ |= 0x00000001;
@@ -354,17 +385,19 @@ private static final long serialVersionUID = 0L;
             case 0:
               done = true;
               break;
-            case 10: {
-              id_ = input.readStringRequireUtf8();
-              bitField0_ |= 0x00000001;
-              break;
-            } // case 10
-            default: {
-              if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                done = true; // was an endgroup tag
-              }
-              break;
-            } // default:
+            case 10:
+              {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+            default:
+              {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
           } // switch (tag)
         } // while (!done)
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -374,18 +407,20 @@ private static final long serialVersionUID = 0L;
       } // finally
       return this;
     }
+
     private int bitField0_;
 
     private java.lang.Object id_ = "";
+
     /**
      * <code>string id = 1 [json_name = "id"];</code>
+     *
      * @return The id.
      */
     public java.lang.String getId() {
       java.lang.Object ref = id_;
       if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
+        com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         id_ = s;
         return s;
@@ -393,38 +428,43 @@ private static final long serialVersionUID = 0L;
         return (java.lang.String) ref;
       }
     }
+
     /**
      * <code>string id = 1 [json_name = "id"];</code>
+     *
      * @return The bytes for id.
      */
-    public com.google.protobuf.ByteString
-        getIdBytes() {
+    public com.google.protobuf.ByteString getIdBytes() {
       java.lang.Object ref = id_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
         id_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
+
     /**
      * <code>string id = 1 [json_name = "id"];</code>
+     *
      * @param value The id to set.
      * @return This builder for chaining.
      */
-    public Builder setId(
-        java.lang.String value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setId(java.lang.String value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       id_ = value;
       bitField0_ |= 0x00000001;
       onChanged();
       return this;
     }
+
     /**
      * <code>string id = 1 [json_name = "id"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearId() {
@@ -433,14 +473,17 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>string id = 1 [json_name = "id"];</code>
+     *
      * @param value The bytes for id to set.
      * @return This builder for chaining.
      */
-    public Builder setIdBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setIdBytes(com.google.protobuf.ByteString value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       checkByteStringIsUtf8(value);
       id_ = value;
       bitField0_ |= 0x00000001;
@@ -452,36 +495,40 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:user.v1.UserDeleteProtoResp)
-  private static final com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp DEFAULT_INSTANCE;
+  private static final com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      DEFAULT_INSTANCE;
+
   static {
-    DEFAULT_INSTANCE = new com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp();
+    DEFAULT_INSTANCE =
+        new com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp();
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp getDefaultInstance() {
+  public static com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<UserDeleteProtoResp>
-      PARSER = new com.google.protobuf.AbstractParser<UserDeleteProtoResp>() {
-    @java.lang.Override
-    public UserDeleteProtoResp parsePartialFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      Builder builder = newBuilder();
-      try {
-        builder.mergeFrom(input, extensionRegistry);
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(builder.buildPartial());
-      } catch (com.google.protobuf.UninitializedMessageException e) {
-        throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(e)
-            .setUnfinishedMessage(builder.buildPartial());
-      }
-      return builder.buildPartial();
-    }
-  };
+  private static final com.google.protobuf.Parser<UserDeleteProtoResp> PARSER =
+      new com.google.protobuf.AbstractParser<UserDeleteProtoResp>() {
+        @java.lang.Override
+        public UserDeleteProtoResp parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
 
   public static com.google.protobuf.Parser<UserDeleteProtoResp> parser() {
     return PARSER;
@@ -493,9 +540,8 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp getDefaultInstanceForType() {
+  public com.codejsha.bookstore.service.application.port.pb.userpb.UserDeleteProtoResp
+      getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
-
 }
-

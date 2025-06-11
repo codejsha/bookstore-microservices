@@ -33,7 +33,7 @@ data class PaymentEntity(
     @Version var version: Long? = null
 ) {
 
-    fun update(command: PaymentCommand.UpdatePayment) =
+    fun update(command: PaymentCommand.UpdatePaymentCommand) =
         apply {
             orderId = command.orderId ?: orderId
             userId = command.userId ?: userId
@@ -41,21 +41,6 @@ data class PaymentEntity(
             cardNumber = command.cardNumber ?: cardNumber
             amount = command.amount ?: amount
         }
-
-    fun toMap(): Map<String, Any?> {
-        val map = mapOf(
-            "id" to id,
-            "orderId" to orderId,
-            "userId" to userId,
-            "paymentType" to paymentType,
-            "cardNumber" to cardNumber,
-            "amount" to amount,
-            "paymentDate" to paymentDate,
-            "createdAt" to createdAt,
-            "updatedAt" to updatedAt
-        )
-        return map
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

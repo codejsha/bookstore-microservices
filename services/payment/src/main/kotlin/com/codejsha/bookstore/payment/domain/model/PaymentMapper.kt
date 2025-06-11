@@ -1,5 +1,6 @@
 package com.codejsha.bookstore.payment.domain.model
 
+import com.codejsha.bookstore.payment.application.port.saga.MakePaymentPayload
 import com.codejsha.bookstore.service.application.port.openapi.model.PaymentCreateWebReq
 import com.codejsha.bookstore.service.application.port.openapi.model.PaymentFindAllWebParam
 import com.codejsha.bookstore.service.application.port.openapi.model.PaymentUpdateWebReq
@@ -9,6 +10,7 @@ sealed class PaymentMapper {
     companion object {
         fun toPaymentDto(req: PaymentCreateWebReq): PaymentDto = req.toPaymentDto()
         fun toPaymentDto(id: Long, req: PaymentUpdateWebReq): PaymentDto = req.toPaymentDto(id)
+        fun toPaymentDto(payload: MakePaymentPayload): PaymentDto = payload.toPaymentDto()
 
         fun toFilterCondition(param: PaymentFindAllWebParam): FilterCondition = param.toFilterCondition()
         fun toFilterCondition(request: PaymentFindAllProtoReq): FilterCondition = request.toFilterCondition()
@@ -36,6 +38,17 @@ private fun PaymentUpdateWebReq.toPaymentDto(id: Long): PaymentDto {
         cardNumber = this.cardNumber,
         amount = this.amount,
         paymentDate = this.paymentDate?.toLocalDateTime()
+    )
+}
+
+private fun MakePaymentPayload.toPaymentDto(): PaymentDto {
+    return PaymentDto(
+        id = null,
+        orderId = this.orderId,
+        userId = this.userId,
+        paymentType = this.paymentType,
+        cardNumber = this.cardNumber,
+        amount = this.amount
     )
 }
 

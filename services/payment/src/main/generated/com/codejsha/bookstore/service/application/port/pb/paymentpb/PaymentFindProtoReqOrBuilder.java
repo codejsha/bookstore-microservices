@@ -5,12 +5,14 @@
 
 package com.codejsha.bookstore.service.application.port.pb.paymentpb;
 
-public interface PaymentFindProtoReqOrBuilder extends
+public interface PaymentFindProtoReqOrBuilder
+    extends
     // @@protoc_insertion_point(interface_extends:payment.v1.PaymentFindProtoReq)
     com.google.protobuf.MessageOrBuilder {
 
   /**
    * <code>int64 id = 1 [json_name = "id"];</code>
+   *
    * @return The id.
    */
   long getId();
