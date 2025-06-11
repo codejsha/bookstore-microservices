@@ -80,7 +80,8 @@ module "istio" {
   namespace    = kubernetes_namespace.harbor.metadata.0.name
   host_address = var.harbor_address
   host_fqdn    = var.harbor_fqdn
-  name_prefix  = var.name_prefix
+  dest_port    = 80
+  name_prefix  = "harbor"
 }
 
 module "user" {

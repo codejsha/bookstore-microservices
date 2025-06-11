@@ -19,12 +19,13 @@ variable "argocd_fqdn" {
 }
 
 variable "argocd_username" {
-  description = "Username"
+  description = "ArgoCD username"
   type        = string
+  sensitive   = true
 }
 
 variable "argocd_password" {
-  description = "Password"
+  description = "ArgoCD password"
   type        = string
   sensitive   = true
 }
@@ -35,7 +36,7 @@ variable "gitea_fqdn" {
 }
 
 variable "vault_url" {
-  description = "Address"
+  description = "Vault URL"
   type        = string
 }
 

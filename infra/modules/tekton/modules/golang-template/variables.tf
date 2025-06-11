@@ -22,6 +22,7 @@ variable "harbor_fqdn" {
 variable "harbor_username" {
   description = "Harbor username"
   type        = string
+  sensitive   = true
 }
 
 variable "harbor_token" {
@@ -31,6 +32,6 @@ variable "harbor_token" {
 }
 
 variable "gitea_address" {
-  description = "Host FQDN"
+  description = "Gitea address"
   type        = string
 }

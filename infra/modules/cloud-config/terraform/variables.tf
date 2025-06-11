@@ -4,6 +4,6 @@ variable "namespace" {
 }
 
 variable "repository_ca_file" {
-  description = "Path to the CA file for the repository"
+  description = "CA certificate file path for the repository"
   type        = string
 }

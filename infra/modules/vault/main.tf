@@ -72,5 +72,6 @@ module "istio" {
   namespace    = kubernetes_namespace.vault.metadata.0.name
   host_address = var.vault_address
   host_fqdn    = var.vault_fqdn
+  dest_port    = 8200
   name_prefix  = "vault"
 }

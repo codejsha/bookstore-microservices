@@ -47,6 +47,7 @@ collectors:
               endpoint: 0.0.0.0:4317
             http:
               endpoint: 0.0.0.0:4318
+
       processors:
         batch:
           send_batch_size: 1000
@@ -64,17 +65,26 @@ collectors:
           tls:
             insecure: true
         otlphttp:
-          endpoint: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090/api/v1/otlp/v1/metrics"
+          endpoint: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090/api/v1/otlp"
           tls:
             insecure: true
-        loki:
-          endpoint: "http://loki-gateway.loki.svc.cluster.local/loki/api/v1/push"
-          tls:
-            insecure: true
-          headers:
-            X-Scope-OrgID: otel
+        opensearch:
+          http:
+            endpoint: "http://opensearch-cluster-master.opensearch.svc.cluster.local:9200"
+            tls:
+              insecure: true
+            auth:
+              authenticator: "basicauth/opensearch"
+          logs_index: otel
+        # loki:
+        #   endpoint: "<loki-gateway-url>/api/v1/push"
+        #   tls:
+        #     insecure: true
+        #   headers:
+        #     X-Scope-OrgID: otel
 
       service:
+        extensions: ["basicauth/opensearch"]
         pipelines:
           traces:
             receivers: ["otlp"]
@@ -87,4 +97,4 @@ collectors:
           logs:
             receivers: ["otlp"]
             processors: ["resourcedetection/env", "batch"]
-            exporters: ["loki", "debug"]
+            exporters: ["opensearch", "debug"]

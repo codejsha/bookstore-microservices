@@ -19,7 +19,7 @@ resource "kubernetes_secret" "minio" {
     name      = "minio-token"
     namespace = var.namespace
     annotations = {
-      "kubernetes.io/service-account.name" = kubernetes_service_account.minio.metadata.0.name
+      "kubernetes.io/service-account.name" = kubernetes_service_account.minio.metadata[0].name
     }
   }
 }

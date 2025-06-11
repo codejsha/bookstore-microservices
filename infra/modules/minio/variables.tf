@@ -35,7 +35,7 @@ variable "minio_password" {
 }
 
 variable "vault_url" {
-  description = "Address"
+  description = "Vault URL"
   type        = string
 }
 

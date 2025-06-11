@@ -54,6 +54,7 @@ module "istio" {
   namespace    = kubernetes_namespace.gitea.metadata.0.name
   host_address = var.gitea_address
   host_fqdn    = var.gitea_fqdn
+  dest_port    = 3000
   name_prefix  = "gitea"
 }
 

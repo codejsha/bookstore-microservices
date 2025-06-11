@@ -1,0 +1,50 @@
+replicas: 1
+
+extraEnvs:
+  - name: plugins.security.ssl.http.enabled
+    value: "false"
+  - name: BASH_ENV
+    value: "/vault/secrets/.env-admin"
+
+podAnnotations:
+  traffic.sidecar.istio.io/excludeOutboundPorts: "8200"
+  vault.hashicorp.com/agent-inject: "true"
+  vault.hashicorp.com/agent-inject-status: "update"
+  vault.hashicorp.com/agent-init-first: "true"
+  vault.hashicorp.com/log-level: "debug"
+  vault.hashicorp.com/log-format: "json"
+  vault.hashicorp.com/service: "http://vault.vault.svc.cluster.local:8200"
+  vault.hashicorp.com/role: "opensearch-role"
+  vault.hashicorp.com/agent-inject-secret-admin-config: "kv/data/opensearch/admin"
+  vault.hashicorp.com/secret-volume-path-admin-config: "/vault/secrets"
+  vault.hashicorp.com/agent-inject-file-admin-config: ".env-admin"
+  vault.hashicorp.com/agent-inject-template-admin-config: |
+    {{- with secret "kv/data/opensearch/admin" -}}
+    export OPENSEARCH_INITIAL_ADMIN_PASSWORD="{{ .Data.data.initial_password }}"
+    {{- end -}}
+
+resources:
+  requests:
+    cpu: "10m"
+    memory: "100Mi"
+
+rbac:
+  create: true
+  serviceAccountName: "opensearch"
+  automountServiceAccountToken: true
+
+persistence:
+  enabled: true
+  # storageClass: "-"
+  accessModes:
+    - ReadWriteOnce
+  size: 100Gi
+  annotations: {}
+
+protocol: http
+httpPort: 9200
+transportPort: 9300
+metricsPort: 9600
+
+serviceMonitor:
+  enabled: false

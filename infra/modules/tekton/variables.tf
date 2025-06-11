@@ -18,11 +18,6 @@ variable "tekton_fqdn" {
   type        = string
 }
 
-variable "name_prefix" {
-  description = "Resource name prefix"
-  type        = string
-}
-
 variable "argocd_address" {
   description = "ArgoCD address"
   type        = string
@@ -51,12 +46,12 @@ variable "harbor_token" {
 }
 
 variable "gitea_address" {
-  description = "Host FQDN"
+  description = "Gitea address"
   type        = string
 }
 
 variable "vault_url" {
-  description = "Address"
+  description = "Vault URL"
   type        = string
 }
 

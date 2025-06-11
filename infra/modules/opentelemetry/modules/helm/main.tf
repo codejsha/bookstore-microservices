@@ -15,4 +15,14 @@ resource "helm_release" "opentelemetry" {
   values = [
     file("${path.module}/values.yaml")
   ]
+  timeout = 180
+
+  set_sensitive {
+    name  = "collectors.cluster.config.extensions.basicauth/opensearch.client_auth.username"
+    value = var.opensearch_username
+  }
+  set_sensitive {
+    name  = "collectors.cluster.config.extensions.basicauth/opensearch.client_auth.password"
+    value = var.opensearch_password
+  }
 }

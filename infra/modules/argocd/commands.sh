@@ -1,13 +1,7 @@
 ######################################################################
 
-argocd app delete -y admin-command
-argocd app delete -y admin-query
-argocd app delete -y catalog-command
-argocd app delete -y catalog-query
-argocd app delete -y customer-command
-argocd app delete -y customer-query
-argocd app delete -y order-command
-argocd app delete -y order-query
-argocd app delete -y payment-command
-argocd app delete -y payment-query
+### initial password
+kubectl exec -it -n argocd $(kubectl get pods --selector app.kubernetes.io/name=argocd-server --output jsonpath='{.items[0].metadata.name}') -c server -- argocd admin initial-password
+
+### delete project
 argocd proj delete bookstore

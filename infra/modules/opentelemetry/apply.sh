@@ -6,4 +6,5 @@ set -o xtrace
 
 terraform init -upgrade
 terraform apply -auto-approve -target module.helm
-terraform apply -auto-approve -target module.istio_collector
+terraform apply -auto-approve -target module.istio
+terraform apply -auto-approve -target module.istio_grpc

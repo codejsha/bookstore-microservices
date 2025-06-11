@@ -4,12 +4,13 @@ variable "argocd_address" {
 }
 
 variable "admin_username" {
-  description = "Username"
+  description = "Admin username"
   type        = string
+  sensitive   = true
 }
 
 variable "admin_password" {
-  description = "Password"
+  description = "Admin password"
   type        = string
   sensitive   = true
 }

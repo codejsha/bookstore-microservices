@@ -1,0 +1,3 @@
+opensearchHosts: "http://opensearch-cluster-master:9200"
+
+replicaCount: 1
