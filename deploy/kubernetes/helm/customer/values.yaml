@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: harbor.example.com/main/bookstore/customer
+  repository: harbor.example.com/bookstore/customer
   pullPolicy: IfNotPresent
   tag: ""
 
