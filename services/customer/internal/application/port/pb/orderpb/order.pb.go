@@ -308,7 +308,7 @@ type OrderFindProtoResp struct {
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	OrderItems    []*OrderItem           `protobuf:"bytes,3,rep,name=orderItems,proto3" json:"orderItems,omitempty"`
-	TotalPrice    float64                `protobuf:"fixed64,4,opt,name=total_price,json=totalPrice,proto3" json:"total_price,omitempty"`
+	TotalPrice    string                 `protobuf:"bytes,4,opt,name=total_price,json=totalPrice,proto3" json:"total_price,omitempty"`
 	Status        OrderStatus            `protobuf:"varint,5,opt,name=status,proto3,enum=order.v1.OrderStatus" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -365,11 +365,11 @@ func (x *OrderFindProtoResp) GetOrderItems() []*OrderItem {
 	return nil
 }
 
-func (x *OrderFindProtoResp) GetTotalPrice() float64 {
+func (x *OrderFindProtoResp) GetTotalPrice() string {
 	if x != nil {
 		return x.TotalPrice
 	}
-	return 0
+	return ""
 }
 
 func (x *OrderFindProtoResp) GetStatus() OrderStatus {
@@ -460,7 +460,7 @@ const file_modules_order_v1_order_proto_rawDesc = "" +
 	"\n" +
 	"orderItems\x18\x03 \x03(\v2\x13.order.v1.OrderItemR\n" +
 	"orderItems\x12\x1f\n" +
-	"\vtotal_price\x18\x04 \x01(\x01R\n" +
+	"\vtotal_price\x18\x04 \x01(\tR\n" +
 	"totalPrice\x12-\n" +
 	"\x06status\x18\x05 \x01(\x0e2\x15.order.v1.OrderStatusR\x06status\"@\n" +
 	"\tOrderItem\x12\x17\n" +

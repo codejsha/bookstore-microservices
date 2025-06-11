@@ -1,6 +1,6 @@
 package com.codejsha.bookstore.order.domain.model
 
-import com.codejsha.bookstore.order.domain.aggregate.entity.OrderEntity
+import com.codejsha.bookstore.order.application.port.saga.PlaceOrderPayload
 import com.codejsha.bookstore.service.application.port.openapi.model.OrderCreateWebReq
 import com.codejsha.bookstore.service.application.port.openapi.model.OrderFindAllWebParam
 import com.codejsha.bookstore.service.application.port.openapi.model.OrderUpdateWebReq
@@ -8,32 +8,63 @@ import com.codejsha.bookstore.service.application.port.pb.orderpb.OrderFindAllPr
 
 sealed class OrderMapper {
     companion object {
-        fun toOrderEntity(req: OrderCreateWebReq): OrderEntity = req.toOrderEntity()
-        fun toOrderEntity(id: Long, req: OrderUpdateWebReq): OrderEntity = req.toOrderEntity(id)
+        fun toOrderDto(req: OrderCreateWebReq): OrderDto = req.toOrderDto()
+        fun toOrderDto(id: Long, req: OrderUpdateWebReq): OrderDto = req.toOrderDto(id)
+        fun toOrderDto(payload: PlaceOrderPayload): OrderDto = payload.toOrderDto()
+
         fun toFilterCondition(param: OrderFindAllWebParam): FilterCondition = param.toFilterCondition()
         fun toFilterCondition(req: OrderFindAllProtoReq): FilterCondition = req.toFilterCondition()
     }
 }
 
-private fun OrderCreateWebReq.toOrderEntity(): OrderEntity {
-    return OrderEntity(
+private fun OrderCreateWebReq.toOrderDto(): OrderDto {
+    return OrderDto(
         id = null,
-        userId = this.userId!!,
-        totalPrice = this.totalPrice!!,
-        status = this.status!!,
-        createdAt = null,
-        updatedAt = null
+        userId = this.userId,
+        totalPrice = this.totalPrice,
+        status = this.status,
+        orderItems = this.orderItems?.map {
+            OrderItemDto(
+                bookId = requireNotNull(it.bookId),
+                quantity = requireNotNull(it.quantity)
+            )
+        },
+        paymentType = this.paymentType,
+        cardNumber = this.cardNumber
     )
 }
 
-private fun OrderUpdateWebReq.toOrderEntity(id: Long): OrderEntity {
-    return OrderEntity(
+private fun OrderUpdateWebReq.toOrderDto(id: Long): OrderDto {
+    return OrderDto(
         id = id,
-        userId = this.userId!!,
-        totalPrice = this.totalPrice!!,
-        status = this.status!!,
-        createdAt = null,
-        updatedAt = null
+        userId = this.userId,
+        totalPrice = this.totalPrice,
+        status = this.status,
+        orderItems = this.orderItems?.map {
+            OrderItemDto(
+                bookId = requireNotNull(it.bookId),
+                quantity = requireNotNull(it.quantity)
+            )
+        },
+        paymentType = this.paymentType,
+        cardNumber = this.cardNumber
+    )
+}
+
+private fun PlaceOrderPayload.toOrderDto(): OrderDto {
+    return OrderDto(
+        id = null,
+        userId = this.userId,
+        totalPrice = this.totalPrice,
+        status = this.status,
+        orderItems = this.orderItems.map {
+            OrderItemDto(
+                bookId = requireNotNull(it.bookId),
+                quantity = requireNotNull(it.quantity)
+            )
+        },
+        paymentType = this.paymentType,
+        cardNumber = this.cardNumber
     )
 }
 

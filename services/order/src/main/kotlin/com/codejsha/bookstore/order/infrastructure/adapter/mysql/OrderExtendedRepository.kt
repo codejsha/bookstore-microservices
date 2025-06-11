@@ -7,6 +7,7 @@ import com.codejsha.bookstore.service.application.port.openapi.model.OrderStatus
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Repository
@@ -22,7 +23,7 @@ class OrderExtendedRepository(
                 OrderEntity(
                     id = row["id"] as Long,
                     userId = row["user_id"] as String,
-                    totalPrice = row["total_price"] as Double,
+                    totalPrice = row["total_price"] as BigDecimal,
                     status = row["status"] as OrderStatus,
                     createdAt = row["created_at"] as LocalDateTime?,
                     updatedAt = row["updated_at"] as LocalDateTime?

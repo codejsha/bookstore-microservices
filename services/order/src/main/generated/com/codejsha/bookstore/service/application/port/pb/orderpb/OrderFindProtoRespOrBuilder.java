@@ -51,11 +51,18 @@ public interface OrderFindProtoRespOrBuilder
       getOrderItemsOrBuilder(int index);
 
   /**
-   * <code>double total_price = 4 [json_name = "totalPrice"];</code>
+   * <code>string total_price = 4 [json_name = "totalPrice"];</code>
    *
    * @return The totalPrice.
    */
-  double getTotalPrice();
+  java.lang.String getTotalPrice();
+
+  /**
+   * <code>string total_price = 4 [json_name = "totalPrice"];</code>
+   *
+   * @return The bytes for totalPrice.
+   */
+  com.google.protobuf.ByteString getTotalPriceBytes();
 
   /**
    * <code>.order.v1.OrderStatus status = 5 [json_name = "status"];</code>

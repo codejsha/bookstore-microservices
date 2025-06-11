@@ -35,7 +35,7 @@ class TelemetryManager(
             Resource.create(
                 Attributes.of(
                     ServiceAttributes.SERVICE_NAME, springConfig.application.name,
-                    ServiceAttributes.SERVICE_VERSION, metadataConfig.version
+                    ServiceAttributes.SERVICE_VERSION, springConfig.application.version,
                 )
             )
         )
