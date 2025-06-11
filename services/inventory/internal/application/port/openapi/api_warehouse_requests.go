@@ -9,9 +9,6 @@
 
 package openapi
 
-
-
-
 // Update warehouse
 // Update warehouse
 // (model: WarehouseUpdateWebReq)

@@ -12,32 +12,31 @@ package openapi
 // Find all warehouses
 // Find all warehouses (operationId: ApiV1WarehousesGet)
 type WarehouseFindAllWebParam struct {
-    Name *string `form:"name,omitempty"`
-    // Field to sort by
-    Sort string `form:"sort,omitempty"`
-    // Sorting order
-    Order string `form:"order,omitempty"`
-    // Number of items to return
-    Limit int32 `form:"limit,omitempty"`
-    // The number of items to skip
-    Offset int32 `form:"offset,omitempty"`
+	Name *string `form:"name,omitempty"`
+	// Field to sort by
+	Sort string `form:"sort,omitempty"`
+	// Sorting order
+	Order string `form:"order,omitempty"`
+	// Number of items to return
+	Limit int32 `form:"limit,omitempty"`
+	// The number of items to skip
+	Offset int32 `form:"offset,omitempty"`
 }
 
 // Delete warehouse
 // Delete warehouse (operationId: ApiV1WarehousesIdDelete)
 type WarehouseDeleteWebParam struct {
-    Id int64 `uri:"id"`
+	Id int64 `uri:"id"`
 }
 
 // Find warehouse
 // Find warehouse (operationId: ApiV1WarehousesIdGet)
 type WarehouseFindWebParam struct {
-    Id int64 `uri:"id"`
+	Id int64 `uri:"id"`
 }
 
 // Update warehouse
 // Update warehouse (operationId: ApiV1WarehousesIdPut)
 type WarehouseUpdateWebParam struct {
-    Id int64 `uri:"id"`
+	Id int64 `uri:"id"`
 }
-

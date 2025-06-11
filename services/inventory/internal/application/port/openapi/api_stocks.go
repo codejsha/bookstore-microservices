@@ -15,25 +15,23 @@ import (
 
 type StocksAPI interface {
 
+	// ApiV1StocksGet Get /api/v1/stocks
+	// Find all stocks
+	ApiV1StocksGet(c *gin.Context)
 
-    // ApiV1StocksGet Get /api/v1/stocks
-    // Find all stocks 
-     ApiV1StocksGet(c *gin.Context)
+	// ApiV1StocksIdDelete Delete /api/v1/stocks/:id
+	// Delete stock
+	ApiV1StocksIdDelete(c *gin.Context)
 
-    // ApiV1StocksIdDelete Delete /api/v1/stocks/:id
-    // Delete stock 
-     ApiV1StocksIdDelete(c *gin.Context)
+	// ApiV1StocksIdGet Get /api/v1/stocks/:id
+	// Find stock
+	ApiV1StocksIdGet(c *gin.Context)
 
-    // ApiV1StocksIdGet Get /api/v1/stocks/:id
-    // Find stock 
-     ApiV1StocksIdGet(c *gin.Context)
+	// ApiV1StocksIdPut Put /api/v1/stocks/:id
+	// Update stock
+	ApiV1StocksIdPut(c *gin.Context)
 
-    // ApiV1StocksIdPut Put /api/v1/stocks/:id
-    // Update stock 
-     ApiV1StocksIdPut(c *gin.Context)
-
-    // ApiV1StocksPost Post /api/v1/stocks
-    // Add new stock 
-     ApiV1StocksPost(c *gin.Context)
-
+	// ApiV1StocksPost Post /api/v1/stocks
+	// Add new stock
+	ApiV1StocksPost(c *gin.Context)
 }
