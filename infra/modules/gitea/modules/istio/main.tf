@@ -62,7 +62,7 @@ resource "kubernetes_manifest" "istio_virtual_service" {
               destination = {
                 host = var.host_fqdn
                 port = {
-                  number = 3000
+                  number = var.dest_port
                 }
               }
             }
@@ -112,7 +112,7 @@ resource "kubernetes_manifest" "service" {
         {
           name       = "http"
           protocol   = "TCP"
-          port       = 3000
+          port       = var.dest_port
           targetPort = "http"
         }
       ]

@@ -3,7 +3,8 @@ variable "namespace" {
   type        = string
 }
 
-variable "repository_ca_file" {
-  description = "Path to the CA file for the repository"
+variable "initial_admin_password" {
+  description = "Admin password"
   type        = string
+  sensitive   = true
 }

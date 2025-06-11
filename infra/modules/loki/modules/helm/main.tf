@@ -11,17 +11,17 @@ resource "helm_release" "loki" {
   name       = "loki"
   repository = "https://grafana.github.io/helm-charts"
   chart      = "loki"
-  version    = "6.30.1"
+  version    = "6.29.0"
   values = [
     file("${path.module}/values.yaml"),
   ]
 
   set_sensitive {
-    name  = "loki.storageConfig.s3.accessKeyId"
+    name  = "loki.storage.s3.accessKeyId"
     value = var.minio_username
   }
   set_sensitive {
-    name  = "loki.storageConfig.s3.secretAccessKey"
+    name  = "loki.storage.s3.secretAccessKey"
     value = var.minio_password
   }
 }

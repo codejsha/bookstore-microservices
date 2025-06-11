@@ -1,6 +1,7 @@
 variable "gitea_username" {
-  description = "Username"
+  description = "Gitea username"
   type        = string
+  sensitive   = true
 }
 
 variable "repo_name" {

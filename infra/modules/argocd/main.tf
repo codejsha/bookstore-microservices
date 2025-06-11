@@ -52,6 +52,7 @@ module "istio" {
   namespace    = kubernetes_namespace.argocd.metadata.0.name
   host_address = var.argocd_address
   host_fqdn    = var.argocd_fqdn
+  dest_port    = 80
   name_prefix  = "argocd"
 }
 

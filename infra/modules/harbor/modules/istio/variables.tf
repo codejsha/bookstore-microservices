@@ -13,6 +13,11 @@ variable "host_fqdn" {
   type        = string
 }
 
+variable "dest_port" {
+  description = "Destination port"
+  type        = number
+}
+
 variable "name_prefix" {
   description = "Resource name prefix"
   type        = string

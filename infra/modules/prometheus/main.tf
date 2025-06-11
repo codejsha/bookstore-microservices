@@ -18,8 +18,10 @@ resource "kubernetes_namespace" "prometheus" {
 }
 
 module "helm" {
-  source    = "./modules/helm"
-  namespace = kubernetes_namespace.prometheus.metadata.0.name
+  source              = "./modules/helm"
+  namespace           = kubernetes_namespace.prometheus.metadata.0.name
+  opensearch_username = var.opensearch_username
+  opensearch_password = var.opensearch_password
   providers = {
     helm = helm
   }

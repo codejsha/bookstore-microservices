@@ -15,15 +15,16 @@ resource "helm_release" "harbor" {
   values = [
     file("${path.module}/values.yaml"),
   ]
-  set {
+  
+  set_sensitive {
     name  = "adminPassword"
     value = var.admin_password
   }
-  set {
+  set_sensitive {
     name  = "persistence.imageChartStorage.s3.accesskey"
     value = var.aws_access_key
   }
-  set {
+  set_sensitive {
     name  = "persistence.imageChartStorage.s3.secretkey"
     value = var.aws_secret_key
   }

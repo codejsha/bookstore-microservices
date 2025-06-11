@@ -19,18 +19,19 @@ variable "gitea_fqdn" {
 }
 
 variable "gitea_username" {
-  description = "Username"
+  description = "Gitea username"
   type        = string
+  sensitive   = true
 }
 
 variable "gitea_password" {
-  description = "Password"
+  description = "Gitea password"
   type        = string
   sensitive   = true
 }
 
 variable "vault_url" {
-  description = "Address"
+  description = "Vault URL"
   type        = string
 }
 

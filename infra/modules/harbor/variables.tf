@@ -30,11 +30,6 @@ variable "harbor_password" {
   sensitive   = true
 }
 
-variable "name_prefix" {
-  description = "Resource name prefix"
-  type        = string
-}
-
 variable "vault_url" {
   description = "Vault URL"
   type        = string

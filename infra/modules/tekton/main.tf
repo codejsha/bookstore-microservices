@@ -23,7 +23,9 @@ module "istio" {
   namespace    = var.namespace
   host_address = var.tekton_address
   host_fqdn    = var.tekton_fqdn
-  name_prefix  = var.name_prefix
+  dest_port    = 9097
+  name_prefix  = "tekton-dashboard"
+
 }
 
 module "service_account" {

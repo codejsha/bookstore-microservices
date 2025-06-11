@@ -22,3 +22,15 @@ variable "grafana_fqdn" {
   description = "Grafana FQDN"
   type        = string
 }
+
+variable "opensearch_username" {
+  description = "OpenSearch username"
+  type        = string
+  sensitive   = true
+}
+
+variable "opensearch_password" {
+  description = "OpenSearch password"
+  type        = string
+  sensitive   = true
+}
