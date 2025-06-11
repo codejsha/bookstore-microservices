@@ -5,18 +5,21 @@
 
 package com.codejsha.bookstore.service.application.port.pb.orderpb;
 
-public interface OrderItemOrBuilder extends
+public interface OrderItemOrBuilder
+    extends
     // @@protoc_insertion_point(interface_extends:order.v1.OrderItem)
     com.google.protobuf.MessageOrBuilder {
 
   /**
    * <code>int64 book_id = 1 [json_name = "bookId"];</code>
+   *
    * @return The bookId.
    */
   long getBookId();
 
   /**
    * <code>int32 quantity = 2 [json_name = "quantity"];</code>
+   *
    * @return The quantity.
    */
   int getQuantity();

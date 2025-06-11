@@ -5,37 +5,36 @@
 
 package com.codejsha.bookstore.service.application.port.pb.orderpb;
 
-public interface OrderFindAllProtoRespOrBuilder extends
+public interface OrderFindAllProtoRespOrBuilder
+    extends
     // @@protoc_insertion_point(interface_extends:order.v1.OrderFindAllProtoResp)
     com.google.protobuf.MessageOrBuilder {
 
   /**
    * <code>int64 total = 1 [json_name = "total"];</code>
+   *
    * @return The total.
    */
   long getTotal();
 
-  /**
-   * <code>repeated .order.v1.OrderFindProtoResp items = 2 [json_name = "items"];</code>
-   */
-  java.util.List<com.codejsha.bookstore.service.application.port.pb.orderpb.OrderFindProtoResp> 
+  /** <code>repeated .order.v1.OrderFindProtoResp items = 2 [json_name = "items"];</code> */
+  java.util.List<com.codejsha.bookstore.service.application.port.pb.orderpb.OrderFindProtoResp>
       getItemsList();
-  /**
-   * <code>repeated .order.v1.OrderFindProtoResp items = 2 [json_name = "items"];</code>
-   */
+
+  /** <code>repeated .order.v1.OrderFindProtoResp items = 2 [json_name = "items"];</code> */
   com.codejsha.bookstore.service.application.port.pb.orderpb.OrderFindProtoResp getItems(int index);
-  /**
-   * <code>repeated .order.v1.OrderFindProtoResp items = 2 [json_name = "items"];</code>
-   */
+
+  /** <code>repeated .order.v1.OrderFindProtoResp items = 2 [json_name = "items"];</code> */
   int getItemsCount();
-  /**
-   * <code>repeated .order.v1.OrderFindProtoResp items = 2 [json_name = "items"];</code>
-   */
-  java.util.List<? extends com.codejsha.bookstore.service.application.port.pb.orderpb.OrderFindProtoRespOrBuilder> 
+
+  /** <code>repeated .order.v1.OrderFindProtoResp items = 2 [json_name = "items"];</code> */
+  java.util.List<
+          ? extends
+              com.codejsha.bookstore.service.application.port.pb.orderpb
+                  .OrderFindProtoRespOrBuilder>
       getItemsOrBuilderList();
-  /**
-   * <code>repeated .order.v1.OrderFindProtoResp items = 2 [json_name = "items"];</code>
-   */
-  com.codejsha.bookstore.service.application.port.pb.orderpb.OrderFindProtoRespOrBuilder getItemsOrBuilder(
-      int index);
+
+  /** <code>repeated .order.v1.OrderFindProtoResp items = 2 [json_name = "items"];</code> */
+  com.codejsha.bookstore.service.application.port.pb.orderpb.OrderFindProtoRespOrBuilder
+      getItemsOrBuilder(int index);
 }

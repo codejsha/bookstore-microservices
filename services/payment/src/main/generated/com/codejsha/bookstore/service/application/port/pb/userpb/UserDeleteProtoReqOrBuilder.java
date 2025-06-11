@@ -5,19 +5,22 @@
 
 package com.codejsha.bookstore.service.application.port.pb.userpb;
 
-public interface UserDeleteProtoReqOrBuilder extends
+public interface UserDeleteProtoReqOrBuilder
+    extends
     // @@protoc_insertion_point(interface_extends:user.v1.UserDeleteProtoReq)
     com.google.protobuf.MessageOrBuilder {
 
   /**
    * <code>string id = 1 [json_name = "id"];</code>
+   *
    * @return The id.
    */
   java.lang.String getId();
+
   /**
    * <code>string id = 1 [json_name = "id"];</code>
+   *
    * @return The bytes for id.
    */
-  com.google.protobuf.ByteString
-      getIdBytes();
+  com.google.protobuf.ByteString getIdBytes();
 }

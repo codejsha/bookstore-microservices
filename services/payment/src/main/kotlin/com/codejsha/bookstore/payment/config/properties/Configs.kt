@@ -14,7 +14,8 @@ class SpringConfig(
 )
 
 class ApplicationConfig(
-    val name: String
+    val name: String,
+    val version: String
 )
 
 @ConfigurationProperties(prefix = "grpc")
@@ -36,5 +37,6 @@ class TelemetryConfig(
 )
 
 class CollectorConfig(
-    val url: String
+    val grpcUrl: String,
+    val httpUrl: String
 )

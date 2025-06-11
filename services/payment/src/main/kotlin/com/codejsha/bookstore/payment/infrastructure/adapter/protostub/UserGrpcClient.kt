@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 @Component
 @ConditionalOnProperty(name = ["app.segregation"], havingValue = "query")
 class UserGrpcClient(
-   private val grpcConfig: GrpcConfig
+    private val grpcConfig: GrpcConfig
 ) {
 
     @Bean

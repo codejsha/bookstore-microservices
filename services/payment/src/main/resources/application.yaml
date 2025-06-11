@@ -1,15 +1,17 @@
 spring:
   application:
     name: payment
+    version: 0.1.0
   config:
     activate:
       on-profile: local-command,local-query
-    import: configserver:http://localhost:8888
+    import: configserver:http://cloud-config.example.com
 
 ---
 spring:
   application:
     name: payment
+    version: 0.1.0
   config:
     activate:
       on-profile: dev-command,dev-query,qa-command,qa-query,stg-command,stg-query,prod-command,prod-query

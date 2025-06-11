@@ -5,58 +5,68 @@
 
 package com.codejsha.bookstore.service.application.port.pb.paymentpb;
 
-/**
- * Protobuf type {@code payment.v1.PaymentFindAllProtoReq}
- */
-public final class PaymentFindAllProtoReq extends
-    com.google.protobuf.GeneratedMessage implements
+/** Protobuf type {@code payment.v1.PaymentFindAllProtoReq} */
+public final class PaymentFindAllProtoReq extends com.google.protobuf.GeneratedMessage
+    implements
     // @@protoc_insertion_point(message_implements:payment.v1.PaymentFindAllProtoReq)
     PaymentFindAllProtoReqOrBuilder {
-private static final long serialVersionUID = 0L;
+  private static final long serialVersionUID = 0L;
+
   static {
     com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-      com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-      /* major= */ 4,
-      /* minor= */ 29,
-      /* patch= */ 3,
-      /* suffix= */ "",
-      PaymentFindAllProtoReq.class.getName());
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 29,
+        /* patch= */ 3,
+        /* suffix= */ "",
+        PaymentFindAllProtoReq.class.getName());
   }
+
   // Use PaymentFindAllProtoReq.newBuilder() to construct.
   private PaymentFindAllProtoReq(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
     super(builder);
   }
+
   private PaymentFindAllProtoReq() {
     userId_ = "";
   }
 
-  public static final com.google.protobuf.Descriptors.Descriptor
-      getDescriptor() {
-    return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentProto.internal_static_payment_v1_PaymentFindAllProtoReq_descriptor;
+  public static final com.google.protobuf.Descriptors.Descriptor getDescriptor() {
+    return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentProto
+        .internal_static_payment_v1_PaymentFindAllProtoReq_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentProto.internal_static_payment_v1_PaymentFindAllProtoReq_fieldAccessorTable
+    return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentProto
+        .internal_static_payment_v1_PaymentFindAllProtoReq_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq.class, com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq.Builder.class);
+            com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+                .class,
+            com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+                .Builder.class);
   }
 
   private int bitField0_;
   public static final int USER_ID_FIELD_NUMBER = 1;
+
   @SuppressWarnings("serial")
   private volatile java.lang.Object userId_ = "";
+
   /**
    * <code>optional string user_id = 1 [json_name = "userId"];</code>
+   *
    * @return Whether the userId field is set.
    */
   @java.lang.Override
   public boolean hasUserId() {
     return ((bitField0_ & 0x00000001) != 0);
   }
+
   /**
    * <code>optional string user_id = 1 [json_name = "userId"];</code>
+   *
    * @return The userId.
    */
   @java.lang.Override
@@ -65,25 +75,24 @@ private static final long serialVersionUID = 0L;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
+      com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       userId_ = s;
       return s;
     }
   }
+
   /**
    * <code>optional string user_id = 1 [json_name = "userId"];</code>
+   *
    * @return The bytes for userId.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString
-      getUserIdBytes() {
+  public com.google.protobuf.ByteString getUserIdBytes() {
     java.lang.Object ref = userId_;
     if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+      com.google.protobuf.ByteString b =
+          com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
       userId_ = b;
       return b;
     } else {
@@ -93,16 +102,20 @@ private static final long serialVersionUID = 0L;
 
   public static final int ORDER_ID_FIELD_NUMBER = 2;
   private long orderId_ = 0L;
+
   /**
    * <code>optional int64 order_id = 2 [json_name = "orderId"];</code>
+   *
    * @return Whether the orderId field is set.
    */
   @java.lang.Override
   public boolean hasOrderId() {
     return ((bitField0_ & 0x00000002) != 0);
   }
+
   /**
    * <code>optional int64 order_id = 2 [json_name = "orderId"];</code>
+   *
    * @return The orderId.
    */
   @java.lang.Override
@@ -112,31 +125,42 @@ private static final long serialVersionUID = 0L;
 
   public static final int FILTER_FIELD_NUMBER = 3;
   private com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter filter_;
+
   /**
    * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
+   *
    * @return Whether the filter field is set.
    */
   @java.lang.Override
   public boolean hasFilter() {
     return ((bitField0_ & 0x00000004) != 0);
   }
+
   /**
    * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
+   *
    * @return The filter.
    */
   @java.lang.Override
   public com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter getFilter() {
-    return filter_ == null ? com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.getDefaultInstance() : filter_;
+    return filter_ == null
+        ? com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter
+            .getDefaultInstance()
+        : filter_;
   }
-  /**
-   * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
-   */
+
+  /** <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code> */
   @java.lang.Override
-  public com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder getFilterOrBuilder() {
-    return filter_ == null ? com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.getDefaultInstance() : filter_;
+  public com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder
+      getFilterOrBuilder() {
+    return filter_ == null
+        ? com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter
+            .getDefaultInstance()
+        : filter_;
   }
 
   private byte memoizedIsInitialized = -1;
+
   @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -148,8 +172,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public void writeTo(com.google.protobuf.CodedOutputStream output)
-                      throws java.io.IOException {
+  public void writeTo(com.google.protobuf.CodedOutputStream output) throws java.io.IOException {
     if (((bitField0_ & 0x00000001) != 0)) {
       com.google.protobuf.GeneratedMessage.writeString(output, 1, userId_);
     }
@@ -172,12 +195,10 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.GeneratedMessage.computeStringSize(1, userId_);
     }
     if (((bitField0_ & 0x00000002) != 0)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(2, orderId_);
+      size += com.google.protobuf.CodedOutputStream.computeInt64Size(2, orderId_);
     }
     if (((bitField0_ & 0x00000004) != 0)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, getFilter());
+      size += com.google.protobuf.CodedOutputStream.computeMessageSize(3, getFilter());
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -187,27 +208,27 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public boolean equals(final java.lang.Object obj) {
     if (obj == this) {
-     return true;
+      return true;
     }
-    if (!(obj instanceof com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq)) {
+    if (!(obj
+        instanceof
+        com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq)) {
       return super.equals(obj);
     }
-    com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq other = (com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq) obj;
+    com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq other =
+        (com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq) obj;
 
     if (hasUserId() != other.hasUserId()) return false;
     if (hasUserId()) {
-      if (!getUserId()
-          .equals(other.getUserId())) return false;
+      if (!getUserId().equals(other.getUserId())) return false;
     }
     if (hasOrderId() != other.hasOrderId()) return false;
     if (hasOrderId()) {
-      if (getOrderId()
-          != other.getOrderId()) return false;
+      if (getOrderId() != other.getOrderId()) return false;
     }
     if (hasFilter() != other.hasFilter()) return false;
     if (hasFilter()) {
-      if (!getFilter()
-          .equals(other.getFilter())) return false;
+      if (!getFilter().equals(other.getFilter())) return false;
     }
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
@@ -226,8 +247,7 @@ private static final long serialVersionUID = 0L;
     }
     if (hasOrderId()) {
       hash = (37 * hash) + ORDER_ID_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getOrderId());
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(getOrderId());
     }
     if (hasFilter()) {
       hash = (37 * hash) + FILTER_FIELD_NUMBER;
@@ -238,134 +258,149 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseFrom(
-      java.nio.ByteBuffer data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseFrom(java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseFrom(
-      java.nio.ByteBuffer data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseFrom(
-      com.google.protobuf.ByteString data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseFrom(
-      com.google.protobuf.ByteString data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseFrom(byte[] data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseFrom(
-      byte[] data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input);
-  }
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseDelimitedFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseDelimitedWithIOException(PARSER, input);
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseFrom(
+          java.nio.ByteBuffer data, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseDelimitedFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseFrom(com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
   }
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseFrom(
-      com.google.protobuf.CodedInputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input);
+
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq parseFrom(
-      com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input, extensionRegistry);
+
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseFrom(byte[] data) throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseFrom(byte[] data, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseFrom(java.io.InputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(PARSER, input);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseFrom(
+          java.io.InputStream input, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(
+        PARSER, input, extensionRegistry);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseDelimitedFrom(java.io.InputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseDelimitedWithIOException(PARSER, input);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseDelimitedFrom(
+          java.io.InputStream input, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseDelimitedWithIOException(
+        PARSER, input, extensionRegistry);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseFrom(com.google.protobuf.CodedInputStream input) throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(PARSER, input);
+  }
+
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(
+        PARSER, input, extensionRegistry);
   }
 
   @java.lang.Override
-  public Builder newBuilderForType() { return newBuilder(); }
+  public Builder newBuilderForType() {
+    return newBuilder();
+  }
+
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq prototype) {
+
+  public static Builder newBuilder(
+      com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+          prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-  }
-  @java.lang.Override
-  public Builder toBuilder() {
-    return this == DEFAULT_INSTANCE
-        ? new Builder() : new Builder().mergeFrom(this);
   }
 
   @java.lang.Override
-  protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+  public Builder toBuilder() {
+    return this == DEFAULT_INSTANCE ? new Builder() : new Builder().mergeFrom(this);
+  }
+
+  @java.lang.Override
+  protected Builder newBuilderForType(com.google.protobuf.GeneratedMessage.BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
-  /**
-   * Protobuf type {@code payment.v1.PaymentFindAllProtoReq}
-   */
-  public static final class Builder extends
-      com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+
+  /** Protobuf type {@code payment.v1.PaymentFindAllProtoReq} */
+  public static final class Builder extends com.google.protobuf.GeneratedMessage.Builder<Builder>
+      implements
       // @@protoc_insertion_point(builder_implements:payment.v1.PaymentFindAllProtoReq)
       com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReqOrBuilder {
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentProto.internal_static_payment_v1_PaymentFindAllProtoReq_descriptor;
+    public static final com.google.protobuf.Descriptors.Descriptor getDescriptor() {
+      return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentProto
+          .internal_static_payment_v1_PaymentFindAllProtoReq_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentProto.internal_static_payment_v1_PaymentFindAllProtoReq_fieldAccessorTable
+      return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentProto
+          .internal_static_payment_v1_PaymentFindAllProtoReq_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq.class, com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq.Builder.class);
+              com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+                  .class,
+              com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+                  .Builder.class);
     }
 
-    // Construct using com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq.newBuilder()
+    // Construct using
+    // com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
 
-    private Builder(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+    private Builder(com.google.protobuf.GeneratedMessage.BuilderParent parent) {
       super(parent);
       maybeForceBuilderInitialization();
     }
+
     private void maybeForceBuilderInitialization() {
-      if (com.google.protobuf.GeneratedMessage
-              .alwaysUseFieldBuilders) {
+      if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         getFilterFieldBuilder();
       }
     }
+
     @java.lang.Override
     public Builder clear() {
       super.clear();
@@ -381,19 +416,23 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor
-        getDescriptorForType() {
-      return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentProto.internal_static_payment_v1_PaymentFindAllProtoReq_descriptor;
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentProto
+          .internal_static_payment_v1_PaymentFindAllProtoReq_descriptor;
     }
 
     @java.lang.Override
-    public com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq getDefaultInstanceForType() {
-      return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq.getDefaultInstance();
+    public com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+        getDefaultInstanceForType() {
+      return com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+          .getDefaultInstance();
     }
 
     @java.lang.Override
-    public com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq build() {
-      com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq result = buildPartial();
+    public com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+        build() {
+      com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq result =
+          buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -401,14 +440,21 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq buildPartial() {
-      com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq result = new com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq(this);
-      if (bitField0_ != 0) { buildPartial0(result); }
+    public com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+        buildPartial() {
+      com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq result =
+          new com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq(
+              this);
+      if (bitField0_ != 0) {
+        buildPartial0(result);
+      }
       onBuilt();
       return result;
     }
 
-    private void buildPartial0(com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq result) {
+    private void buildPartial0(
+        com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+            result) {
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) != 0)) {
@@ -420,9 +466,7 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000002;
       }
       if (((from_bitField0_ & 0x00000004) != 0)) {
-        result.filter_ = filterBuilder_ == null
-            ? filter_
-            : filterBuilder_.build();
+        result.filter_ = filterBuilder_ == null ? filter_ : filterBuilder_.build();
         to_bitField0_ |= 0x00000004;
       }
       result.bitField0_ |= to_bitField0_;
@@ -430,16 +474,23 @@ private static final long serialVersionUID = 0L;
 
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq) {
-        return mergeFrom((com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq)other);
+      if (other
+          instanceof
+          com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq) {
+        return mergeFrom(
+            (com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq)
+                other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq other) {
-      if (other == com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq.getDefaultInstance()) return this;
+    public Builder mergeFrom(
+        com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq other) {
+      if (other
+          == com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+              .getDefaultInstance()) return this;
       if (other.hasUserId()) {
         userId_ = other.userId_;
         bitField0_ |= 0x00000001;
@@ -477,29 +528,31 @@ private static final long serialVersionUID = 0L;
             case 0:
               done = true;
               break;
-            case 10: {
-              userId_ = input.readStringRequireUtf8();
-              bitField0_ |= 0x00000001;
-              break;
-            } // case 10
-            case 16: {
-              orderId_ = input.readInt64();
-              bitField0_ |= 0x00000002;
-              break;
-            } // case 16
-            case 26: {
-              input.readMessage(
-                  getFilterFieldBuilder().getBuilder(),
-                  extensionRegistry);
-              bitField0_ |= 0x00000004;
-              break;
-            } // case 26
-            default: {
-              if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                done = true; // was an endgroup tag
-              }
-              break;
-            } // default:
+            case 10:
+              {
+                userId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+            case 16:
+              {
+                orderId_ = input.readInt64();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+            case 26:
+              {
+                input.readMessage(getFilterFieldBuilder().getBuilder(), extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+            default:
+              {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
           } // switch (tag)
         } // while (!done)
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -509,25 +562,29 @@ private static final long serialVersionUID = 0L;
       } // finally
       return this;
     }
+
     private int bitField0_;
 
     private java.lang.Object userId_ = "";
+
     /**
      * <code>optional string user_id = 1 [json_name = "userId"];</code>
+     *
      * @return Whether the userId field is set.
      */
     public boolean hasUserId() {
       return ((bitField0_ & 0x00000001) != 0);
     }
+
     /**
      * <code>optional string user_id = 1 [json_name = "userId"];</code>
+     *
      * @return The userId.
      */
     public java.lang.String getUserId() {
       java.lang.Object ref = userId_;
       if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
+        com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         userId_ = s;
         return s;
@@ -535,38 +592,43 @@ private static final long serialVersionUID = 0L;
         return (java.lang.String) ref;
       }
     }
+
     /**
      * <code>optional string user_id = 1 [json_name = "userId"];</code>
+     *
      * @return The bytes for userId.
      */
-    public com.google.protobuf.ByteString
-        getUserIdBytes() {
+    public com.google.protobuf.ByteString getUserIdBytes() {
       java.lang.Object ref = userId_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
         userId_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
+
     /**
      * <code>optional string user_id = 1 [json_name = "userId"];</code>
+     *
      * @param value The userId to set.
      * @return This builder for chaining.
      */
-    public Builder setUserId(
-        java.lang.String value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setUserId(java.lang.String value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       userId_ = value;
       bitField0_ |= 0x00000001;
       onChanged();
       return this;
     }
+
     /**
      * <code>optional string user_id = 1 [json_name = "userId"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearUserId() {
@@ -575,14 +637,17 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>optional string user_id = 1 [json_name = "userId"];</code>
+     *
      * @param value The bytes for userId to set.
      * @return This builder for chaining.
      */
-    public Builder setUserIdBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) { throw new NullPointerException(); }
+    public Builder setUserIdBytes(com.google.protobuf.ByteString value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       checkByteStringIsUtf8(value);
       userId_ = value;
       bitField0_ |= 0x00000001;
@@ -590,25 +655,31 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private long orderId_ ;
+    private long orderId_;
+
     /**
      * <code>optional int64 order_id = 2 [json_name = "orderId"];</code>
+     *
      * @return Whether the orderId field is set.
      */
     @java.lang.Override
     public boolean hasOrderId() {
       return ((bitField0_ & 0x00000002) != 0);
     }
+
     /**
      * <code>optional int64 order_id = 2 [json_name = "orderId"];</code>
+     *
      * @return The orderId.
      */
     @java.lang.Override
     public long getOrderId() {
       return orderId_;
     }
+
     /**
      * <code>optional int64 order_id = 2 [json_name = "orderId"];</code>
+     *
      * @param value The orderId to set.
      * @return This builder for chaining.
      */
@@ -619,8 +690,10 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
      * <code>optional int64 order_id = 2 [json_name = "orderId"];</code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearOrderId() {
@@ -632,29 +705,39 @@ private static final long serialVersionUID = 0L;
 
     private com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter filter_;
     private com.google.protobuf.SingleFieldBuilder<
-        com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter, com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.Builder, com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder> filterBuilder_;
+            com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter,
+            com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.Builder,
+            com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder>
+        filterBuilder_;
+
     /**
      * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
+     *
      * @return Whether the filter field is set.
      */
     public boolean hasFilter() {
       return ((bitField0_ & 0x00000004) != 0);
     }
+
     /**
      * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
+     *
      * @return The filter.
      */
     public com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter getFilter() {
       if (filterBuilder_ == null) {
-        return filter_ == null ? com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.getDefaultInstance() : filter_;
+        return filter_ == null
+            ? com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter
+                .getDefaultInstance()
+            : filter_;
       } else {
         return filterBuilder_.getMessage();
       }
     }
-    /**
-     * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
-     */
-    public Builder setFilter(com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter value) {
+
+    /** <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code> */
+    public Builder setFilter(
+        com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter value) {
       if (filterBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -667,11 +750,11 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
-    /**
-     * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
-     */
+
+    /** <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code> */
     public Builder setFilter(
-        com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.Builder builderForValue) {
+        com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.Builder
+            builderForValue) {
       if (filterBuilder_ == null) {
         filter_ = builderForValue.build();
       } else {
@@ -681,14 +764,16 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
-    /**
-     * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
-     */
-    public Builder mergeFilter(com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter value) {
+
+    /** <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code> */
+    public Builder mergeFilter(
+        com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter value) {
       if (filterBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) != 0) &&
-          filter_ != null &&
-          filter_ != com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.getDefaultInstance()) {
+        if (((bitField0_ & 0x00000004) != 0)
+            && filter_ != null
+            && filter_
+                != com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter
+                    .getDefaultInstance()) {
           getFilterBuilder().mergeFrom(value);
         } else {
           filter_ = value;
@@ -702,9 +787,8 @@ private static final long serialVersionUID = 0L;
       }
       return this;
     }
-    /**
-     * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
-     */
+
+    /** <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code> */
     public Builder clearFilter() {
       bitField0_ = (bitField0_ & ~0x00000004);
       filter_ = null;
@@ -715,37 +799,41 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
-    /**
-     * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
-     */
-    public com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.Builder getFilterBuilder() {
+
+    /** <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code> */
+    public com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.Builder
+        getFilterBuilder() {
       bitField0_ |= 0x00000004;
       onChanged();
       return getFilterFieldBuilder().getBuilder();
     }
-    /**
-     * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
-     */
-    public com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder getFilterOrBuilder() {
+
+    /** <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code> */
+    public com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder
+        getFilterOrBuilder() {
       if (filterBuilder_ != null) {
         return filterBuilder_.getMessageOrBuilder();
       } else {
-        return filter_ == null ?
-            com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.getDefaultInstance() : filter_;
+        return filter_ == null
+            ? com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter
+                .getDefaultInstance()
+            : filter_;
       }
     }
-    /**
-     * <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code>
-     */
+
+    /** <code>optional .payment.v1.QueryFilter filter = 3 [json_name = "filter"];</code> */
     private com.google.protobuf.SingleFieldBuilder<
-        com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter, com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.Builder, com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder> 
+            com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter,
+            com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.Builder,
+            com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder>
         getFilterFieldBuilder() {
       if (filterBuilder_ == null) {
-        filterBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-            com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter, com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.Builder, com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder>(
-                getFilter(),
-                getParentForChildren(),
-                isClean());
+        filterBuilder_ =
+            new com.google.protobuf.SingleFieldBuilder<
+                com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter,
+                com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilter.Builder,
+                com.codejsha.bookstore.service.application.port.pb.paymentpb.QueryFilterOrBuilder>(
+                getFilter(), getParentForChildren(), isClean());
         filter_ = null;
       }
       return filterBuilder_;
@@ -755,36 +843,41 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:payment.v1.PaymentFindAllProtoReq)
-  private static final com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq DEFAULT_INSTANCE;
+  private static final com.codejsha.bookstore.service.application.port.pb.paymentpb
+          .PaymentFindAllProtoReq
+      DEFAULT_INSTANCE;
+
   static {
-    DEFAULT_INSTANCE = new com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq();
+    DEFAULT_INSTANCE =
+        new com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq();
   }
 
-  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq getDefaultInstance() {
+  public static com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<PaymentFindAllProtoReq>
-      PARSER = new com.google.protobuf.AbstractParser<PaymentFindAllProtoReq>() {
-    @java.lang.Override
-    public PaymentFindAllProtoReq parsePartialFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      Builder builder = newBuilder();
-      try {
-        builder.mergeFrom(input, extensionRegistry);
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(builder.buildPartial());
-      } catch (com.google.protobuf.UninitializedMessageException e) {
-        throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(e)
-            .setUnfinishedMessage(builder.buildPartial());
-      }
-      return builder.buildPartial();
-    }
-  };
+  private static final com.google.protobuf.Parser<PaymentFindAllProtoReq> PARSER =
+      new com.google.protobuf.AbstractParser<PaymentFindAllProtoReq>() {
+        @java.lang.Override
+        public PaymentFindAllProtoReq parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
 
   public static com.google.protobuf.Parser<PaymentFindAllProtoReq> parser() {
     return PARSER;
@@ -796,9 +889,8 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq getDefaultInstanceForType() {
+  public com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindAllProtoReq
+      getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
-
 }
-

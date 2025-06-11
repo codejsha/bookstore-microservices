@@ -253,7 +253,7 @@ type PaymentFindProtoResp struct {
 	UserId        string                 `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	PaymentType   string                 `protobuf:"bytes,4,opt,name=payment_type,json=paymentType,proto3" json:"payment_type,omitempty"`
 	CardNumber    string                 `protobuf:"bytes,5,opt,name=card_number,json=cardNumber,proto3" json:"card_number,omitempty"`
-	Amount        float64                `protobuf:"fixed64,6,opt,name=amount,proto3" json:"amount,omitempty"`
+	Amount        string                 `protobuf:"bytes,6,opt,name=amount,proto3" json:"amount,omitempty"`
 	PaymentDate   *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=payment_date,json=paymentDate,proto3" json:"payment_date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -324,11 +324,11 @@ func (x *PaymentFindProtoResp) GetCardNumber() string {
 	return ""
 }
 
-func (x *PaymentFindProtoResp) GetAmount() float64 {
+func (x *PaymentFindProtoResp) GetAmount() string {
 	if x != nil {
 		return x.Amount
 	}
-	return 0
+	return ""
 }
 
 func (x *PaymentFindProtoResp) GetPaymentDate() *timestamppb.Timestamp {
@@ -369,7 +369,7 @@ const file_modules_payment_v1_payment_proto_rawDesc = "" +
 	"\fpayment_type\x18\x04 \x01(\tR\vpaymentType\x12\x1f\n" +
 	"\vcard_number\x18\x05 \x01(\tR\n" +
 	"cardNumber\x12\x16\n" +
-	"\x06amount\x18\x06 \x01(\x01R\x06amount\x12=\n" +
+	"\x06amount\x18\x06 \x01(\tR\x06amount\x12=\n" +
 	"\fpayment_date\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\vpaymentDate2\xc2\x01\n" +
 	"\x0ePaymentService\x12\\\n" +
 	"\x0fFindAllPayments\x12\".payment.v1.PaymentFindAllProtoReq\x1a#.payment.v1.PaymentFindAllProtoResp\"\x00\x12R\n" +

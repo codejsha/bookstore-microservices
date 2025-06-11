@@ -5,12 +5,14 @@
 
 package com.codejsha.bookstore.service.application.port.pb.orderpb;
 
-public interface OrderFindProtoReqOrBuilder extends
+public interface OrderFindProtoReqOrBuilder
+    extends
     // @@protoc_insertion_point(interface_extends:order.v1.OrderFindProtoReq)
     com.google.protobuf.MessageOrBuilder {
 
   /**
    * <code>int64 id = 1 [json_name = "id"];</code>
+   *
    * @return The id.
    */
   long getId();

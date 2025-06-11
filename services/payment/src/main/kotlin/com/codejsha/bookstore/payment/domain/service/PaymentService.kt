@@ -1,7 +1,7 @@
 package com.codejsha.bookstore.payment.domain.service
 
 import com.codejsha.bookstore.payment.application.usecase.PaymentCommand
-import com.codejsha.bookstore.payment.application.usecase.PaymentQuery
+import com.codejsha.bookstore.payment.application.usecase.PaymentRead
 import com.codejsha.bookstore.payment.application.usecase.PaymentUseCase
 import com.codejsha.bookstore.payment.domain.aggregate.entity.PaymentEntity
 import com.codejsha.bookstore.payment.domain.handler.PaymentHandler
@@ -14,42 +14,43 @@ import org.springframework.stereotype.Service
 
 @Service
 class PaymentService(
+    private val openTelemetry: io.opentelemetry.api.OpenTelemetry,
     private val paymentHandler: PaymentHandler,
-    private val orderStub: OrderServiceGrpc.OrderServiceStub,
-    private val userStub: UserServiceGrpc.UserServiceStub
+    private val orderStub: OrderServiceGrpc.OrderServiceStub?,
+    private val userStub: UserServiceGrpc.UserServiceStub?
 ) : PaymentUseCase {
 
     @WithSpan
     override fun findAllPayments(cond: FilterCondition): List<PaymentEntity> {
-        val query = PaymentQuery.FindAllPayments(cond)
-        val payments = paymentHandler.handleFindAll(query).toList()
+        val read = PaymentRead.FindAllPaymentsRead(cond)
+        val payments = paymentHandler.handleFindAll(read).toList()
         return payments
     }
 
     @WithSpan
     override fun findPayment(id: Long): PaymentEntity {
-        val query = PaymentQuery.FindPayment(id)
-        val payment = paymentHandler.handleFind(query)
+        val read = PaymentRead.FindPaymentRead(id)
+        val payment = paymentHandler.handleFind(read)
         return payment
     }
 
     @WithSpan
     override fun createPayment(paymentDto: PaymentDto): PaymentEntity {
-        val command = PaymentCommand.CreatePayment(paymentDto)
+        val command = PaymentCommand.CreatePaymentCommand(paymentDto)
         val payment = paymentHandler.handle(command)
         return payment
     }
 
     @WithSpan
     override fun updatePayment(paymentDto: PaymentDto): PaymentEntity {
-        val command = PaymentCommand.UpdatePayment(paymentDto)
+        val command = PaymentCommand.UpdatePaymentCommand(paymentDto)
         val payment = paymentHandler.handle(command)
         return payment
     }
 
     @WithSpan
     override fun deletePayment(id: Long) {
-        val command = PaymentCommand.DeletePayment(id)
+        val command = PaymentCommand.DeletePaymentCommand(id)
         return paymentHandler.handle(command)
     }
 }

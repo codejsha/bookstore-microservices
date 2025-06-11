@@ -5,72 +5,50 @@
 
 package com.codejsha.bookstore.service.application.port.pb.userpb;
 
-/**
- * Protobuf enum {@code user.v1.AuthRole}
- */
-public enum AuthRole
-    implements com.google.protobuf.ProtocolMessageEnum {
-  /**
-   * <code>UNKNOWN = 0;</code>
-   */
+/** Protobuf enum {@code user.v1.AuthRole} */
+public enum AuthRole implements com.google.protobuf.ProtocolMessageEnum {
+  /** <code>UNKNOWN = 0;</code> */
   UNKNOWN(0),
-  /**
-   * <code>SYSTEM = 1;</code>
-   */
+  /** <code>SYSTEM = 1;</code> */
   SYSTEM(1),
-  /**
-   * <code>MANAGE = 2;</code>
-   */
+  /** <code>MANAGE = 2;</code> */
   MANAGE(2),
-  /**
-   * <code>PROFILE = 3;</code>
-   */
+  /** <code>PROFILE = 3;</code> */
   PROFILE(3),
-  /**
-   * <code>ORDER = 4;</code>
-   */
+  /** <code>ORDER = 4;</code> */
   ORDER(4),
-  /**
-   * <code>VIEW = 5;</code>
-   */
+  /** <code>VIEW = 5;</code> */
   VIEW(5),
   UNRECOGNIZED(-1),
   ;
 
   static {
     com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-      com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-      /* major= */ 4,
-      /* minor= */ 29,
-      /* patch= */ 3,
-      /* suffix= */ "",
-      AuthRole.class.getName());
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 29,
+        /* patch= */ 3,
+        /* suffix= */ "",
+        AuthRole.class.getName());
   }
-  /**
-   * <code>UNKNOWN = 0;</code>
-   */
-  public static final int UNKNOWN_VALUE = 0;
-  /**
-   * <code>SYSTEM = 1;</code>
-   */
-  public static final int SYSTEM_VALUE = 1;
-  /**
-   * <code>MANAGE = 2;</code>
-   */
-  public static final int MANAGE_VALUE = 2;
-  /**
-   * <code>PROFILE = 3;</code>
-   */
-  public static final int PROFILE_VALUE = 3;
-  /**
-   * <code>ORDER = 4;</code>
-   */
-  public static final int ORDER_VALUE = 4;
-  /**
-   * <code>VIEW = 5;</code>
-   */
-  public static final int VIEW_VALUE = 5;
 
+  /** <code>UNKNOWN = 0;</code> */
+  public static final int UNKNOWN_VALUE = 0;
+
+  /** <code>SYSTEM = 1;</code> */
+  public static final int SYSTEM_VALUE = 1;
+
+  /** <code>MANAGE = 2;</code> */
+  public static final int MANAGE_VALUE = 2;
+
+  /** <code>PROFILE = 3;</code> */
+  public static final int PROFILE_VALUE = 3;
+
+  /** <code>ORDER = 4;</code> */
+  public static final int ORDER_VALUE = 4;
+
+  /** <code>VIEW = 5;</code> */
+  public static final int VIEW_VALUE = 5;
 
   public final int getNumber() {
     if (this == UNRECOGNIZED) {
@@ -96,52 +74,57 @@ public enum AuthRole
    */
   public static AuthRole forNumber(int value) {
     switch (value) {
-      case 0: return UNKNOWN;
-      case 1: return SYSTEM;
-      case 2: return MANAGE;
-      case 3: return PROFILE;
-      case 4: return ORDER;
-      case 5: return VIEW;
-      default: return null;
+      case 0:
+        return UNKNOWN;
+      case 1:
+        return SYSTEM;
+      case 2:
+        return MANAGE;
+      case 3:
+        return PROFILE;
+      case 4:
+        return ORDER;
+      case 5:
+        return VIEW;
+      default:
+        return null;
     }
   }
 
-  public static com.google.protobuf.Internal.EnumLiteMap<AuthRole>
-      internalGetValueMap() {
+  public static com.google.protobuf.Internal.EnumLiteMap<AuthRole> internalGetValueMap() {
     return internalValueMap;
   }
-  private static final com.google.protobuf.Internal.EnumLiteMap<
-      AuthRole> internalValueMap =
-        new com.google.protobuf.Internal.EnumLiteMap<AuthRole>() {
-          public AuthRole findValueByNumber(int number) {
-            return AuthRole.forNumber(number);
-          }
-        };
 
-  public final com.google.protobuf.Descriptors.EnumValueDescriptor
-      getValueDescriptor() {
+  private static final com.google.protobuf.Internal.EnumLiteMap<AuthRole> internalValueMap =
+      new com.google.protobuf.Internal.EnumLiteMap<AuthRole>() {
+        public AuthRole findValueByNumber(int number) {
+          return AuthRole.forNumber(number);
+        }
+      };
+
+  public final com.google.protobuf.Descriptors.EnumValueDescriptor getValueDescriptor() {
     if (this == UNRECOGNIZED) {
       throw new java.lang.IllegalStateException(
           "Can't get the descriptor of an unrecognized enum value.");
     }
     return getDescriptor().getValues().get(ordinal());
   }
-  public final com.google.protobuf.Descriptors.EnumDescriptor
-      getDescriptorForType() {
+
+  public final com.google.protobuf.Descriptors.EnumDescriptor getDescriptorForType() {
     return getDescriptor();
   }
-  public static final com.google.protobuf.Descriptors.EnumDescriptor
-      getDescriptor() {
-    return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.getDescriptor().getEnumTypes().get(0);
+
+  public static final com.google.protobuf.Descriptors.EnumDescriptor getDescriptor() {
+    return com.codejsha.bookstore.service.application.port.pb.userpb.UserProto.getDescriptor()
+        .getEnumTypes()
+        .get(0);
   }
 
   private static final AuthRole[] VALUES = values();
 
-  public static AuthRole valueOf(
-      com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+  public static AuthRole valueOf(com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
-      throw new java.lang.IllegalArgumentException(
-        "EnumValueDescriptor is not for this type.");
+      throw new java.lang.IllegalArgumentException("EnumValueDescriptor is not for this type.");
     }
     if (desc.getIndex() == -1) {
       return UNRECOGNIZED;
@@ -157,4 +140,3 @@ public enum AuthRole
 
   // @@protoc_insertion_point(enum_scope:user.v1.AuthRole)
 }
-
