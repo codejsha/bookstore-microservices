@@ -24,8 +24,8 @@ spec:
 	### gradle
 	perl -pi -e 's/version = ".*"/version=$(VERSION)/' gradle.properties
 	### application
-	yq -i '.spring.application.name = $(SERVICE_NAME)' src/main/resources/application.yml
-	yq -i '.spring.application.version = $(VERSION)' src/main/resources/application.yml
+	yq -i '.spring.application.name = $(SERVICE_NAME)' src/main/resources/application.yaml
+	yq -i '.spring.application.version = $(VERSION)' src/main/resources/application.yaml
 
 .PHONY: clean
 clean:
@@ -48,6 +48,7 @@ docker-build:
 		--build-arg SERVICE_NAME=$(SERVICE_NAME) \
 		-t harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) .
 
+.PHONY: docker-push
 docker-push:
 	docker image push harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION)
 

@@ -93,7 +93,7 @@ wire:
 	wire gen ./internal/di
 
 .PHONY: build
-build: wire
+build: spec wire
 ifeq ($(PLATFORM),Darwin)
 	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "$(NAME_FLAG) $(VERSION_FLAG) $(COMMIT_FLAG)" -o ./bin/$(APP_NAME)
 else ifeq ($(PLATFORM),Linux)
@@ -104,10 +104,13 @@ endif
 
 .PHONY: docker-build
 docker-build:
-	docker buildx build -f ./ci/package/Dockerfile \
-		--platform linux/amd64,darwin/arm64 \
+	docker buildx build -f ./ci/Dockerfile \
 		--build-arg SERVICE_NAME=$(SERVICE_NAME) \
-		-t harbor.harbor.svc.cluster.local/library/bookstore/$(SERVICE_NAME):$(VERSION) .
+		-t harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) .
+
+.PHONY: docker-push
+docker-push:
+	docker image push harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION)
 
 .PHONY: run
 run:
