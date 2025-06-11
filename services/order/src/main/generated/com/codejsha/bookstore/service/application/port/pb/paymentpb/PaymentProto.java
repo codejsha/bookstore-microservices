@@ -81,7 +81,7 @@ public final class PaymentProto {
           + "\014payment_type\030\004 \001(\tR\013paymentType\022\037\n"
           + "\013card_number\030\005 \001(\tR\n"
           + "cardNumber\022\026\n"
-          + "\006amount\030\006 \001(\001R\006amount\022=\n"
+          + "\006amount\030\006 \001(\tR\006amount\022=\n"
           + "\014payment_date\030\007"
           + " \001(\0132\032.google.protobuf.TimestampR\013paymentDate2\302\001\n"
           + "\016PaymentService\022\\\n"

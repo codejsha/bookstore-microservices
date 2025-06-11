@@ -30,6 +30,7 @@ public final class OrderFindProtoResp extends com.google.protobuf.GeneratedMessa
   private OrderFindProtoResp() {
     userId_ = "";
     orderItems_ = java.util.Collections.emptyList();
+    totalPrice_ = "";
     status_ = 0;
   }
 
@@ -145,16 +146,44 @@ public final class OrderFindProtoResp extends com.google.protobuf.GeneratedMessa
   }
 
   public static final int TOTAL_PRICE_FIELD_NUMBER = 4;
-  private double totalPrice_ = 0D;
+
+  @SuppressWarnings("serial")
+  private volatile java.lang.Object totalPrice_ = "";
 
   /**
-   * <code>double total_price = 4 [json_name = "totalPrice"];</code>
+   * <code>string total_price = 4 [json_name = "totalPrice"];</code>
    *
    * @return The totalPrice.
    */
   @java.lang.Override
-  public double getTotalPrice() {
-    return totalPrice_;
+  public java.lang.String getTotalPrice() {
+    java.lang.Object ref = totalPrice_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      totalPrice_ = s;
+      return s;
+    }
+  }
+
+  /**
+   * <code>string total_price = 4 [json_name = "totalPrice"];</code>
+   *
+   * @return The bytes for totalPrice.
+   */
+  @java.lang.Override
+  public com.google.protobuf.ByteString getTotalPriceBytes() {
+    java.lang.Object ref = totalPrice_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b =
+          com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
+      totalPrice_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
   }
 
   public static final int STATUS_FIELD_NUMBER = 5;
@@ -207,8 +236,8 @@ public final class OrderFindProtoResp extends com.google.protobuf.GeneratedMessa
     for (int i = 0; i < orderItems_.size(); i++) {
       output.writeMessage(3, orderItems_.get(i));
     }
-    if (java.lang.Double.doubleToRawLongBits(totalPrice_) != 0) {
-      output.writeDouble(4, totalPrice_);
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(totalPrice_)) {
+      com.google.protobuf.GeneratedMessage.writeString(output, 4, totalPrice_);
     }
     if (status_
         != com.codejsha.bookstore.service.application.port.pb.orderpb.OrderStatus.UNKNOWN
@@ -233,8 +262,8 @@ public final class OrderFindProtoResp extends com.google.protobuf.GeneratedMessa
     for (int i = 0; i < orderItems_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream.computeMessageSize(3, orderItems_.get(i));
     }
-    if (java.lang.Double.doubleToRawLongBits(totalPrice_) != 0) {
-      size += com.google.protobuf.CodedOutputStream.computeDoubleSize(4, totalPrice_);
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(totalPrice_)) {
+      size += com.google.protobuf.GeneratedMessage.computeStringSize(4, totalPrice_);
     }
     if (status_
         != com.codejsha.bookstore.service.application.port.pb.orderpb.OrderStatus.UNKNOWN
@@ -261,8 +290,7 @@ public final class OrderFindProtoResp extends com.google.protobuf.GeneratedMessa
     if (getId() != other.getId()) return false;
     if (!getUserId().equals(other.getUserId())) return false;
     if (!getOrderItemsList().equals(other.getOrderItemsList())) return false;
-    if (java.lang.Double.doubleToLongBits(getTotalPrice())
-        != java.lang.Double.doubleToLongBits(other.getTotalPrice())) return false;
+    if (!getTotalPrice().equals(other.getTotalPrice())) return false;
     if (status_ != other.status_) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
@@ -284,10 +312,7 @@ public final class OrderFindProtoResp extends com.google.protobuf.GeneratedMessa
       hash = (53 * hash) + getOrderItemsList().hashCode();
     }
     hash = (37 * hash) + TOTAL_PRICE_FIELD_NUMBER;
-    hash =
-        (53 * hash)
-            + com.google.protobuf.Internal.hashLong(
-                java.lang.Double.doubleToLongBits(getTotalPrice()));
+    hash = (53 * hash) + getTotalPrice().hashCode();
     hash = (37 * hash) + STATUS_FIELD_NUMBER;
     hash = (53 * hash) + status_;
     hash = (29 * hash) + getUnknownFields().hashCode();
@@ -440,7 +465,7 @@ public final class OrderFindProtoResp extends com.google.protobuf.GeneratedMessa
         orderItemsBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000004);
-      totalPrice_ = 0D;
+      totalPrice_ = "";
       status_ = 0;
       return this;
     }
@@ -564,8 +589,10 @@ public final class OrderFindProtoResp extends com.google.protobuf.GeneratedMessa
           }
         }
       }
-      if (other.getTotalPrice() != 0D) {
-        setTotalPrice(other.getTotalPrice());
+      if (!other.getTotalPrice().isEmpty()) {
+        totalPrice_ = other.totalPrice_;
+        bitField0_ |= 0x00000008;
+        onChanged();
       }
       if (other.status_ != 0) {
         setStatusValue(other.getStatusValue());
@@ -623,12 +650,12 @@ public final class OrderFindProtoResp extends com.google.protobuf.GeneratedMessa
                 }
                 break;
               } // case 26
-            case 33:
+            case 34:
               {
-                totalPrice_ = input.readDouble();
+                totalPrice_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000008;
                 break;
-              } // case 33
+              } // case 34
             case 40:
               {
                 status_ = input.readEnum();
@@ -1021,26 +1048,52 @@ public final class OrderFindProtoResp extends com.google.protobuf.GeneratedMessa
       return orderItemsBuilder_;
     }
 
-    private double totalPrice_;
+    private java.lang.Object totalPrice_ = "";
 
     /**
-     * <code>double total_price = 4 [json_name = "totalPrice"];</code>
+     * <code>string total_price = 4 [json_name = "totalPrice"];</code>
      *
      * @return The totalPrice.
      */
-    @java.lang.Override
-    public double getTotalPrice() {
-      return totalPrice_;
+    public java.lang.String getTotalPrice() {
+      java.lang.Object ref = totalPrice_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs = (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        totalPrice_ = s;
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
     }
 
     /**
-     * <code>double total_price = 4 [json_name = "totalPrice"];</code>
+     * <code>string total_price = 4 [json_name = "totalPrice"];</code>
+     *
+     * @return The bytes for totalPrice.
+     */
+    public com.google.protobuf.ByteString getTotalPriceBytes() {
+      java.lang.Object ref = totalPrice_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8((java.lang.String) ref);
+        totalPrice_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    /**
+     * <code>string total_price = 4 [json_name = "totalPrice"];</code>
      *
      * @param value The totalPrice to set.
      * @return This builder for chaining.
      */
-    public Builder setTotalPrice(double value) {
-
+    public Builder setTotalPrice(java.lang.String value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
       totalPrice_ = value;
       bitField0_ |= 0x00000008;
       onChanged();
@@ -1048,13 +1101,30 @@ public final class OrderFindProtoResp extends com.google.protobuf.GeneratedMessa
     }
 
     /**
-     * <code>double total_price = 4 [json_name = "totalPrice"];</code>
+     * <code>string total_price = 4 [json_name = "totalPrice"];</code>
      *
      * @return This builder for chaining.
      */
     public Builder clearTotalPrice() {
+      totalPrice_ = getDefaultInstance().getTotalPrice();
       bitField0_ = (bitField0_ & ~0x00000008);
-      totalPrice_ = 0D;
+      onChanged();
+      return this;
+    }
+
+    /**
+     * <code>string total_price = 4 [json_name = "totalPrice"];</code>
+     *
+     * @param value The bytes for totalPrice to set.
+     * @return This builder for chaining.
+     */
+    public Builder setTotalPriceBytes(com.google.protobuf.ByteString value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      checkByteStringIsUtf8(value);
+      totalPrice_ = value;
+      bitField0_ |= 0x00000008;
       onChanged();
       return this;
     }

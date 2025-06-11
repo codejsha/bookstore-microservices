@@ -6,6 +6,7 @@ import java.util.*
 
 @Component
 class MetadataConfig {
+
     val version: String by lazy { loadProjectProperties().getProperty("version") }
 
     private fun loadProjectProperties(): Properties {

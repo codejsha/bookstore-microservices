@@ -6,9 +6,11 @@ import com.codejsha.bookstore.service.application.port.pb.orderpb.*
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.StreamObserver
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
+@ConditionalOnProperty(name = ["app.segregation"], havingValue = "query")
 class OrderGrpcServer(
     private val orderUseCase: OrderUseCase
 ) : OrderServiceGrpc.OrderServiceImplBase() {

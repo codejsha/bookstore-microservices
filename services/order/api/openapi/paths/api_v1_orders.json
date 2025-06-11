@@ -56,7 +56,7 @@
             "$ref": "../openapi.json#/components/schemas/OrderCreateWebReq"
           }
         }
-      },
+      }
     },
     "responses": {
       "201": {

@@ -6,6 +6,7 @@ import com.codejsha.bookstore.order.domain.model.OrderDto
 import reactor.core.publisher.Mono
 
 interface OrderUseCase {
+    fun startPlaceOrderWorkflow(dto: OrderDto): Mono<Unit>
     fun findAllOrders(cond: FilterCondition): Mono<List<OrderAggregate>>
     fun findOrder(id: Long): Mono<OrderAggregate>
     fun createOrder(dto: OrderDto): Mono<OrderAggregate>

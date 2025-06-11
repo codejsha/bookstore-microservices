@@ -83,7 +83,7 @@ public final class OrderProto {
           + "\007user_id\030\002 \001(\tR\006userId\0223\n\n"
           + "orderItems\030\003 \003(\0132\023.order.v1.OrderItemR\n"
           + "orderItems\022\037\n"
-          + "\013total_price\030\004 \001(\001R\n"
+          + "\013total_price\030\004 \001(\tR\n"
           + "totalPrice\022-\n"
           + "\006status\030\005 \001(\0162\025.order.v1.OrderStatusR\006status\"@\n"
           + "\tOrderItem\022\027\n"

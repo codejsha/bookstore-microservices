@@ -43,4 +43,26 @@ class OrderItemExtendedRepository(
         """.trimIndent()
         return sql
     }
+
+    override fun findAllByOrderId(orderId: Long): Flux<OrderItemEntity> {
+        val sql = """
+            SELECT * FROM book_order_item
+            WHERE order_id = :orderId
+        """.trimIndent()
+
+        val entityFlux = databaseClient.sql(sql)
+            .bind("orderId", orderId)
+            .map { row, _ ->
+                OrderItemEntity(
+                    id = row["id"] as Long,
+                    orderId = row["order_id"] as Long,
+                    bookId = row["book_id"] as Long,
+                    quantity = row["quantity"] as Int,
+                    createdAt = row["created_at"] as LocalDateTime?,
+                    updatedAt = row["updated_at"] as LocalDateTime?
+                )
+            }
+            .all()
+        return entityFlux
+    }
 }

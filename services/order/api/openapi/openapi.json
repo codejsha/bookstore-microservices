@@ -99,18 +99,18 @@
           "user_id": {
             "type": "string"
           },
+          "total_price": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
           "order_items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OrderItem"
             }
-          },
-          "total_price": {
-            "type": "number",
-            "format": "double"
-          },
-          "status": {
-            "$ref": "#/components/schemas/OrderStatus"
           }
         }
       },
@@ -123,6 +123,12 @@
           "shipping",
           "completed",
           "cancelled"
+        ]
+      },
+      "PaymentType": {
+        "type": "string",
+        "enum": [
+          "card"
         ]
       },
       "OrderItem": {
@@ -179,18 +185,24 @@
           "user_id": {
             "type": "string"
           },
+          "total_price": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
           "order_items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OrderItem"
             }
           },
-          "total_price": {
-            "type": "number",
-            "format": "double"
+          "PaymentType": {
+            "$ref": "#/components/schemas/PaymentType"
           },
-          "status": {
-            "$ref": "#/components/schemas/OrderStatus"
+          "card_number": {
+            "type": "string"
           }
         }
       },

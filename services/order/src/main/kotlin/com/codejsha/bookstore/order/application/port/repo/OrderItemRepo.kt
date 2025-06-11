@@ -9,4 +9,5 @@ interface OrderItemRepo : ReactiveCrudRepository<OrderItemEntity, Long>, OrderIt
 
 interface OrderItemExtendedRepo {
     fun findAllPaged(cond: FilterCondition): Flux<OrderItemEntity>
+    fun findAllByOrderId(orderId: Long): Flux<OrderItemEntity>
 }

@@ -33,7 +33,7 @@ message OrderFindProtoResp {
   int64 id = 1;
   string user_id = 2;
   repeated OrderItem orderItems = 3;
-  double total_price = 4;
+  string total_price = 4;
   OrderStatus status = 5;
 }
 

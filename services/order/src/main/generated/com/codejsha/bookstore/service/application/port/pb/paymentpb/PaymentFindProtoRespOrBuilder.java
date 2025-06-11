@@ -67,11 +67,18 @@ public interface PaymentFindProtoRespOrBuilder
   com.google.protobuf.ByteString getCardNumberBytes();
 
   /**
-   * <code>double amount = 6 [json_name = "amount"];</code>
+   * <code>string amount = 6 [json_name = "amount"];</code>
    *
    * @return The amount.
    */
-  double getAmount();
+  java.lang.String getAmount();
+
+  /**
+   * <code>string amount = 6 [json_name = "amount"];</code>
+   *
+   * @return The bytes for amount.
+   */
+  com.google.protobuf.ByteString getAmountBytes();
 
   /**
    * <code>.google.protobuf.Timestamp payment_date = 7 [json_name = "paymentDate"];</code>

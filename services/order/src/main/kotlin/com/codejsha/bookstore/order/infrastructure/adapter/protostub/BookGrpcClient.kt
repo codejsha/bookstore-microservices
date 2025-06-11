@@ -5,11 +5,13 @@ import com.codejsha.bookstore.service.application.port.pb.bookpb.BookServiceGrpc
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import jakarta.annotation.PreDestroy
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
 @Component
+@ConditionalOnProperty(name = ["app.segregation"], havingValue = "query")
 class BookGrpcClient(
     private val grpcConfig: GrpcConfig
 ) {

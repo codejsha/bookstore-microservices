@@ -20,9 +20,9 @@ import jakarta.validation.Valid
  * 
  * @param id 
  * @param userId 
- * @param orderItems 
  * @param totalPrice 
  * @param status 
+ * @param orderItems 
  */
 data class OrderFindWebResp(
 
@@ -30,13 +30,13 @@ data class OrderFindWebResp(
 
     @get:JsonProperty("user_id") val userId: kotlin.String? = null,
 
-    @field:Valid
-    @get:JsonProperty("order_items") val orderItems: kotlin.collections.List<OrderItem>? = null,
-
-    @get:JsonProperty("total_price") val totalPrice: kotlin.Double? = null,
+    @get:JsonProperty("total_price") val totalPrice: java.math.BigDecimal? = null,
 
     @field:Valid
-    @get:JsonProperty("status") val status: OrderStatus? = null
+    @get:JsonProperty("status") val status: OrderStatus? = null,
+
+    @field:Valid
+    @get:JsonProperty("order_items") val orderItems: kotlin.collections.List<OrderItem>? = null
     ) {
 
 }
