@@ -11,7 +11,9 @@ ENV SERVICE_NAME=${SERVICE_NAME}
 
 WORKDIR /app
 COPY --from=build /service/build/libs/${SERVICE_NAME}-app.jar /app/${SERVICE_NAME}-app.jar
+COPY ./ci/entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
 EXPOSE 8080
 EXPOSE 9090
-ENTRYPOINT ["/bin/sh", "-c", "java -jar /app/${SERVICE_NAME}-app.jar"]
+ENTRYPOINT ["/app/entrypoint.sh"]
