@@ -49,3 +49,8 @@ grafana:
     #     httpHeaderName1: "X-Scope-OrgID"
     #   secureJsonData:
     #     httpHeaderValue1: "otel"
+    - name: Jaeger
+      type: jaeger
+      uid: jaeger
+      url: http://jaeger-query.jaeger.svc.cluster.local:16686
+      access: proxy
