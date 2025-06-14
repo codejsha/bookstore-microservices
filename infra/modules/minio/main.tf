@@ -25,7 +25,7 @@ resource "kubernetes_namespace" "minio" {
 
 module "secret" {
   source         = "./modules/secret"
-  namespace      = kubernetes_namespace.minio.metadata.0.name
+  namespace      = kubernetes_namespace.minio.metadata[0].name
   admin_username = var.minio_username
   admin_password = var.minio_password
   providers = {
@@ -35,7 +35,7 @@ module "secret" {
 
 module "helm" {
   source    = "./modules/helm"
-  namespace = kubernetes_namespace.minio.metadata.0.name
+  namespace = kubernetes_namespace.minio.metadata[0].name
   providers = {
     helm = helm
   }
@@ -43,7 +43,7 @@ module "helm" {
 
 module "istio_api" {
   source       = "./modules/istio"
-  namespace    = kubernetes_namespace.minio.metadata.0.name
+  namespace    = kubernetes_namespace.minio.metadata[0].name
   host_address = var.minio_api_address
   host_fqdn    = var.minio_fqdn
   dest_port    = 9000
@@ -52,7 +52,7 @@ module "istio_api" {
 
 module "istio_ui" {
   source       = "./modules/istio"
-  namespace    = kubernetes_namespace.minio.metadata.0.name
+  namespace    = kubernetes_namespace.minio.metadata[0].name
   host_address = var.minio_console_address
   host_fqdn    = var.minio_console_fqdn
   dest_port    = 9090

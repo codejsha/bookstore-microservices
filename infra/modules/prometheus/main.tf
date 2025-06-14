@@ -19,7 +19,7 @@ resource "kubernetes_namespace" "prometheus" {
 
 module "helm" {
   source              = "./modules/helm"
-  namespace           = kubernetes_namespace.prometheus.metadata.0.name
+  namespace           = kubernetes_namespace.prometheus.metadata[0].name
   opensearch_username = var.opensearch_username
   opensearch_password = var.opensearch_password
   providers = {
@@ -29,7 +29,7 @@ module "helm" {
 
 module istio_prometheus {
   source       = "./modules/istio"
-  namespace    = kubernetes_namespace.prometheus.metadata.0.name
+  namespace    = kubernetes_namespace.prometheus.metadata[0].name
   host_address = var.prometheus_address
   host_fqdn    = var.prometheus_fqdn
   dest_port    = 9090
@@ -38,7 +38,7 @@ module istio_prometheus {
 
 module "istio_grafana" {
   source       = "./modules/istio"
-  namespace    = kubernetes_namespace.prometheus.metadata.0.name
+  namespace    = kubernetes_namespace.prometheus.metadata[0].name
   host_address = var.grafana_address
   host_fqdn    = var.grafana_fqdn
   dest_port    = 80

@@ -31,7 +31,7 @@ module "secret" {
 
 module "helm" {
   source    = "./modules/helm"
-  namespace = kubernetes_namespace.opensearch.metadata.0.name
+  namespace = kubernetes_namespace.opensearch.metadata[0].name
   providers = {
     helm = helm
   }
@@ -39,7 +39,7 @@ module "helm" {
 
 module "istio" {
   source       = "./modules/istio"
-  namespace    = kubernetes_namespace.opensearch.metadata.0.name
+  namespace    = kubernetes_namespace.opensearch.metadata[0].name
   host_address = var.opensearch_address
   host_fqdn    = var.opensearch_fqdn
   dest_port    = 5601

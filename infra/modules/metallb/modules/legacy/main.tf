@@ -16,7 +16,7 @@ resource "null_resource" "enable_strict_arp" {
     EOT
   }
   triggers = {
-    helm_release_name = helm_release.metallb.metadata.0.name
+    helm_release_name = helm_release.metallb.metadata[0].name
   }
 }
 

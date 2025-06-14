@@ -33,7 +33,7 @@ resource "kubernetes_secret" "harbor_issuer_token" {
     name      = "harbor-issuer-token"
     namespace = var.namespace
     annotations = {
-      "kubernetes.io/service-account.name" = kubernetes_service_account.harbor_issuer.metadata.0.name
+      "kubernetes.io/service-account.name" = kubernetes_service_account.harbor_issuer.metadata[0].name
     }
   }
 }
@@ -41,7 +41,7 @@ resource "kubernetes_secret" "harbor_issuer_token" {
 resource "vault_kubernetes_auth_backend_role" "harbor_issuer" {
   role_name = "harbor-issuer"
   backend   = "kubernetes"
-  bound_service_account_names = [kubernetes_service_account.harbor_issuer.metadata.0.name]
+  bound_service_account_names = [kubernetes_service_account.harbor_issuer.metadata[0].name]
   bound_service_account_namespaces = [var.namespace]
   token_policies = ["pki_int"]
   token_ttl = "3600" # 1 hour
@@ -58,7 +58,7 @@ resource "kubernetes_cluster_role_binding" "harbor_issuer_token_rolebinding" {
   }
   subject {
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account.harbor_issuer.metadata.0.name
+    name      = kubernetes_service_account.harbor_issuer.metadata[0].name
     namespace = var.namespace
   }
 }
@@ -81,7 +81,7 @@ resource "kubernetes_manifest" "harbor_issuer" {
             mountPath = "/v1/auth/kubernetes"
             role      = vault_kubernetes_auth_backend_role.harbor_issuer.role_name
             secretRef = {
-              name = kubernetes_secret.harbor_issuer_token.metadata.0.name
+              name = kubernetes_secret.harbor_issuer_token.metadata[0].name
               key  = "token"
             }
           }

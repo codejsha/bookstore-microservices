@@ -25,13 +25,13 @@ resource "kubernetes_namespace" "vault" {
 
 module "cert" {
   source    = "./modules/cert"
-  namespace = kubernetes_namespace.vault.metadata.0.name
+  namespace = kubernetes_namespace.vault.metadata[0].name
   kube_ca_crt = trimspace(file("${path.module}/${var.kube_ca_crt_path}"))
 }
 
 module "helm" {
   source    = "./modules/helm"
-  namespace = kubernetes_namespace.vault.metadata.0.name
+  namespace = kubernetes_namespace.vault.metadata[0].name
   providers = {
     helm = helm
   }
@@ -39,7 +39,7 @@ module "helm" {
 
 module "init" {
   source    = "./modules/init"
-  namespace = kubernetes_namespace.vault.metadata.0.name
+  namespace = kubernetes_namespace.vault.metadata[0].name
 }
 
 module "pki" {
@@ -59,7 +59,7 @@ module "kv" {
 
 module "kube" {
   source                  = "./modules/kube"
-  namespace               = kubernetes_namespace.vault.metadata.0.name
+  namespace               = kubernetes_namespace.vault.metadata[0].name
   kube_api_server_address = var.kube_api_server_address
   kube_ca_crt = trimspace(file("${path.module}/${var.kube_ca_crt_path}"))
   providers = {
@@ -69,7 +69,7 @@ module "kube" {
 
 module "istio" {
   source       = "./modules/istio"
-  namespace    = kubernetes_namespace.vault.metadata.0.name
+  namespace    = kubernetes_namespace.vault.metadata[0].name
   host_address = var.vault_address
   host_fqdn    = var.vault_fqdn
   dest_port    = 8200

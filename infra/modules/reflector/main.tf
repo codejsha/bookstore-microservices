@@ -16,7 +16,7 @@ resource "kubernetes_namespace" "reflector" {
 
 module "helm" {
   source    = "./modules/helm"
-  namespace = kubernetes_namespace.reflector.metadata.0.name
+  namespace = kubernetes_namespace.reflector.metadata[0].name
   providers = {
     helm = helm
   }

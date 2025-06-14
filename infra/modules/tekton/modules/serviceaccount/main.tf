@@ -17,7 +17,7 @@ resource "kubernetes_role_binding" "binding" {
   }
   subject {
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account.service_account.metadata.0.name
+    name      = kubernetes_service_account.service_account.metadata[0].name
     namespace = var.namespace
   }
 }
@@ -33,7 +33,7 @@ resource "kubernetes_cluster_role_binding" "cluster_binding" {
   }
   subject {
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account.service_account.metadata.0.name
+    name      = kubernetes_service_account.service_account.metadata[0].name
     namespace = var.namespace
   }
 }

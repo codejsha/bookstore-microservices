@@ -41,7 +41,7 @@ resource "kubernetes_namespace" "argocd" {
 
 module "helm" {
   source    = "./modules/helm"
-  namespace = kubernetes_namespace.argocd.metadata.0.name
+  namespace = kubernetes_namespace.argocd.metadata[0].name
   providers = {
     helm = helm
   }
@@ -49,7 +49,7 @@ module "helm" {
 
 module "istio" {
   source       = "./modules/istio"
-  namespace    = kubernetes_namespace.argocd.metadata.0.name
+  namespace    = kubernetes_namespace.argocd.metadata[0].name
   host_address = var.argocd_address
   host_fqdn    = var.argocd_fqdn
   dest_port    = 80

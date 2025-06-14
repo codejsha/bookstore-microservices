@@ -19,7 +19,7 @@ resource "kubernetes_namespace" "loki" {
 
 module "helm" {
   source         = "./modules/helm"
-  namespace      = kubernetes_namespace.loki.metadata.0.name
+  namespace      = kubernetes_namespace.loki.metadata[0].name
   minio_username = var.minio_username
   minio_password = var.minio_password
   providers = {

@@ -101,7 +101,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace
@@ -126,7 +126,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace
@@ -151,7 +151,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace
@@ -176,7 +176,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace
@@ -201,7 +201,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace
@@ -226,7 +226,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace
@@ -251,7 +251,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace
@@ -276,7 +276,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace
@@ -301,7 +301,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace
@@ -326,7 +326,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace
@@ -351,7 +351,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace
@@ -376,7 +376,7 @@
 #         namespace = local.argocd_namespace
 #     }
 #     spec {
-#         project = argocd_project.bookstore.metadata.0.name
+#         project = argocd_project.bookstore.metadata[0].name
 #         destination {
 #             server    = "https://kubernetes.default.svc"
 #             namespace = local.namespace

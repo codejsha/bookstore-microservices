@@ -16,7 +16,7 @@ resource "kubernetes_namespace" "cert_manager" {
 
 module "helm" {
   source    = "./modules/helm"
-  namespace = kubernetes_namespace.cert_manager.metadata.0.name
+  namespace = kubernetes_namespace.cert_manager.metadata[0].name
 }
 
 module "issuer" {

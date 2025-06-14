@@ -16,7 +16,7 @@ resource "kubernetes_namespace" "metallb" {
 
 # module "legacy" {
 #   source         = "./modules/legacy"
-#   namespace      = kubernetes_namespace.metallb.metadata.0.name
+#   namespace      = kubernetes_namespace.metallb.metadata[0].name
 #   pool_addresses = var.pool_addresses
 #   providers = {
 #     kubernetes = kubernetes
@@ -26,7 +26,7 @@ resource "kubernetes_namespace" "metallb" {
 
 module "helm" {
   source    = "./modules/helm"
-  namespace = kubernetes_namespace.metallb.metadata.0.name
+  namespace = kubernetes_namespace.metallb.metadata[0].name
   providers = {
     helm = helm
   }
@@ -34,7 +34,7 @@ module "helm" {
 
 module "pool" {
   source         = "./modules/pool"
-  namespace      = kubernetes_namespace.metallb.metadata.0.name
+  namespace      = kubernetes_namespace.metallb.metadata[0].name
   pool_addresses = var.pool_addresses
   providers = {
     kubernetes = kubernetes

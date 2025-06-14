@@ -66,7 +66,7 @@ module "storage" {
 
 module "helm" {
   source         = "./modules/helm"
-  namespace      = kubernetes_namespace.harbor.metadata.0.name
+  namespace      = kubernetes_namespace.harbor.metadata[0].name
   admin_password = var.harbor_password
   aws_access_key = var.aws_access_key
   aws_secret_key = var.aws_secret_key
@@ -77,7 +77,7 @@ module "helm" {
 
 module "istio" {
   source       = "./modules/istio"
-  namespace    = kubernetes_namespace.harbor.metadata.0.name
+  namespace    = kubernetes_namespace.harbor.metadata[0].name
   host_address = var.harbor_address
   host_fqdn    = var.harbor_fqdn
   dest_port    = 80
@@ -99,7 +99,7 @@ module "project" {
 
 module "cert" {
   source           = "./modules/cert"
-  namespace        = kubernetes_namespace.harbor.metadata.0.name
+  namespace        = kubernetes_namespace.harbor.metadata[0].name
   harbor_address   = var.harbor_address
   kube_ca_crt_path = var.kube_ca_crt_path
   providers = {

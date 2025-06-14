@@ -40,7 +40,7 @@ resource "kubernetes_namespace" "gitea" {
 
 module "helm" {
   source         = "./modules/helm"
-  namespace      = kubernetes_namespace.gitea.metadata.0.name
+  namespace      = kubernetes_namespace.gitea.metadata[0].name
   admin_email    = var.admin_email
   admin_username = var.admin_username
   admin_password = var.admin_password
@@ -51,7 +51,7 @@ module "helm" {
 
 module "istio" {
   source       = "./modules/istio"
-  namespace    = kubernetes_namespace.gitea.metadata.0.name
+  namespace    = kubernetes_namespace.gitea.metadata[0].name
   host_address = var.gitea_address
   host_fqdn    = var.gitea_fqdn
   dest_port    = 3000
@@ -60,7 +60,7 @@ module "istio" {
 
 module "ssh" {
   source    = "./modules/ssh"
-  namespace = kubernetes_namespace.gitea.metadata.0.name
+  namespace = kubernetes_namespace.gitea.metadata[0].name
   providers = {
     vault = vault
   }
