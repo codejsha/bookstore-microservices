@@ -1,21 +1,19 @@
-variable "argocd_address" {
-  description = "ArgoCD address"
+variable "namespace" {
+  description = "Namespace name"
   type        = string
 }
 
-variable "admin_username" {
-  description = "Admin username"
+variable "org_name" {
+  description = "Organization name"
   type        = string
-  sensitive   = true
-}
-
-variable "admin_password" {
-  description = "Admin password"
-  type        = string
-  sensitive   = true
 }
 
 variable "gitea_fqdn" {
   description = "Gitea FQDN"
   type        = string
+}
+
+variable "app_repos" {
+  description = "List of repositories"
+  type = list(string)
 }

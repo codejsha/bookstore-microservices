@@ -35,6 +35,11 @@ variable "gitea_fqdn" {
   type        = string
 }
 
+variable "org_name" {
+  description = "Organization name"
+  type        = string
+}
+
 variable "vault_url" {
   description = "Vault URL"
   type        = string
@@ -49,4 +54,9 @@ variable "vault_token" {
 variable "kube_ca_crt_path" {
   description = "Kubernetes CA certificate file path"
   type        = string
+}
+
+variable "app_repos" {
+  description = "List of repositories"
+  type = list(string)
 }

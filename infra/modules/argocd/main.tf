@@ -18,10 +18,10 @@ provider "helm" {
 }
 
 provider "argocd" {
-  server_addr = var.argocd_address
-  plain_text  = true
+  server_addr = "${var.argocd_address}:80"
   username    = var.argocd_username
   password    = var.argocd_password
+  plain_text  = true
 }
 
 provider "vault" {
@@ -56,10 +56,29 @@ module "istio" {
   name_prefix  = "argocd"
 }
 
-module "organization" {
-  source         = "./modules/organization"
+module "init" {
+  source         = "./modules/init"
   argocd_address = "${var.argocd_address}:80"
   admin_username = var.argocd_username
   admin_password = var.argocd_password
-  gitea_fqdn     = var.gitea_fqdn
+}
+
+module "organization" {
+  source     = "./modules/organization"
+  namespace  = kubernetes_namespace.argocd.metadata[0].name
+  org_name   = var.org_name
+  gitea_fqdn = var.gitea_fqdn
+  app_repos  = var.app_repos
+  providers = {
+    argocd = argocd
+    vault  = vault
+  }
+}
+
+module "token" {
+  source = "./modules/token"
+  providers = {
+    argocd = argocd
+    vault  = vault
+  }
 }
