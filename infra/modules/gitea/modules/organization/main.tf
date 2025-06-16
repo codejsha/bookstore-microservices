@@ -3,9 +3,6 @@ terraform {
     gitea = {
       source = "go-gitea/gitea"
     }
-    vault = {
-      source = "hashicorp/vault"
-    }
   }
 }
 

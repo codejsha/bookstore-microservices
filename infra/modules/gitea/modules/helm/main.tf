@@ -6,6 +6,24 @@ terraform {
   }
 }
 
+resource "kubernetes_service_account" "gitea" {
+  metadata {
+    name      = "gitea"
+    namespace = var.namespace
+  }
+}
+
+resource "kubernetes_secret" "gitea" {
+  type = "kubernetes.io/service-account-token"
+  metadata {
+    name      = "gitea-token"
+    namespace = var.namespace
+    annotations = {
+      "kubernetes.io/service-account.name" = kubernetes_service_account.gitea.metadata[0].name
+    }
+  }
+}
+
 resource "helm_release" "gitea" {
   namespace  = var.namespace
   name       = "gitea"
@@ -17,7 +35,7 @@ resource "helm_release" "gitea" {
   ]
   timeout = 120
 
-  set {
+  set_sensitive {
     name  = "adminEmail"
     value = var.admin_email
   }

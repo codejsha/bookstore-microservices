@@ -3,36 +3,41 @@ terraform {
     gitea = {
       source = "go-gitea/gitea"
     }
+    vault = {
+      source = "hashicorp/vault"
+    }
   }
 }
 
-resource "gitea_team" "dev_team" {
-  name                     = "developer-team"
+resource "gitea_user" "users" {
+  for_each   = {for idx, user in var.user_credentials : "${user.username}-${idx}" => user}
+  username   = each.value.username
+  login_name = each.value.username
+  email      = "${each.value.username}@example.com"
+  password   = each.value.password
+}
+
+resource "gitea_team" "team" {
+  name                     = var.team_name
   organisation             = var.org_name
   permission               = "write"
+  repositories             = var.user_repos
   include_all_repositories = false
-  repositories             = var.dev_repos
 }
 
-resource "gitea_team_members" "dev_team_members" {
-  team_id = gitea_team.dev_team.id
-  members = var.dev_users
+resource "gitea_team_members" "team_members" {
+  team_id = gitea_team.team.id
+  members = [for user in gitea_user.users : user.username]
 }
 
-resource "gitea_token" "dev_admin" {
-  name = "dev_admin"
-  scopes = ["all"]
-}
-
-resource "gitea_team" "devops_team" {
-  name                     = "devops-team"
-  organisation             = var.org_name
-  permission               = "write"
-  include_all_repositories = false
-  repositories             = var.devops_repos
-}
-
-resource "gitea_team_members" "devops_team_members" {
-  team_id = gitea_team.devops_team.id
-  members = var.devops_users
+resource "vault_kv_secret_v2" "credentials" {
+  for_each = {for idx, user in var.user_credentials : "${user.username}-${idx}" => user}
+  name     = "gitea/users/${each.value.username}"
+  mount    = "kv"
+  data_json = jsonencode(
+    {
+      username = each.value.username,
+      password = each.value.password
+    }
+  )
 }

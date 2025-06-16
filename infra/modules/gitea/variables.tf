@@ -18,14 +18,20 @@ variable "gitea_fqdn" {
   type        = string
 }
 
-variable "gitea_username" {
-  description = "Gitea username"
+variable "admin_email" {
+  description = "Admin email"
   type        = string
   sensitive   = true
 }
 
-variable "gitea_password" {
-  description = "Gitea password"
+variable "admin_username" {
+  description = "Admin username"
+  type        = string
+  sensitive   = true
+}
+
+variable "admin_password" {
+  description = "Admin password"
   type        = string
   sensitive   = true
 }
@@ -51,9 +57,20 @@ variable "org_name" {
   type        = string
 }
 
-variable "dev_users" {
-  description = "List of users"
-  type = list(string)
+variable "dev_user_credentials" {
+  description = "List of development user credentials"
+  type = list(object({
+    username = string
+    password = string
+  }))
+}
+
+variable "devops_user_credentials" {
+  description = "List of DevOps user credentials"
+  type = list(object({
+    username = string
+    password = string
+  }))
 }
 
 variable "dev_repos" {
@@ -61,30 +78,7 @@ variable "dev_repos" {
   type = list(string)
 }
 
-variable "devops_users" {
-  description = "List of users"
-  type = list(string)
-}
-
 variable "devops_repos" {
   description = "List of repositories"
   type = list(string)
-}
-
-variable "admin_email" {
-  description = "Admin email"
-  type        = string
-  sensitive   = true
-}
-
-variable "admin_username" {
-  description = "Admin username"
-  type        = string
-  sensitive   = true
-}
-
-variable "admin_password" {
-  description = "Admin password"
-  type        = string
-  sensitive   = true
 }

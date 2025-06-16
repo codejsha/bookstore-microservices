@@ -1,8 +1,8 @@
 automountServiceAccountToken: true
+
 serviceAccount:
-  create: true
+  create: false
   name: "gitea"
-  automountServiceAccountToken: true
 
 resources:
   requests:

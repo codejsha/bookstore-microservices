@@ -3,22 +3,20 @@ variable "org_name" {
   type        = string
 }
 
-variable "dev_users" {
-  description = "List of users"
-  type = list(string)
+variable "team_name" {
+  description = "Team name"
+  type        = string
 }
 
-variable "dev_repos" {
-  description = "List of repositories"
-  type = list(string)
+variable "user_credentials" {
+  description = "List of user credentials"
+  type = list(object({
+    username = string
+    password = string
+  }))
 }
 
-variable "devops_users" {
-  description = "List of users"
-  type = list(string)
-}
-
-variable "devops_repos" {
+variable "user_repos" {
   description = "List of repositories"
   type = list(string)
 }

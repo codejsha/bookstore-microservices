@@ -25,8 +25,8 @@ provider "vault" {
 
 provider "gitea" {
   base_url = var.gitea_url
-  username = var.gitea_username
-  password = var.gitea_password
+  username = var.admin_username
+  password = var.admin_password
 }
 
 resource "kubernetes_namespace" "gitea" {
@@ -58,51 +58,70 @@ module "istio" {
   name_prefix  = "gitea"
 }
 
-module "ssh" {
-  source    = "./modules/ssh"
+module "organization" {
+  source   = "./modules/organization"
+  org_name = var.org_name
+  providers = {
+    gitea = gitea
+  }
+}
+
+module "repo_ssh" {
+  source    = "./modules/repo-ssh"
   namespace = kubernetes_namespace.gitea.metadata[0].name
   providers = {
     vault = vault
   }
 }
 
-module "user" {
-  source         = "./modules/user"
-  admin_password = var.admin_password
-  providers = {
-    gitea = gitea
-  }
-}
-
-module "organization" {
-  source   = "./modules/organization"
-  org_name = var.org_name
+module "repos" {
+  for_each = toset(concat(var.dev_repos, var.devops_repos))
+  source           = "./modules/repo"
+  gitea_username   = var.org_name
+  repo_name        = each.key
+  repo_description = "${each.key} repository"
   providers = {
     gitea = gitea
     vault = vault
   }
 }
 
-module "repository" {
-  for_each = toset(concat(var.dev_repos, var.devops_repos))
-  source           = "./modules/repository"
-  gitea_username   = var.org_name
-  repo_name        = each.key
-  repo_description = "${each.key} repository"
+module "dev_team" {
+  source           = "./modules/team"
+  org_name         = var.org_name
+  team_name        = "dev-team"
+  user_repos       = var.dev_repos
+  user_credentials = var.dev_user_credentials
   providers = {
     gitea = gitea
   }
 }
 
-module "team" {
-  source       = "./modules/team"
-  org_name     = var.org_name
-  dev_users    = var.dev_users
-  dev_repos    = var.dev_repos
-  devops_users = var.devops_users
-  devops_repos = var.devops_repos
+module "devops_team" {
+  source           = "./modules/team"
+  org_name         = var.org_name
+  team_name        = "devops-team"
+  user_repos       = var.devops_repos
+  user_credentials = var.devops_user_credentials
   providers = {
     gitea = gitea
+  }
+}
+
+module "token" {
+  source = "./modules/token"
+  providers = {
+    gitea = gitea
+    vault = vault
+  }
+}
+
+module "cert" {
+  source           = "./modules/cert"
+  namespace        = kubernetes_namespace.gitea.metadata[0].name
+  gitea_address    = var.gitea_address
+  kube_ca_crt_path = var.kube_ca_crt_path
+  providers = {
     vault = vault
   }
 }
