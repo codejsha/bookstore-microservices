@@ -10,6 +10,7 @@
 - jaeger
 - prometheus
 - opentelemetry
+- kafka
 - harbor
 - gitea
 - cloud-config
