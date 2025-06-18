@@ -13,5 +13,11 @@
 - kafka
 - harbor
 - gitea
-- cloud-config
 - argocd
+- cloud-config
+
+## Service configurations
+
+- service-mysql
+- service-gitea
+- service-argocd

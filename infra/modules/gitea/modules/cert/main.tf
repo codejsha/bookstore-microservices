@@ -12,8 +12,8 @@ resource "vault_pki_secret_backend_role" "gitea" {
   allowed_domains = [
     "localhost",
     "git.example.com",
-    "gitea.gitea.svc",
-    "gitea.gitea.svc.cluster.local"
+    "gitea-http.gitea.svc",
+    "gitea-http.gitea.svc.cluster.local"
   ]
   allow_bare_domains = true
   allow_glob_domains = true
@@ -105,8 +105,8 @@ resource "kubernetes_manifest" "gitea_cert" {
       dnsNames = [
         "localhost",
         "git.example.com",
-        "gitea.gitea.svc",
-        "gitea.gitea.svc.cluster.local"
+        "gitea-http.gitea.svc",
+        "gitea-http.gitea.svc.cluster.local"
       ]
       issuerRef = {
         group = "cert-manager.io"

@@ -20,3 +20,9 @@ variable "admin_password" {
   type        = string
   sensitive   = true
 }
+
+variable "valkey_password" {
+  description = "Valkey password"
+  type        = string
+  sensitive   = true
+}

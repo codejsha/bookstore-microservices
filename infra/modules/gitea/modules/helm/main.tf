@@ -27,24 +27,36 @@ resource "kubernetes_secret" "gitea" {
 resource "helm_release" "gitea" {
   namespace  = var.namespace
   name       = "gitea"
-  repository = "oci://registry-1.docker.io/bitnamicharts"
+  repository = "https://dl.gitea.com/charts"
   chart      = "gitea"
-  version    = "3.1.10"
+  version    = "12.1.0"
   values = [
     file("${path.module}/values.yaml")
   ]
-  timeout = 120
+  timeout = 180
 
   set_sensitive {
-    name  = "adminEmail"
+    name  = "gitea.admin.email"
     value = var.admin_email
   }
   set_sensitive {
-    name  = "adminUsername"
+    name  = "gitea.admin.username"
     value = var.admin_username
   }
   set_sensitive {
-    name  = "adminPassword"
+    name  = "gitea.admin.password"
+    value = var.admin_password
+  }
+  set_sensitive {
+    name  = "valkey.global.valkey.password"
+    value = var.valkey_password
+  }
+  set_sensitive {
+    name  = "postgresql.global.postgresql.auth.username"
+    value = var.admin_username
+  }
+  set_sensitive {
+    name  = "postgresql.global.postgresql.auth.password"
     value = var.admin_password
   }
 }

@@ -24,12 +24,13 @@ variable "minio_console_fqdn" {
 }
 
 variable "minio_username" {
-  description = "Username"
+  description = "MinIO username"
   type        = string
+  sensitive   = true
 }
 
 variable "minio_password" {
-  description = "Password"
+  description = "MinIO password"
   type        = string
   sensitive   = true
 }

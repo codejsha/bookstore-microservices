@@ -23,18 +23,18 @@ resource "harbor_project" "bookstore_helm_charts_project" {
 
 resource "harbor_project_member_user" "bookstore_project_members" {
   for_each = {
-    for user in var.harbor_projects[local.bookstore_proj].members : user.user_name => user
+    for user in var.harbor_projects[local.bookstore_proj].members : user.username => user
   }
   project_id = harbor_project.bookstore_project.id
-  user_name  = each.value.user_name
-  role       = each.value.user_role
+  user_name  = each.value.username
+  role       = each.value.role
 }
 
 resource "harbor_project_member_user" "bookstore_helm_charts_project_members" {
   for_each = {
-    for user in var.harbor_projects[local.bookstore_helm_charts_proj].members : user.user_name => user
+    for user in var.harbor_projects[local.bookstore_helm_charts_proj].members : user.username => user
   }
   project_id = harbor_project.bookstore_helm_charts_project.id
-  user_name  = each.value.user_name
-  role       = each.value.user_role
+  user_name  = each.value.username
+  role       = each.value.role
 }

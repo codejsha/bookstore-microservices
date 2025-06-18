@@ -94,28 +94,3 @@ resource "kubernetes_manifest" "istio_destination_rule" {
     }
   }
 }
-
-resource "kubernetes_manifest" "service" {
-  manifest = {
-    apiVersion = "v1"
-    kind       = "Service"
-    metadata = {
-      name      = "${var.name_prefix}-http"
-      namespace = var.namespace
-    }
-    spec = {
-      selector = {
-        "app.kubernetes.io/instance" = var.name_prefix
-        "app.kubernetes.io/name"     = var.name_prefix
-      }
-      ports = [
-        {
-          name       = "http"
-          protocol   = "TCP"
-          port       = var.dest_port
-          targetPort = "http"
-        }
-      ]
-    }
-  }
-}

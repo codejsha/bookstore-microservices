@@ -8,4 +8,3 @@ terraform init -upgrade
 terraform apply -auto-approve -target module.helm
 terraform apply -auto-approve -target module.istio_prometheus
 terraform apply -auto-approve -target module.istio_grafana
-# terraform apply -auto-approve -target module.servicemonitor

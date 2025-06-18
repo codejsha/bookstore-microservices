@@ -2,10 +2,10 @@ replicaCount: 1
 
 image:
   repository: harbor.example.com/bookstore/config-server
+  tag: 0.1.0
   pullPolicy: IfNotPresent
-  tag: ""
-
 imagePullSecrets: []
+
 nameOverride: ""
 fullnameOverride: ""
 

@@ -4,8 +4,8 @@ variable "harbor_projects" {
     project_name = string
     is_public    = bool
     members = list(object({
-      user_name = string
-      user_role = string
+      username = string
+      role     = string
     }))
   }))
 }

@@ -71,8 +71,8 @@ variable "bucket_names" {
 variable "harbor_users" {
   description = "List of user mappings"
   type = set(object({
-    user_name     = string
-    user_password = string
+    username = string
+    password = string
   }))
 }
 
@@ -82,8 +82,8 @@ variable "harbor_projects" {
     project_name = string
     is_public    = bool
     members = list(object({
-      user_name = string
-      user_role = string
+      username = string
+      role     = string
     }))
   }))
 }

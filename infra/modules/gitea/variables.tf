@@ -3,11 +3,6 @@ variable "namespace" {
   type        = string
 }
 
-variable "gitea_url" {
-  description = "Gitea URL"
-  type        = string
-}
-
 variable "gitea_address" {
   description = "Gitea address"
   type        = string
@@ -52,33 +47,8 @@ variable "kube_ca_crt_path" {
   type        = string
 }
 
-variable "org_name" {
-  description = "Organization name"
+variable "valkey_password" {
+  description = "Valkey password"
   type        = string
-}
-
-variable "dev_user_credentials" {
-  description = "List of development user credentials"
-  type = list(object({
-    username = string
-    password = string
-  }))
-}
-
-variable "devops_user_credentials" {
-  description = "List of DevOps user credentials"
-  type = list(object({
-    username = string
-    password = string
-  }))
-}
-
-variable "dev_repos" {
-  description = "List of repositories"
-  type = list(string)
-}
-
-variable "devops_repos" {
-  description = "List of repositories"
-  type = list(string)
+  sensitive   = true
 }

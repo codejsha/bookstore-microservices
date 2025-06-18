@@ -4,7 +4,7 @@ extraEnvs:
   - name: plugins.security.ssl.http.enabled
     value: "false"
   - name: BASH_ENV
-    value: "/vault/secrets/.env-admin"
+    value: "/vault/secrets/env-admin"
 
 podAnnotations:
   traffic.sidecar.istio.io/excludeOutboundPorts: "8200"
@@ -17,7 +17,7 @@ podAnnotations:
   vault.hashicorp.com/role: "opensearch-role"
   vault.hashicorp.com/agent-inject-secret-admin-config: "kv/data/opensearch/admin"
   vault.hashicorp.com/secret-volume-path-admin-config: "/vault/secrets"
-  vault.hashicorp.com/agent-inject-file-admin-config: ".env-admin"
+  vault.hashicorp.com/agent-inject-file-admin-config: "env-admin"
   vault.hashicorp.com/agent-inject-template-admin-config: |
     {{- with secret "kv/data/opensearch/admin" -}}
     export OPENSEARCH_INITIAL_ADMIN_PASSWORD="{{ .Data.data.initial_password }}"

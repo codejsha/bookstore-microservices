@@ -12,10 +12,4 @@ terraform init -upgrade
 terraform apply -auto-approve -target module.secret
 terraform apply -auto-approve -target module.helm
 terraform apply -auto-approve -target module.istio
-terraform apply -auto-approve -target module.organization
-terraform apply -auto-approve -target module.repo_ssh
-terraform apply -auto-approve -target module.repos
-terraform apply -auto-approve -target module.dev_team
-terraform apply -auto-approve -target module.devops_team
-terraform apply -auto-approve -target module.token
 terraform apply -auto-approve -target module.cert

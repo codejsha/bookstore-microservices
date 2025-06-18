@@ -3,6 +3,7 @@ mode: standalone
 auth:
   useCredentialsFiles: true
   useSecret: false
+
 automountServiceAccountToken: true
 
 podAnnotations:
@@ -49,7 +50,6 @@ persistence:
 serviceAccount:
   create: false
   name: minio
-  automountServiceAccountToken: true
 
 console:
   enabled: true

@@ -1,12 +1,24 @@
 terraform {
   required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.37.1"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "= 2.17.0"
+    }
+    vault = {
+      source  = "hashicorp/vault"
+      version = ">= 5.0.0"
+    }
     aws = {
       source  = "hashicorp/aws"
-      version = "5.87.0"
+      version = ">= 5.87.0"
     }
     harbor = {
       source  = "goharbor/harbor"
-      version = "3.10.16"
+      version = ">= 3.10.16"
     }
   }
 }

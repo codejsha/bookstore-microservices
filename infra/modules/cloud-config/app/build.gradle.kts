@@ -18,6 +18,7 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://git.example.com/api/packages/example-corp/maven") }
 }
 
 dependencyManagement {

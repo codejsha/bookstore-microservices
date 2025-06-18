@@ -1,3 +1,16 @@
+terraform {
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.37.1"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "= 2.17.0"
+    }
+  }
+}
+
 provider "kubernetes" {
   config_path = "~/.kube/config"
 }
@@ -18,9 +31,8 @@ resource "kubernetes_namespace" "config_server" {
 }
 
 module "helm" {
-  source             = "./modules/helm"
-  namespace          = kubernetes_namespace.config_server.metadata[0].name
-  repository_ca_file = var.repository_ca_file
+  source    = "./modules/helm"
+  namespace = kubernetes_namespace.config_server.metadata[0].name
   providers = {
     helm = helm
   }

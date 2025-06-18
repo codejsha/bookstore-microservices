@@ -3,11 +3,6 @@ variable "namespace" {
   type        = string
 }
 
-variable "argocd_url" {
-  description = "ArgoCD URL"
-  type        = string
-}
-
 variable "argocd_address" {
   description = "ArgoCD address"
   type        = string
@@ -30,16 +25,6 @@ variable "argocd_password" {
   sensitive   = true
 }
 
-variable "gitea_fqdn" {
-  description = "Gitea FQDN"
-  type        = string
-}
-
-variable "org_name" {
-  description = "Organization name"
-  type        = string
-}
-
 variable "vault_url" {
   description = "Vault URL"
   type        = string
@@ -54,9 +39,4 @@ variable "vault_token" {
 variable "kube_ca_crt_path" {
   description = "Kubernetes CA certificate file path"
   type        = string
-}
-
-variable "app_repos" {
-  description = "List of repositories"
-  type = list(string)
 }

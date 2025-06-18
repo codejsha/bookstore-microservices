@@ -4,7 +4,7 @@ variable "namespace" {
 }
 
 variable "harbor_address" {
-  description = "Harbor URL"
+  description = "Harbor address"
   type        = string
 }
 

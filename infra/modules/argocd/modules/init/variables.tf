@@ -1,3 +1,8 @@
+variable "namespace" {
+  description = "Namespace name"
+  type        = string
+}
+
 variable "argocd_address" {
   description = "ArgoCD address"
   type        = string

@@ -12,7 +12,6 @@ resource "helm_release" "config_server" {
   repository = "oci://harbor.example.com/bookstore-helm-charts"
   chart      = "config-server"
   version    = "0.1.0"
-  repository_ca_file = file(var.repository_ca_file)
   values = [
     file("${path.module}/values.yaml")
   ]

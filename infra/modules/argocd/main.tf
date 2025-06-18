@@ -1,8 +1,16 @@
 terraform {
   required_providers {
-    argocd = {
-      source  = "argoproj-labs/argocd"
-      version = "7.3.1"
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.37.1"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "= 2.17.0"
+    }
+    vault = {
+      source  = "hashicorp/vault"
+      version = ">= 5.0.0"
     }
   }
 }
@@ -15,13 +23,6 @@ provider "helm" {
   kubernetes {
     config_path = "~/.kube/config"
   }
-}
-
-provider "argocd" {
-  server_addr = "${var.argocd_address}:80"
-  username    = var.argocd_username
-  password    = var.argocd_password
-  plain_text  = true
 }
 
 provider "vault" {
@@ -58,27 +59,8 @@ module "istio" {
 
 module "init" {
   source         = "./modules/init"
+  namespace      = kubernetes_namespace.argocd.metadata[0].name
   argocd_address = "${var.argocd_address}:80"
   admin_username = var.argocd_username
   admin_password = var.argocd_password
-}
-
-module "organization" {
-  source     = "./modules/organization"
-  namespace  = kubernetes_namespace.argocd.metadata[0].name
-  org_name   = var.org_name
-  gitea_fqdn = var.gitea_fqdn
-  app_repos  = var.app_repos
-  providers = {
-    argocd = argocd
-    vault  = vault
-  }
-}
-
-module "token" {
-  source = "./modules/token"
-  providers = {
-    argocd = argocd
-    vault  = vault
-  }
 }

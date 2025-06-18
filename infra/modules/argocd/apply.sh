@@ -12,5 +12,3 @@ terraform init -upgrade
 terraform apply -auto-approve -target module.helm
 terraform apply -auto-approve -target module.istio
 terraform apply -auto-approve -target module.init
-terraform apply -auto-approve -target module.token
-terraform apply -auto-approve -target module.organization

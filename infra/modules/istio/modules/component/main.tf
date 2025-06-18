@@ -29,6 +29,10 @@ resource "helm_release" "istio_istiod" {
     name  = "global.proxy.resources.requests.cpu"
     value = "10m"
   }
+  set {
+    name  = "global.proxy.holdApplicationUntilProxyStarts"
+    value = "true"
+  }
 }
 
 resource "helm_release" "istio_cni" {

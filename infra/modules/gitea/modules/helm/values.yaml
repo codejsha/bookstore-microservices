@@ -1,49 +1,88 @@
-automountServiceAccountToken: true
+replicaCount: 1
+
+service:
+  http:
+    type: ClusterIP
+    port: 3000
+    clusterIP:
+  ssh:
+    type: NodePort
+    port: 22
+    clusterIP:
+    nodePort: 30022
+
+resources:
+  limits:
+    cpu: 1
+    memory: 4096Mi
+  requests:
+    cpu: 10m
+    memory: 2048Mi
+
+deployment:
+  annotations: {}
 
 serviceAccount:
   create: false
   name: "gitea"
 
-resources:
-  requests:
-    cpu: 10m
-    memory: 1024Mi
-  limits:
-    cpu: 750m
-    memory: 1536Mi
+persistence:
+  enabled: true
 
-networkPolicy:
+initContainers:
+  resources:
+    limits: {}
+    requests:
+      cpu: 10m
+      memory: 128Mi
+
+signing:
   enabled: false
 
-service:
-  # type: LoadBalancer
-  type: NodePort
-  ports:
-    http: 80
-    ssh: 22
-  loadBalancerSourceRanges: []
-  loadBalancerIP: ""
-  nodePorts:
-    http: ""
-    ssh: ""
+gitea:
+  admin:
+    passwordMode: keepUpdated
+
+  metrics:
+    enabled: false
+    token:
+    serviceMonitor:
+      enabled: false
+
+  config:
+    database:
+      DB_TYPE: postgres
+    indexer:
+      ISSUE_INDEXER_TYPE: bleve
+      REPO_INDEXER_ENABLED: true
+
+  podAnnotations:
+    traffic.sidecar.istio.io/excludeOutboundPorts: "5432,6379"
+
+  ssh:
+    logLevel: "INFO"
+
+valkey-cluster:
+  enabled: false
+
+valkey:
+  enabled: true
+  architecture: standalone
+  master:
+    count: 1
+    service:
+      ports:
+        valkey: 6379
+
+postgresql-ha:
+  enabled: false
 
 postgresql:
   enabled: true
-  auth:
-    username: gitea
-    password: gitea
-    database: gitea_db
-
-  architecture: standalone
-  primary:
-    resources:
-      requests:
-        cpu: 10m
-        memory: 512Mi
-        ephemeral-storage: 50Mi
-      limits:
-        cpu: 750m
-        memory: 768Mi
-        ephemeral-storage: 2Gi
-    networkPolicy:
-      enabled: false
+  global:
+    postgresql:
+      auth:
+        database: gitea_db
+      service:
+        ports:
+          postgresql: 5432

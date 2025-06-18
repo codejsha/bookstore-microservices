@@ -20,12 +20,12 @@ commit:
 .PHONY: spec
 spec:
 	### helm chart
-	yq -i '.appVersion = "$(VERSION)"' ../helm/$(SERVICE_NAME)/Chart.yaml
+	yq -i '.appVersion = "$(VERSION)"' ../helm/Chart.yaml
 	### gradle
 	perl -pi -e 's/version = ".*"/version=$(VERSION)/' gradle.properties
 	### application
-	yq -i '.spring.application.name = $(SERVICE_NAME)' src/main/resources/application.yaml
-	yq -i '.spring.application.version = $(VERSION)' src/main/resources/application.yaml
+	yq -i '.spring.application.name = "$(SERVICE_NAME)"' src/main/resources/application.yaml
+	yq -i '.spring.application.version = "$(VERSION)"' src/main/resources/application.yaml
 
 .PHONY: clean
 clean:
@@ -51,6 +51,12 @@ docker-build:
 .PHONY: docker-push
 docker-push:
 	docker image push harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION)
+
+.PHONY: skopeo-push
+skopeo-push:
+	skopeo copy docker-daemon:harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) \
+		docker://harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) \
+		--dest-cert-dir . --debug
 
 .PHONY: run
 run:
