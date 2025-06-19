@@ -44,7 +44,8 @@ build: spec
 
 .PHONY: docker-build
 docker-build:
-	docker buildx build -f ./ci/Dockerfile \
+	docker buildx build --platform linux/amd64 \
+		-f ./ci/Dockerfile \
 		--build-arg SERVICE_NAME=$(SERVICE_NAME) \
 		-t harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) .
 
