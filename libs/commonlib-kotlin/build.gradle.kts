@@ -1,3 +1,5 @@
+import java.util.*
+
 plugins {
     kotlin("jvm") version "2.1.20"
     id("maven-publish")
@@ -13,10 +15,25 @@ kotlin {
 repositories {
     mavenLocal()
     mavenCentral()
-    // maven { url = uri("http://git.example.com/api/packages/example-corp/maven") }
+    maven { url = uri("https://git.example.com/api/packages/example-corp/maven") }
 }
 
 publishing {
+    val props = Properties()
+    val propsFile = file("package.properties")
+    if (propsFile.exists()) {
+        propsFile.inputStream().use { props.load(it) }
+    }
+    repositories {
+        maven {
+            name = "commonlib-kotlin"
+            url = uri("https://git.example.com/api/packages/example-corp/maven")
+            credentials {
+                username = props.getProperty("username") ?: System.getenv("MAVEN_USERNAME")
+                password = props.getProperty("password") ?: System.getenv("MAVEN_PASSWORD")
+            }
+        }
+    }
     publications {
         create<MavenPublication>("release") {
             from(components["kotlin"])
@@ -27,17 +44,11 @@ publishing {
             pom {
                 name.set("Common Kotlin Library")
                 description.set("A common library for Kotlin projects.")
-                url.set("http://git.example.com/example-corp/commonlib-kotlin.git")
+                url.set("https://git.example.com/example-corp/commonlib-kotlin.git")
                 scm {
-                    url.set("http://git.example.com/example-corp/commonlib-kotlin.git")
-                    connection.set("scm:git:http://git.example.com/example-corp/commonlib-kotlin.git")
+                    url.set("https://git.example.com/example-corp/commonlib-kotlin.git")
+                    connection.set("scm:git:https://git.example.com/example-corp/commonlib-kotlin.git")
                     developerConnection.set("scm:git:ssh://git.example.com/example-corp/commonlib-kotlin.git")
-                }
-                licenses {
-                    license {
-                        name.set("Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
                 }
                 developers {
                     developer {
@@ -45,7 +56,13 @@ publishing {
                         name.set("admin")
                         email.set("admin@example.com")
                         organization.set("Example Corp")
-                        organizationUrl.set("http://example.com")
+                        organizationUrl.set("https://example.com")
+                    }
+                }
+                licenses {
+                    license {
+                        name.set("Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
                     }
                 }
             }

@@ -1,4 +1,4 @@
-package com.codejsha.bookstore.commonlib.domain.exception
+package com.codejsha.example.common.domain.exception
 
 class ResourceNotFoundException : RuntimeException {
     constructor() : super("Resource not found")

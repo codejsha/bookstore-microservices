@@ -50,6 +50,7 @@ java {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { url = uri("https://git.example.com/api/packages/example-corp/maven") }
 }
 
 dependencyManagement {
@@ -96,7 +97,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     // custom
-    implementation("com.codejsha.bookstore:commonlib-kotlin:0.1.0")
+    implementation("com.codejsha.example:commonlib-kotlin:0.1.0")
 
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.cloud:spring-cloud-starter-config")
