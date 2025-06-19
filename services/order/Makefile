@@ -26,8 +26,8 @@ spec:
 	### gradle
 	perl -pi -e 's/version = ".*"/version=$(VERSION)/' gradle.properties
 	### application
-	yq -i '.spring.application.name = $(SERVICE_NAME)' src/main/resources/application.yaml
-	yq -i '.spring.application.version = $(VERSION)' src/main/resources/application.yaml
+	yq -i '.spring.application.name = "$(SERVICE_NAME)"' src/main/resources/application.yaml
+	yq -i '.spring.application.version = "$(VERSION)"' src/main/resources/application.yaml
 
 .PHONY: clean
 clean:
