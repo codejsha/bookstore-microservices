@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "catalog-query.fullname" . }}-test-connection"
+  labels:
+    {{- include "catalog-query.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "catalog-query.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never

@@ -2,20 +2,23 @@ replicaCount: 1
 
 image:
   repository: harbor.example.com/bookstore/identity
+  tag: 0.1.0
   pullPolicy: IfNotPresent
-  tag: ""
-
 imagePullSecrets: []
+
 nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
   create: true
-  automount: true
-  annotations: {}
   name: ""
+  automountServiceAccountToken: false
+  annotations: {}
 
-podAnnotations: {}
+automountServiceAccountToken: true
+
+podAnnotations:
+  sidecar.istio.io/rewriteAppHTTPProbers: "false"
 podLabels:
   app.kubernetes.io/group: bookstore
 
@@ -41,21 +44,36 @@ ingress:
           pathType: ImplementationSpecific
   tls: []
 
-resources: {}
+resources:
+  requests:
+    cpu: 10m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
 
 livenessProbe:
   httpGet:
-    path: /
-    port: http
+    path: /health
+    port: 8080
+  initialDelaySeconds: 45
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 5
 readinessProbe:
   httpGet:
-    path: /
-    port: http
+    path: /health
+    port: 8080
+  initialDelaySeconds: 45
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 5
 
 autoscaling:
   enabled: false
   minReplicas: 1
-  maxReplicas: 5
+  maxReplicas: 3
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
 

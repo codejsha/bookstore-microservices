@@ -1,8 +1,0 @@
-istio:
-  enabled: true
-  host: "inventory-command.example.com"
-  tls:
-    enabled: false
-  trafficPolicy:
-    loadBalancer:
-      simple: ROUND_ROBIN

@@ -6,17 +6,14 @@ set -o errtrace
 USERNAME=""
 TOKEN=""
 
-service_name=("catalog" "customer" "identity" "inventory" "order" "payment")
-for service in "${service_name[@]}"; do
-  if [ ! -d ${service} ]; then
-    exit 1
-  fi
+repos=(*/)
 
-  cd ${service}
+for repo in "${repos[@]}"; do
+  cd ${repo}
   git init
   git checkout -b main
   git add .
   git commit -m "feat: initial commit"
-  git push -u http://${USERNAME}:${TOKEN}@git.example.com/example-corp/${service}-helm.git main
+  git push -u http://${USERNAME}:${TOKEN}@git.example.com/example-corp/${repo}-helm.git main
   cd ..
 done

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: payment-command
+description: Payment command service Helm chart for Bookstore microservices
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  - name: mysql
+    version: 13.0.2
+    repository: https://charts.bitnami.com/bitnami
