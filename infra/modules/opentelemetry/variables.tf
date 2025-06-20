@@ -26,3 +26,19 @@ variable "opensearch_password" {
   type        = string
   sensitive   = true
 }
+
+variable "vault_url" {
+  description = "Vault URL"
+  type        = string
+}
+
+variable "vault_token" {
+  description = "Vault authentication token"
+  type        = string
+  sensitive   = true
+}
+
+variable "kube_ca_crt_path" {
+  description = "Kubernetes CA certificate file path"
+  type        = string
+}

@@ -8,6 +8,10 @@ terraform {
       source  = "hashicorp/helm"
       version = "= 2.17.0"
     }
+    vault = {
+      source  = "hashicorp/vault"
+      version = ">= 5.0.0"
+    }
   }
 }
 
@@ -21,12 +25,27 @@ provider "helm" {
   }
 }
 
+provider "vault" {
+  address      = var.vault_url
+  token        = var.vault_token
+  ca_cert_file = var.kube_ca_crt_path
+}
+
 resource "kubernetes_namespace" "opentelemetry" {
   metadata {
     name = var.namespace
     labels = {
       "istio-injection" = "enabled"
     }
+  }
+}
+
+module "cert" {
+  source           = "./modules/cert"
+  namespace        = kubernetes_namespace.opentelemetry.metadata[0].name
+  kube_ca_crt_path = var.kube_ca_crt_path
+  providers = {
+    vault = vault
   }
 }
 

@@ -15,8 +15,11 @@ opentelemetry-operator:
     certManager:
       enabled: true
       issuerRef:
-        name: selfsigned-cluster-issuer
-        kind: ClusterIssuer
+        group: cert-manager.io
+        name: opentelemetry-issuer
+        kind: Issuer
+    autoGenerateCert:
+      enabled: false
 
 collectors:
   daemon:
