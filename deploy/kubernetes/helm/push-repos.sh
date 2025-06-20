@@ -6,7 +6,19 @@ set -o errtrace
 USERNAME=""
 TOKEN=""
 
-repos=(*/)
+repos=(
+  "catalog-command"
+  "catalog-query"
+  "customer-command"
+  "customer-query"
+  "identity"
+  "inventory-command"
+  "inventory-query"
+  "order-command"
+  "order-query"
+  "payment-command"
+  "payment-query"
+)
 
 for repo in "${repos[@]}"; do
   cd ${repo}
