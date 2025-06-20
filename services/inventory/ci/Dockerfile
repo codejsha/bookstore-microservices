@@ -2,6 +2,7 @@ FROM alpine:3.21 AS runtime
 
 ARG SERVICE_NAME
 ENV SERVICE_NAME=${SERVICE_NAME}
+ENV TZ="Asia/Seoul"
 
 WORKDIR /app
 COPY ./bin/${SERVICE_NAME}-app .
