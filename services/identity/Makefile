@@ -47,8 +47,7 @@ style:
 
 .PHONY: buf
 buf:
-	rm -rf ./internal/application/port/pb
-	cd ../../api/proto && bash generate.sh
+	cd ../../api/proto && sh generate.sh
 
 .PHONY: openapi-bundle
 openapi-bundle:

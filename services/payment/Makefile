@@ -40,8 +40,7 @@ style:
 
 .PHONY: buf
 buf:
-	rm -rf ./src/main/generated/com/example/bookstore/service/application/port/pb
-	cd ../../api/proto && bash generate.sh
+	cd ../../api/proto && sh generate.sh
 
 .PHONY: openapi-bundle
 openapi-bundle:
