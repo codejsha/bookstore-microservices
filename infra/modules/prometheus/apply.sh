@@ -1,10 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
 trap 'echo "${BASH_SOURCE[0]}: line ${LINENO}: status ${?}: user ${USER}: func ${FUNCNAME[0]}"' ERR
 set -o errexit
 set -o errtrace
 set -o xtrace
 
+bash download-dashboards.sh
+
 terraform init -upgrade
 terraform apply -auto-approve -target module.helm
 terraform apply -auto-approve -target module.istio_prometheus
 terraform apply -auto-approve -target module.istio_grafana
+terraform apply -auto-approve -target module.dashboard
+terraform apply -auto-approve -target module.servicemonitor

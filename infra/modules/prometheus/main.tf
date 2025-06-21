@@ -30,6 +30,11 @@ resource "kubernetes_namespace" "prometheus" {
   }
 }
 
+module "dashboard" {
+  source    = "./modules/dashboard"
+  namespace = kubernetes_namespace.prometheus.metadata[0].name
+}
+
 module "helm" {
   source              = "./modules/helm"
   namespace           = kubernetes_namespace.prometheus.metadata[0].name
@@ -56,4 +61,8 @@ module "istio_grafana" {
   host_fqdn    = var.grafana_fqdn
   dest_port    = 80
   name_prefix  = "grafana"
+}
+
+module "servicemonitor" {
+  source = "./modules/servicemonitor"
 }
