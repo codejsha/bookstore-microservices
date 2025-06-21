@@ -36,11 +36,16 @@ module "helm" {
 }
 
 module "kiali" {
-  source    = "./modules/kiali"
-  namespace = kubernetes_namespace.istio-system.metadata[0].name
+  source           = "./modules/kiali"
+  namespace        = kubernetes_namespace.istio-system.metadata[0].name
+  grafana_username = var.grafana_username
+  grafana_password = var.grafana_password
+  providers = {
+    helm = helm
+  }
 }
 
-module "istio_kiali" {
+module "kiali_istio" {
   source       = "./modules/istio"
   namespace    = kubernetes_namespace.istio-system.metadata[0].name
   host_address = var.kiali_address

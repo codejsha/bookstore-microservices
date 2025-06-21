@@ -6,4 +6,13 @@ resource "helm_release" "kiali" {
   values = [
     file("${path.module}/values.yaml")
   ]
+
+  set_sensitive {
+    name  = "external_services.grafana.auth.username"
+    value = var.grafana_username
+  }
+  set_sensitive {
+    name  = "external_services.grafana.auth.password"
+    value = var.grafana_password
+  }
 }
