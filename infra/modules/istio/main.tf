@@ -27,9 +27,12 @@ resource "kubernetes_namespace" "istio-system" {
   }
 }
 
-module "component" {
-  source    = "./modules/component"
+module "helm" {
+  source    = "./modules/helm"
   namespace = kubernetes_namespace.istio-system.metadata[0].name
+  providers = {
+    helm = helm
+  }
 }
 
 module "kiali" {
