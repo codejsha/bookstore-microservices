@@ -1,4 +1,4 @@
-package com.codejsha.example.common.domain.exception
+package com.codejsha.common.domain.support.exception
 
 class ResourceNotFoundException : RuntimeException {
     constructor() : super("Resource not found")
