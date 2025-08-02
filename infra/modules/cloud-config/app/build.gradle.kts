@@ -1,10 +1,12 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-    kotlin("jvm") version "1.9.25"
-    kotlin("plugin.spring") version "1.9.25"
+    kotlin("jvm") version "2.1.10"
+    kotlin("plugin.spring") version "2.1.10"
     id("org.springframework.boot") version "3.4.3"
     id("io.spring.dependency-management") version "1.1.7"
+
+    id("com.diffplug.spotless") version "7.2.1"
 }
 
 group = findProperty("group") as String
@@ -57,4 +59,30 @@ tasks.withType<Jar> {
 
 tasks.processResources {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+spotless {
+    java {
+        importOrder("com.codejsha.**", "|", "*", "|", "java.**", "javax.**", "|", "\$*")
+        palantirJavaFormat()
+        removeUnusedImports()
+        formatAnnotations()
+    }
+    kotlin {
+        ktlint()
+            .setEditorConfigPath("$projectDir/.editorconfig")
+        suppressLintsFor {
+            step = "ktlint"
+            shortCode = "standard:no-wildcard-imports"
+        }
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint()
+            .setEditorConfigPath("$projectDir/.editorconfig")
+        suppressLintsFor {
+            step = "ktlint"
+            shortCode = "standard:no-wildcard-imports"
+        }
+    }
 }

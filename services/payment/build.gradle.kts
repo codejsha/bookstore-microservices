@@ -1,6 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.springframework.boot.gradle.tasks.bundling.BootJar
+
 import java.util.*
 
 plugins {
@@ -14,35 +15,48 @@ plugins {
     kotlin("plugin.jpa") version "2.1.10"
 
     id("org.flywaydb.flyway") version "11.8.0"
+
+    id("com.diffplug.spotless") version "7.2.1"
 }
 
 group = findProperty("group") as String
 version = findProperty("version") as String
 
+kotlin {
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
-    sourceSets {
-        main {
-            java {
-                srcDirs(
-                    "src/main/kotlin",
-                    "src/main/generated",
-                    "build/generated/ksp/main/kotlin"
-                )
-            }
-            resources {
-                srcDir("src/main/resources")
-            }
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDirs(
+                "src/main/kotlin",
+                "build/generated/ksp/main/kotlin"
+            )
         }
-        test {
-            java {
-                srcDir("src/test/kotlin")
-            }
-            resources {
-                srcDir("src/test/resources")
-            }
+        java {
+            srcDirs(
+                "src/main/generated"
+            )
+        }
+        resources {
+            srcDir("src/main/resources")
+        }
+    }
+    test {
+        kotlin {
+            srcDir("src/test/kotlin")
+        }
+        resources {
+            srcDir("src/test/resources")
         }
     }
 }
@@ -97,7 +111,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     // custom
-    implementation("com.codejsha.example:commonlib-kotlin:0.1.0")
+    implementation("com.codejsha.common:commonlib-kotlin:0.1.0")
 
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.cloud:spring-cloud-starter-config")
@@ -114,12 +128,13 @@ kotlin {
     }
 }
 
-val dbProps = Properties().apply {
-    val secretFile = file("/vault/secrets/db.properties")
-    if (secretFile.exists()) {
-        load(secretFile.inputStream())
+val dbProps =
+    Properties().apply {
+        val secretFile = file("/vault/secrets/db.properties")
+        if (secretFile.exists()) {
+            load(secretFile.inputStream())
+        }
     }
-}
 
 flyway {
     url = dbProps.getProperty("db.url", "")
@@ -161,4 +176,30 @@ tasks.withType<Jar> {
 
 tasks.processResources {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+spotless {
+    java {
+        importOrder("com.codejsha.**", "|", "*", "|", "java.**", "javax.**", "|", "\$*")
+        palantirJavaFormat()
+        removeUnusedImports()
+        formatAnnotations()
+    }
+    kotlin {
+        ktlint()
+            .setEditorConfigPath("$projectDir/.editorconfig")
+        suppressLintsFor {
+            step = "ktlint"
+            shortCode = "standard:no-wildcard-imports"
+        }
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint()
+            .setEditorConfigPath("$projectDir/.editorconfig")
+        suppressLintsFor {
+            step = "ktlint"
+            shortCode = "standard:no-wildcard-imports"
+        }
+    }
 }
