@@ -4,8 +4,9 @@ import com.codejsha.bookstore.order.domain.model.OrderDto
 import com.codejsha.bookstore.order.domain.model.OrderItemDto
 import com.codejsha.bookstore.service.application.port.openapi.model.OrderStatus
 import com.codejsha.bookstore.service.application.port.openapi.model.PaymentType
+
 import java.math.BigDecimal
-import java.util.UUID
+import java.util.*
 
 class PlaceOrderPayload(
     val requestId: String,
@@ -16,10 +17,9 @@ class PlaceOrderPayload(
     val paymentType: PaymentType,
     val cardNumber: String
 ) {
-
     companion object {
-        fun create(dto: OrderDto): PlaceOrderPayload {
-            return PlaceOrderPayload(
+        fun create(dto: OrderDto): PlaceOrderPayload =
+            PlaceOrderPayload(
                 requestId = UUID.randomUUID().toString(),
                 userId = requireNotNull(dto.userId),
                 totalPrice = requireNotNull(dto.totalPrice),
@@ -28,6 +28,16 @@ class PlaceOrderPayload(
                 paymentType = requireNotNull(dto.paymentType),
                 cardNumber = requireNotNull(dto.cardNumber)
             )
-        }
     }
+
+    fun toWorkflowPayload(): (Map<String, Any>) =
+        mapOf(
+            "requestId" to requestId,
+            "userId" to userId,
+            "totalPrice" to totalPrice,
+            "status" to status,
+            "orderItems" to orderItems,
+            "paymentType" to paymentType,
+            "cardNumber" to cardNumber
+        )
 }

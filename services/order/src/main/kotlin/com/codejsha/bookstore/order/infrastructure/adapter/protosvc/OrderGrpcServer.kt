@@ -14,20 +14,23 @@ import org.springframework.stereotype.Component
 class OrderGrpcServer(
     private val orderUseCase: OrderUseCase
 ) : OrderServiceGrpc.OrderServiceImplBase() {
-
     override fun findAllOrders(
         request: OrderFindAllProtoReq,
         responseObserver: StreamObserver<OrderFindAllProtoResp>
     ) {
         val cond = OrderMapper.toFilterCondition(request)
-        val orders = orderUseCase.findAllOrders(cond)
-            .map { it -> it.map { it.toOrderFindProtoResp() } }
-        val responseMono = orders.map {
-            OrderFindAllProtoResp.newBuilder()
-                .setTotal(it.size.toLong())
-                .addAllItems(it)
-                .build()
-        }
+        val orders =
+            orderUseCase
+                .findAllOrders(cond)
+                .map { it -> it.map { it.toOrderFindProtoResp() } }
+        val responseMono =
+            orders.map {
+                OrderFindAllProtoResp
+                    .newBuilder()
+                    .setTotal(it.size.toLong())
+                    .addAllItems(it)
+                    .build()
+            }
 
         responseMono.subscribe(
             {
@@ -38,7 +41,7 @@ class OrderGrpcServer(
                 responseObserver.onError(
                     StatusRuntimeException(Status.INTERNAL.withDescription(it.message))
                 )
-            },
+            }
         )
     }
 
@@ -46,8 +49,10 @@ class OrderGrpcServer(
         request: OrderFindProtoReq,
         responseObserver: StreamObserver<OrderFindProtoResp>
     ) {
-        val responseMono = orderUseCase.findOrder(request.id)
-            .map { it.toOrderFindProtoResp() }
+        val responseMono =
+            orderUseCase
+                .findOrder(request.id)
+                .map { it.toOrderFindProtoResp() }
 
         responseMono.subscribe(
             {
@@ -58,7 +63,7 @@ class OrderGrpcServer(
                 responseObserver.onError(
                     StatusRuntimeException(Status.INTERNAL.withDescription(it.message))
                 )
-            },
+            }
         )
     }
 }

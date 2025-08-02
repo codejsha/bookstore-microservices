@@ -6,28 +6,28 @@
 package com.codejsha.bookstore.service.application.port.pb.authorpb;
 
 public interface AuthorFindProtoRespOrBuilder
-    extends
-    // @@protoc_insertion_point(interface_extends:author.v1.AuthorFindProtoResp)
-    com.google.protobuf.MessageOrBuilder {
+        extends
+        // @@protoc_insertion_point(interface_extends:author.v1.AuthorFindProtoResp)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int64 id = 1 [json_name = "id"];</code>
-   *
-   * @return The id.
-   */
-  long getId();
+    /**
+     * <code>int64 id = 1 [json_name = "id"];</code>
+     *
+     * @return The id.
+     */
+    long getId();
 
-  /**
-   * <code>string name = 2 [json_name = "name"];</code>
-   *
-   * @return The name.
-   */
-  java.lang.String getName();
+    /**
+     * <code>string name = 2 [json_name = "name"];</code>
+     *
+     * @return The name.
+     */
+    java.lang.String getName();
 
-  /**
-   * <code>string name = 2 [json_name = "name"];</code>
-   *
-   * @return The bytes for name.
-   */
-  com.google.protobuf.ByteString getNameBytes();
+    /**
+     * <code>string name = 2 [json_name = "name"];</code>
+     *
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString getNameBytes();
 }

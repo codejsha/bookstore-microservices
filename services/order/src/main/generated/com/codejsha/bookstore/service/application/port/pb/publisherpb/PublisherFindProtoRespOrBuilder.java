@@ -6,49 +6,49 @@
 package com.codejsha.bookstore.service.application.port.pb.publisherpb;
 
 public interface PublisherFindProtoRespOrBuilder
-    extends
-    // @@protoc_insertion_point(interface_extends:publisher.v1.PublisherFindProtoResp)
-    com.google.protobuf.MessageOrBuilder {
+        extends
+        // @@protoc_insertion_point(interface_extends:publisher.v1.PublisherFindProtoResp)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int64 id = 1 [json_name = "id"];</code>
-   *
-   * @return The id.
-   */
-  long getId();
+    /**
+     * <code>int64 id = 1 [json_name = "id"];</code>
+     *
+     * @return The id.
+     */
+    long getId();
 
-  /**
-   * <code>string name = 2 [json_name = "name"];</code>
-   *
-   * @return The name.
-   */
-  java.lang.String getName();
+    /**
+     * <code>string name = 2 [json_name = "name"];</code>
+     *
+     * @return The name.
+     */
+    java.lang.String getName();
 
-  /**
-   * <code>string name = 2 [json_name = "name"];</code>
-   *
-   * @return The bytes for name.
-   */
-  com.google.protobuf.ByteString getNameBytes();
+    /**
+     * <code>string name = 2 [json_name = "name"];</code>
+     *
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString getNameBytes();
 
-  /**
-   * <code>optional string address = 3 [json_name = "address"];</code>
-   *
-   * @return Whether the address field is set.
-   */
-  boolean hasAddress();
+    /**
+     * <code>optional string address = 3 [json_name = "address"];</code>
+     *
+     * @return Whether the address field is set.
+     */
+    boolean hasAddress();
 
-  /**
-   * <code>optional string address = 3 [json_name = "address"];</code>
-   *
-   * @return The address.
-   */
-  java.lang.String getAddress();
+    /**
+     * <code>optional string address = 3 [json_name = "address"];</code>
+     *
+     * @return The address.
+     */
+    java.lang.String getAddress();
 
-  /**
-   * <code>optional string address = 3 [json_name = "address"];</code>
-   *
-   * @return The bytes for address.
-   */
-  com.google.protobuf.ByteString getAddressBytes();
+    /**
+     * <code>optional string address = 3 [json_name = "address"];</code>
+     *
+     * @return The bytes for address.
+     */
+    com.google.protobuf.ByteString getAddressBytes();
 }

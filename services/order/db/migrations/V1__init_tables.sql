@@ -14,11 +14,11 @@ CREATE TABLE IF NOT EXISTS book_order
 CREATE TABLE IF NOT EXISTS book_order_item
 (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id   BIGINT NOT NULL,
-    book_id    BIGINT NOT NULL,
-    quantity   INT    NOT NULL,
-    created_at TIMESTAMP       NOT NULL,
-    updated_at TIMESTAMP       NOT NULL,
+    order_id   BIGINT    NOT NULL,
+    book_id    BIGINT    NOT NULL,
+    quantity   INT       NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
     version    BIGINT,
     FOREIGN KEY (order_id) REFERENCES book_order (id) ON DELETE CASCADE
 ) ENGINE = InnoDB

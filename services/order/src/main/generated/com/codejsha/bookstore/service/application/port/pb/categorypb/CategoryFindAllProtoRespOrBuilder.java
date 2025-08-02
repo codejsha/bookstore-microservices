@@ -6,37 +6,44 @@
 package com.codejsha.bookstore.service.application.port.pb.categorypb;
 
 public interface CategoryFindAllProtoRespOrBuilder
-    extends
-    // @@protoc_insertion_point(interface_extends:category.v1.CategoryFindAllProtoResp)
-    com.google.protobuf.MessageOrBuilder {
+        extends
+        // @@protoc_insertion_point(interface_extends:category.v1.CategoryFindAllProtoResp)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int64 total = 1 [json_name = "total"];</code>
-   *
-   * @return The total.
-   */
-  long getTotal();
+    /**
+     * <code>int64 total = 1 [json_name = "total"];</code>
+     *
+     * @return The total.
+     */
+    long getTotal();
 
-  /** <code>repeated .category.v1.CategoryFindProtoResp items = 2 [json_name = "items"];</code> */
-  java.util.List<
-          com.codejsha.bookstore.service.application.port.pb.categorypb.CategoryFindProtoResp>
-      getItemsList();
+    /**
+     * <code>repeated .category.v1.CategoryFindProtoResp items = 2 [json_name = "items"];</code>
+     */
+    java.util.List<com.codejsha.bookstore.service.application.port.pb.categorypb.CategoryFindProtoResp> getItemsList();
 
-  /** <code>repeated .category.v1.CategoryFindProtoResp items = 2 [json_name = "items"];</code> */
-  com.codejsha.bookstore.service.application.port.pb.categorypb.CategoryFindProtoResp getItems(
-      int index);
+    /**
+     * <code>repeated .category.v1.CategoryFindProtoResp items = 2 [json_name = "items"];</code>
+     */
+    com.codejsha.bookstore.service.application.port.pb.categorypb.CategoryFindProtoResp getItems(int index);
 
-  /** <code>repeated .category.v1.CategoryFindProtoResp items = 2 [json_name = "items"];</code> */
-  int getItemsCount();
+    /**
+     * <code>repeated .category.v1.CategoryFindProtoResp items = 2 [json_name = "items"];</code>
+     */
+    int getItemsCount();
 
-  /** <code>repeated .category.v1.CategoryFindProtoResp items = 2 [json_name = "items"];</code> */
-  java.util.List<
-          ? extends
-              com.codejsha.bookstore.service.application.port.pb.categorypb
-                  .CategoryFindProtoRespOrBuilder>
-      getItemsOrBuilderList();
+    /**
+     * <code>repeated .category.v1.CategoryFindProtoResp items = 2 [json_name = "items"];</code>
+     */
+    java.util.List<
+                    ? extends
+                            com.codejsha.bookstore.service.application.port.pb.categorypb
+                                    .CategoryFindProtoRespOrBuilder>
+            getItemsOrBuilderList();
 
-  /** <code>repeated .category.v1.CategoryFindProtoResp items = 2 [json_name = "items"];</code> */
-  com.codejsha.bookstore.service.application.port.pb.categorypb.CategoryFindProtoRespOrBuilder
-      getItemsOrBuilder(int index);
+    /**
+     * <code>repeated .category.v1.CategoryFindProtoResp items = 2 [json_name = "items"];</code>
+     */
+    com.codejsha.bookstore.service.application.port.pb.categorypb.CategoryFindProtoRespOrBuilder getItemsOrBuilder(
+            int index);
 }

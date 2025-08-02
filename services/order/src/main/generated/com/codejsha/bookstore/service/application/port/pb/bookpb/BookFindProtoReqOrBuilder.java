@@ -6,14 +6,14 @@
 package com.codejsha.bookstore.service.application.port.pb.bookpb;
 
 public interface BookFindProtoReqOrBuilder
-    extends
-    // @@protoc_insertion_point(interface_extends:book.v1.BookFindProtoReq)
-    com.google.protobuf.MessageOrBuilder {
+        extends
+        // @@protoc_insertion_point(interface_extends:book.v1.BookFindProtoReq)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int64 id = 1 [json_name = "id"];</code>
-   *
-   * @return The id.
-   */
-  long getId();
+    /**
+     * <code>int64 id = 1 [json_name = "id"];</code>
+     *
+     * @return The id.
+     */
+    long getId();
 }

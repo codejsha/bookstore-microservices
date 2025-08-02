@@ -2,24 +2,28 @@ package com.codejsha.bookstore.order.domain.aggregate.entity
 
 import com.codejsha.bookstore.order.application.usecase.OrderCommand
 import com.codejsha.bookstore.service.application.port.openapi.model.OrderStatus
+
 import com.google.common.base.Objects
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.annotation.Version
 import org.springframework.data.relational.core.mapping.Table
+
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Table(name = "book_order")
 data class OrderEntity(
-    @Id var id: Long? = null,
+    @Id
+    var id: Long? = null,
     var userId: String,
     var totalPrice: BigDecimal,
     var status: OrderStatus,
     @CreatedDate var createdAt: LocalDateTime? = null,
     @LastModifiedDate var updatedAt: LocalDateTime? = null,
+    @Version var version: Long? = null
 ) {
-
     fun update(command: OrderCommand.UpdateOrderCommand) =
         apply {
             userId = command.userId ?: userId
@@ -28,7 +32,7 @@ data class OrderEntity(
         }
 
     fun update(command: OrderCommand.ChangeOrderStatusCommand): OrderEntity {
-        this.status = status
+        this.status = command.status
         return this
     }
 
@@ -44,7 +48,5 @@ data class OrderEntity(
         return true
     }
 
-    override fun hashCode(): Int {
-        return Objects.hashCode(id, userId, totalPrice, status)
-    }
+    override fun hashCode(): Int = Objects.hashCode(id, userId, totalPrice, status)
 }

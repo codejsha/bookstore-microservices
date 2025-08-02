@@ -7,6 +7,7 @@ import com.codejsha.bookstore.service.application.port.openapi.api.OrderApi
 import com.codejsha.bookstore.service.application.port.openapi.model.OrderCreateWebReq
 import com.codejsha.bookstore.service.application.port.openapi.model.OrderFindAllWebResp
 import com.codejsha.bookstore.service.application.port.openapi.model.OrderFindWebResp
+
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
@@ -14,7 +15,6 @@ import reactor.core.publisher.Mono
 class OrderController(
     private val orderUseCase: OrderUseCase
 ) : OrderApi {
-
     override fun apiV1OrdersGet(
         userId: String?,
         sort: String,
@@ -22,26 +22,33 @@ class OrderController(
         limit: Int,
         offset: Int
     ): Mono<OrderFindAllWebResp> {
-        val cond = FilterCondition(
-            userId = userId,
-            filter = FilterCondition.QueryFilter(
-                sort = sort,
-                order = order,
-                limit = limit,
-                offset = offset
+        val cond =
+            FilterCondition(
+                userId = userId,
+                filter =
+                    FilterCondition.QueryFilter(
+                        sort = sort,
+                        order = order,
+                        limit = limit,
+                        offset = offset
+                    )
             )
-        )
-        val orders = orderUseCase.findAllOrders(cond)
-            .map { it -> it.map { it.toOrderFindWebResp() } }
-        val responseMono = orders.map {
-            OrderFindAllWebResp(total = it.size.toLong(), items = it)
-        }
+        val orders =
+            orderUseCase
+                .findAllOrders(cond)
+                .map { it -> it.map { it.toOrderFindWebResp() } }
+        val responseMono =
+            orders.map {
+                OrderFindAllWebResp(total = it.size.toLong(), items = it)
+            }
         return responseMono
     }
 
     override fun apiV1OrdersIdGet(id: Long): Mono<OrderFindWebResp> {
-        val responseMono = orderUseCase.findOrder(id)
-            .map { it.toOrderFindWebResp() }
+        val responseMono =
+            orderUseCase
+                .findOrder(id)
+                .map { it.toOrderFindWebResp() }
         return responseMono
     }
 

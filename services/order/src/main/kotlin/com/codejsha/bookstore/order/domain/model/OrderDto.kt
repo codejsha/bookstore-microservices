@@ -2,6 +2,7 @@ package com.codejsha.bookstore.order.domain.model
 
 import com.codejsha.bookstore.service.application.port.openapi.model.OrderStatus
 import com.codejsha.bookstore.service.application.port.openapi.model.PaymentType
+
 import java.math.BigDecimal
 
 data class OrderDto(

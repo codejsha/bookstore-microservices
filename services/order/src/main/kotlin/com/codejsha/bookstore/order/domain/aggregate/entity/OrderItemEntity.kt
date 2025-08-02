@@ -5,6 +5,7 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.relational.core.mapping.Table
+
 import java.time.LocalDateTime
 
 @Table(name = "book_order_item")
@@ -14,9 +15,8 @@ data class OrderItemEntity(
     var bookId: Long,
     var quantity: Int,
     @CreatedDate var createdAt: LocalDateTime? = null,
-    @LastModifiedDate var updatedAt: LocalDateTime? = null,
+    @LastModifiedDate var updatedAt: LocalDateTime? = null
 ) {
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is OrderItemEntity) return false
@@ -29,7 +29,5 @@ data class OrderItemEntity(
         return true
     }
 
-    override fun hashCode(): Int {
-        return Objects.hashCode(id, orderId, bookId, quantity)
-    }
+    override fun hashCode(): Int = Objects.hashCode(id, orderId, bookId, quantity)
 }

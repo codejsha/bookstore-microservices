@@ -9,85 +9,91 @@ import com.codejsha.bookstore.service.application.port.pb.orderpb.OrderFindAllPr
 sealed class OrderMapper {
     companion object {
         fun toOrderDto(req: OrderCreateWebReq): OrderDto = req.toOrderDto()
-        fun toOrderDto(id: Long, req: OrderUpdateWebReq): OrderDto = req.toOrderDto(id)
+
+        fun toOrderDto(
+            id: Long,
+            req: OrderUpdateWebReq
+        ): OrderDto = req.toOrderDto(id)
+
         fun toOrderDto(payload: PlaceOrderPayload): OrderDto = payload.toOrderDto()
 
         fun toFilterCondition(param: OrderFindAllWebParam): FilterCondition = param.toFilterCondition()
+
         fun toFilterCondition(req: OrderFindAllProtoReq): FilterCondition = req.toFilterCondition()
     }
 }
 
-private fun OrderCreateWebReq.toOrderDto(): OrderDto {
-    return OrderDto(
+private fun OrderCreateWebReq.toOrderDto(): OrderDto =
+    OrderDto(
         id = null,
         userId = this.userId,
         totalPrice = this.totalPrice,
         status = this.status,
-        orderItems = this.orderItems?.map {
-            OrderItemDto(
-                bookId = requireNotNull(it.bookId),
-                quantity = requireNotNull(it.quantity)
-            )
-        },
+        orderItems =
+            this.orderItems?.map {
+                OrderItemDto(
+                    bookId = requireNotNull(it.bookId),
+                    quantity = requireNotNull(it.quantity)
+                )
+            },
         paymentType = this.paymentType,
         cardNumber = this.cardNumber
     )
-}
 
-private fun OrderUpdateWebReq.toOrderDto(id: Long): OrderDto {
-    return OrderDto(
+private fun OrderUpdateWebReq.toOrderDto(id: Long): OrderDto =
+    OrderDto(
         id = id,
         userId = this.userId,
         totalPrice = this.totalPrice,
         status = this.status,
-        orderItems = this.orderItems?.map {
-            OrderItemDto(
-                bookId = requireNotNull(it.bookId),
-                quantity = requireNotNull(it.quantity)
-            )
-        },
+        orderItems =
+            this.orderItems?.map {
+                OrderItemDto(
+                    bookId = requireNotNull(it.bookId),
+                    quantity = requireNotNull(it.quantity)
+                )
+            },
         paymentType = this.paymentType,
         cardNumber = this.cardNumber
     )
-}
 
-private fun PlaceOrderPayload.toOrderDto(): OrderDto {
-    return OrderDto(
+private fun PlaceOrderPayload.toOrderDto(): OrderDto =
+    OrderDto(
         id = null,
         userId = this.userId,
         totalPrice = this.totalPrice,
         status = this.status,
-        orderItems = this.orderItems.map {
-            OrderItemDto(
-                bookId = requireNotNull(it.bookId),
-                quantity = requireNotNull(it.quantity)
-            )
-        },
+        orderItems =
+            this.orderItems.map {
+                OrderItemDto(
+                    bookId = requireNotNull(it.bookId),
+                    quantity = requireNotNull(it.quantity)
+                )
+            },
         paymentType = this.paymentType,
         cardNumber = this.cardNumber
     )
-}
 
-private fun OrderFindAllWebParam.toFilterCondition(): FilterCondition {
-    return FilterCondition(
+private fun OrderFindAllWebParam.toFilterCondition(): FilterCondition =
+    FilterCondition(
         userId = this.userId,
-        filter = FilterCondition.QueryFilter(
-            sort = this.sort,
-            order = this.order,
-            limit = this.limit,
-            offset = this.offset
-        )
+        filter =
+            FilterCondition.QueryFilter(
+                sort = this.sort,
+                order = this.order,
+                limit = this.limit,
+                offset = this.offset
+            )
     )
-}
 
-private fun OrderFindAllProtoReq.toFilterCondition(): FilterCondition {
-    return FilterCondition(
+private fun OrderFindAllProtoReq.toFilterCondition(): FilterCondition =
+    FilterCondition(
         userId = this.userId,
-        filter = FilterCondition.QueryFilter(
-            sort = this.filter.sort,
-            order = this.filter.order,
-            limit = this.filter.limit,
-            offset = this.filter.offset
-        )
+        filter =
+            FilterCondition.QueryFilter(
+                sort = this.filter.sort,
+                order = this.filter.order,
+                limit = this.filter.limit,
+                offset = this.filter.offset
+            )
     )
-}

@@ -6,37 +6,45 @@
 package com.codejsha.bookstore.service.application.port.pb.publisherpb;
 
 public interface PublisherFindAllProtoRespOrBuilder
-    extends
-    // @@protoc_insertion_point(interface_extends:publisher.v1.PublisherFindAllProtoResp)
-    com.google.protobuf.MessageOrBuilder {
+        extends
+        // @@protoc_insertion_point(interface_extends:publisher.v1.PublisherFindAllProtoResp)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int64 total = 1 [json_name = "total"];</code>
-   *
-   * @return The total.
-   */
-  long getTotal();
+    /**
+     * <code>int64 total = 1 [json_name = "total"];</code>
+     *
+     * @return The total.
+     */
+    long getTotal();
 
-  /** <code>repeated .publisher.v1.PublisherFindProtoResp items = 2 [json_name = "items"];</code> */
-  java.util.List<
-          com.codejsha.bookstore.service.application.port.pb.publisherpb.PublisherFindProtoResp>
-      getItemsList();
+    /**
+     * <code>repeated .publisher.v1.PublisherFindProtoResp items = 2 [json_name = "items"];</code>
+     */
+    java.util.List<com.codejsha.bookstore.service.application.port.pb.publisherpb.PublisherFindProtoResp>
+            getItemsList();
 
-  /** <code>repeated .publisher.v1.PublisherFindProtoResp items = 2 [json_name = "items"];</code> */
-  com.codejsha.bookstore.service.application.port.pb.publisherpb.PublisherFindProtoResp getItems(
-      int index);
+    /**
+     * <code>repeated .publisher.v1.PublisherFindProtoResp items = 2 [json_name = "items"];</code>
+     */
+    com.codejsha.bookstore.service.application.port.pb.publisherpb.PublisherFindProtoResp getItems(int index);
 
-  /** <code>repeated .publisher.v1.PublisherFindProtoResp items = 2 [json_name = "items"];</code> */
-  int getItemsCount();
+    /**
+     * <code>repeated .publisher.v1.PublisherFindProtoResp items = 2 [json_name = "items"];</code>
+     */
+    int getItemsCount();
 
-  /** <code>repeated .publisher.v1.PublisherFindProtoResp items = 2 [json_name = "items"];</code> */
-  java.util.List<
-          ? extends
-              com.codejsha.bookstore.service.application.port.pb.publisherpb
-                  .PublisherFindProtoRespOrBuilder>
-      getItemsOrBuilderList();
+    /**
+     * <code>repeated .publisher.v1.PublisherFindProtoResp items = 2 [json_name = "items"];</code>
+     */
+    java.util.List<
+                    ? extends
+                            com.codejsha.bookstore.service.application.port.pb.publisherpb
+                                    .PublisherFindProtoRespOrBuilder>
+            getItemsOrBuilderList();
 
-  /** <code>repeated .publisher.v1.PublisherFindProtoResp items = 2 [json_name = "items"];</code> */
-  com.codejsha.bookstore.service.application.port.pb.publisherpb.PublisherFindProtoRespOrBuilder
-      getItemsOrBuilder(int index);
+    /**
+     * <code>repeated .publisher.v1.PublisherFindProtoResp items = 2 [json_name = "items"];</code>
+     */
+    com.codejsha.bookstore.service.application.port.pb.publisherpb.PublisherFindProtoRespOrBuilder getItemsOrBuilder(
+            int index);
 }
