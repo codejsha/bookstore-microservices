@@ -13,14 +13,14 @@ CREATE TABLE IF NOT EXISTS publisher
 CREATE TABLE IF NOT EXISTS book
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    title        VARCHAR(255)    NOT NULL,
-    isbn         VARCHAR(255)    NULL,
-    price        DECIMAL(10, 2)  NULL,
-    description  TEXT            NULL,
-    category_id  BIGINT NOT NULL,
-    publisher_id BIGINT NOT NULL,
-    created_at   TIMESTAMP       NOT NULL,
-    updated_at   TIMESTAMP       NOT NULL,
+    title        VARCHAR(255)   NOT NULL,
+    isbn         VARCHAR(255)   NULL,
+    price        DECIMAL(10, 2) NULL,
+    description  TEXT           NULL,
+    category_id  BIGINT         NOT NULL,
+    publisher_id BIGINT         NOT NULL,
+    created_at   TIMESTAMP      NOT NULL,
+    updated_at   TIMESTAMP      NOT NULL,
     version      BIGINT,
     FOREIGN KEY (publisher_id) REFERENCES publisher (id) ON DELETE CASCADE
 ) ENGINE = InnoDB
