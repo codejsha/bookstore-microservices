@@ -36,7 +36,7 @@ clean:
 
 .PHONY: style
 style:
-	google-java-format -i $(shell find src -name "*.java")
+	sh gradlew spotlessApply
 
 .PHONY: buf
 buf:
@@ -60,18 +60,19 @@ gen: spec buf openapi style
 
 .PHONY: build
 build: spec
-	sh gradlew build
+	sh gradlew build --info
 
-.PHONY: docker-build
-docker-build:
-	docker buildx build --platform linux/amd64 \
-		-f ./ci/Dockerfile \
+.PHONY: podman-build
+podman-build:
+	podman build \
+		--platform linux/amd64 \
+		--file ./ci/Dockerfile \
 		--build-arg SERVICE_NAME=$(SERVICE_NAME) \
-		-t harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) .
+		--tag harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) .
 
-.PHONY: docker-push
-docker-push:
-	docker image push harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION)
+.PHONY: podman-push
+podman-push:
+	podman push harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION)
 
 .PHONY: skopeo-push
 skopeo-push:
@@ -79,13 +80,13 @@ skopeo-push:
 		docker://harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) \
 		--dest-cert-dir . --debug
 
-.PHONY: run
-run:
-	sh gradlew bootRun
-
 .PHONY: test
 test:
 	sh gradlew test
+
+.PHONY: run
+run:
+	sh gradlew bootRun
 
 .PHONY: migrate
 migrate:

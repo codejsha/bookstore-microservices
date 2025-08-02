@@ -32,12 +32,9 @@ spec:
 replace:
 	go mod edit -replace=github.com/codejsha/bookstore-microservices/commonlib-go=$(LIB_REPO)@$(LIB_VERSION)
 
-.PHONY: tidy
-tidy:
-	go mod tidy
-
 .PHONY: style
 style:
+	go mod tidy
 	goimports -w ./internal/application/port/openapi
 	gofmt -w ./internal/application/port/openapi
 
@@ -77,16 +74,17 @@ else
 	@echo "Unsupported platform: $(PLATFORM)"
 endif
 
-.PHONY: docker-build
-docker-build:
-	docker buildx build --platform linux/amd64 \
-		-f ./ci/Dockerfile \
+.PHONY: podman-build
+podman-build:
+	podman build \
+		--platform linux/amd64 \
+		--file ./ci/Dockerfile \
 		--build-arg SERVICE_NAME=$(SERVICE_NAME) \
-		-t harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) .
+		--tag harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) .
 
-.PHONY: docker-push
-docker-push:
-	docker image push harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION)
+.PHONY: podman-push
+podman-push:
+	podman push harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION)
 
 .PHONY: skopeo-push
 skopeo-push:
@@ -94,13 +92,13 @@ skopeo-push:
 		docker://harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) \
 		--dest-cert-dir . --debug
 
-.PHONY: run
-run:
-	go run ./main.go
-
 .PHONY: test
 test:
 	go test -v ./...
+
+.PHONY: run
+run:
+	go run ./main.go
 
 .PHONY: migrate-create
 migrate-create:
