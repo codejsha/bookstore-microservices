@@ -1,6 +1,7 @@
 package com.codejsha.bookstore.payment.domain.model
 
 import com.codejsha.bookstore.service.application.port.openapi.model.PaymentType
+
 import java.math.BigDecimal
 import java.time.LocalDateTime
 

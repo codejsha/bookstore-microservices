@@ -9,16 +9,22 @@ import com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentFindA
 sealed class PaymentMapper {
     companion object {
         fun toPaymentDto(req: PaymentCreateWebReq): PaymentDto = req.toPaymentDto()
-        fun toPaymentDto(id: Long, req: PaymentUpdateWebReq): PaymentDto = req.toPaymentDto(id)
+
+        fun toPaymentDto(
+            id: Long,
+            req: PaymentUpdateWebReq
+        ): PaymentDto = req.toPaymentDto(id)
+
         fun toPaymentDto(payload: MakePaymentPayload): PaymentDto = payload.toPaymentDto()
 
         fun toFilterCondition(param: PaymentFindAllWebParam): FilterCondition = param.toFilterCondition()
+
         fun toFilterCondition(request: PaymentFindAllProtoReq): FilterCondition = request.toFilterCondition()
     }
 }
 
-private fun PaymentCreateWebReq.toPaymentDto(): PaymentDto {
-    return PaymentDto(
+private fun PaymentCreateWebReq.toPaymentDto(): PaymentDto =
+    PaymentDto(
         id = null,
         orderId = this.orderId,
         userId = this.userId,
@@ -27,10 +33,9 @@ private fun PaymentCreateWebReq.toPaymentDto(): PaymentDto {
         amount = this.amount,
         paymentDate = this.paymentDate?.toLocalDateTime()
     )
-}
 
-private fun PaymentUpdateWebReq.toPaymentDto(id: Long): PaymentDto {
-    return PaymentDto(
+private fun PaymentUpdateWebReq.toPaymentDto(id: Long): PaymentDto =
+    PaymentDto(
         id = id,
         orderId = this.orderId,
         userId = this.userId,
@@ -39,10 +44,9 @@ private fun PaymentUpdateWebReq.toPaymentDto(id: Long): PaymentDto {
         amount = this.amount,
         paymentDate = this.paymentDate?.toLocalDateTime()
     )
-}
 
-private fun MakePaymentPayload.toPaymentDto(): PaymentDto {
-    return PaymentDto(
+private fun MakePaymentPayload.toPaymentDto(): PaymentDto =
+    PaymentDto(
         id = null,
         orderId = this.orderId,
         userId = this.userId,
@@ -50,26 +54,25 @@ private fun MakePaymentPayload.toPaymentDto(): PaymentDto {
         cardNumber = this.cardNumber,
         amount = this.amount
     )
-}
 
-private fun PaymentFindAllWebParam.toFilterCondition(): FilterCondition {
-    return FilterCondition(
-        filter = FilterCondition.QueryFilter(
-            sort = this.sort,
-            order = this.order,
-            limit = this.limit,
-            offset = this.offset
-        )
+private fun PaymentFindAllWebParam.toFilterCondition(): FilterCondition =
+    FilterCondition(
+        filter =
+            FilterCondition.QueryFilter(
+                sort = this.sort,
+                order = this.order,
+                limit = this.limit,
+                offset = this.offset
+            )
     )
-}
 
-private fun PaymentFindAllProtoReq.toFilterCondition(): FilterCondition {
-    return FilterCondition(
-        filter = FilterCondition.QueryFilter(
-            sort = this.filter.sort,
-            order = this.filter.order,
-            limit = this.filter.limit,
-            offset = this.filter.offset
-        )
+private fun PaymentFindAllProtoReq.toFilterCondition(): FilterCondition =
+    FilterCondition(
+        filter =
+            FilterCondition.QueryFilter(
+                sort = this.filter.sort,
+                order = this.filter.order,
+                limit = this.filter.limit,
+                offset = this.filter.offset
+            )
     )
-}

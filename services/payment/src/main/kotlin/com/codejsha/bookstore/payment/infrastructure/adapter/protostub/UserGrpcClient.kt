@@ -2,12 +2,14 @@ package com.codejsha.bookstore.payment.infrastructure.adapter.protostub
 
 import com.codejsha.bookstore.payment.config.properties.GrpcConfig
 import com.codejsha.bookstore.service.application.port.pb.userpb.UserServiceGrpc
+
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import jakarta.annotation.PreDestroy
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
+
 import java.util.concurrent.TimeUnit
 
 @Component
@@ -15,29 +17,23 @@ import java.util.concurrent.TimeUnit
 class UserGrpcClient(
     private val grpcConfig: GrpcConfig
 ) {
-
     @Bean
-    fun managedChannel(): ManagedChannel {
-        return ManagedChannelBuilder
+    fun managedChannel(): ManagedChannel =
+        ManagedChannelBuilder
             .forAddress(grpcConfig.userServer.host, grpcConfig.userServer.port)
             .usePlaintext()
             .build()
-    }
 
     @Bean
-    fun stub(channel: ManagedChannel): UserServiceGrpc.UserServiceStub {
-        return UserServiceGrpc.newStub(channel)
-    }
+    fun stub(channel: ManagedChannel): UserServiceGrpc.UserServiceStub = UserServiceGrpc.newStub(channel)
 
     @Bean
-    fun blockingStub(channel: ManagedChannel): UserServiceGrpc.UserServiceBlockingStub {
-        return UserServiceGrpc.newBlockingStub(channel)
-    }
+    fun blockingStub(channel: ManagedChannel): UserServiceGrpc.UserServiceBlockingStub =
+        UserServiceGrpc.newBlockingStub(channel)
 
     @Bean
-    fun futureStub(channel: ManagedChannel): UserServiceGrpc.UserServiceFutureStub {
-        return UserServiceGrpc.newFutureStub(channel)
-    }
+    fun futureStub(channel: ManagedChannel): UserServiceGrpc.UserServiceFutureStub =
+        UserServiceGrpc.newFutureStub(channel)
 
     @PreDestroy
     fun shutdown(channel: ManagedChannel) {

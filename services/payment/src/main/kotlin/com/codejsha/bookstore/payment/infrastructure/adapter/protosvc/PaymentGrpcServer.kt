@@ -14,17 +14,19 @@ import org.springframework.stereotype.Component
 class PaymentGrpcServer(
     private val paymentUseCase: PaymentUseCase
 ) : PaymentServiceGrpc.PaymentServiceImplBase() {
-
     override fun findAllPayments(
         request: PaymentFindAllProtoReq,
         responseObserver: StreamObserver<PaymentFindAllProtoResp>
     ) {
         try {
             val cond = PaymentMapper.toFilterCondition(request)
-            val payments = paymentUseCase.findAllPayments(cond)
-                .map { it.toPaymentFindProtoResp() }
+            val payments =
+                paymentUseCase
+                    .findAllPayments(cond)
+                    .map { it.toPaymentFindProtoResp() }
             val response =
-                PaymentFindAllProtoResp.newBuilder()
+                PaymentFindAllProtoResp
+                    .newBuilder()
                     .setTotal(payments.size.toLong())
                     .addAllItems(payments)
                     .build()

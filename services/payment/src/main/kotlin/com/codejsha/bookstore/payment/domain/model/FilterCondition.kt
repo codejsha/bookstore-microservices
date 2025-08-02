@@ -15,8 +15,9 @@ data class FilterCondition(
         val offset: Int
     ) {
         fun toPageable(): Pageable {
-            val sortingField = CaseFormat.LOWER_UNDERSCORE
-                .to(CaseFormat.LOWER_CAMEL, sort)
+            val sortingField =
+                CaseFormat.LOWER_UNDERSCORE
+                    .to(CaseFormat.LOWER_CAMEL, sort)
             val direction = Sort.Direction.valueOf(order.uppercase())
             val sortOption = Sort.by(direction, sortingField)
             return PageRequest.of(offset, limit, sortOption)

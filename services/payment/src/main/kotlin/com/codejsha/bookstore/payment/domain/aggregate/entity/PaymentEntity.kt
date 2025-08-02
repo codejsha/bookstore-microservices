@@ -32,7 +32,6 @@ data class PaymentEntity(
     @LastModifiedDate var updatedAt: LocalDateTime? = null,
     @Version var version: Long? = null
 ) {
-
     fun update(command: PaymentCommand.UpdatePaymentCommand) =
         apply {
             orderId = command.orderId ?: orderId
@@ -47,42 +46,48 @@ data class PaymentEntity(
         if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false
         other as PaymentEntity
         return id == other.id &&
-                orderId == other.orderId &&
-                userId == other.userId
+            orderId == other.orderId &&
+            userId == other.userId
     }
 
-    override fun hashCode(): Int {
-        return Objects.hashCode(id, orderId, userId)
-    }
+    override fun hashCode(): Int = Objects.hashCode(id, orderId, userId)
 
     fun toPaymentFindWebResp(): PaymentFindWebResp {
         val zoneOffset = ZoneId.systemDefault().rules.getOffset(paymentDate)
         val odt = paymentDate.atOffset(zoneOffset)
-        val response = PaymentFindWebResp(
-            id = id,
-            orderId = orderId,
-            userId = userId,
-            paymentType = paymentType,
-            cardNumber = cardNumber,
-            amount = amount,
-            paymentDate = odt
-        )
+        val response =
+            PaymentFindWebResp(
+                id = id,
+                orderId = orderId,
+                userId = userId,
+                paymentType = paymentType,
+                cardNumber = cardNumber,
+                amount = amount,
+                paymentDate = odt
+            )
         return response
     }
 
     fun toPaymentFindProtoResp(): PaymentFindProtoResp {
         val zoneOffset = ZoneId.systemDefault().rules.getOffset(paymentDate)
         val instant = paymentDate.toInstant(zoneOffset)
-        val timestamp = Timestamp.newBuilder().setSeconds(instant.epochSecond).setNanos(instant.nano).build()
-        val response = PaymentFindProtoResp.newBuilder()
-            .setId(requireNotNull(id))
-            .setOrderId(orderId)
-            .setUserId(userId)
-            .setPaymentType(paymentType.value)
-            .setCardNumber(cardNumber)
-            .setAmount(amount.toPlainString())
-            .setPaymentDate(timestamp)
-            .build()
+        val timestamp =
+            Timestamp
+                .newBuilder()
+                .setSeconds(instant.epochSecond)
+                .setNanos(instant.nano)
+                .build()
+        val response =
+            PaymentFindProtoResp
+                .newBuilder()
+                .setId(requireNotNull(id))
+                .setOrderId(orderId)
+                .setUserId(userId)
+                .setPaymentType(paymentType.value)
+                .setCardNumber(cardNumber)
+                .setAmount(amount.toPlainString())
+                .setPaymentDate(timestamp)
+                .build()
         return response
     }
 }

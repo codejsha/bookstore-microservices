@@ -1,6 +1,7 @@
 package com.codejsha.bookstore.payment.domain.model
 
 import com.codejsha.bookstore.service.application.port.openapi.model.PaymentType
+
 import java.math.BigDecimal
 
 data class MakePaymentPayload(
@@ -10,9 +11,8 @@ data class MakePaymentPayload(
     val cardNumber: String,
     val amount: BigDecimal
 ) {
-
-    fun toPaymentDto(): PaymentDto {
-        return PaymentDto(
+    fun toPaymentDto(): PaymentDto =
+        PaymentDto(
             id = null,
             orderId = orderId,
             userId = userId,
@@ -20,5 +20,4 @@ data class MakePaymentPayload(
             cardNumber = cardNumber,
             amount = amount
         )
-    }
 }

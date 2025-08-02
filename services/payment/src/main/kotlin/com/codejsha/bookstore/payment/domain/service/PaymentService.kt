@@ -9,6 +9,7 @@ import com.codejsha.bookstore.payment.domain.model.FilterCondition
 import com.codejsha.bookstore.payment.domain.model.PaymentDto
 import com.codejsha.bookstore.service.application.port.pb.orderpb.OrderServiceGrpc
 import com.codejsha.bookstore.service.application.port.pb.userpb.UserServiceGrpc
+
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
 
@@ -19,7 +20,6 @@ class PaymentService(
     private val orderStub: OrderServiceGrpc.OrderServiceStub?,
     private val userStub: UserServiceGrpc.UserServiceStub?
 ) : PaymentUseCase {
-
     @WithSpan
     override fun findAllPayments(cond: FilterCondition): List<PaymentEntity> {
         val read = PaymentRead.FindAllPaymentsRead(cond)

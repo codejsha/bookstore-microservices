@@ -37,6 +37,7 @@ class TelemetryConfig(
 )
 
 class CollectorConfig(
-    val grpcUrl: String,
-    val httpUrl: String
+    val traceUrl: String = "",
+    val metricUrl: String = "",
+    val logUrl: String = ""
 )
