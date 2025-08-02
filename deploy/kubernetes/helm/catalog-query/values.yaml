@@ -52,11 +52,10 @@ resources:
     cpu: 500m
     memory: 1Gi
 
-
 livenessProbe:
   httpGet:
     path: /health
-    port: 8080
+    port: http
   initialDelaySeconds: 45
   timeoutSeconds: 5
   periodSeconds: 10
@@ -64,7 +63,7 @@ livenessProbe:
 readinessProbe:
   httpGet:
     path: /health
-    port: 8080
+    port: http
   initialDelaySeconds: 45
   timeoutSeconds: 5
   periodSeconds: 10
