@@ -35,6 +35,7 @@ replace:
 .PHONY: style
 style:
 	go mod tidy
+	go mod download
 	goimports -w ./internal/application/port/openapi
 	gofmt -w ./internal/application/port/openapi
 
