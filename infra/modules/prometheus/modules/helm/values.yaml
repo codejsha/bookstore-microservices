@@ -2,10 +2,18 @@ prometheusOperator:
   admissionWebhooks:
     patch:
       podAnnotations:
-        sidecar.istio.io/inject: "false"
+        sidecar.istio.io/inject: "false"  # deprecated (use label level instead)
 
 prometheus:
   prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 100Gi
+
     additionalConfig:
       enableOTLPReceiver: true
       otlp:
@@ -32,6 +40,13 @@ prometheus:
         outOfOrderTimeWindow: 30m
 
 grafana:
+  persistence:
+    enabled: true
+    type: sts
+    accessModes:
+      - ReadWriteOnce
+    size: 20Gi
+
   additionalDataSources:
     - name: OpenSearch
       type: elasticsearch
@@ -40,6 +55,11 @@ grafana:
       access: proxy
       jsonData:
         timeField: "@timestamp"
+    - name: Jaeger
+      type: jaeger
+      uid: jaeger
+      url: http://jaeger-query.jaeger.svc.cluster.local:16686
+      access: proxy
     # - name: Loki
     #   type: loki
     #   uid: loki
@@ -49,8 +69,3 @@ grafana:
     #     httpHeaderName1: "X-Scope-OrgID"
     #   secureJsonData:
     #     httpHeaderValue1: "otel"
-    - name: Jaeger
-      type: jaeger
-      uid: jaeger
-      url: http://jaeger-query.jaeger.svc.cluster.local:16686
-      access: proxy

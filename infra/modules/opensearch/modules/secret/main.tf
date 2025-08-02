@@ -20,7 +20,7 @@ resource "vault_kubernetes_auth_backend_role" "opensearch" {
 }
 
 resource "vault_kv_secret_v2" "opensearch" {
-  name  = "opensearch/admin"
+  name  = "opensearch/admin/credentials"
   mount = "kv"
   data_json = jsonencode({
     initial_password = var.initial_admin_password

@@ -6,7 +6,7 @@ opentelemetry-operator:
       repository: otel/opentelemetry-collector-contrib
     resources:
       limits:
-        cpu: "2"
+        cpu: "1"
         memory: 1Gi
       requests:
         cpu: 10m
@@ -23,25 +23,18 @@ opentelemetry-operator:
 
 collectors:
   daemon:
+    mode: daemonset
+    resources:
+      limits:
+        cpu: 200m
+        memory: 500Mi
+      requests:
+        cpu: 10m
+        memory: 250Mi
     presets:
       hostMetrics:
         enabled: false
-    resources:
-      limits:
-        cpu: 200m
-        memory: 500Mi
-      requests:
-        cpu: 10m
-        memory: 250Mi
 
-  cluster:
-    resources:
-      limits:
-        cpu: 200m
-        memory: 500Mi
-      requests:
-        cpu: 10m
-        memory: 250Mi
     config:
       receivers:
         otlp:
@@ -50,17 +43,15 @@ collectors:
               endpoint: 0.0.0.0:4317
             http:
               endpoint: 0.0.0.0:4318
-
       processors:
         batch:
           send_batch_size: 1000
-          timeout: 1s
           send_batch_max_size: 1500
+          timeout: 1s
         resourcedetection/env:
           detectors: [env]
-          timeout: 2s
           override: false
-
+          timeout: 2s
       exporters:
         debug: {}
         otlp:
@@ -85,7 +76,6 @@ collectors:
         #     insecure: true
         #   headers:
         #     X-Scope-OrgID: otel
-
       service:
         extensions: ["basicauth/opensearch"]
         pipelines:
@@ -101,3 +91,38 @@ collectors:
             receivers: ["otlp"]
             processors: ["resourcedetection/env", "batch"]
             exporters: ["opensearch", "debug"]
+
+  cluster:
+    replicas: 1
+    mode: deployment
+    resources:
+      limits:
+        cpu: 200m
+        memory: 500Mi
+      requests:
+        cpu: 10m
+        memory: 250Mi
+
+    config:
+      receivers: {}
+      processors:
+        batch:
+          send_batch_size: 1000
+          send_batch_max_size: 1500
+          timeout: 1s
+        resourcedetection/env:
+          detectors: [env]
+          override: false
+          timeout: 2s
+      exporters:
+        debug: {}
+      service:
+        pipelines:
+          metrics:
+            receivers: ["k8s_cluster"]
+            processors: ["resourcedetection/env", "batch"]
+            exporters: ["debug"]
+          logs:
+            receivers: ["k8sobjects"]
+            processors: ["resourcedetection/env", "batch"]
+            exporters: ["debug"]

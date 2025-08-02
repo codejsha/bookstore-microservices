@@ -20,7 +20,7 @@ resource "vault_kubernetes_auth_backend_role" "minio" {
 }
 
 resource "vault_kv_secret_v2" "minio" {
-  name  = "minio/admin"
+  name  = "minio/admin/credentials"
   mount = "kv"
   data_json = jsonencode({
     username = var.admin_username,

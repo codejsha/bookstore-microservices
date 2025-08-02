@@ -3,10 +3,10 @@ kind: Kustomization
 metadata:
   name: tekton-kustomization
 resources:
-  - https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.68.0/release.yaml
-  - https://storage.googleapis.com/tekton-releases/triggers/previous/v0.31.0/release.yaml
-  - https://storage.googleapis.com/tekton-releases/triggers/previous/v0.31.0/interceptors.yaml
-  - https://storage.googleapis.com/tekton-releases/dashboard/previous/v0.54.0/release.yaml
+  - https://storage.googleapis.com/tekton-releases/pipeline/previous/v1.1.0/release.yaml
+  - https://storage.googleapis.com/tekton-releases/triggers/previous/v0.32.0/release.yaml
+  - https://storage.googleapis.com/tekton-releases/triggers/previous/v0.32.0/interceptors.yaml
+  - https://storage.googleapis.com/tekton-releases/dashboard/previous/v0.59.0/release.yaml
   # - https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
   # - https://storage.googleapis.com/tekton-releases/triggers/latest/release.yaml
   # - https://storage.googleapis.com/tekton-releases/triggers/latest/interceptors.yaml

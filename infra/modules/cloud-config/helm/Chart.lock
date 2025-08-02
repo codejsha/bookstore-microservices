@@ -1,0 +1,6 @@
+dependencies:
+- name: istio-mesh
+  repository: oci://harbor.example.com/bookstore-helm-charts
+  version: 0.1.0
+digest: sha256:aace2dde3301d54bf4605a1a0de0dc977c1c46773a2634bd1ea5b72d38da4f37
+generated: "2025-07-06T20:37:09.198016+09:00"

@@ -32,7 +32,6 @@ resource "kubernetes_namespace" "metallb" {
 #   namespace      = kubernetes_namespace.metallb.metadata[0].name
 #   pool_addresses = var.pool_addresses
 #   providers = {
-#     kubernetes = kubernetes
 #     helm       = helm
 #   }
 # }
@@ -49,7 +48,4 @@ module "pool" {
   source         = "./modules/pool"
   namespace      = kubernetes_namespace.metallb.metadata[0].name
   pool_addresses = var.pool_addresses
-  providers = {
-    kubernetes = kubernetes
-  }
 }

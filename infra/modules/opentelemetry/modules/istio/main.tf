@@ -72,22 +72,3 @@ resource "kubernetes_manifest" "istio_virtual_service" {
     }
   }
 }
-
-resource "kubernetes_manifest" "istio_destination_rule" {
-  manifest = {
-    apiVersion = "networking.istio.io/v1"
-    kind       = "DestinationRule"
-    metadata = {
-      name      = "${var.name_prefix}-dr"
-      namespace = var.namespace
-    }
-    spec = {
-      host = var.host_fqdn
-      trafficPolicy = {
-        loadBalancer = {
-          simple = "ROUND_ROBIN"
-        },
-      }
-    }
-  }
-}

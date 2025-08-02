@@ -18,11 +18,11 @@ resource "helm_release" "opentelemetry" {
   timeout = 180
 
   set_sensitive {
-    name  = "collectors.cluster.config.extensions.basicauth/opensearch.client_auth.username"
+    name  = "collectors.daemon.config.extensions.basicauth/opensearch.client_auth.username"
     value = var.opensearch_username
   }
   set_sensitive {
-    name  = "collectors.cluster.config.extensions.basicauth/opensearch.client_auth.password"
+    name  = "collectors.daemon.config.extensions.basicauth/opensearch.client_auth.password"
     value = var.opensearch_password
   }
 }

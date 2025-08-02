@@ -43,7 +43,6 @@ ingress:
   tls: []
 
 resources: {}
-
 livenessProbe:
   httpGet:
     path: /actuator/health
@@ -67,21 +66,3 @@ volumeMounts: []
 nodeSelector: {}
 tolerations: []
 affinity: {}
-
-istio:
-  enabled: false
-  host: "example.com"
-  tls:
-    enabled: false
-    httpsRedirect: false
-    mode: "SIMPLE"
-    credentialName: ""
-  trafficPolicy:
-    loadBalancer:
-      simple: ROUND_ROBIN
-  gateway:
-    annotations: {}
-  virtualService:
-    annotations: {}
-  destinationRule:
-    annotations: {}
