@@ -1,4 +1,4 @@
-FROM alpine/java:21-jre AS runtime
+FROM alpine:3.21 AS runtime
 
 ARG SERVICE_NAME
 ENV SERVICE_NAME=${SERVICE_NAME}
