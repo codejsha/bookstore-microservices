@@ -24,13 +24,13 @@ TasksMax=infinity
 TimeoutStartSec=0
 Restart=always
 RestartSec=5s
-ExecStartPre=/bin/sh -xc '! /usr/bin/systemctl is-enabled --quiet nm-cloud-setup.service 2>/dev/null'
 ExecStartPre=-/sbin/modprobe br_netfilter
 ExecStartPre=-/sbin/modprobe overlay
 ExecStart=/usr/local/bin/k3s \
     server \
-	'--cluster-init' \
-	'--flannel-backend=none' \
-	'--cluster-cidr=192.168.0.0/16' \
-	'--disable-network-policy' \
-	'--disable=traefik' \
+        '--cluster-init' \
+        '--flannel-backend=none' \
+        '--cluster-cidr=192.168.0.0/16' \
+        '--disable-network-policy' \
+        '--disable=traefik' \
+        '--kubelet-arg=max-pods=250' \

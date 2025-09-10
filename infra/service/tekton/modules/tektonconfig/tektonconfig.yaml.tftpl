@@ -1,0 +1,110 @@
+apiVersion: operator.tekton.dev/v1alpha1
+kind: TektonConfig
+metadata:
+  name: config
+spec:
+  profile: all
+  targetNamespace: ${namespace}
+  targetNamespaceMetadata:
+    labels:
+      istio.io/dataplane-mode: ambient
+  trigger:
+    disabled: false
+    enable-api-fields: stable
+  chain:
+    disabled: false
+    artifacts.taskrun.format: slsa/v2alpha3
+    artifacts.taskrun.storage: tekton
+    artifacts.taskrun.signer: kms
+    artifacts.pipelinerun.format: slsa/v2alpha3
+    artifacts.pipelinerun.storage: tekton,oci
+    artifacts.pipelinerun.signer: kms
+    artifacts.pipelinerun.enable-deep-inspection: "true"
+    artifacts.oci.format: simplesigning
+    artifacts.oci.storage: oci
+    artifacts.oci.signer: kms
+    builder.id: ${builder_id}
+    transparency.enabled: "false"
+    signers.kms.kmsref: hashivault://${cosign_key_name}
+    signers.kms.auth.address: ${vault_url}
+    signers.kms.auth.token-path: /vault/secrets/token
+    options:
+      deployments:
+        tekton-chains-controller:
+          spec:
+            template:
+              metadata:
+                annotations:
+                  vault.hashicorp.com/agent-inject: "true"
+                  vault.hashicorp.com/agent-inject-token: "true"
+                  vault.hashicorp.com/role: "${chains_vault_role}"
+                  vault.hashicorp.com/agent-run-as-user: "65532"
+                  vault.hashicorp.com/agent-run-as-group: "65532"
+              spec:
+                volumes:
+                  - name: internal-ca
+                    configMap:
+                      name: ${ca_bundle_configmap}
+                containers:
+                  - name: tekton-chains-controller
+                    env:
+                      - name: SSL_CERT_FILE
+                        value: /etc/tekton/ca/${ca_bundle_key}
+                    volumeMounts:
+                      - name: internal-ca
+                        mountPath: /etc/tekton/ca
+                        readOnly: true
+  result:
+    disabled: true
+  dashboard:
+    readonly: true
+  pruner:
+    disabled: true
+  tektonpruner:
+    disabled: false
+    global-config:
+      enforcedConfigLevel: global
+      ttlSecondsAfterFinished: ${prune_ttl_seconds}
+      successfulHistoryLimit: ${prune_successful_history_limit}
+      failedHistoryLimit: ${prune_failed_history_limit}
+  pipeline:
+    git-resolver-config:
+      scm-type: gitea
+      server-url: ${gitea_internal_url}
+      api-token-secret-name: ${resolver_token_secret}
+      api-token-secret-key: token
+      api-token-secret-namespace: ${namespace}
+      default-org: ${gitea_org}
+      default-revision: main
+    options:
+      horizontalPodAutoscalers:
+        tekton-pipelines-webhook:
+          spec:
+            maxReplicas: 2
+      deployments:
+        tekton-pipelines-webhook:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: webhook
+                    resources:
+                      requests:
+                        cpu: "50m"
+                        memory: "100Mi"
+                      limits:
+                        cpu: "500m"
+                        memory: "500Mi"
+        tekton-pipelines-remote-resolvers:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: controller
+                    resources:
+                      requests:
+                        cpu: "10m"
+                        memory: "100Mi"
+                      limits:
+                        cpu: "1"
+                        memory: "1Gi"

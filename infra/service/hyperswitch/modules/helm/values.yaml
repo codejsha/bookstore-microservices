@@ -1,0 +1,152 @@
+hyperswitch-monitoring:
+  enabled: false
+
+hyperswitch-app:
+  server:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    configs:
+      user_auth_methods:
+        encryption_key:
+          _secret: null
+          _secretRef:
+            name: hyperswitch-app-credentials
+            key: user_auth_encryption_key
+
+      secrets:
+        admin_api_key:
+          _secret: null
+          _secretRef:
+            name: hyperswitch-app-credentials
+            key: admin_api_key
+        jwt_secret:
+          _secret: null
+          _secretRef:
+            name: hyperswitch-app-credentials
+            key: jwt_secret
+        master_enc_key:
+          _secret: null
+          _secretRef:
+            name: hyperswitch-app-credentials
+            key: master_enc_key
+        recon_admin_api_key:
+          _secret: null
+          _secretRef:
+            name: hyperswitch-app-credentials
+            key: recon_admin_api_key
+
+  consumer:
+    resources:
+      requests:
+        cpu: 25m
+
+  producer:
+    resources:
+      requests:
+        cpu: 25m
+
+  postgresql:
+    primary:
+      networkPolicy: &ambient-hbone
+        extraIngress:
+          - ports:
+              - port: 15008
+                protocol: TCP
+      resources:
+        requests:
+          cpu: 50m
+    readReplicas:
+      networkPolicy: *ambient-hbone
+
+  kafka:
+    networkPolicy: *ambient-hbone
+    controller:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 1Gi
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+    broker:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 1Gi
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+
+  redis:
+    master:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+
+  vector:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+
+  mailhog:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+  clickhouse:
+    networkPolicy: *ambient-hbone
+    resources:
+      requests:
+        cpu: 100m
+        memory: 768Mi
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+    zookeeper:
+      networkPolicy: *ambient-hbone
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          cpu: 375m
+          memory: 384Mi
+
+  hyperswitch-card-vault:
+    postgresql:
+      primary:
+        networkPolicy: *ambient-hbone
+        resources:
+          requests:
+            cpu: 50m
+
+hyperswitch-web:
+  resources:
+    requests:
+      cpu: 25m
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+hyperswitch-control-center:
+  resources:
+    requests:
+      cpu: 25m

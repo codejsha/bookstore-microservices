@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../schemas/component-meta.schema.json",
+  "name": "Label",
+  "description": "Form label with peer-disabled state support",
+  "variants": {
+    "default": { "svg": "default.svg", "tokens": ["color.foreground"] }
+  },
+  "sizes": ["default"],
+  "states": ["default", "peer-disabled"],
+  "responsive": false,
+  "codeRef": "services/web/src/shared/components/ui/label.tsx",
+  "cvaVariants": false
+}

@@ -1,0 +1,20 @@
+image:
+  pullPolicy: Always
+
+extraEnv:
+  - name: SPRING_PROFILES_ACTIVE
+    value: dev
+  - name: SPRING_CONFIG_IMPORT
+    value: "configserver:http://config-server.cloud-config.svc.cluster.local:8888,optional:file:/vault/secrets/db.properties"
+
+service:
+  grpc:
+    enabled: true
+    port: 9090
+
+mesh:
+  waypoint: "bookstore-waypoint"
+
+gatewayApi:
+  enabled: true
+  host: "payment-api.example.com"

@@ -1,0 +1,130 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: make
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Cli
+    tekton.dev/tags: build
+    tekton.dev/displayName: "Make"
+spec:
+  description: >-
+    This task runs make with the specified parameters.
+  workspaces:
+    - name: source
+  params:
+    - name: CONTEXT_DIR
+      description: context directory
+      type: string
+      default: ./
+    - name: TARGET_DIR
+      description: target directory
+      type: string
+      default: ./
+    - name: ARGS
+      description: arguments to pass
+      type: array
+      default:
+        - ""
+    - name: IMAGE
+      description: >-
+        Image to run make in. It must carry the toolchain the Makefile drives —
+        the default only has make itself, which is not enough to build e.g. Go
+        (that needs `go` and `git`).
+      type: string
+      default: docker.io/alpine/make:latest
+    - name: NEXUS_GO_URL
+      description: >-
+        Nexus go group URL. When set, GOPROXY is pointed at it (with the
+        credentials spliced in) so module downloads resolve through the cache
+        instead of proxy.golang.org. Empty leaves the Go defaults alone, which
+        is what a non-Go Makefile wants.
+
+        This must be the https:// edge hostname, not the in-cluster
+        http://nexus...:8081 the other ecosystems use: cmd/go refuses to send
+        credentials over plain HTTP ("refusing to pass credentials to insecure
+        URL") and drops netrc credentials there too, so an authenticated
+        in-cluster fetch is not possible. Hence CA_BUNDLE_CONFIGMAP below.
+      type: string
+      default: ""
+    - name: NEXUS_SECRET_NAME
+      description: k8s secret holding Nexus username/password for the go group
+      type: string
+      default: nexus-credentials
+    - name: CA_BUNDLE_CONFIGMAP
+      description: >-
+        trust-manager Bundle distributed into every namespace, holding the
+        public roots plus the internal chain that signed the Nexus edge
+        certificate. Mounted optionally so a non-Go build needs neither.
+      type: string
+      default: internal-ca
+    - name: CA_BUNDLE_KEY
+      description: Key within CA_BUNDLE_CONFIGMAP
+      type: string
+      default: ca-bundle.crt
+    - name: GOSUMDB
+      description: >-
+        Nexus does not serve the sum.golang.org endpoints, so leaving the
+        checksum DB on would send CI back out to the internet for every module.
+        "off" is safe here because go.sum is committed — module integrity is
+        still verified against it, and a missing entry fails the build.
+      type: string
+      default: "off"
+  volumes:
+    - name: ca-bundle
+      configMap:
+        name: $(params.CA_BUNDLE_CONFIGMAP)
+        optional: true
+  steps:
+    - name: set-app-params
+      image: $(params.IMAGE)
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
+      env:
+        - name: GIT_CONFIG_COUNT
+          value: "1"
+        - name: GIT_CONFIG_KEY_0
+          value: safe.directory
+        - name: GIT_CONFIG_VALUE_0
+          value: "*"
+        - name: NEXUS_GO_URL
+          value: $(params.NEXUS_GO_URL)
+        - name: NEXUS_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: username
+              optional: true
+        - name: NEXUS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: password
+              optional: true
+      volumeMounts:
+        - name: ca-bundle
+          mountPath: /etc/ca-bundle
+          readOnly: true
+      args:
+        - "-C"
+        - "$(params.TARGET_DIR)"
+        - "$(params.ARGS[*])"
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+
+        if [ -n "${NEXUS_GO_URL:-}" ]; then
+          bundle="/etc/ca-bundle/$(params.CA_BUNDLE_KEY)"
+          if [ -r "$bundle" ]; then
+            export SSL_CERT_FILE="$bundle"
+          fi
+
+          proto="${NEXUS_GO_URL%%://*}"
+          rest="${NEXUS_GO_URL#*://}"
+          GOPROXY="$proto://$NEXUS_USER:$NEXUS_PASSWORD@$rest"
+          export GOPROXY
+          export GOSUMDB="$(params.GOSUMDB)"
+        fi
+
+        exec make "$@"

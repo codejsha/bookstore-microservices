@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../schemas/component-meta.schema.json",
+  "name": "Avatar",
+  "description": "User avatar with image and fallback support",
+  "variants": {
+    "default": { "svg": "default.svg", "tokens": ["color.muted", "color.muted-foreground"] }
+  },
+  "sizes": ["default"],
+  "states": ["default", "fallback"],
+  "responsive": false,
+  "codeRef": "services/web/src/shared/components/ui/avatar.tsx",
+  "cvaVariants": false
+}

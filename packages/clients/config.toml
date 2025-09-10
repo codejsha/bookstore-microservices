@@ -1,0 +1,14 @@
+[general]
+gen_lang = "typescript"
+gen_type = "client"
+# input_spec = ""
+# output_dir = ""
+
+[packages]
+api_package = "api"
+model_package = "model"
+
+[options]
+validation_enabled = true
+typescript_security_enabled = true
+typescript_pagination_enabled = true

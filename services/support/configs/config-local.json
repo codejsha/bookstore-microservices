@@ -1,0 +1,24 @@
+{
+  "app": {
+    "logging_level": "info"
+  },
+  "server": {
+    "port": 8080,
+    "mode": "debug"
+  },
+  "grpc": {
+    "port": 9090
+  },
+  "database": {
+    "host": "localhost",
+    "port": 3306,
+    "db_name": "support_db",
+    "username": "root",
+    "password": "test"
+  },
+  "telemetry": {
+    "enabled": false,
+    "endpoint": "http://localhost:4317",
+    "service_name": "support"
+  }
+}

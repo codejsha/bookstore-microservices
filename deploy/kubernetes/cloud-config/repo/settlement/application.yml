@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  flyway:
+    enabled: false
+  batch:
+    job:
+      enabled: false

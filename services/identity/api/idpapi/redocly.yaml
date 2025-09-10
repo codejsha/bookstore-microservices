@@ -1,0 +1,4 @@
+apis:
+  admin@v1:
+    root: ./admin-openapi.json
+    output: ./schema/admin-openapi.json

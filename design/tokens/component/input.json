@@ -1,0 +1,18 @@
+{
+  "input": {
+    "height": { "$type": "dimension", "$value": "32px" },
+    "background": { "$type": "color", "$value": "transparent" },
+    "foreground": { "$type": "color", "$value": "{color.foreground}" },
+    "border": { "$type": "color", "$value": "{color.input}" },
+    "placeholder": { "$type": "color", "$value": "{color.muted-foreground}" },
+    "radius": { "$type": "dimension", "$value": "{elevation.radius}" },
+    "padding-x": { "$type": "dimension", "$value": "10px" },
+    "focus": {
+      "border": { "$type": "color", "$value": "{color.ring}" },
+      "ring": { "$type": "color", "$value": "{color.ring}", "$description": "50% opacity" }
+    },
+    "disabled": {
+      "background": { "$type": "color", "$value": "{color.input}", "$description": "50% opacity" }
+    }
+  }
+}

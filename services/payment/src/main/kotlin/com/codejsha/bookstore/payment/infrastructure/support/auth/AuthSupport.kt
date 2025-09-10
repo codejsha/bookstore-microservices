@@ -1,0 +1,44 @@
+package com.codejsha.bookstore.payment.infrastructure.support.auth
+
+import jakarta.servlet.http.HttpServletRequest
+import org.springframework.http.HttpStatus
+import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
+import tools.jackson.databind.ObjectMapper
+
+const val ROLE_ADMIN = "ADMIN"
+
+@ResponseStatus(HttpStatus.UNAUTHORIZED)
+class UnauthorizedException(message: String = "authentication required") : RuntimeException(message)
+
+@ResponseStatus(HttpStatus.FORBIDDEN)
+class ForbiddenException(message: String = "forbidden") : RuntimeException(message)
+
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+class BadRequestException(message: String) : RuntimeException(message)
+
+@Component
+class HttpPrincipalResolver(
+    private val objectMapper: ObjectMapper,
+) {
+    fun current(): Principal? {
+        val attrs = RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes ?: return null
+        val request: HttpServletRequest = attrs.request
+        return PrincipalParser.parse(request::getHeader, objectMapper)
+    }
+
+    fun require(): Principal = current().orUnauthorized()
+}
+
+fun Principal?.orUnauthorized(): Principal = this ?: throw UnauthorizedException()
+
+fun Principal.assertPaymentOwner(ownerCustomerId: String?) {
+    if (hasRole(ROLE_ADMIN)) return
+    if (ownerCustomerId == null || ownerCustomerId != sub) throw ForbiddenException("not the owner of this payment")
+}
+
+fun Principal.assertAdmin() {
+    if (!hasRole(ROLE_ADMIN)) throw ForbiddenException("admin role required")
+}

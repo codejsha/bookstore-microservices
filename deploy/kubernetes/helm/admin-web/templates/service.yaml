@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "admin-web.fullname" . }}
+  labels:
+    {{- include "admin-web.labels" . | nindent 4 }}
+    {{- if .Values.mesh }}
+    {{- if .Values.mesh.waypoint }}
+    istio.io/use-waypoint: {{ .Values.mesh.waypoint }}
+    istio.io/ingress-use-waypoint: "true"
+    {{- end }}
+    {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+      appProtocol: {{ .Values.service.appProtocol | default "http" }}
+  selector:
+    {{- include "admin-web.selectorLabels" . | nindent 4 }}

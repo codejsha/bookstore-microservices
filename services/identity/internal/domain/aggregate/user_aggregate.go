@@ -1,53 +1,132 @@
 package aggregate
 
 import (
-	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/idp"
-	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/openapi"
-	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/pb/userpb"
-	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/mapper/usermapper"
+	"time"
+
+	idp "github.com/codejsha/bookstore-microservices/identity/generated/application/port/idpapi"
+	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/repo"
+	"github.com/codejsha/bookstore-microservices/identity/internal/domain/constant"
 )
 
-func NewUserAggregate(
-	userRepresentation idp.UserRepresentation,
-) *UserAggregate {
-	roles := make([]openapi.AuthRole, len(userRepresentation.RealmRoles))
-	for i, role := range userRepresentation.RealmRoles {
-		roles[i] = openapi.AuthRole(role)
-	}
-
-	agg := &UserAggregate{
-		Id:        userRepresentation.Id,
-		Email:     *userRepresentation.Email,
-		FirstName: *userRepresentation.FirstName,
-		LastName:  *userRepresentation.LastName,
-		Phone:     nil,
-		Roles:     roles,
-	}
-	return agg
-}
-
 type UserAggregate struct {
-	Id        *string
-	Email     string
-	FirstName string
-	LastName  string
-	Phone     *string
-	Roles     []openapi.AuthRole
+	id          int64
+	idpId       *string
+	email       string
+	firstName   string
+	lastName    string
+	phone       *string
+	roles       []constant.AuthRole
+	status      string
+	lastLoginAt *time.Time
+	createdAt   time.Time
+	updatedAt   *time.Time
 }
 
-func (a *UserAggregate) ToSignUpWebResp() openapi.SignUpWebResp {
-	return openapi.SignUpWebResp{
-		Id: *a.Id,
+func NewUserAggregate(result *repo.UserResult) *UserAggregate {
+	roles := make([]constant.AuthRole, len(result.Roles))
+	for i, role := range result.Roles {
+		roles[i] = constant.AuthRoleFromString(role)
+	}
+	return &UserAggregate{
+		id:          result.Id,
+		idpId:       result.IdpId,
+		email:       result.Email,
+		firstName:   result.FirstName,
+		lastName:    result.LastName,
+		phone:       result.Phone,
+		roles:       roles,
+		status:      result.Status,
+		lastLoginAt: result.LastLoginAt,
+		createdAt:   result.CreatedAt,
+		updatedAt:   result.UpdatedAt,
 	}
 }
 
-func (a *UserAggregate) ToUserFindProtoResp() *userpb.UserFindProtoResp {
-	return &userpb.UserFindProtoResp{
-		Id:        *a.Id,
-		Email:     a.Email,
-		FirstName: a.FirstName,
-		LastName:  a.LastName,
-		Phone:     a.Phone,
-		Roles:     usermapper.ToAuthRolesPb(a.Roles),
+func (a *UserAggregate) Uid() string {
+	if a.idpId == nil {
+		return ""
 	}
+	return *a.idpId
+}
+
+func (a *UserAggregate) IdpId() *string {
+	return a.idpId
+}
+
+func (a *UserAggregate) Email() string {
+	return a.email
+}
+
+func (a *UserAggregate) FirstName() string {
+	return a.firstName
+}
+
+func (a *UserAggregate) LastName() string {
+	return a.lastName
+}
+
+func (a *UserAggregate) Phone() *string {
+	return a.phone
+}
+
+func (a *UserAggregate) Roles() []constant.AuthRole {
+	return a.roles
+}
+
+func (a *UserAggregate) Status() string {
+	return a.status
+}
+
+func (a *UserAggregate) LastLoginAt() *time.Time {
+	return a.lastLoginAt
+}
+
+func (a *UserAggregate) CreatedAt() time.Time {
+	return a.createdAt
+}
+
+func (a *UserAggregate) UpdatedAt() *time.Time {
+	return a.updatedAt
+}
+
+func (a *UserAggregate) ApplyRegistration(roles []string, createdAt, updatedAt time.Time) {
+	authRoles := make([]constant.AuthRole, len(roles))
+	for i, role := range roles {
+		authRoles[i] = constant.AuthRoleFromString(role)
+	}
+	a.roles = authRoles
+	a.createdAt = createdAt
+	a.updatedAt = &updatedAt
+}
+
+func (a *UserAggregate) FromIdp(id int64, userRepresent idp.UserRepresentation) {
+	var realmRoles []string
+	if userRepresent.RealmRoles != nil {
+		realmRoles = *userRepresent.RealmRoles
+	}
+	roles := make([]constant.AuthRole, len(realmRoles))
+	for i, role := range realmRoles {
+		roles[i] = constant.AuthRoleFromString(role)
+	}
+
+	a.id = id
+	a.idpId = userRepresent.Id
+	a.email = ""
+	if userRepresent.Email != nil {
+		a.email = *userRepresent.Email
+	}
+	a.firstName = ""
+	if userRepresent.FirstName != nil {
+		a.firstName = *userRepresent.FirstName
+	}
+	a.lastName = ""
+	if userRepresent.LastName != nil {
+		a.lastName = *userRepresent.LastName
+	}
+	a.phone = nil
+	a.roles = roles
+	a.status = ""
+	a.lastLoginAt = nil
+	a.createdAt = time.Time{}
+	a.updatedAt = nil
 }

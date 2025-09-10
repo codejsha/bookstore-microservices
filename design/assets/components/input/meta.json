@@ -1,0 +1,15 @@
+{
+  "$schema": "../../../schemas/component-meta.schema.json",
+  "name": "Input",
+  "description": "Text input field with validation states",
+  "variants": {
+    "default": { "svg": "default.svg", "tokens": ["color.input", "color.foreground", "color.muted-foreground"] }
+  },
+  "sizes": ["default"],
+  "states": ["default", "focus-visible", "disabled", "aria-invalid"],
+  "responsive": {
+    "md": { "fontSize": "14px" }
+  },
+  "codeRef": "services/web/src/shared/components/ui/input.tsx",
+  "cvaVariants": false
+}

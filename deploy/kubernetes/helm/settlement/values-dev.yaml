@@ -1,0 +1,22 @@
+image:
+  pullPolicy: Always
+
+extraEnv:
+  - name: SPRING_PROFILES_ACTIVE
+    value: dev
+  - name: SPRING_CONFIG_IMPORT
+    value: "configserver:http://config-server.cloud-config.svc.cluster.local:8888,optional:file:/vault/secrets/db.properties,optional:file:/vault/secrets/payment-db.properties"
+
+batch:
+  extraEnv:
+    - name: SPRING_PROFILES_ACTIVE
+      value: dev,batch
+    - name: SPRING_CONFIG_IMPORT
+      value: "configserver:http://config-server.cloud-config.svc.cluster.local:8888,optional:file:/vault/secrets/db.properties,optional:file:/vault/secrets/payment-db.properties"
+
+mesh:
+  waypoint: "bookstore-waypoint"
+
+gatewayApi:
+  enabled: true
+  host: "settlement-api.example.com"

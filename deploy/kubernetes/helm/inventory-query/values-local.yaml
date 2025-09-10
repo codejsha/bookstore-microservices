@@ -1,9 +1,0 @@
-env:
-  - name: SPRING_PROFILES_ACTIVE
-    value: query,local
-  - name: SPRING_CONFIG_IMPORT
-    value: "configserver:http://cloud-config.example.com"
-
-istio:
-  enabled: true
-  host: "inventory-query.example.com"

@@ -1,0 +1,68 @@
+pilot:
+  autoscaleEnabled: false
+  env:
+    BLOCKED_CIDRS_IN_JWKS_URIS: "127.0.0.0/8,169.254.0.0/16,::1/128,fe80::/10"
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+global:
+  proxy:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+  waypoint:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        cpu: "2"
+        memory: 1Gi
+
+meshConfig:
+  accessLogFile: /dev/stdout
+  outboundTrafficPolicy:
+    mode: REGISTRY_ONLY
+  defaultHttpRetryPolicy:
+    attempts: 2
+    retryOn: "connect-failure,refused-stream"
+  extensionProviders:
+    - name: otel-tracing
+      opentelemetry:
+        service: alloy-gateway.grafana.svc.cluster.local
+        port: 4317
+    - name: keycloak-introspect
+      envoyExtAuthzHttp:
+        service: identity.bookstore.svc.cluster.local
+        port: 8080
+        pathPrefix: /internal/authz
+        timeout: 1s
+        includeRequestHeadersInCheck:
+          - authorization
+    - name: oauth2-proxy
+      envoyExtAuthzHttp:
+        service: oauth2-proxy.bookstore.svc.cluster.local
+        port: 4180
+        pathPrefix: /oauth2/auth
+        includeRequestHeadersInCheck:
+          - authorization
+          - cookie
+        headersToUpstreamOnAllow:
+          - authorization
+          - x-auth-request-user
+          - x-auth-request-email
+          - x-auth-request-groups
+          - x-auth-request-access-token
+        headersToDownstreamOnDeny:
+          - content-type
+          - set-cookie
+          - location

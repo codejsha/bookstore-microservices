@@ -1,0 +1,27 @@
+downstream:
+  catalog-base-url: http://catalog.bookstore.svc.cluster.local:8080
+  customer-base-url: http://customer.bookstore.svc.cluster.local:8080
+  identity-base-url: http://identity.bookstore.svc.cluster.local:8080
+  inventory-base-url: http://inventory.bookstore.svc.cluster.local:8080
+  order-base-url: http://order.bookstore.svc.cluster.local:8080
+  payment-base-url: http://payment.bookstore.svc.cluster.local:8080
+  settlement-base-url: http://settlement.bookstore.svc.cluster.local:8080
+
+management:
+  otlp:
+    metrics:
+      export:
+        url: http://alloy-gateway.grafana.svc.cluster.local:4318/v1/metrics
+        step: 60s
+        base-time-unit: seconds
+  opentelemetry:
+    resource-attributes:
+      "[service.name]": admin-app
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+  endpoints:
+    web:
+      exposure:
+        include: ""

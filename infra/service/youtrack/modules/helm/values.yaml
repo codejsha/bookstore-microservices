@@ -1,0 +1,72 @@
+service:
+  enabled: true
+  name: youtrack
+  port: 8080
+  protocol: TCP
+
+podSecurityContext:
+  fsGroup: 13001
+
+securityContext:
+  runAsNonRoot: true
+  runAsGroup: 13001
+  runAsUser: 13001
+  privileged: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+initContainerResources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 1Gi
+
+persistence:
+  data:
+    name: youtrack-data
+    accessModes:
+      - ReadWriteOnce
+  logs:
+    name: youtrack-logs
+    accessModes:
+      - ReadWriteOnce
+  conf:
+    name: youtrack-conf
+    storageSize: 1Gi
+    accessModes:
+      - ReadWriteOnce
+  temp:
+    enabled: false
+  backups:
+    backupType: volumeStorage
+    name: youtrack-backup
+    volumeStorage:
+      accessModes:
+        - ReadWriteOnce
+
+config:
+  name: youtrack-config
+  mountStrategy: subPath
+  options:
+    - -Djetbrains.youtrack.disableCheckForUpdate=false
+    - -Dstatistics-upload=false
+    - -Dfile.encoding=UTF-8
+    - -Xmx2g
+
+ipWhitelist:
+  enabled: false
+
+networkPolicyWhitelist:
+  traefik:
+    enabled: false
+  cert-manager:
+    enabled: false

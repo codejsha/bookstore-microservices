@@ -1,0 +1,65 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: tekton-kustomization
+resources:
+  - https://infra.tekton.dev/tekton-releases/operator/previous/v0.79.2/release.yaml
+  - pipelines-namespace.yaml
+  - ci-namespace.yaml
+  # - https://infra.tekton.dev/tekton-releases/operator/latest/release.yaml
+patches:
+  - target:
+      kind: Namespace
+      name: tekton-operator
+    patch: |-
+      - op: add
+        path: "/metadata/labels"
+        value:
+          istio.io/dataplane-mode: ambient
+  - target:
+      kind: ConfigMap
+      name: tekton-config-defaults
+    patch: |-
+      - op: replace
+        path: "/data/AUTOINSTALL_COMPONENTS"
+        value: "false"
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: "/spec/template/spec/securityContext"
+        value:
+          seccompProfile:
+            type: RuntimeDefault
+  - target:
+      kind: Deployment
+      name: "tekton-operator"
+    patch: |-
+      - op: add
+        path: "/spec/template/spec/containers/0/resources"
+        value:
+          requests:
+            cpu: "20m"
+            memory: "128Mi"
+          limits:
+            memory: "512Mi"
+      - op: add
+        path: "/spec/template/spec/containers/1/resources"
+        value:
+          requests:
+            cpu: "20m"
+            memory: "128Mi"
+          limits:
+            memory: "512Mi"
+  - target:
+      kind: Deployment
+      name: "tekton-operator-webhook"
+    patch: |-
+      - op: add
+        path: "/spec/template/spec/containers/0/resources"
+        value:
+          requests:
+            cpu: "10m"
+            memory: "64Mi"
+          limits:
+            memory: "256Mi"

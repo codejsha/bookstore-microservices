@@ -1,0 +1,76 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: db-migrate-golang
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Database
+    tekton.dev/tags: migrate
+    tekton.dev/displayName: "DB Migrate (golang-migrate)"
+spec:
+  description: >-
+    Runs golang-migrate against PostgreSQL, with credentials from the
+    CloudNativePG-issued {cluster}-app secret. A service that owns no database
+    ships no migrations directory; the task detects that and exits cleanly, so
+    the pipeline's later deploy steps still run. Guarding this with a `when`
+    expression instead would skip every task that depends on it -- which here is
+    the whole deploy chain.
+  workspaces:
+    - name: source
+  params:
+    - name: MIGRATIONS_DIR
+      description: migrations directory relative to workspace
+      type: string
+      default: db/migrations
+    - name: DB_SECRET_NAME
+      description: >-
+        K8s secret holding username/password. Read optionally: a service with no
+        database has no such secret, and a missing secretKeyRef would fail the
+        pod before the skip check below can run.
+      type: string
+    - name: DB_HOST
+      description: Postgres host
+      type: string
+    - name: DB_NAME
+      description: Database name
+      type: string
+  steps:
+    - name: migrate-up
+      image: docker.io/migrate/migrate:v4.17.1
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.DB_SECRET_NAME)
+              key: username
+              optional: true
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.DB_SECRET_NAME)
+              key: password
+              optional: true
+        - name: PGHOST
+          value: $(params.DB_HOST)
+        - name: PGDATABASE
+          value: $(params.DB_NAME)
+      command: ["/bin/sh", "-e", "-c"]
+      args:
+        - |
+          if [ ! -d "$(params.MIGRATIONS_DIR)" ]; then
+            echo "no $(params.MIGRATIONS_DIR) in this service - nothing to migrate"
+            exit 0
+          fi
+
+          if [ -z "${PGUSER:-}" ]; then
+            echo "secret $(params.DB_SECRET_NAME) carries no credentials" >&2
+            exit 1
+          fi
+
+          migrate \
+            -path "$(params.MIGRATIONS_DIR)" \
+            -database "postgres://$PGUSER:$PGPASSWORD@$PGHOST:5432/$PGDATABASE?sslmode=disable" \
+            up

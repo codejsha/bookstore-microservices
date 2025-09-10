@@ -1,0 +1,43 @@
+package com.codejsha.bookstore.order.infrastructure.support.auth
+
+import jakarta.servlet.http.HttpServletRequest
+import org.springframework.http.HttpStatus
+import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
+import tools.jackson.databind.ObjectMapper
+import java.util.UUID
+
+const val ROLE_ADMIN = "ADMIN"
+
+@ResponseStatus(HttpStatus.UNAUTHORIZED)
+class UnauthorizedException(message: String = "authentication required") : RuntimeException(message)
+
+@ResponseStatus(HttpStatus.FORBIDDEN)
+class ForbiddenException(message: String = "forbidden") : RuntimeException(message)
+
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+class BadRequestException(message: String = "bad request") : RuntimeException(message)
+
+@Component
+class HttpPrincipalResolver(
+    private val objectMapper: ObjectMapper,
+) {
+    fun current(): Principal? {
+        val attrs = RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes ?: return null
+        val request: HttpServletRequest = attrs.request
+        return PrincipalParser.parse(request::getHeader, objectMapper)
+    }
+
+    fun require(): Principal = current().orUnauthorized()
+}
+
+fun Principal.subjectUserUid(): UUID? = runCatching { UUID.fromString(sub) }.getOrNull()
+
+fun Principal?.orUnauthorized(): Principal = this ?: throw UnauthorizedException()
+
+fun Principal.assertOrderOwner(ownerUserUid: UUID) {
+    if (hasRole(ROLE_ADMIN)) return
+    if (subjectUserUid() != ownerUserUid) throw ForbiddenException("not the owner of this order")
+}

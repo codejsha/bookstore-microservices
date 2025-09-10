@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../schemas/component-meta.schema.json",
+  "name": "Card",
+  "description": "Container component with header, content, footer subcomponents",
+  "variants": {
+    "default": { "svg": "default.svg", "tokens": ["color.card", "color.card-foreground", "color.foreground"] }
+  },
+  "sizes": ["default", "sm"],
+  "states": ["default"],
+  "responsive": false,
+  "codeRef": "services/web/src/shared/components/ui/card.tsx",
+  "cvaVariants": false
+}

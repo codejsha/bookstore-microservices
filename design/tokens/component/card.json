@@ -1,0 +1,15 @@
+{
+  "card": {
+    "background": { "$type": "color", "$value": "{color.card}" },
+    "foreground": { "$type": "color", "$value": "{color.card-foreground}" },
+    "border": { "$type": "color", "$value": "{color.foreground}", "$description": "10% opacity ring" },
+    "radius": { "$type": "dimension", "$value": "calc({elevation.radius} * 1.4)" },
+    "padding": {
+      "default": { "$type": "dimension", "$value": "16px" },
+      "sm": { "$type": "dimension", "$value": "12px" }
+    },
+    "footer": {
+      "background": { "$type": "color", "$value": "{color.muted}", "$description": "50% opacity" }
+    }
+  }
+}

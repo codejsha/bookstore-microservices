@@ -1,0 +1,12 @@
+{
+  "sidebar": {
+    "background": { "$type": "color", "$value": "{color.sidebar}" },
+    "foreground": { "$type": "color", "$value": "{color.sidebar-foreground}" },
+    "primary": { "$type": "color", "$value": "{color.sidebar-primary}" },
+    "primary-foreground": { "$type": "color", "$value": "{color.sidebar-primary-foreground}" },
+    "accent": { "$type": "color", "$value": "{color.sidebar-accent}" },
+    "accent-foreground": { "$type": "color", "$value": "{color.sidebar-accent-foreground}" },
+    "border": { "$type": "color", "$value": "{color.sidebar-border}" },
+    "ring": { "$type": "color", "$value": "{color.sidebar-ring}" }
+  }
+}

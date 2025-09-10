@@ -4,27 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 
-	"github.com/codejsha/bookstore-microservices/commonlib-go/pkg/client"
-	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/idp"
+	"github.com/codejsha/shared-library-go/pkg/rest/client"
+
+	idp "github.com/codejsha/bookstore-microservices/identity/generated/application/port/idpapi"
+	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/security"
 	"github.com/codejsha/bookstore-microservices/identity/internal/config"
 )
 
-var _ idp.UsersAPI = (*usersClient)(nil)
+const defaultRolesPrefix = "default-roles-"
 
-func NewUsersClient(
-	cfg *config.Config,
-	restyClient *client.RestyClient,
-	tokenHelper *AdminTokenHelper,
-) idp.UsersAPI {
-	return &usersClient{
-		cfg:         cfg,
-		tokenHelper: tokenHelper,
-		restyClient: restyClient.Client,
-	}
-}
+var _ security.UsersClient = (*usersClient)(nil)
 
 type usersClient struct {
 	cfg         *config.Config
@@ -32,264 +26,332 @@ type usersClient struct {
 	tokenHelper *AdminTokenHelper
 }
 
-func (c usersClient) AdminRealmsRealmUsersCountGet(ctx context.Context, param idp.AdminRealmsRealmUsersCountGetParam) (int32, error) {
-	// prepare request
-	token, _, err := c.tokenHelper.GetTokens()
-	if err != nil {
-		return 0, fmt.Errorf("failed to get token: %v", err)
+func NewUsersClient(
+	cfg *config.Config,
+	restyClient *client.RestyClient,
+	tokenHelper *AdminTokenHelper,
+) security.UsersClient {
+	return &usersClient{
+		cfg:         cfg,
+		tokenHelper: tokenHelper,
+		restyClient: restyClient.Client,
 	}
-	headers := map[string]string{
-		"Authorization": fmt.Sprintf("Bearer %s", token),
-	}
-
-	// execute request
-	restyResp, err := c.restyClient.R().
-		SetContext(ctx).
-		SetDebug(c.cfg.App.Logging.IsDebug).
-		SetHeaders(headers).
-		Get(c.cfg.Keycloak.Url + fmt.Sprintf("/admin/realms/%s/users/count", param.Realm))
-	if err != nil {
-		return 0, fmt.Errorf("failed to get user count: %v", err)
-	}
-	if restyResp.StatusCode() != 200 {
-		return 0, fmt.Errorf("failed to get user count: %s", restyResp.String())
-	}
-
-	// return response
-	var response int32
-	err = json.Unmarshal(restyResp.Body(), &response)
-	if err != nil {
-		return 0, fmt.Errorf("failed to unmarshal user count response: %v", err)
-	}
-	return response, nil
-
 }
 
-func (c usersClient) AdminRealmsRealmUsersGet(ctx context.Context, param idp.AdminRealmsRealmUsersGetParam) ([]idp.UserRepresentation, error) {
-	// prepare request
+func (c *usersClient) authHeaders() (map[string]string, error) {
 	token, _, err := c.tokenHelper.GetTokens()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get token: %v", err)
+		return nil, fmt.Errorf("failed to get token: %w", err)
 	}
-	headers := map[string]string{
-		"Authorization": fmt.Sprintf("Bearer %s", token),
-	}
-	data := map[string]string{
-		"client_id":     c.cfg.Keycloak.ClientId,
-		"client_secret": c.cfg.Keycloak.ClientSecret,
-	}
-
-	// execute request
-	request := c.restyClient.R().
-		SetContext(ctx).
-		SetDebug(c.cfg.App.Logging.IsDebug).
-		SetHeaders(headers).
-		SetFormData(data)
-	if param.Email != "" {
-		request.SetQueryParam("username", param.Email)
-	}
-	restyResp, err := request.
-		Get(c.cfg.Keycloak.Url + fmt.Sprintf("/admin/realms/%s/users", param.Realm))
-	if err != nil {
-		return nil, fmt.Errorf("failed to get users: %v", err)
-	}
-	if restyResp.StatusCode() != 200 {
-		return nil, fmt.Errorf("failed to get users: %s", restyResp.String())
-	}
-
-	// return response
-	var response []idp.UserRepresentation
-	err = json.Unmarshal(restyResp.Body(), &response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal users response: %v", err)
-	}
-	return response, nil
+	return map[string]string{"Authorization": "Bearer " + token}, nil
 }
 
-func (c usersClient) AdminRealmsRealmUsersPost(ctx context.Context, param idp.AdminRealmsRealmUsersPostParam, req idp.UserRepresentation) error {
-	// prepare request
-	token, _, err := c.tokenHelper.GetTokens()
+func (c *usersClient) ListUsers(ctx context.Context, realm, email string) ([]idp.UserRepresentation, error) {
+	headers, err := c.authHeaders()
 	if err != nil {
-		return fmt.Errorf("failed to get token: %v", err)
+		return nil, err
 	}
-	headers := map[string]string{
-		"Authorization": fmt.Sprintf("Bearer %s", token),
-		"Content-Type":  "application/json",
+
+	req := c.restyClient.R().
+		SetContext(ctx).
+		SetDebug(c.cfg.App.Logging.IsDebugEnabled).
+		SetHeaders(headers)
+	if email != "" {
+		req.SetQueryParam("email", email)
+		req.SetQueryParam("exact", "true")
 	}
+
+	resp, err := req.Get(c.cfg.Keycloak.Url + fmt.Sprintf("/admin/realms/%s/users", realm))
+	if err != nil {
+		return nil, fmt.Errorf("failed to list users: %w", err)
+	}
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("failed to list users: %s", resp.String())
+	}
+
+	var users []idp.UserRepresentation
+	if err := json.Unmarshal(resp.Body(), &users); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal users: %w", err)
+	}
+	if email != "" {
+		filtered := users[:0]
+		for _, u := range users {
+			if u.Email != nil && strings.EqualFold(*u.Email, email) {
+				filtered = append(filtered, u)
+			}
+		}
+		users = filtered
+	}
+	return users, nil
+}
+
+func (c *usersClient) CreateUser(ctx context.Context, realm string, req idp.UserRepresentation) error {
+	headers, err := c.authHeaders()
+	if err != nil {
+		return err
+	}
+	headers["Content-Type"] = "application/json"
+
 	body, err := json.Marshal(req)
 	if err != nil {
-		return fmt.Errorf("failed to marshal user: %v", err)
+		return fmt.Errorf("failed to marshal user: %w", err)
 	}
 
-	// execute request
-	restyResp, err := c.restyClient.R().
+	resp, err := c.restyClient.R().
 		SetContext(ctx).
-		SetDebug(c.cfg.App.Logging.IsDebug).
+		SetDebug(c.cfg.App.Logging.IsDebugEnabled).
 		SetHeaders(headers).
 		SetBody(body).
-		Post(c.cfg.Keycloak.Url + fmt.Sprintf("/admin/realms/%s/users", param.Realm))
+		Post(c.cfg.Keycloak.Url + fmt.Sprintf("/admin/realms/%s/users", realm))
 	if err != nil {
-		return fmt.Errorf("failed to create user: %v", err)
+		return fmt.Errorf("failed to create user: %w", err)
 	}
-	if restyResp.StatusCode() != 201 {
-		return fmt.Errorf("failed to create user: %s", restyResp.String())
+	if resp.StatusCode() != 201 {
+		return fmt.Errorf("failed to create user: %s", resp.String())
 	}
-
-	// return response
 	return nil
 }
 
-func (c usersClient) AdminRealmsRealmUsersProfileGet(ctx context.Context, param idp.AdminRealmsRealmUsersProfileGetParam) (idp.UPConfig, error) {
-	// TODO implement me
-	panic("implement me")
+func (c *usersClient) GetUser(ctx context.Context, realm, userId string) (idp.UserRepresentation, error) {
+	headers, err := c.authHeaders()
+	if err != nil {
+		return idp.UserRepresentation{}, err
+	}
+
+	resp, err := c.restyClient.R().
+		SetContext(ctx).
+		SetDebug(c.cfg.App.Logging.IsDebugEnabled).
+		SetHeaders(headers).
+		Get(c.cfg.Keycloak.Url + fmt.Sprintf("/admin/realms/%s/users/%s", realm, userId))
+	if err != nil {
+		return idp.UserRepresentation{}, fmt.Errorf("failed to get user: %w", err)
+	}
+	if resp.StatusCode() != 200 {
+		return idp.UserRepresentation{}, fmt.Errorf("failed to get user: %s", resp.String())
+	}
+
+	var user idp.UserRepresentation
+	if err := json.Unmarshal(resp.Body(), &user); err != nil {
+		return idp.UserRepresentation{}, fmt.Errorf("failed to unmarshal user: %w", err)
+	}
+	return user, nil
 }
 
-func (c usersClient) AdminRealmsRealmUsersProfileMetadataGet(ctx context.Context, param idp.AdminRealmsRealmUsersProfileMetadataGetParam) (idp.UserProfileMetadata, error) {
-	// TODO implement me
-	panic("implement me")
+func (c *usersClient) UpdateUser(ctx context.Context, realm, userId string, req idp.UserRepresentation) error {
+	headers, err := c.authHeaders()
+	if err != nil {
+		return err
+	}
+	headers["Content-Type"] = "application/json"
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return fmt.Errorf("failed to marshal user: %w", err)
+	}
+
+	resp, err := c.restyClient.R().
+		SetContext(ctx).
+		SetDebug(c.cfg.App.Logging.IsDebugEnabled).
+		SetHeaders(headers).
+		SetBody(body).
+		Put(c.cfg.Keycloak.Url + fmt.Sprintf("/admin/realms/%s/users/%s", realm, userId))
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+	if resp.StatusCode() != 204 {
+		return fmt.Errorf("failed to update user: %s", resp.String())
+	}
+	return nil
 }
 
-func (c usersClient) AdminRealmsRealmUsersProfilePut(ctx context.Context, param idp.AdminRealmsRealmUsersProfilePutParam, req idp.UPConfig) (idp.UPConfig, error) {
-	// TODO implement me
-	panic("implement me")
+func (c *usersClient) LogoutUser(ctx context.Context, realm, userId string) error {
+	headers, err := c.authHeaders()
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.restyClient.R().
+		SetContext(ctx).
+		SetDebug(c.cfg.App.Logging.IsDebugEnabled).
+		SetHeaders(headers).
+		Post(c.cfg.Keycloak.Url + fmt.Sprintf("/admin/realms/%s/users/%s/logout", realm, userId))
+	if err != nil {
+		return fmt.Errorf("failed to logout user: %w", err)
+	}
+	if resp.StatusCode() != 204 {
+		return fmt.Errorf("failed to logout user: %s", resp.String())
+	}
+	return nil
 }
 
-func (c usersClient) AdminRealmsRealmUsersUserIdConfiguredUserStorageCredentialTypesGet(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdConfiguredUserStorageCredentialTypesGetParam) ([]string, error) {
-	// TODO implement me
-	panic("implement me")
+func (c *usersClient) DeleteUser(ctx context.Context, realm, userId string) error {
+	headers, err := c.authHeaders()
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.restyClient.R().
+		SetContext(ctx).
+		SetDebug(c.cfg.App.Logging.IsDebugEnabled).
+		SetHeaders(headers).
+		Delete(c.cfg.Keycloak.Url + fmt.Sprintf("/admin/realms/%s/users/%s", realm, userId))
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+	if resp.StatusCode() != 204 {
+		return fmt.Errorf("failed to delete user: %s", resp.String())
+	}
+	return nil
 }
 
-func (c usersClient) AdminRealmsRealmUsersUserIdConsentsClientDelete(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdConsentsClientDeleteParam) error {
-	// TODO implement me
-	panic("implement me")
+// ─── Realm role mappings ────────────────────────────────────────────────────
+
+func (c *usersClient) SetUserRealmRoles(ctx context.Context, realm, userId string, roles []string) error {
+	available, err := c.listRealmRoles(ctx, realm)
+	if err != nil {
+		return err
+	}
+
+	desired := make([]idp.RoleRepresentation, 0, len(roles))
+	for _, name := range roles {
+		role, ok := available[name]
+		if !ok {
+			return fmt.Errorf("realm role %q does not exist in realm %s", name, realm)
+		}
+		desired = append(desired, role)
+	}
+
+	assigned, err := c.getUserRealmRoles(ctx, realm, userId)
+	if err != nil {
+		return err
+	}
+
+	wanted := make(map[string]bool, len(roles))
+	for _, name := range roles {
+		wanted[name] = true
+	}
+
+	var toAdd, toRemove []idp.RoleRepresentation
+	for _, role := range desired {
+		if !containsRole(assigned, *role.Name) {
+			toAdd = append(toAdd, role)
+		}
+	}
+	for _, role := range assigned {
+		if role.Name == nil || strings.HasPrefix(*role.Name, defaultRolesPrefix) {
+			continue
+		}
+		if !wanted[*role.Name] {
+			toRemove = append(toRemove, role)
+		}
+	}
+	if len(toAdd) > 0 {
+		if err := c.mapRealmRoles(ctx, realm, userId, toAdd, http.MethodPost); err != nil {
+			return fmt.Errorf("failed to grant realm roles: %w", err)
+		}
+	}
+	if len(toRemove) > 0 {
+		if err := c.mapRealmRoles(ctx, realm, userId, toRemove, http.MethodDelete); err != nil {
+			return fmt.Errorf("failed to revoke realm roles: %w", err)
+		}
+	}
+	return nil
 }
 
-func (c usersClient) AdminRealmsRealmUsersUserIdConsentsGet(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdConsentsGetParam) ([]map[string]interface{}, error) {
-	// TODO implement me
-	panic("implement me")
+func containsRole(roles []idp.RoleRepresentation, name string) bool {
+	for _, role := range roles {
+		if role.Name != nil && *role.Name == name {
+			return true
+		}
+	}
+	return false
 }
 
-func (c usersClient) AdminRealmsRealmUsersUserIdCredentialsCredentialIdDelete(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdCredentialsCredentialIdDeleteParam) error {
-	// TODO implement me
-	panic("implement me")
+func (c *usersClient) listRealmRoles(ctx context.Context, realm string) (map[string]idp.RoleRepresentation, error) {
+	headers, err := c.authHeaders()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.restyClient.R().
+		SetContext(ctx).
+		SetDebug(c.cfg.App.Logging.IsDebugEnabled).
+		SetHeaders(headers).
+		Get(c.cfg.Keycloak.Url + fmt.Sprintf("/admin/realms/%s/roles", realm))
+	if err != nil {
+		return nil, fmt.Errorf("failed to list realm roles: %w", err)
+	}
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("failed to list realm roles: %s", resp.String())
+	}
+
+	var roles []idp.RoleRepresentation
+	if err := json.Unmarshal(resp.Body(), &roles); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal realm roles: %w", err)
+	}
+
+	byName := make(map[string]idp.RoleRepresentation, len(roles))
+	for _, role := range roles {
+		if role.Name != nil {
+			byName[*role.Name] = role
+		}
+	}
+	return byName, nil
 }
 
-func (c usersClient) AdminRealmsRealmUsersUserIdCredentialsCredentialIdMoveAfterNewPreviousCredentialIdPost(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdCredentialsCredentialIdMoveAfterNewPreviousCredentialIdPostParam) error {
-	// TODO implement me
-	panic("implement me")
+func (c *usersClient) getUserRealmRoles(ctx context.Context, realm, userId string) ([]idp.RoleRepresentation, error) {
+	headers, err := c.authHeaders()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.restyClient.R().
+		SetContext(ctx).
+		SetDebug(c.cfg.App.Logging.IsDebugEnabled).
+		SetHeaders(headers).
+		Get(c.cfg.Keycloak.Url + fmt.Sprintf("/admin/realms/%s/users/%s/role-mappings/realm", realm, userId))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user realm roles: %w", err)
+	}
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("failed to get user realm roles: %s", resp.String())
+	}
+
+	var roles []idp.RoleRepresentation
+	if err := json.Unmarshal(resp.Body(), &roles); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal user realm roles: %w", err)
+	}
+	return roles, nil
 }
 
-func (c usersClient) AdminRealmsRealmUsersUserIdCredentialsCredentialIdMoveToFirstPost(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdCredentialsCredentialIdMoveToFirstPostParam) error {
-	// TODO implement me
-	panic("implement me")
-}
+func (c *usersClient) mapRealmRoles(
+	ctx context.Context,
+	realm, userId string,
+	roles []idp.RoleRepresentation,
+	method string,
+) error {
+	headers, err := c.authHeaders()
+	if err != nil {
+		return err
+	}
+	headers["Content-Type"] = "application/json"
 
-func (c usersClient) AdminRealmsRealmUsersUserIdCredentialsCredentialIdUserLabelPut(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdCredentialsCredentialIdUserLabelPutParam, req idp.AdminRealmsRealmUsersUserIdCredentialsCredentialIdUserLabelPutReq) error {
-	// TODO implement me
-	panic("implement me")
-}
+	body, err := json.Marshal(roles)
+	if err != nil {
+		return fmt.Errorf("failed to marshal realm roles: %w", err)
+	}
 
-func (c usersClient) AdminRealmsRealmUsersUserIdCredentialsGet(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdCredentialsGetParam) ([]idp.CredentialRepresentation, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdDelete(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdDeleteParam) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdDisableCredentialTypesPut(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdDisableCredentialTypesPutParam, req idp.AdminRealmsRealmUsersUserIdDisableCredentialTypesPutReq) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdExecuteActionsEmailPut(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdExecuteActionsEmailPutParam, req idp.AdminRealmsRealmUsersUserIdExecuteActionsEmailPutReq) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdFederatedIdentityGet(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdFederatedIdentityGetParam) ([]idp.FederatedIdentityRepresentation, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdFederatedIdentityProviderDelete(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdFederatedIdentityProviderDeleteParam) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdFederatedIdentityProviderPost(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdFederatedIdentityProviderPostParam) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdGet(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdGetParam) (idp.UserRepresentation, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdGroupsCountGet(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdGroupsCountGetParam) (map[string]int64, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdGroupsGet(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdGroupsGetParam) ([]idp.GroupRepresentation, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdGroupsGroupIdDelete(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdGroupsGroupIdDeleteParam) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdGroupsGroupIdPut(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdGroupsGroupIdPutParam) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdImpersonationPost(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdImpersonationPostParam) (map[string]interface{}, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdLogoutPost(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdLogoutPostParam) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdOfflineSessionsClientUuidGet(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdOfflineSessionsClientUuidGetParam) ([]idp.UserSessionRepresentation, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdPut(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdPutParam, req idp.UserRepresentation) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdResetPasswordEmailPut(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdResetPasswordEmailPutParam) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdResetPasswordPut(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdResetPasswordPutParam, req idp.CredentialRepresentation) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdSendVerifyEmailPut(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdSendVerifyEmailPutParam) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdSessionsGet(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdSessionsGetParam) ([]idp.UserSessionRepresentation, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (c usersClient) AdminRealmsRealmUsersUserIdUnmanagedAttributesGet(ctx context.Context, param idp.AdminRealmsRealmUsersUserIdUnmanagedAttributesGetParam) (map[string][]string, error) {
-	// TODO implement me
-	panic("implement me")
+	resp, err := c.restyClient.R().
+		SetContext(ctx).
+		SetDebug(c.cfg.App.Logging.IsDebugEnabled).
+		SetHeaders(headers).
+		SetBody(body).
+		Execute(method, c.cfg.Keycloak.Url+fmt.Sprintf("/admin/realms/%s/users/%s/role-mappings/realm", realm, userId))
+	if err != nil {
+		return fmt.Errorf("failed to map realm roles: %w", err)
+	}
+	if resp.StatusCode() != 204 {
+		return fmt.Errorf("failed to map realm roles: %s", resp.String())
+	}
+	return nil
 }

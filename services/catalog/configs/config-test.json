@@ -1,0 +1,22 @@
+{
+  "app": {
+    "logging": {
+      "level": "info"
+    }
+  },
+  "server": {
+    "port": "8080",
+    "mode": "debug"
+  },
+  "database": {
+    "datasource": {
+      "driver": "postgres",
+      "db_name": "catalog_db",
+      "username": "root",
+      "password": "test",
+      "params": [
+        "sslmode=disable"
+      ]
+    }
+  }
+}

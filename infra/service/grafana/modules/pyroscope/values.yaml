@@ -1,0 +1,34 @@
+pyroscope:
+  replicaCount: 1
+
+  structuredConfig:
+    storage:
+      backend: s3
+      s3:
+        endpoint:         ${s3_endpoint}
+        region:           ${s3_region}
+        bucket_name:      ${s3_bucket}
+        insecure:         true
+        force_path_style: true
+
+  persistence:
+    enabled: true
+    size: 20Gi
+    accessModes:
+      - ReadWriteOnce
+
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+alloy:
+  enabled: false
+
+serviceMonitor:
+  enabled: true
+  labels:
+    release: prometheus

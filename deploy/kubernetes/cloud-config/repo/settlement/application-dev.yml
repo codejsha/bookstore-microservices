@@ -1,0 +1,41 @@
+spring:
+  config:
+    import: "optional:file:/vault/secrets/db.properties,optional:file:/vault/secrets/payment-db.properties"
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://settlement-mysql.bookstore.svc.cluster.local:3306/settlement_db?allowPublicKeyRetrieval=true&characterEncoding=utf8&useSSL=false
+    username: ${db.username}
+    password: ${db.password}
+    hikari:
+      minimum-idle: 30
+      maximum-pool-size: 30
+      connection-timeout: 10000
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+      auto-commit: true
+      max-lifetime: 1800000
+
+settlement:
+  payment-db:
+    host: payment-mysql.bookstore.svc.cluster.local
+    port: 3306
+
+management:
+  otlp:
+    metrics:
+      export:
+        url: http://alloy-gateway.grafana.svc.cluster.local:4318/v1/metrics
+        step: 60s
+        base-time-unit: seconds
+  opentelemetry:
+    resource-attributes:
+      "[service.name]": settlement-app
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+  endpoints:
+    web:
+      exposure:
+        include: ""

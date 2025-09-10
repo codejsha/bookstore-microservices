@@ -1,0 +1,17 @@
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+monitoring:
+  podMonitorEnabled: true
+  podMonitorAdditionalLabels:
+    release: prometheus
+
+config:
+  create: true

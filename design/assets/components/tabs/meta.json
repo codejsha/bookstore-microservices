@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../schemas/component-meta.schema.json",
+  "name": "Tabs",
+  "description": "Tab navigation with tab list, triggers, and content panels",
+  "variants": {
+    "default": { "svg": "default.svg", "tokens": ["color.muted", "color.foreground", "color.background"] }
+  },
+  "sizes": ["default"],
+  "states": ["default", "active", "hover"],
+  "responsive": false,
+  "codeRef": "services/web/src/shared/components/ui/tabs.tsx",
+  "cvaVariants": false
+}

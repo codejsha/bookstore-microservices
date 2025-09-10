@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Component Meta",
+  "description": "Metadata for design system component SVG exports",
+  "type": "object",
+  "required": [
+    "name",
+    "variants",
+    "states"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Component display name"
+    },
+    "description": "Brief description of the component",
+    "variants": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "svg": {
+            "type": "string",
+            "description": "SVG filename"
+          },
+          "tokens": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Semantic token references used"
+          }
+        }
+      }
+    },
+    "sizes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "states": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "responsive": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "fontSize": {
+                "type": "string"
+              },
+              "padding": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "codeRef": {
+      "type": "string",
+      "description": "Relative path to source component file"
+    },
+    "cvaVariants": {
+      "type": "boolean",
+      "description": "Whether component uses class-variance-authority"
+    }
+  }
+}

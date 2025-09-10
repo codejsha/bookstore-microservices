@@ -1,1 +1,5 @@
-CREATE SCHEMA catalog_db COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE catalog_db
+    ENCODING = 'UTF8'
+    LC_COLLATE = 'en_US.UTF-8'
+    LC_CTYPE = 'en_US.UTF-8'
+    TEMPLATE = template0;

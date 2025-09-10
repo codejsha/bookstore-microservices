@@ -1,47 +1,25 @@
 package aggregate
 
-import (
-	"github.com/codejsha/bookstore-microservices/customer/internal/application/port/openapi"
-	"github.com/codejsha/bookstore-microservices/customer/internal/application/port/pb/orderpb"
-)
-
-func NewOrderAggregate(
-	resp *orderpb.OrderFindProtoResp,
-) *OrderAggregate {
-	items := make([]openapi.OrderItem, len(resp.OrderItems))
-	for i, item := range resp.OrderItems {
-		orderItem := openapi.OrderItem{
-			BookId:   item.BookId,
-			Quantity: item.Quantity,
-		}
-		items[i] = orderItem
-	}
-	agg := &OrderAggregate{
-		Id:         resp.Id,
-		UserId:     resp.UserId,
-		OrderItems: items,
-		TotalPrice: resp.TotalPrice,
-		Status:     openapi.OrderStatus(resp.Status),
-	}
-	return agg
-}
-
 type OrderAggregate struct {
-	// order id
-	Id         int64
-	UserId     string
-	OrderItems []openapi.OrderItem
-	TotalPrice float64
-	Status     openapi.OrderStatus
+	Uid         string
+	UserUid     string
+	OrderItems  []OrderItem
+	TotalAmount float64
+	Status      OrderStatus
 }
 
-func (a *OrderAggregate) ToOrderFindResponse() openapi.OrderFindWebResp {
-	resp := openapi.OrderFindWebResp{
-		Id:         a.Id,
-		UserId:     a.UserId,
-		OrderItems: a.OrderItems,
-		TotalPrice: a.TotalPrice,
-		Status:     a.Status,
-	}
-	return resp
+type OrderItem struct {
+	BookUid  string
+	Quantity int32
 }
+
+type OrderStatus int32
+
+const (
+	ORDERSTATUS_UNKNOWN   OrderStatus = 0
+	ORDERSTATUS_PENDING   OrderStatus = 1
+	ORDERSTATUS_PAID      OrderStatus = 2
+	ORDERSTATUS_SHIPPING  OrderStatus = 3
+	ORDERSTATUS_COMPLETED OrderStatus = 4
+	ORDERSTATUS_CANCELLED OrderStatus = 5
+)

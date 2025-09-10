@@ -1,0 +1,18 @@
+image:
+  pullPolicy: Always
+
+extraEnv:
+  - name: SPRING_PROFILES_ACTIVE
+    value: dev
+  - name: SPRING_CONFIG_IMPORT
+    value: "configserver:http://config-server.cloud-config.svc.cluster.local:8888"
+
+mesh:
+  waypoint: "bookstore-waypoint"
+
+gatewayApi:
+  enabled: true
+  host: "bookstore-admin.example.com"
+  directApi:
+    enabled: true
+    host: "bookstore-admin-api.example.com"

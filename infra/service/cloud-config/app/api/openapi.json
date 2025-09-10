@@ -1,0 +1,499 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Spring cloud config for bookstore microservices",
+    "description": "This service is responsible for managing and serving configuration for bookstore microservices",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Admin",
+      "email": "admin@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://config-server.cloud-config.svc.cluster.local:8888",
+      "description": "spring cloud config server"
+    },
+    {
+      "url": "http://localhost:8888",
+      "description": "localhost"
+    }
+  ],
+  "tags": [
+    {
+      "name": "bookstore",
+      "description": "Configuration for bookstore microservices"
+    }
+  ],
+  "paths": {
+    "/{application}/{profile}": {
+      "get": {
+        "tags": [
+          "bookstore"
+        ],
+        "summary": "Get configuration for an application and profile",
+        "description": "Retrieves the configuration properties for the specified application and profile using the default label.",
+        "operationId": "getConfigByApplicationAndProfile",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/application"
+          },
+          {
+            "$ref": "#/components/parameters/profile"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Configuration retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Environment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application or profile not found"
+          }
+        }
+      }
+    },
+    "/{application}/{profile}/{label}": {
+      "get": {
+        "tags": [
+          "bookstore"
+        ],
+        "summary": "Get configuration for an application, profile, and label",
+        "description": "Retrieves the configuration properties for the specified application, profile, and Git label (branch, tag, or commit).",
+        "operationId": "getConfigByApplicationProfileAndLabel",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/application"
+          },
+          {
+            "$ref": "#/components/parameters/profile"
+          },
+          {
+            "$ref": "#/components/parameters/label"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Configuration retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Environment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application, profile, or label not found"
+          }
+        }
+      }
+    },
+    "/{label}/{application}-{profile}.yml": {
+      "get": {
+        "tags": [
+          "bookstore"
+        ],
+        "summary": "Get configuration as YAML with label",
+        "description": "Retrieves the configuration in YAML format for the specified application, profile, and label.",
+        "operationId": "getConfigYamlWithLabel",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/label"
+          },
+          {
+            "$ref": "#/components/parameters/application"
+          },
+          {
+            "$ref": "#/components/parameters/profile"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Configuration retrieved successfully",
+            "content": {
+              "application/x-yaml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Configuration not found"
+          }
+        }
+      }
+    },
+    "/{label}/{application}-{profile}.properties": {
+      "get": {
+        "tags": [
+          "bookstore"
+        ],
+        "summary": "Get configuration as properties with label",
+        "description": "Retrieves the configuration in Java properties format for the specified application, profile, and label.",
+        "operationId": "getConfigPropertiesWithLabel",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/label"
+          },
+          {
+            "$ref": "#/components/parameters/application"
+          },
+          {
+            "$ref": "#/components/parameters/profile"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Configuration retrieved successfully",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Configuration not found"
+          }
+        }
+      }
+    },
+    "/{label}/{application}-{profile}.json": {
+      "get": {
+        "tags": [
+          "bookstore"
+        ],
+        "summary": "Get configuration as JSON with label",
+        "description": "Retrieves the configuration in JSON format for the specified application, profile, and label.",
+        "operationId": "getConfigJsonWithLabel",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/label"
+          },
+          {
+            "$ref": "#/components/parameters/application"
+          },
+          {
+            "$ref": "#/components/parameters/profile"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Configuration retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Configuration not found"
+          }
+        }
+      }
+    },
+    "/encrypt": {
+      "post": {
+        "tags": [
+          "bookstore"
+        ],
+        "summary": "Encrypt a value",
+        "description": "Encrypts the provided plaintext value using the server's configured encryption key.",
+        "operationId": "encrypt",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string"
+              },
+              "example": "my-secret-value"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Value encrypted successfully",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Encryption key not configured"
+          }
+        }
+      }
+    },
+    "/decrypt": {
+      "post": {
+        "tags": [
+          "bookstore"
+        ],
+        "summary": "Decrypt a value",
+        "description": "Decrypts the provided cipher text using the server's configured encryption key.",
+        "operationId": "decrypt",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string"
+              },
+              "example": "{cipher}AQAB..."
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Value decrypted successfully",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Encryption key not configured"
+          }
+        }
+      }
+    },
+    "/encrypt/status": {
+      "get": {
+        "tags": [
+          "bookstore"
+        ],
+        "summary": "Check encryption status",
+        "description": "Returns the status of the encryption configuration.",
+        "operationId": "encryptStatus",
+        "responses": {
+          "200": {
+            "description": "Encryption is properly configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Encryption key not configured"
+          }
+        }
+      }
+    },
+    "/actuator/health": {
+      "get": {
+        "tags": [
+          "bookstore"
+        ],
+        "summary": "Health check",
+        "description": "Returns the health status of the config server.",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service is unhealthy"
+          }
+        }
+      }
+    },
+    "/actuator/info": {
+      "get": {
+        "tags": [
+          "bookstore"
+        ],
+        "summary": "Application info",
+        "description": "Returns information about the config server application.",
+        "operationId": "appInfo",
+        "responses": {
+          "200": {
+            "description": "Application info retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "application": {
+        "name": "application",
+        "in": "path",
+        "required": true,
+        "description": "The application name",
+        "schema": {
+          "type": "string"
+        },
+        "example": "catalog-service"
+      },
+      "profile": {
+        "name": "profile",
+        "in": "path",
+        "required": true,
+        "description": "The configuration profile",
+        "schema": {
+          "type": "string"
+        },
+        "example": "default"
+      },
+      "label": {
+        "name": "label",
+        "in": "path",
+        "required": true,
+        "description": "The Git label (branch, tag, or commit)",
+        "schema": {
+          "type": "string"
+        },
+        "example": "main"
+      }
+    },
+    "schemas": {
+      "Environment": {
+        "type": "object",
+        "description": "Spring Cloud Config Environment response containing configuration property sources.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Application name",
+            "example": "catalog-service"
+          },
+          "profiles": {
+            "type": "array",
+            "description": "Active profiles",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "default"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "description": "Git label (branch/tag/commit)",
+            "example": "main",
+            "nullable": true
+          },
+          "version": {
+            "type": "string",
+            "description": "Git commit hash of the configuration",
+            "example": "a1b2c3d4e5f6",
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "description": "State of the configuration",
+            "nullable": true
+          },
+          "propertySources": {
+            "type": "array",
+            "description": "List of property sources",
+            "items": {
+              "$ref": "#/components/schemas/PropertySource"
+            }
+          }
+        }
+      },
+      "PropertySource": {
+        "type": "object",
+        "description": "A named set of configuration properties from a specific source.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Source identifier",
+            "example": "git@github.com:org/config-repo.git/catalog-service.yml"
+          },
+          "source": {
+            "type": "object",
+            "description": "Key-value pairs of configuration properties",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "example": {
+              "server.port": "8080",
+              "spring.datasource.url": "jdbc:postgresql://localhost:5432/catalog"
+            }
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "description": "Spring Boot Actuator health response.",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Overall health status",
+            "enum": [
+              "UP",
+              "DOWN",
+              "OUT_OF_SERVICE",
+              "UNKNOWN"
+            ],
+            "example": "UP"
+          },
+          "components": {
+            "type": "object",
+            "description": "Health details of individual components",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "UP",
+                    "DOWN",
+                    "OUT_OF_SERVICE",
+                    "UNKNOWN"
+                  ]
+                },
+                "details": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

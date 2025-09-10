@@ -4,6 +4,12 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/internal/infrastructure/support"
 )
 
+type Infra struct {
+	ginServer        *support.GinServer
+	grpcServer       *support.GrpcServer
+	telemetryManager *support.TelemetryManager
+}
+
 func NewInfra(
 	ginServer *support.GinServer,
 	grpcServer *support.GrpcServer,
@@ -14,16 +20,4 @@ func NewInfra(
 		grpcServer:       grpcServer,
 		telemetryManager: telemetryManager,
 	}
-}
-
-type Infra struct {
-	ginServer        *support.GinServer
-	grpcServer       *support.GrpcServer
-	telemetryManager *support.TelemetryManager
-}
-
-func (s *Infra) Run() {
-	go s.telemetryManager.Run()
-	go s.grpcServer.Run()
-	s.ginServer.Run()
 }

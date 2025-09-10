@@ -1,0 +1,5 @@
+[tools]
+terraform = "1.9.8"
+terragrunt = "1.0.8"
+kubectl = "1.31"
+helm = "3.16"

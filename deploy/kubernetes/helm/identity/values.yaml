@@ -1,56 +1,80 @@
-replicaCount: 1
+replicaCount: 2
+revisionHistoryLimit: 3
 
 image:
   repository: harbor.example.com/bookstore/identity
-  tag: 0.1.0
+  tag: 1.0.0
   pullPolicy: IfNotPresent
-imagePullSecrets: []
+imagePullSecrets:
+  - name: harbor-pull
 
 nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
-  create: true
-  name: ""
+  create: false
+  name: "identity-postgres"
   automountServiceAccountToken: false
   annotations: {}
 
 automountServiceAccountToken: true
 
 podAnnotations:
-  sidecar.istio.io/rewriteAppHTTPProbers: "false"
+  vault.hashicorp.com/agent-inject: "true"
+  vault.hashicorp.com/agent-init-first: "true"
+  vault.hashicorp.com/role: "bookstore-identity-role"
+  vault.hashicorp.com/agent-inject-secret-db.properties: "database/static-creds/identity-postgres-static"
+  vault.hashicorp.com/agent-inject-template-db.properties: |
+    {{- with secret "database/static-creds/identity-postgres-static" -}}
+    db.username={{ .Data.username }}
+    db.password={{ .Data.password }}
+    {{- end -}}
+  vault.hashicorp.com/agent-inject-secret-env-keycloak: "kv/data/bookstore/identity/keycloak"
+  vault.hashicorp.com/secret-volume-path-env-keycloak: "/vault/secrets"
+  vault.hashicorp.com/agent-inject-file-env-keycloak: "env-keycloak"
+  vault.hashicorp.com/agent-inject-template-env-keycloak: |
+    {{- with secret "kv/data/bookstore/identity/keycloak" -}}
+    export KEYCLOAK_CLIENT_ID="{{ .Data.data.client_id }}"
+    export KEYCLOAK_CLIENT_SECRET="{{ .Data.data.client_secret }}"
+    export KEYCLOAK_ADMIN_USERNAME="{{ .Data.data.admin_username }}"
+    export KEYCLOAK_ADMIN_PASSWORD="{{ .Data.data.admin_password }}"
+    {{- end -}}
+command:
+  - /bin/sh
+  - -c
+args:
+  - . /vault/secrets/env-keycloak; exec /app/entrypoint.sh
+
 podLabels:
   app.kubernetes.io/group: bookstore
 
-podSecurityContext: {}
-securityContext: {}
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
 
 service:
   type: ClusterIP
   port: 8080
-  https:
-    enabled: false
-    port: 8443
-
-ingress:
-  enabled: false
-  className: ""
-  annotations:
-    kubernetes.io/ingress.class: nginx
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
+  grpc:
+    enabled: true
+    port: 9090
 
 resources:
   requests:
     cpu: 10m
-    memory: 512Mi
+    memory: 128Mi
   limits:
     cpu: 500m
-    memory: 1Gi
+    memory: 512Mi
 
 livenessProbe:
   httpGet:
@@ -76,27 +100,43 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
 
-volumes: []
-volumeMounts: []
+volumes:
+  - name: tmp
+    emptyDir: {}
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
 
 nodeSelector: {}
 tolerations: []
 affinity: {}
 
-istio:
+mesh:
+  waypoint: "bookstore-waypoint"
+  requestTimeout: "15s"
+
+gatewayApi:
   enabled: false
   host: "example.com"
-  tls:
-    enabled: false
-    httpsRedirect: false
-    mode: "SIMPLE"
-    credentialName: ""
-  trafficPolicy:
-    loadBalancer:
-      simple: ROUND_ROBIN
-  gateway:
-    annotations: {}
-  virtualService:
-    annotations: {}
-  destinationRule:
-    annotations: {}
+  gatewayName: "bookstore-gateway"
+  gatewayNamespace: "istio-system"
+rollout:
+  enabled: true
+  canary:
+    steps:
+      - weight: 10
+        pause: "60s"
+      - weight: 30
+        pause: "60s"
+      - weight: 60
+        pause: "60s"
+    analysis:
+      enabled: true
+      startingStep: 1
+      interval: "30s"
+      count: 0
+      failureLimit: 1
+      window: "2m"
+      successRateThreshold: "0.99"
+      latencyP99ThresholdMs: "1000"
+      prometheusAddress: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"

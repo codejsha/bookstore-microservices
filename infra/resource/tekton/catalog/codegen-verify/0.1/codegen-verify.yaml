@@ -1,0 +1,113 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: codegen-verify
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Cli
+    tekton.dev/tags: build
+    tekton.dev/displayName: "Codegen drift verify"
+spec:
+  description: >-
+    Regenerates the API code from source and fails if it differs from what is
+    committed.
+
+    The generated OpenAPI clients/servers and the mirrored-spec clients are
+    checked in, but CI otherwise only compiles them -- so a change to a .tsp
+    source (or a bump of a mirrored spec version) that is not followed by
+    `make api-gen` ships stale generated code that still builds green. This task
+    closes that gap: it runs `make api-gen` (which pulls the mirrored specs from
+    Nexus, compiles the TypeSpec, and regenerates every client) and then
+    `git diff --exit-code`. Drift fails the build with the diff.
+
+    It runs api-gen, not gen: the gorm / jOOQ database codegen needs a live
+    database via Testcontainers and cannot run here. Those stay a local concern.
+  workspaces:
+    - name: source
+  params:
+    - name: IMAGE
+      description: >-
+        Codegen toolchain image. Must carry make, git, node+pnpm (for the
+        TypeSpec compiler), the oapi-codegen generator, buf, redocly, yq and
+        python3 -- everything `make api-gen` drives. See
+        infra/resource/tekton/images/codegen-toolchain/Dockerfile.
+      type: string
+    - name: CONTEXT_DIR
+      description: working directory relative to the workspace
+      type: string
+      default: ./
+    - name: TARGET_DIR
+      description: directory to run make in (relative to CONTEXT_DIR)
+      type: string
+      default: ./
+    - name: GEN_TARGET
+      description: the make target that regenerates the API code
+      type: string
+      default: api-gen
+    - name: NEXUS_RAW_URL
+      description: >-
+        In-cluster raw repo base that the mirrored specs are fetched from
+        (make's NEXUS_RAW_URL). e.g.
+        http://nexus.nexus.svc.cluster.local:8081/repository/raw-hosted
+      type: string
+    - name: NEXUS_SECRET_NAME
+      description: k8s secret holding Nexus username/password for the spec fetch
+      type: string
+      default: nexus-credentials
+    - name: SKIP
+      description: >-
+        "true" turns the check into a no-op. The pipelines also guard this task
+        with a `when` on the same flag so no pod is created at all — a runtime
+        skip still has to pull IMAGE, which fails while the codegen-toolchain
+        image is unpublished. The build task does not run after this one, so
+        skipping it here does not skip the build.
+      type: string
+      default: "false"
+  steps:
+    - name: verify
+      image: $(params.IMAGE)
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
+      env:
+        - name: GIT_CONFIG_COUNT
+          value: "1"
+        - name: GIT_CONFIG_KEY_0
+          value: safe.directory
+        - name: GIT_CONFIG_VALUE_0
+          value: "*"
+        - name: NEXUS_RAW_URL
+          value: $(params.NEXUS_RAW_URL)
+        - name: NEXUS_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: username
+        - name: NEXUS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: password
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+
+        if [ "$(params.SKIP)" = "true" ]; then
+          echo "codegen-verify: skipped (SKIP=true)."
+          exit 0
+        fi
+
+        export NEXUS_AUTH="${NEXUS_USER}:${NEXUS_PASSWORD}"
+
+        make -C "$(params.TARGET_DIR)" "$(params.GEN_TARGET)"
+
+        cd "$(params.TARGET_DIR)"
+        if git diff --exit-code; then
+          echo "codegen-verify: generated API code is in sync with the sources."
+        else
+          echo "" >&2
+          echo "codegen-verify: FAILED — generated API code is out of sync." >&2
+          echo "A .tsp source or a mirrored spec version changed without a" >&2
+          echo "matching 'make api-gen'. Run it locally and commit the result." >&2
+          exit 1
+        fi

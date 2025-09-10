@@ -1,0 +1,82 @@
+global:
+  enabled: true
+  tlsDisable: true
+
+injector:
+  enabled: false
+
+server:
+  enabled: true
+  image:
+    repository: "hashicorp/vault"
+
+  logLevel: info
+  logFormat: json
+
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 10m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+
+  annotations:
+    traffic.sidecar.istio.io/excludeInboundPorts: "8200"
+
+  authDelegator:
+    enabled: false
+
+  serviceAccount:
+    create: true
+    createSecret: false
+
+  dataStorage:
+    enabled: true
+    size: 1Gi
+  auditStorage:
+    enabled: false
+
+  service:
+    enabled: true
+    publishNotReadyAddresses: true
+
+  dev:
+    enabled: false
+
+  ha:
+    enabled: false
+
+  standalone:
+    enabled: true
+    config: |
+      ui = true
+      listener "tcp" {
+        tls_disable = 1
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+        telemetry {
+          unauthenticated_metrics_access = true
+        }
+      }
+      storage "file" {
+        path = "/vault/data"
+      }
+      disable_mlock = true
+      telemetry {
+        prometheus_retention_time = "30s"
+        disable_hostname = true
+      }
+
+ui:
+  enabled: true
+  publishNotReadyAddresses: false
+
+csi:
+  enabled: false
+
+serverTelemetry:
+  serviceMonitor:
+    enabled: true
+  prometheusRules:
+    enabled: false

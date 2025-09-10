@@ -1,0 +1,69 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: verify-ci-status
+spec:
+  description: |
+    Refuse to deploy a revision whose CI half did not pass. Nothing else
+    enforces this: the cd event is dispatched independently of ci, and kaniko
+    pushes the image before trivy scans it, so a commit that failed its image
+    scan still has a signable 1.0.0-<sha> sitting in Harbor.
+
+    Reads the Gitea commit status the ci run reported and fails unless the
+    newest entry for the required context is a success.
+  params:
+    - name: service-name
+      type: string
+    - name: git-source-revision
+      type: string
+    - name: required-context
+      description: commit status context the ci half reports under
+      type: string
+      default: tekton/ci
+    - name: gitea-api-url
+      type: string
+      default: http://gitea-http.gitea.svc.cluster.local:3000/api/v1
+    - name: gitea-org
+      type: string
+      default: example-corp
+    - name: source-repo-suffix
+      type: string
+      default: -source
+    - name: IMAGE
+      description: needs curl and jq
+      type: string
+      default: docker.io/alpine/k8s:1.36.2
+  steps:
+    - name: verify
+      image: $(params.IMAGE)
+      env:
+        - name: GITEA_USER
+          valueFrom:
+            secretKeyRef:
+              name: gitea-status-credentials
+              key: username
+        - name: GITEA_PASS
+          valueFrom:
+            secretKeyRef:
+              name: gitea-status-credentials
+              key: password
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+
+        REPO="$(params.gitea-org)/$(params.service-name)$(params.source-repo-suffix)"
+        REV="$(params.git-source-revision)"
+        CTX="$(params.required-context)"
+
+        resp=$(curl -sf -u "$GITEA_USER:$GITEA_PASS" \
+          "$(params.gitea-api-url)/repos/$REPO/statuses/$REV?limit=50")
+
+        state=$(printf '%s' "$resp" | jq -r --arg ctx "$CTX" \
+          'map(select(.context == $ctx)) | .[0].status // "none"')
+
+        if [ "$state" != "success" ]; then
+          echo "refusing to deploy $REPO @ $REV — $CTX is \"$state\"" >&2
+          echo "run the ci half for this revision first" >&2
+          exit 1
+        fi
+        echo "$CTX: success @ $REV"

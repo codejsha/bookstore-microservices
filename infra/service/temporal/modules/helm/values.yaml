@@ -1,0 +1,150 @@
+server:
+  enabled: true
+  image:
+    repository: temporalio/server
+    tag: 1.30.3
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  config:
+    persistence:
+      defaultStore: default
+      visibilityStore: visibility
+      numHistoryShards: 128
+      datastores:
+        default:
+          sql:
+            createDatabase: true
+            manageSchema: true
+            pluginName: mysql8
+            driverName: mysql8
+            databaseName: temporal
+            connectAddr: "${db_connect_addr}"
+            connectProtocol: tcp
+            user: "${db_user}"
+            existingSecret: "${db_secret_name}"
+            secretKey: password
+            maxConns: 20
+            maxIdleConns: 20
+            maxConnLifetime: "1h"
+        visibility:
+          sql:
+            createDatabase: true
+            manageSchema: true
+            pluginName: mysql8
+            driverName: mysql8
+            databaseName: temporal_visibility
+            connectAddr: "${db_connect_addr}"
+            connectProtocol: tcp
+            user: "${db_user}"
+            existingSecret: "${db_secret_name}"
+            secretKey: password
+            maxConns: 20
+            maxIdleConns: 20
+            maxConnLifetime: "1h"
+
+  frontend:
+    replicaCount: 1
+    service:
+      type: ClusterIP
+      port: 7233
+    resources:
+      requests:
+        cpu: 25m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  history:
+    replicaCount: 1
+    service:
+      type: ClusterIP
+      port: 7234
+    resources:
+      requests:
+        cpu: 25m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  matching:
+    replicaCount: 1
+    service:
+      type: ClusterIP
+      port: 7235
+    resources:
+      requests:
+        cpu: 25m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  worker:
+    replicaCount: 1
+    service:
+      type: ClusterIP
+      port: 7239
+    resources:
+      requests:
+        cpu: 25m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+web:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: temporalio/ui
+    tag: 2.48.1
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  ingress:
+    enabled: false
+
+admintools:
+  enabled: true
+  image:
+    repository: temporalio/admin-tools
+    tag: "1.30.3"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+metrics:
+  annotations:
+    enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+  prometheus:
+    timerType: histogram
+    listenAddress: "0.0.0.0:9090"
+
+shims:
+  dockerize: false
+  elasticsearchTool: false

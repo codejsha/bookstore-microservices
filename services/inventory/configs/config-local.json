@@ -1,0 +1,29 @@
+{
+  "app": {
+    "logging": {
+      "level": "info"
+    }
+  },
+  "server": {
+    "port": "8080",
+    "mode": "debug"
+  },
+  "temporal": {
+    "host": "localhost:7233",
+    "namespace": "bookstore",
+    "taskQueue": "inventory-task-queue"
+  },
+  "database": {
+    "datasource": {
+      "driver": "postgres",
+      "host": "localhost",
+      "port": 5432,
+      "db_name": "inventory_db",
+      "username": "root",
+      "password": "test",
+      "params": [
+        "sslmode=disable"
+      ]
+    }
+  }
+}

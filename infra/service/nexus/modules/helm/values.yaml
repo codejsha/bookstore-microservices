@@ -1,0 +1,44 @@
+fullnameOverride: nexus
+
+serviceAccount:
+  create: false
+  name: nexus
+
+nexus:
+  docker:
+    enabled: true
+    registries:
+      - host: nexus-docker
+        port: 5000
+  nexusPort: 8081
+
+  env:
+    - name: INSTALL4J_ADD_VM_PARAMS
+      value: |-
+        -Xms1024M -Xmx1024M
+        -XX:MaxDirectMemorySize=1024M
+        -XX:+UnlockExperimentalVMOptions
+        -Djava.util.prefs.userRoot=/nexus-data/javaprefs
+    - name: NEXUS_SECURITY_RANDOMPASSWORD
+      value: "true"
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 2Gi
+    limits:
+      memory: 4Gi
+  livenessProbe:
+    initialDelaySeconds: 120
+  readinessProbe:
+    initialDelaySeconds: 120
+
+service:
+  type: ClusterIP
+
+persistence:
+  enabled: true
+  storageSize: 20Gi
+
+ingress:
+  enabled: false

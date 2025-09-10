@@ -1,0 +1,24 @@
+{
+  "app": {
+    "logging_level": "info"
+  },
+  "server": {
+    "port": 8080,
+    "mode": "release"
+  },
+  "grpc": {
+    "port": 9090
+  },
+  "database": {
+    "host": "mysql",
+    "port": 3306,
+    "db_name": "support_db",
+    "username": "support",
+    "password": ""
+  },
+  "telemetry": {
+    "enabled": true,
+    "endpoint": "http://otel-collector:4317",
+    "service_name": "support"
+  }
+}

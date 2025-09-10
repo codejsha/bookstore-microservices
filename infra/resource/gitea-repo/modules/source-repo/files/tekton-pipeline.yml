@@ -1,0 +1,72 @@
+name: tekton-pipeline
+run-name: "${{ inputs.event }} @ ${{ inputs.revision || github.sha }}"
+on:
+  workflow_dispatch:
+    inputs:
+      event:
+        description: "pipeline to run"
+        required: true
+        type: choice
+        options:
+          - ci
+          - cd
+      revision:
+        description: "commit sha to build/deploy (defaults to this branch head)"
+        required: false
+
+jobs:
+  trigger:
+    runs-on: alpine-k8s
+    steps:
+      - name: post signed event to the tekton eventlistener
+        env:
+          SECRET: ${{ secrets.TEKTON_TRIGGER_TOKEN }}
+          EVENT: ${{ inputs.event }}
+          INPUT_REVISION: ${{ inputs.revision }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO="${GITHUB_REPOSITORY##*/}"
+          SERVICE="${REPO%-source}"
+          REVISION="${INPUT_REVISION:-$GITHUB_SHA}"
+          case "$SERVICE" in
+            catalog|customer|identity|inventory) EL=bookstore-golang ;;
+            order|payment|settlement|admin) EL=bookstore-gradle ;;
+            delivery|notification|support) EL=bookstore-uv ;;
+            web|admin-web) EL=bookstore-vite ;;
+            *) echo "unknown service: $SERVICE" >&2; exit 1 ;;
+          esac
+          PAYLOAD=$(printf '{"repository":{"name":"%s","ssh_url":"ssh://git@gitea-ssh.gitea.svc.cluster.local:22/example-corp/%s.git"},"ref":"refs/heads/main","after":"%s"}' "$REPO" "$REPO" "$REVISION")
+          SIG=$(printf '%s' "$PAYLOAD" | python3 -c 'import hashlib, hmac, os, sys; print(hmac.new(os.environ["SECRET"].encode(), sys.stdin.buffer.read(), hashlib.sha256).hexdigest())')
+          RESPONSE=$(curl -sf -X POST "http://el-$EL.bookstore-ci.svc.cluster.local:8080" \
+            -H 'Content-Type: application/json' \
+            -H "X-Bookstore-Event: $EVENT" \
+            -H "X-Hub-Signature-256: sha256=$SIG" \
+            -d "$PAYLOAD")
+          EVENT_ID=$(printf '%s' "$RESPONSE" | python3 -c 'import json, sys; print(json.load(sys.stdin)["eventID"])')
+          echo "triggered $EVENT for $SERVICE @ $REVISION (event $EVENT_ID)"
+          CONTEXT="tekton/$EVENT"
+          curl -skf -X POST "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/statuses/$REVISION" \
+            -H "Authorization: token $GH_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d "{\"state\":\"pending\",\"context\":\"$CONTEXT\",\"description\":\"pipeline triggered (event $EVENT_ID)\"}" \
+            >/dev/null
+          echo "REVISION=$REVISION" >> "$GITHUB_ENV"
+          echo "CONTEXT=$CONTEXT" >> "$GITHUB_ENV"
+      - name: wait for the pipeline's commit status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 120); do
+            STATE=$(curl -skf -H "Authorization: token $GH_TOKEN" \
+              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/statuses/$REVISION?limit=50" \
+              | python3 -c 'import json, os, sys; ctx = os.environ["CONTEXT"]; print(next((s.get("status") or s.get("state") or "" for s in json.load(sys.stdin) if s.get("context") == ctx), ""))' || true)
+            case "$STATE" in
+              success) echo "$CONTEXT: success"; exit 0 ;;
+              failure|error|warning) echo "$CONTEXT: $STATE — inspect the run with tkn" >&2; exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "no result reported for $CONTEXT within 30m — the commit badge is authoritative; check tkn pipelinerun list -n bookstore-ci" >&2
+          exit 1

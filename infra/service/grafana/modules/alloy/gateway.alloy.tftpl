@@ -1,0 +1,86 @@
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+// --- OTLP ingress ------------------------------------------------------------
+
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+// --- Faro ingress (browser RUM via Grafana Faro Web SDK) ---------------------
+
+faro.receiver "default" {
+  server {
+    listen_address = "0.0.0.0"
+    listen_port    = 12347
+  }
+
+  output {
+    logs   = [otelcol.receiver.loki.faro.receiver]
+    traces = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.receiver.loki "faro" {
+  output {
+    logs = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  send_batch_size     = 2000
+  send_batch_max_size = 3000
+  timeout             = "1s"
+
+  output {
+    metrics = [otelcol.exporter.otlphttp.prometheus.input]
+    logs    = [otelcol.exporter.otlphttp.loki.input]
+    traces  = [otelcol.exporter.otlp.tempo.input]
+  }
+}
+
+// --- Metrics → Prometheus ----------------------------------------------------
+
+otelcol.exporter.otlphttp "prometheus" {
+  client {
+    endpoint = "${prometheus_otlp_url}"
+    tls {
+      insecure = true
+    }
+  }
+}
+
+// --- Logs → Loki -------------------------------------------------------------
+
+otelcol.exporter.otlphttp "loki" {
+  client {
+    endpoint = "${loki_push_url}"
+    tls {
+      insecure = true
+    }
+  }
+}
+
+// --- Traces → Tempo ----------------------------------------------------------
+
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "${tempo_otlp_endpoint}"
+    tls {
+      insecure = true
+    }
+  }
+}

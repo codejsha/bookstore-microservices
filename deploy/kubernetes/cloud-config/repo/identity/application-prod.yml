@@ -1,0 +1,51 @@
+app:
+  logging:
+    level: info
+
+server:
+  mode: release
+
+grpc:
+  server:
+    host: 0.0.0.0
+    port: 9090
+
+cache:
+  host: identity-valkey-headless.bookstore.svc.cluster.local
+  port: 6379
+  password: ""
+
+keycloak:
+  url: http://keycloak-service.keycloak.svc.cluster.local:8080
+  realm: bookstore
+  client_id: ${KEYCLOAK_CLIENT_ID}
+  client_secret: ${KEYCLOAK_CLIENT_SECRET}
+  realm_admin_username: ${KEYCLOAK_ADMIN_USERNAME}
+  realm_admin_password: ${KEYCLOAK_ADMIN_PASSWORD}
+
+kafka:
+  broker:
+    bootstrap_servers:
+      - bookstore-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093
+  schema_registry:
+    url: http://schemaregistry.kafka.svc.cluster.local:8081
+
+database:
+  datasource:
+    driver: postgres
+    host: identity-postgres-rw.bookstore.svc.cluster.local
+    port: 5432
+    db_name: identity_db
+    params:
+      - sslmode=disable
+
+telemetry:
+  collector:
+    traceUrl: alloy-gateway.grafana.svc.cluster.local:4317
+  profiling:
+    serverAddress: http://alloy-agent.grafana.svc.cluster.local:9095
+  resource:
+    namespace: bookstore
+    environment: prod
+  sampling:
+    ratio: 0.1

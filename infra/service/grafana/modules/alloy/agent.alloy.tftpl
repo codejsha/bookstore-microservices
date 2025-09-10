@@ -1,0 +1,144 @@
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+// --- OTLP receiver -----------------------------------------------------------
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    metrics = [otelcol.processor.resourcedetection.default.input]
+    logs    = [otelcol.processor.resourcedetection.default.input]
+    traces  = [otelcol.processor.resourcedetection.default.input]
+  }
+}
+
+// --- Node-local pod log discovery --------------------------------------------
+discovery.kubernetes "pods" {
+  role = "pod"
+
+  selectors {
+    role  = "pod"
+    field = "spec.nodeName=" + sys.env("HOSTNAME")
+  }
+}
+
+discovery.relabel "pod_logs" {
+  targets = discovery.kubernetes.pods.targets
+
+  rule {
+    source_labels = ["__meta_kubernetes_namespace"]
+    target_label  = "namespace"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_name"]
+    target_label  = "pod"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_container_name"]
+    target_label  = "container"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+    target_label  = "app"
+  }
+}
+
+loki.source.kubernetes "pods" {
+  targets    = discovery.relabel.pod_logs.output
+  forward_to = [
+    otelcol.receiver.loki.default.receiver,
+    loki.process.risk_access.receiver,
+  ]
+}
+
+// --- Access-log tee → Kafka (risk-scorer) ------------------------------------
+loki.process "risk_access" {
+  stage.match {
+    selector = "{namespace=\"bookstore\"} |= \"user_uid\""
+    action   = "keep"
+  }
+  forward_to = [otelcol.receiver.loki.risk_access.receiver]
+}
+
+otelcol.receiver.loki "risk_access" {
+  output {
+    logs = [otelcol.exporter.kafka.risk_access.input]
+  }
+}
+
+otelcol.exporter.kafka "risk_access" {
+  brokers          = ["bookstore-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093"]
+  protocol_version = "3.0.0"
+  topic            = "bookstore.access-log"
+
+  logs {
+    encoding = "raw"
+  }
+
+  sending_queue {
+    enabled = true
+  }
+}
+
+// --- Processing --------------------------------------------------------------
+otelcol.receiver.loki "default" {
+  output {
+    logs = [otelcol.processor.resourcedetection.default.input]
+  }
+}
+
+otelcol.processor.resourcedetection "default" {
+  detectors = ["env", "kubernetes_node"]
+  timeout   = "2s"
+  override  = false
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  send_batch_size     = 1000
+  send_batch_max_size = 1500
+  timeout             = "1s"
+
+  output {
+    metrics = [otelcol.exporter.otlp.gateway.input]
+    logs    = [otelcol.exporter.otlp.gateway.input]
+    traces  = [otelcol.exporter.otlp.gateway.input]
+  }
+}
+
+// --- Forward to gateway ------------------------------------------------------
+otelcol.exporter.otlp "gateway" {
+  client {
+    endpoint = "${gateway_endpoint}"
+    tls {
+      insecure = true
+    }
+  }
+}
+
+// --- Continuous profiling (Pyroscope) ----------------------------------------
+pyroscope.receive_http "default" {
+  http {
+    listen_address = "0.0.0.0"
+    listen_port    = 9095
+  }
+  forward_to = [pyroscope.write.default.receiver]
+}
+
+pyroscope.write "default" {
+  endpoint {
+    url = "${pyroscope_write_url}"
+  }
+}

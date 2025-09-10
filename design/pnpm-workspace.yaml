@@ -1,0 +1,5 @@
+allowBuilds:
+  '@bundled-es-modules/glob': true
+  esbuild: true
+  msw: true
+  style-dictionary: true

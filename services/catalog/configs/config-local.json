@@ -1,17 +1,30 @@
 {
+  "app": {
+    "logging": {
+      "level": "info"
+    }
+  },
   "server": {
     "port": "8080",
     "mode": "debug"
   },
-  "grpc": {
-    "port": "9090"
+  "cache": {
+    "host": "localhost",
+    "port": 6379,
+    "password": "",
+    "db": 0
   },
   "database": {
-    "command_db": {
-      "dsn": "root:password@tcp(127.0.0.1:3306)/catalog_command_db?charset=utf8mb4&parseTime=True&loc=Local"
-    },
-    "query_db": {
-      "dsn": "root:password@tcp(127.0.0.1:3306)/catalog_query_db?charset=utf8mb4&parseTime=True&loc=Local"
+    "datasource": {
+      "driver": "postgres",
+      "host": "localhost",
+      "port": 5432,
+      "db_name": "catalog_db",
+      "username": "root",
+      "password": "test",
+      "params": [
+        "sslmode=disable"
+      ]
     }
   }
 }

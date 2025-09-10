@@ -1,4 +1,0 @@
-**/idp/**
-!**/idp/*_port.go
-!**/idp/model_*.go
-!**/idp/utils.go

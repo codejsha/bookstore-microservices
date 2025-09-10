@@ -1,4 +1,13 @@
 spring:
   application:
     name: payment
-    version: 0.1.0
+    version: 1.0.0
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+    import: configserver:http://localhost:8888
+  application:
+    name: payment
+    version: 1.0.0

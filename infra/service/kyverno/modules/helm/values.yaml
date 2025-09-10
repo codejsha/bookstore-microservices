@@ -1,0 +1,76 @@
+global:
+  extraEnvVars:
+    - name: SSL_CERT_FILE
+      value: /etc/kyverno/ca/${ca_bundle_key}
+
+existingImagePullSecrets:
+  - ${image_pull_secret}
+
+features:
+  forceFailurePolicyIgnore:
+    enabled: true
+
+crds:
+  install: true
+
+cleanupController:
+  enabled: false
+
+admissionController:
+  replicas: 1
+  extraVolumes:
+    - name: internal-ca
+      configMap:
+        name: ${ca_bundle_configmap}
+  extraVolumeMounts:
+    - name: internal-ca
+      mountPath: /etc/kyverno/ca
+      readOnly: true
+  container:
+    resources:
+      requests:
+        cpu: 20m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+  initContainer:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+
+backgroundController:
+  replicas: 1
+  extraVolumes:
+    - name: internal-ca
+      configMap:
+        name: ${ca_bundle_configmap}
+  extraVolumeMounts:
+    - name: internal-ca
+      mountPath: /etc/kyverno/ca
+      readOnly: true
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+reportsController:
+  replicas: 1
+  extraVolumes:
+    - name: internal-ca
+      configMap:
+        name: ${ca_bundle_configmap}
+  extraVolumeMounts:
+    - name: internal-ca
+      mountPath: /etc/kyverno/ca
+      readOnly: true
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi

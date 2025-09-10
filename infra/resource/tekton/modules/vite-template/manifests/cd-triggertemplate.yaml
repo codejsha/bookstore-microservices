@@ -1,0 +1,68 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: vite-cd-triggertemplate
+  namespace: "${namespace}"
+spec:
+  params:
+    - name: service-name
+    - name: git-repo-url
+    - name: git-repo-name
+    - name: git-ref
+    - name: git-revision
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: pipelinerun-vite-cd-
+        labels:
+          bookstore.dev/service: $(tt.params.service-name)
+      spec:
+        pipelineRef:
+          resolver: git
+          params:
+            - name: repo
+              value: tektoncd-custom-catalog
+            - name: revision
+              value: main
+            - name: pathInRepo
+              value: task/cd-pipeline/0.1/cd-pipeline.yaml
+        taskRunSpecs:
+          - pipelineTaskName: clone-source-repo
+            serviceAccountName: git-source-sa
+          - pipelineTaskName: clone-deploy-repo
+            serviceAccountName: git-deploy-sa
+          - pipelineTaskName: commit-deploy-repo
+            serviceAccountName: git-deploy-sa
+        workspaces:
+          - name: shared-workspace
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                storageClassName: local-path
+                resources:
+                  requests:
+                    storage: 5Gi
+          - name: dockerconfig
+            secret:
+              secretName: dockerconfig-secret
+          - name: git-source-ssh-auth
+            secret:
+              secretName: $(tt.params.service-name)-repo-ssh-auth
+          - name: git-deploy-ssh-auth
+            secret:
+              secretName: $(tt.params.service-name)-helm-repo-ssh-auth
+        params:
+          - name: service-name
+            value: $(tt.params.service-name)
+          - name: git-source-revision
+            value: $(tt.params.git-revision)
+          - name: db-migrate-task
+            value: db-migrate-flyway
+          - name: db-migrate-secret-name
+            value: $(tt.params.service-name)-mysql-cluster-secret
+          - name: db-migrate-host
+            value: none
+          - name: db-migrate-dbname
+            value: none

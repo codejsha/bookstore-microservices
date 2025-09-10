@@ -1,0 +1,126 @@
+replicaCount: 2
+revisionHistoryLimit: 3
+
+image:
+  repository: harbor.example.com/bookstore/delivery
+  tag: 1.0.0
+  pullPolicy: IfNotPresent
+imagePullSecrets:
+  - name: harbor-pull
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  name: "delivery-mysql"
+  automountServiceAccountToken: false
+  annotations: {}
+
+automountServiceAccountToken: true
+
+podAnnotations:
+  vault.hashicorp.com/agent-inject: "true"
+  vault.hashicorp.com/agent-init-first: "true"
+  vault.hashicorp.com/role: "bookstore-mysql-role"
+  vault.hashicorp.com/agent-inject-secret-db.env: "database/static-creds/delivery-mysql-static"
+  vault.hashicorp.com/agent-inject-template-db.env: |
+    {{- with secret "database/static-creds/delivery-mysql-static" -}}
+    DELIVERY__DATABASE__USERNAME={{ .Data.username }}
+    DELIVERY__DATABASE__PASSWORD={{ .Data.password }}
+    {{- end -}}
+podLabels:
+  app.kubernetes.io/group: bookstore
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 8080
+  grpc:
+    enabled: true
+    port: 9090
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 15
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 5
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 15
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 5
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+volumes:
+  - name: tmp
+    emptyDir: {}
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+mesh:
+  waypoint: "bookstore-waypoint"
+  requestTimeout: "15s"
+
+gatewayApi:
+  enabled: false
+  host: "example.com"
+  gatewayName: "bookstore-gateway"
+  gatewayNamespace: "istio-system"
+rollout:
+  enabled: true
+  canary:
+    steps:
+      - weight: 10
+        pause: "60s"
+      - weight: 30
+        pause: "60s"
+      - weight: 60
+        pause: "60s"
+    analysis:
+      enabled: true
+      startingStep: 1
+      interval: "30s"
+      count: 0
+      failureLimit: 1
+      window: "2m"
+      successRateThreshold: "0.99"
+      latencyP99ThresholdMs: "1000"
+      prometheusAddress: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"

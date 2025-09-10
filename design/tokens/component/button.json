@@ -1,0 +1,40 @@
+{
+  "button": {
+    "default": {
+      "background": { "$type": "color", "$value": "{color.primary}" },
+      "foreground": { "$type": "color", "$value": "{color.primary-foreground}" },
+      "border": { "$type": "color", "$value": "transparent" }
+    },
+    "outline": {
+      "background": { "$type": "color", "$value": "{color.background}" },
+      "foreground": { "$type": "color", "$value": "{color.foreground}" },
+      "border": { "$type": "color", "$value": "{color.border}" }
+    },
+    "secondary": {
+      "background": { "$type": "color", "$value": "{color.secondary}" },
+      "foreground": { "$type": "color", "$value": "{color.secondary-foreground}" },
+      "border": { "$type": "color", "$value": "transparent" }
+    },
+    "ghost": {
+      "background": { "$type": "color", "$value": "transparent" },
+      "foreground": { "$type": "color", "$value": "{color.foreground}" },
+      "border": { "$type": "color", "$value": "transparent" }
+    },
+    "destructive": {
+      "background": { "$type": "color", "$value": "{color.destructive}" },
+      "foreground": { "$type": "color", "$value": "{color.destructive}" },
+      "border": { "$type": "color", "$value": "transparent" }
+    },
+    "link": {
+      "background": { "$type": "color", "$value": "transparent" },
+      "foreground": { "$type": "color", "$value": "{color.primary}" },
+      "border": { "$type": "color", "$value": "transparent" }
+    },
+    "size": {
+      "xs": { "$type": "dimension", "height": { "$value": "24px" }, "padding-x": { "$value": "8px" }, "font-size": { "$value": "12px" } },
+      "sm": { "$type": "dimension", "height": { "$value": "28px" }, "padding-x": { "$value": "10px" }, "font-size": { "$value": "12.8px" } },
+      "default": { "$type": "dimension", "height": { "$value": "32px" }, "padding-x": { "$value": "10px" }, "font-size": { "$value": "14px" } },
+      "lg": { "$type": "dimension", "height": { "$value": "36px" }, "padding-x": { "$value": "10px" }, "font-size": { "$value": "14px" } }
+    }
+  }
+}

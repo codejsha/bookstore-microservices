@@ -1,3 +1,0 @@
-**/openapi/**
-!**/openapi/*_params.go
-!**/openapi/*_requests.go

@@ -1,4 +1,7 @@
-DROP TABLE IF EXISTS book;
+DROP TABLE IF EXISTS work_subject_mapping;
+DROP TABLE IF EXISTS work_author_mapping;
+DROP TABLE IF EXISTS subject;
+DROP TABLE IF EXISTS edition;
+DROP TABLE IF EXISTS work;
 DROP TABLE IF EXISTS author;
-DROP TABLE IF EXISTS book_author_mapping;
 DROP TABLE IF EXISTS publisher;

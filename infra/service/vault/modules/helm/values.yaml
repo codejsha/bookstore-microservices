@@ -1,0 +1,132 @@
+global:
+  enabled: true
+  tlsDisable: true
+
+injector:
+  enabled: true
+  replicas: 1
+
+  agentImage:
+    repository: "hashicorp/vault"
+
+  agentDefaults:
+    cpuLimit: 500m
+    cpuRequest: 10m
+    memLimit: 128Mi
+    memRequest: 64Mi
+
+  authPath: "auth/kubernetes"
+
+  logLevel: debug
+  logFormat: json
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 10m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+
+server:
+  enabled: true
+  image:
+    repository: "hashicorp/vault"
+
+  logLevel: debug
+  logFormat: json
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 10m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+
+  authDelegator:
+    enabled: true
+
+  affinity: {}
+
+  annotations:
+    traffic.sidecar.istio.io/excludeInboundPorts: "8200"
+
+  extraSecretEnvironmentVars:
+    - envName: VAULT_TOKEN
+      secretName: vault-transit-unseal
+      secretKey: VAULT_TOKEN
+
+  dataStorage:
+    enabled: true
+    size: 10Gi
+  auditStorage:
+    enabled: true
+    size: 10Gi
+
+  service:
+    enabled: true
+    active:
+      enabled: true
+    standby:
+      enabled: true
+    publishNotReadyAddresses: true
+
+  dev:
+    enabled: false
+
+  standalone:
+    enabled: false
+
+  ha:
+    enabled: true
+    replicas: 3
+
+    raft:
+      enabled: true
+      setNodeId: true
+      config: |
+        ui = true
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+          telemetry {
+            unauthenticated_metrics_access = true
+          }
+        }
+        cluster_name = "vault-integrated-storage"
+        storage "raft" {
+          path    = "/vault/data/"
+        }
+        seal "transit" {
+          address         = "http://vault.vault-transit.svc.cluster.local:8200"
+          key_name        = "autounseal"
+          mount_path      = "transit/"
+          disable_renewal = "false"
+          tls_skip_verify = "true"
+        }
+        service_registration "kubernetes" {}
+        disable_mlock = true
+        telemetry {
+          prometheus_retention_time = "30s"
+          disable_hostname = true
+        }
+
+  serviceAccount:
+    create: false
+    name: vault
+    createSecret: false
+
+ui:
+  enabled: true
+  publishNotReadyAddresses: false
+
+csi:
+  enabled: false
+
+serverTelemetry:
+  serviceMonitor:
+    enabled: true
+  prometheusRules:
+    enabled: false

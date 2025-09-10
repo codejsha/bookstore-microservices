@@ -1,0 +1,9 @@
+{
+  "radius": {
+    "$type": "dimension",
+    "base": {
+      "$value": "0.625rem",
+      "$description": "Base radius used for calculations"
+    }
+  }
+}

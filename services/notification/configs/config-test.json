@@ -1,0 +1,21 @@
+{
+  "app": {
+    "logging_level": "debug"
+  },
+  "server": {
+    "port": 8080,
+    "mode": "test"
+  },
+  "database": {
+    "host": "localhost",
+    "port": 3306,
+    "db_name": "notification_test_db",
+    "username": "root",
+    "password": "test"
+  },
+  "telemetry": {
+    "enabled": false,
+    "endpoint": "http://localhost:4317",
+    "service_name": "notification"
+  }
+}

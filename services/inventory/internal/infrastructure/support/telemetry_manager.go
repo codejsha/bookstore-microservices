@@ -4,25 +4,17 @@ import (
 	"context"
 	"fmt"
 
+	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.30.0"
+	"go.uber.org/fx"
 
-	"github.com/codejsha/bookstore-microservices/commonlib-go/pkg/config"
-	"github.com/codejsha/bookstore-microservices/commonlib-go/pkg/telemetry"
+	"github.com/codejsha/shared-library-go/pkg/config"
+	"github.com/codejsha/shared-library-go/pkg/telemetry"
 )
-
-func NewTelemetryManager(
-	metadata *config.Metadata,
-	telemetryCfg *config.TelemetryConfig,
-) *TelemetryManager {
-	return &TelemetryManager{
-		metadata:     metadata,
-		telemetryCfg: telemetryCfg,
-	}
-}
 
 type TelemetryManager struct {
 	metadata       *config.Metadata
@@ -30,29 +22,45 @@ type TelemetryManager struct {
 	TraceProvider  *trace.TracerProvider
 	MeterProvider  *metric.MeterProvider
 	LoggerProvider *log.LoggerProvider
+	shutdown       func(context.Context) error
 }
 
-func (m *TelemetryManager) Run() {
-	ctx := context.Background()
+func NewTelemetryManager(
+	lc fx.Lifecycle,
+	metadata *config.Metadata,
+	telemetryCfg *config.TelemetryConfig,
+) (*TelemetryManager, error) {
+	m := &TelemetryManager{
+		metadata:     metadata,
+		telemetryCfg: telemetryCfg,
+	}
 
+	ctx := context.Background()
 	res, err := m.createResource(ctx)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	shutdown, providers, err := telemetry.SetupOpenTelemetrySdk(ctx, res, m.telemetryCfg)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("setup otel sdk: %w", err)
 	}
 	m.TraceProvider = providers.TraceProvider
 	m.MeterProvider = providers.MeterProvider
 	m.LoggerProvider = providers.LoggerProvider
+	m.shutdown = shutdown
 
-	defer func() {
-		if err := shutdown(ctx); err != nil {
-			panic(err)
-		}
-	}()
+	if err := runtime.Start(runtime.WithMeterProvider(m.MeterProvider)); err != nil {
+		return nil, fmt.Errorf("start runtime metrics: %w", err)
+	}
+
+	lc.Append(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			return m.shutdown(ctx)
+		},
+	})
+
+	return m, nil
 }
 
 func (m *TelemetryManager) createResource(ctx context.Context) (*resource.Resource, error) {

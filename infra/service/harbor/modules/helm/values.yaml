@@ -1,0 +1,169 @@
+expose:
+  type: clusterIP
+  tls:
+    enabled: false
+    certSource: none
+
+  clusterIP:
+    name: harbor
+    ports:
+      httpPort: 80
+    annotations: {}
+    labels: {}
+
+externalURL: https://harbor.example.com
+
+persistence:
+  enabled: true
+  resourcePolicy: "keep"
+  persistentVolumeClaim:
+    registry:
+      accessMode: ReadWriteOnce
+      size: 5Gi
+    jobservice:
+      jobLog:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+    database:
+      accessMode: ReadWriteOnce
+      size: 1Gi
+    redis:
+      accessMode: ReadWriteOnce
+      size: 1Gi
+    trivy:
+      accessMode: ReadWriteOnce
+      size: 5Gi
+
+  imageChartStorage:
+    type: s3
+    disableredirect: true
+    s3:
+      region: us-west-1
+      encrypt: false
+
+nginx:
+  automountServiceAccountToken: true
+  replicas: 1
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 10m
+
+portal:
+  automountServiceAccountToken: true
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+core:
+  automountServiceAccountToken: true
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  quotaUpdateProvider: db
+
+jobservice:
+  automountServiceAccountToken: false
+  replicas: 1
+  revisionHistoryLimit: 10
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+registry:
+  registry:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  controller:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  automountServiceAccountToken: true
+  replicas: 1
+  relativeurls: false
+  middleware:
+    enabled: false
+  upload_purging:
+    enabled: true
+    age: 168h
+    interval: 24h
+    dryrun: false
+
+trivy:
+  enabled: true
+  automountServiceAccountToken: true
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+database:
+  type: internal
+  internal:
+    automountServiceAccountToken: true
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 10m
+    initContainer:
+      migrator:
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 10m
+      permissions:
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 10m
+
+redis:
+  type: internal
+  internal:
+    automountServiceAccountToken: true
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 10m
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: prometheus
+
+exporter:
+  automountServiceAccountToken: true
+  replicas: 1
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 10m

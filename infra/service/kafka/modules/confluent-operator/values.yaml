@@ -1,0 +1,15 @@
+replicas: 1
+
+namespaced: true
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 10m
+    memory: 256Mi
+
+serviceAccount:
+  create: false
+  name: confluent-operator

@@ -1,12 +1,9 @@
 package com.codejsha.bookstore.payment.config.properties
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "app")
-class AppConfig(
-    val segregation: String
-)
+class AppConfig
 
 @ConfigurationProperties(prefix = "spring")
 class SpringConfig(
@@ -19,11 +16,8 @@ class ApplicationConfig(
 )
 
 @ConfigurationProperties(prefix = "grpc")
-@ConditionalOnProperty(name = ["app.segregation"], havingValue = "query")
 class GrpcConfig(
-    val server: GrpcServerConfig,
-    val orderServer: GrpcServerConfig,
-    val userServer: GrpcServerConfig
+    val server: GrpcServerConfig
 )
 
 class GrpcServerConfig(
@@ -31,13 +25,10 @@ class GrpcServerConfig(
     val port: Int
 )
 
-@ConfigurationProperties(prefix = "telemetry")
-class TelemetryConfig(
-    val collector: CollectorConfig
-)
-
-class CollectorConfig(
-    val traceUrl: String = "",
-    val metricUrl: String = "",
-    val logUrl: String = ""
+@ConfigurationProperties(prefix = "hyperswitch")
+class HyperswitchConfig(
+    val baseUrl: String = "http://localhost:8080",
+    val apiKey: String = "",
+    val profileId: String? = null,
+    val webhookSecret: String = "",
 )

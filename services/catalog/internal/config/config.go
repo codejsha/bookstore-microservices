@@ -1,54 +1,112 @@
 package config
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	"github.com/codejsha/bookstore-microservices/commonlib-go/pkg/config"
-	"github.com/codejsha/bookstore-microservices/commonlib-go/pkg/object"
+	"github.com/codejsha/shared-library-go/pkg/config"
 )
 
+const vaultSecretsFile = "/vault/secrets/db.properties"
+
 type Config struct {
-	App       *config.AppConfig       `mapstructure:"app"`
-	Server    *config.ServerConfig    `mapstructure:"server"`
-	Database  *config.DatabaseConfig  `mapstructure:"database"`
-	Conductor *config.ConductorConfig `mapstructure:"conductor"`
-	Telemetry *config.TelemetryConfig `mapstructure:"telemetry"`
-	Grpc      *GrpcConfig             `mapstructure:"grpc"`
+	App        *config.AppConfig       `mapstructure:"app"`
+	Server     *config.ServerConfig    `mapstructure:"server"`
+	Database   *config.DatabaseConfig  `mapstructure:"database"`
+	Cache      *config.CacheConfig     `mapstructure:"cache"`
+	Telemetry  *config.TelemetryConfig `mapstructure:"telemetry"`
+	Kafka      *config.KafkaConfig     `mapstructure:"kafka"`
+	Opensearch *OpensearchConfig       `mapstructure:"opensearch"`
 }
 
-type GrpcConfig struct {
-	Server      *config.GrpcServerConfig `mapstructure:"server"`
-	StockServer *config.GrpcServerConfig `mapstructure:"stock_server"`
+type OpensearchConfig struct {
+	Scheme   string `mapstructure:"scheme"`
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	Index    string `mapstructure:"index"`
+	Insecure bool   `mapstructure:"insecure"`
 }
 
-func NewConfig(env object.Env) *Config {
-	viper.SetConfigName(fmt.Sprintf("config-%s", env))
-	viper.SetConfigType("json")
-	viper.AddConfigPath("configs")
-
-	if err := viper.ReadInConfig(); err != nil {
-		_ = fmt.Errorf("fatal error config file: %s\n", err)
-		return nil
+func NewConfig(
+	preConfig *config.PreConfig,
+	cloudConfigHelper *config.CloudConfigHelper,
+) *Config {
+	cfg, err := fetchConfig(*preConfig, *cloudConfigHelper)
+	if err == nil {
+		config.ApplyVaultDBCredentials(cfg.Database, vaultSecretsFile)
+		return cfg
 	}
+	logrus.Errorf("failed to fetch config from config service: %v", err)
 
-	var cfg Config
-	if err := viper.Unmarshal(&cfg); err != nil {
-		_ = fmt.Errorf("fatal error unmarshaling config file: %s\n", err)
-		return nil
+	cfg, err = readConfig(preConfig.Profile)
+	if err == nil {
+		config.ApplyVaultDBCredentials(cfg.Database, vaultSecretsFile)
+		return cfg
 	}
-	updateConfigProperty(&cfg)
-	return &cfg
+	logrus.Errorf("failed to read config from local config files: %v", err)
+
+	panic("failed to load config")
 }
 
-func updateConfigProperty(cfg *Config) {
-	switch cfg.App.Logging.Level {
-	case "debug":
-		cfg.App.Logging.IsDebug = true
-	default:
-		cfg.App.Logging.IsDebug = false
+func fetchConfig(
+	preConfig config.PreConfig,
+	cloudConfigHelper config.CloudConfigHelper,
+) (*Config, error) {
+	cfgResp, err := cloudConfigHelper.FetchConfig(
+		preConfig.ConfigServerAddr,
+		preConfig.ServiceName,
+		string(preConfig.Profile),
+		preConfig.Label,
+	)
+	if err != nil {
+		return nil, err
 	}
+
+	source := config.NormalizePropertySources(cfgResp.PropertySources)
+	sourceBytes, err := json.Marshal(source)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal flattened config: %w", err)
+	}
+
+	vp := viper.New()
+	vp.SetConfigType("json")
+	if err := vp.ReadConfig(bytes.NewBufferString(os.ExpandEnv(string(sourceBytes)))); err != nil {
+		return nil, fmt.Errorf("fatal error reading config data: %w", err)
+	}
+
+	cfg := &Config{}
+	if err := vp.Unmarshal(cfg, viper.DecodeHook(config.RejectScalarSliceHook())); err != nil {
+		return nil, fmt.Errorf("fatal error unmarshaling config data: %w", err)
+	}
+	cfg.App.Logging.UpdateFlags()
+	return cfg, nil
+}
+
+func readConfig(
+	profile config.Profile,
+) (*Config, error) {
+	vp := viper.New()
+	vp.SetConfigName(fmt.Sprintf("config-%s", profile))
+	vp.SetConfigType("json")
+	vp.AddConfigPath("configs")
+
+	if err := vp.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("fatal error config file: %s\n", err)
+	}
+
+	cfg := &Config{}
+	if err := vp.Unmarshal(cfg, viper.DecodeHook(config.RejectScalarSliceHook())); err != nil {
+		return nil, fmt.Errorf("fatal error unmarshaling config file: %s\n", err)
+	}
+	cfg.App.Logging.UpdateFlags()
+	return cfg, nil
 }
 
 func ProvideAppConfig(cfg *Config) *config.AppConfig {
@@ -60,12 +118,15 @@ func ProvideServerConfig(cfg *Config) *config.ServerConfig {
 func ProvideDatabaseConfig(cfg *Config) *config.DatabaseConfig {
 	return cfg.Database
 }
-func ProvideConductorConfig(cfg *Config) *config.ConductorConfig {
-	return cfg.Conductor
+func ProvideCacheConfig(cfg *Config) *config.CacheConfig {
+	return cfg.Cache
 }
 func ProvideTelemetryConfig(cfg *Config) *config.TelemetryConfig {
 	return cfg.Telemetry
 }
-func ProvideGrpcConfig(cfg *Config) *GrpcConfig {
-	return cfg.Grpc
+func ProvideKafkaConfig(cfg *Config) *config.KafkaConfig {
+	return cfg.Kafka
+}
+func ProvideOpensearchConfig(cfg *Config) *OpensearchConfig {
+	return cfg.Opensearch
 }

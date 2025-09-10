@@ -1,2 +1,4 @@
-DROP TABLE IF EXISTS wishlist;
-DROP TABLE IF EXISTS point;
+DROP TABLE IF EXISTS customer_review;
+DROP TABLE IF EXISTS customer_point_history;
+DROP TABLE IF EXISTS customer_point;
+DROP TABLE IF EXISTS customer_wishlist;

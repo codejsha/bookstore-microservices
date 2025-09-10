@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: payment
+    version: 0.1.0
+  datasource:
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    type: com.zaxxer.hikari.HikariDataSource
+    url: "jdbc:tc:mysql:8.0.32://localhost:3306/gvw_tc?allowPublicKeyRetrieval=true&characterEncoding=utf8&useSSL=false&user=root&password=test&TC_INITSCRIPT=file:src/test/resources/db/init.sql"
+    hikari:
+      minimum-idle: 30
+      maximum-pool-size: 30
+      connection-timeout: 10000
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+      auto-commit: true
