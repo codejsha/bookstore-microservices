@@ -1,0 +1,17 @@
+app:
+  logging_level: info
+
+server:
+  mode: prod
+
+telemetry:
+  service_name: support-app
+  enabled: true
+  endpoint: alloy-gateway.grafana.svc.cluster.local:4317
+  profiling_endpoint: http://alloy-agent.grafana.svc.cluster.local:9095
+  sampling_ratio: 0.1
+
+database:
+  host: support-mysql.bookstore.svc.cluster.local
+  port: 3306
+  db_name: support_db

@@ -4,26 +4,20 @@ import (
 	"github.com/codejsha/bookstore-microservices/inventory/internal/infrastructure/support"
 )
 
+type Infra struct {
+	ginServer        *support.GinServer
+	telemetryManager *support.TelemetryManager
+	temporalWorker   *support.TemporalWorker
+}
+
 func NewInfra(
 	ginServer *support.GinServer,
-	grpcServer *support.GrpcServer,
 	telemetryManager *support.TelemetryManager,
+	temporalWorker *support.TemporalWorker,
 ) *Infra {
 	return &Infra{
 		ginServer:        ginServer,
-		grpcServer:       grpcServer,
 		telemetryManager: telemetryManager,
+		temporalWorker:   temporalWorker,
 	}
-}
-
-type Infra struct {
-	ginServer        *support.GinServer
-	grpcServer       *support.GrpcServer
-	telemetryManager *support.TelemetryManager
-}
-
-func (s *Infra) Run() {
-	go s.telemetryManager.Run()
-	go s.grpcServer.Run()
-	s.ginServer.Run()
 }

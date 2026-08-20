@@ -1,0 +1,138 @@
+replicaCount: 1
+
+service:
+  http:
+    type: ClusterIP
+    port: 3000
+  ssh:
+    type: NodePort
+    port: 22
+    nodePort: 30022
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 2048Mi
+  requests:
+    cpu: 10m
+    memory: 128Mi
+
+serviceAccount:
+  create: false
+  name: "gitea"
+
+persistence:
+  enabled: true
+  size: 10Gi
+  accessModes:
+    - ReadWriteOnce
+
+initContainers:
+  resources:
+    limits: {}
+    requests:
+      cpu: 10m
+      memory: 128Mi
+
+gitea:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+
+  admin:
+    passwordMode: keepUpdated
+
+  config:
+    database:
+      DB_TYPE: postgres
+    indexer:
+      ISSUE_INDEXER_TYPE: bleve
+      REPO_INDEXER_ENABLED: true
+    server:
+      SSH_PORT: 22
+      SSH_LISTEN_PORT: 2222
+      SSH_SERVER_HOST_KEYS: /etc/gitea/ssh/gitea.rsa
+    webhook:
+      ALLOWED_HOST_LIST: "*.svc.cluster.local"
+    actions:
+      ENABLED: true
+
+  podAnnotations:
+    traffic.sidecar.istio.io/excludeOutboundPorts: "5432,6379"
+
+valkey-cluster:
+  enabled: false
+  usePassword: false
+  usePasswordFiles: false
+
+  cluster:
+    nodes: 1
+    replicas: 3
+
+  service:
+    ports:
+      valkey: 6379
+
+valkey:
+  enabled: true
+  architecture: standalone
+
+  master:
+    count: 1
+    service:
+      ports:
+        valkey: 6379
+
+  networkPolicy:
+    enabled: false
+
+postgresql-ha:
+  enabled: false
+  global:
+    postgresql:
+      database: gitea_db
+
+  service:
+    ports:
+      postgresql: 5432
+
+  persistence:
+    size: 10Gi
+
+postgresql:
+  enabled: true
+
+  global:
+    postgresql:
+      auth:
+        database: gitea_db
+      service:
+        ports:
+          postgresql: 5432
+
+  primary:
+    networkPolicy:
+      enabled: false
+    persistence:
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  readReplicas:
+    networkPolicy:
+      enabled: false
+
+checkDeprecation: false
+test:
+  enabled: false
+  image:
+    name: busybox
+    tag: latest

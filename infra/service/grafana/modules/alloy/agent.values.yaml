@@ -1,0 +1,47 @@
+alloy:
+  stabilityLevel: "public-preview"
+
+  extraEnv:
+    - name: K8S_NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+
+  configMap:
+    create: true
+    content: |
+      ${indent(6, config_contents)}
+
+  clustering:
+    enabled: false
+
+  extraPorts:
+    - name: pyroscope-http
+      port: 9095
+      targetPort: 9095
+      protocol: TCP
+
+  mounts:
+    varlog: true
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+
+controller:
+  type: daemonset
+
+service:
+  enabled: true
+  internalTrafficPolicy: Local
+  clusterIP: ""
+  type: ClusterIP
+
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    release: prometheus

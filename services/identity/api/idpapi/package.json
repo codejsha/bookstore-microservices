@@ -1,0 +1,10 @@
+{
+  "name": "idpapi",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@redocly/cli": "latest"
+  },
+  "packageManager": "pnpm@10.33.0"
+}

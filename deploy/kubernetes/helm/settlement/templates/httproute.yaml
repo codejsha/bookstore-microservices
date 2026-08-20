@@ -1,0 +1,28 @@
+{{- if .Values.gatewayApi.enabled -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "settlement.fullname" . }}-route
+  labels:
+    {{- include "settlement.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ .Values.gatewayApi.gatewayName }}
+      namespace: {{ .Values.gatewayApi.gatewayNamespace }}
+      sectionName: https-{{ splitList "." .Values.gatewayApi.host | first }}
+  hostnames:
+    - {{ .Values.gatewayApi.host }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ include "settlement.fullname" . }}
+          port: {{ .Values.service.port }}
+          weight: 1
+{{- end }}

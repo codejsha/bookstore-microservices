@@ -1,0 +1,12 @@
+node_modules/
+.tanstack/
+temp/
+.git/
+
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+.history/
+*.log

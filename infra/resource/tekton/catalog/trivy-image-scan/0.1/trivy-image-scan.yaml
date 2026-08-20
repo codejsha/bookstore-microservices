@@ -1,0 +1,84 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: trivy-image-scan
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Security
+    tekton.dev/tags: scan,vulnerability,image
+    tekton.dev/displayName: "Trivy image scan"
+spec:
+  description: >-
+    Runs `trivy image` against a built container image to detect OS package and
+    application library CVEs. Findings at or above SEVERITY are reported;
+    EXIT_CODE decides whether they also fail the pipeline.
+  workspaces:
+    - name: dockerconfig
+  params:
+    - name: IMAGE
+      description: image reference to scan (registry/repo:tag)
+      type: string
+    - name: SEVERITY
+      description: comma-separated severities that fail the build
+      type: string
+      default: CRITICAL
+    - name: EXIT_CODE
+      description: >-
+        Exit code trivy returns when it finds something at or above SEVERITY.
+        "1" fails the pipeline; "0" reports and continues (warn-only).
+      type: string
+      default: "1"
+    - name: INSECURE
+      description: >-
+        Allow a plain-HTTP / untrusted-TLS registry. The build pushes to the
+        in-cluster Harbor endpoint, which serves the registry API over HTTP.
+      type: string
+      default: "false"
+    - name: TRIVY_IMAGE
+      description: Trivy CLI image
+      type: string
+      default: docker.io/aquasec/trivy:0.52.2
+    - name: DB_REPOSITORY
+      description: >-
+        OCI repository the vulnerability DB is pulled from. Trivy re-downloads
+        it on every run — there is no cross-run cache, the workspace is a fresh
+        PVC each time — so pointing this at the in-cluster pull-through cache
+        keeps CI off ghcr.io. Empty falls back to trivy's ghcr.io default.
+      type: string
+      default: ""
+    - name: JAVA_DB_REPOSITORY
+      description: >-
+        OCI repository the Java DB is pulled from. Only fetched when the image
+        contains jars, which is why this surfaced on the Kotlin services first.
+        Empty falls back to trivy's ghcr.io default.
+      type: string
+      default: ""
+  steps:
+    - name: scan
+      image: $(params.TRIVY_IMAGE)
+      env:
+        - name: DOCKER_CONFIG
+          value: $(workspaces.dockerconfig.path)
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        INSECURE_ARGS=""
+        if [ "$(params.INSECURE)" = "true" ]; then
+          INSECURE_ARGS="--insecure"
+        fi
+        if [ -n "$(params.DB_REPOSITORY)" ]; then
+          export TRIVY_DB_REPOSITORY="$(params.DB_REPOSITORY)"
+        fi
+        if [ -n "$(params.JAVA_DB_REPOSITORY)" ]; then
+          export TRIVY_JAVA_DB_REPOSITORY="$(params.JAVA_DB_REPOSITORY)"
+        fi
+        # shellcheck disable=SC2086
+        trivy image \
+          $INSECURE_ARGS \
+          --severity "$(params.SEVERITY)" \
+          --exit-code "$(params.EXIT_CODE)" \
+          --no-progress \
+          --ignore-unfixed \
+          "$(params.IMAGE)"

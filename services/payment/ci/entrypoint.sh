@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -jar /app/${SERVICE_NAME}-app.jar
+java -javaagent:/app/pyroscope.jar -javaagent:/app/otel-agent.jar -jar /app/${SERVICE_NAME}-app.jar

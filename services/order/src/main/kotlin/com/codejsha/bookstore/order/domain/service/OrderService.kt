@@ -1,157 +1,191 @@
 package com.codejsha.bookstore.order.domain.service
 
-import com.codejsha.bookstore.order.application.port.saga.PlaceOrderPayload
-import com.codejsha.bookstore.order.application.usecase.OrderCommand
-import com.codejsha.bookstore.order.application.usecase.OrderItemCommand
-import com.codejsha.bookstore.order.application.usecase.OrderRead
+import com.codejsha.bookstore.order.application.port.repo.*
+import com.codejsha.bookstore.order.application.port.support.TransactionRunner
 import com.codejsha.bookstore.order.application.usecase.OrderUseCase
-import com.codejsha.bookstore.order.domain.aggregate.OrderAggregate
-import com.codejsha.bookstore.order.domain.aggregate.entity.OrderEntity
-import com.codejsha.bookstore.order.domain.aggregate.entity.OrderItemEntity
-import com.codejsha.bookstore.order.domain.constant.TaskProperty
-import com.codejsha.bookstore.order.domain.constant.Workflow
-import com.codejsha.bookstore.order.domain.handler.OrderHandler
-import com.codejsha.bookstore.order.domain.handler.OrderItemHandler
-import com.codejsha.bookstore.order.domain.model.FilterCondition
-import com.codejsha.bookstore.order.domain.model.OrderDto
-import com.codejsha.bookstore.service.application.port.pb.bookpb.BookServiceGrpc
-import com.codejsha.bookstore.service.application.port.pb.paymentpb.PaymentServiceGrpc
-import com.codejsha.bookstore.service.application.port.pb.userpb.UserServiceGrpc
-
-import com.netflix.conductor.client.http.WorkflowClient
-import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest
+import com.codejsha.bookstore.order.domain.aggregate.*
+import com.codejsha.bookstore.order.domain.constant.OrderStatus
+import com.codejsha.bookstore.order.domain.model.command.*
+import com.codejsha.bookstore.order.domain.model.option.OrderQueryOption
+import com.codejsha.platform.shared.data.ActorContext
 import io.opentelemetry.instrumentation.annotations.WithSpan
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
+import java.util.UUID
 
 @Service
 class OrderService(
-    private val orderHandler: OrderHandler,
-    private val orderItemHandler: OrderItemHandler,
-    private val workflowClient: WorkflowClient,
-    private var bookStub: BookServiceGrpc.BookServiceStub?,
-    private var paymentStub: PaymentServiceGrpc.PaymentServiceStub?,
-    private var userStub: UserServiceGrpc.UserServiceStub?
+    private val orderRepo: OrderRepo,
+    private val orderItemRepo: OrderItemRepo,
+    private val orderAdjustmentRepo: OrderAdjustmentRepo,
+    private val orderShippingRepo: OrderShippingRepo,
+    private val txRunner: TransactionRunner,
 ) : OrderUseCase {
-    @WithSpan
-    override fun startPlaceOrderWorkflow(dto: OrderDto): Mono<Unit> {
-        // prepare workflow payload
-        val payload = PlaceOrderPayload.create(dto)
-        val request = StartWorkflowRequest()
-        request.name = Workflow.BOOKSTORE_ORDER_BOOK_WORKFLOW.wfName
-        request.version = 1
-        request.correlationId = payload.requestId
-        request.input = payload.toWorkflowPayload()
-        val taskToDomain: Map<String, String> =
-            mapOf(
-                TaskProperty.ALL_WORKERS.propertyName to TaskProperty.ALL_WORKERS.value
-            )
-        request.taskToDomain = taskToDomain
 
-        // start workflow
-        var workflowId: String?
-        try {
-            workflowId = workflowClient.startWorkflow(request)
-        } catch (e: Exception) {
-            return Mono.error(e)
+    // ─── Query ──────────────────────────────────────────────────────────────
+
+    @WithSpan
+    override suspend fun findAllOrders(
+        option: OrderQueryOption, pageable: Pageable, context: ActorContext
+    ): Page<OrderAggregate> = txRunner.tx {
+        orderRepo.findAll(option, pageable, context).map { it.toAggregate() }
+    }
+
+    @WithSpan
+    override suspend fun findOrder(uid: UUID, context: ActorContext): OrderAggregate = txRunner.tx {
+        val order = orderRepo.findOne(uid, context).toAggregate()
+        val items = orderItemRepo.findAllByOrder(uid, Pageable.unpaged(), context)
+            .content.map { it.toEntity() }
+        val adjustments = orderAdjustmentRepo.findAllByOrder(uid, Pageable.unpaged(), context)
+            .content.map { it.toEntity() }
+        val shipping = orderShippingRepo.findByOrder(uid, context)?.toEntity()
+
+        order.copy(items = items, adjustments = adjustments, shipping = shipping)
+    }
+
+    // ─── Order lifecycle ────────────────────────────────────────────────────
+
+    @WithSpan
+    override suspend fun placeOrder(
+        command: OrderCreateCommand,
+        items: List<OrderItemCreateCommand>,
+        shipping: OrderShippingCreateCommand?,
+        context: ActorContext,
+    ): OrderAggregate = txRunner.tx {
+        orderRepo.findByIdempotencyKey(command.idempotencyKey, context)?.let { existing ->
+            val existingItems = orderItemRepo.findAllByOrder(existing.uid, Pageable.unpaged(), context)
+                .content.map { it.toEntity() }
+            val existingShipping = orderShippingRepo.findByOrder(existing.uid, context)?.toEntity()
+            return@tx existing.toAggregate().copy(items = existingItems, shipping = existingShipping)
         }
 
-        return if (workflowId.isNullOrBlank()) {
-            Mono.error(IllegalStateException("Failed to start workflow"))
+        val orderResult = orderRepo.create(command, context)
+        val orderUid = orderResult.uid
+
+        val itemEntities = items.map { itemCmd ->
+            orderItemRepo.create(orderUid, itemCmd, context).toEntity()
+        }
+
+        val shippingEntity = shipping?.let {
+            orderShippingRepo.create(orderUid, it, context).toEntity()
+        }
+
+        orderResult.toAggregate().copy(
+            items = itemEntities,
+            shipping = shippingEntity,
+        )
+    }
+
+    @WithSpan
+    override suspend fun cancelOrder(uid: UUID, context: ActorContext): OrderAggregate = txRunner.tx {
+        val order = orderRepo.findOne(uid, context)
+        requirePending(order.status)
+
+        val updated = orderRepo.update(
+            uid,
+            OrderUpdateCommand(
+                userUid = null,
+                status = OrderStatus.CANCELLED.value,
+                currency = null,
+                itemsAmount = null,
+                discountAmount = null,
+                shippingAmount = null,
+                taxAmount = null,
+                totalAmount = null,
+            ),
+            context,
+        )
+
+        updated.toAggregate()
+    }
+
+    // ─── Item management ────────────────────────────────────────────────────
+
+    @WithSpan
+    override suspend fun addItem(
+        orderUid: UUID, command: OrderItemCreateCommand, context: ActorContext
+    ): OrderItemEntity = txRunner.tx {
+        requirePending(orderRepo.findOne(orderUid, context).status)
+        orderItemRepo.create(orderUid, command, context).toEntity()
+    }
+
+    @WithSpan
+    override suspend fun updateItem(
+        orderUid: UUID, itemUid: UUID, command: OrderItemUpdateCommand, context: ActorContext
+    ): OrderItemEntity = txRunner.tx {
+        requirePending(orderRepo.findOne(orderUid, context).status)
+        orderItemRepo.update(orderUid, itemUid, command, context).toEntity()
+    }
+
+    @WithSpan
+    override suspend fun removeItem(orderUid: UUID, itemUid: UUID, context: ActorContext) {
+        txRunner.tx {
+            requirePending(orderRepo.findOne(orderUid, context).status)
+            orderItemRepo.delete(orderUid, itemUid, context)
+        }
+    }
+
+    // ─── Shipping ───────────────────────────────────────────────────────────
+
+    @WithSpan
+    override suspend fun setShipping(
+        orderUid: UUID, command: OrderShippingCreateCommand, context: ActorContext
+    ): OrderShippingEntity = txRunner.tx {
+        requirePending(orderRepo.findOne(orderUid, context).status)
+        val existing = orderShippingRepo.findByOrder(orderUid, context)
+        if (existing != null) {
+            orderShippingRepo.update(
+                orderUid,
+                OrderShippingUpdateCommand(
+                    recipientName = command.recipientName,
+                    recipientPhone = command.recipientPhone,
+                    addressLine1 = command.addressLine1,
+                    addressLine2 = command.addressLine2,
+                    city = command.city,
+                    state = command.state,
+                    postalCode = command.postalCode,
+                    country = command.country,
+                    shippingMethod = command.shippingMethod,
+                ),
+                context,
+            ).toEntity()
         } else {
-            Mono.just(Unit)
+            orderShippingRepo.create(orderUid, command, context).toEntity()
         }
     }
 
     @WithSpan
-    override fun findAllOrders(cond: FilterCondition): Mono<List<OrderAggregate>> {
-        val orderFlux = orderHandler.handle(OrderRead.FindAllOrdersRead(cond)) as Flux<OrderEntity>
+    override suspend fun updateShipping(
+        orderUid: UUID, command: OrderShippingUpdateCommand, context: ActorContext
+    ): OrderShippingEntity = txRunner.tx {
+        requirePending(orderRepo.findOne(orderUid, context).status)
+        orderShippingRepo.update(orderUid, command, context).toEntity()
+    }
 
-        val orderAggFlux =
-            orderFlux.flatMap {
-                val orderItemFlux =
-                    orderItemHandler.handle(OrderRead.FindOrderRead(requireNotNull(it.id)))
-                        as Flux<OrderItemEntity>
-                orderItemFlux.collectList().map { orderItems ->
-                    OrderAggregate.create(
-                        id = requireNotNull(it.id),
-                        order = it,
-                        orderItems = orderItems
-                    )
-                }
-            }
+    // ─── Adjustments ────────────────────────────────────────────────────────
 
-        return orderAggFlux.collectList()
+    @WithSpan
+    override suspend fun applyAdjustment(
+        orderUid: UUID, command: OrderAdjustmentCreateCommand, context: ActorContext
+    ): OrderAdjustmentEntity = txRunner.tx {
+        requirePending(orderRepo.findOne(orderUid, context).status)
+        orderAdjustmentRepo.create(orderUid, command, context).toEntity()
     }
 
     @WithSpan
-    override fun findOrder(id: Long): Mono<OrderAggregate> {
-        val orderMono = orderHandler.handle(OrderRead.FindOrderRead(id)) as Mono<OrderEntity>
-
-        val orderAggMono =
-            orderMono.flatMap { order ->
-                val orderItemFlux =
-                    orderItemHandler.handle(OrderRead.FindOrderRead(requireNotNull(order.id)))
-                        as Flux<OrderItemEntity>
-                orderItemFlux.collectList().map { items ->
-                    OrderAggregate.create(
-                        id = requireNotNull(order.id),
-                        order = order,
-                        orderItems = items
-                    )
-                }
-            }
-
-        return orderAggMono
+    override suspend fun removeAdjustment(orderUid: UUID, adjustmentUid: UUID, context: ActorContext) {
+        txRunner.tx {
+            requirePending(orderRepo.findOne(orderUid, context).status)
+            orderAdjustmentRepo.delete(orderUid, adjustmentUid, context)
+        }
     }
 
-    @WithSpan
-    override fun createOrder(dto: OrderDto): Mono<OrderAggregate> {
-        val command = OrderCommand.CreateOrderCommand(dto)
-        val orderMono = orderHandler.handle(command)
+    // ─── Business rules ─────────────────────────────────────────────────────
 
-        val aggMono =
-            orderMono.flatMap { order ->
-                val orderId = requireNotNull(order.id)
-                val orderItems = requireNotNull(dto.orderItems)
-
-                val orderItemCommand = OrderItemCommand.CreateOrderItemsCommand(orderId, orderItems)
-                orderItemHandler
-                    .handle(orderItemCommand)
-                    .collectList()
-                    .map { items -> OrderAggregate.create(orderId, order, items) }
-            }
-
-        return aggMono
-    }
-
-    @WithSpan
-    override fun updateOrder(dto: OrderDto): Mono<OrderAggregate> {
-        val command = OrderCommand.UpdateOrderCommand(dto)
-        val orderMono = orderHandler.handle(command)
-
-        val aggMono =
-            orderMono.flatMap { order ->
-                val orderId = requireNotNull(order.id)
-                val orderItems = requireNotNull(dto.orderItems)
-
-                val orderItemCommand = OrderItemCommand.UpdateOrderItemsCommand(orderId, orderItems)
-                orderItemHandler
-                    .handle(orderItemCommand)
-                    .collectList()
-                    .map { items -> OrderAggregate.create(orderId, order, items) }
-            }
-
-        return aggMono
-    }
-
-    @WithSpan
-    override fun deleteOrder(id: Long): Mono<Void> {
-        val voidMono =
-            orderHandler
-                .handle(OrderCommand.DeleteOrderCommand(id))
-                .then<Void>(Mono.empty())
-        return voidMono
+    private fun requirePending(status: String) {
+        check(OrderStatus.fromValue(status) == OrderStatus.PENDING) {
+            "Operation allowed only when order status is PENDING, current: $status"
+        }
     }
 }

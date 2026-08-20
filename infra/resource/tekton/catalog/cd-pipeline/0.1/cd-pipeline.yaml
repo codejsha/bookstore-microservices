@@ -1,0 +1,331 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: cd-pipeline
+spec:
+  description: |
+    The deploy half for every language, triggered only through the Gitea
+    Actions tekton-pipeline workflow (rendered by the {lang}-cd-triggertemplate)
+    once the image is built and scanned by CI; monitor runs with tkn. The
+    only thing that varies between languages is which migration tool runs, and
+    that is a parameter — the deploy tail (chart bump, Argo CD) is
+    identical, so there is one pipeline instead of four.
+
+    Images are signed by Tekton Chains at build time, not here. Chains observes
+    the CI PipelineRun and signs the digest it actually produced, which a task
+    running in this pipeline could not attest to.
+    tasks:
+      - verify-ci-status (refuse revisions whose ci half is not green)
+      - clone-source-repo (git-clone; for the migrations)
+      - db-migrate (db-migrate-task: golang-migrate | flyway | alembic)
+      - clone-deploy-repo (git-clone)
+      - update-values (write image.tag into values.yaml)
+      - commit-deploy-repo (git-cli)
+      - update-app (argocd-update-app)
+      - sync-app (argocd-sync-app)
+
+  workspaces:
+    - name: shared-workspace
+    - name: dockerconfig
+    - name: git-source-ssh-auth
+    - name: git-deploy-ssh-auth
+
+  params:
+    ### run identity params
+    - name: service-name
+      type: string
+    - name: git-source-revision
+      description: commit sha the CI half built — selects the 1.0.0-<sha> image
+      type: string
+    - name: required-ci-context
+      description: commit status context that must be green before this deploys
+      type: string
+      default: tekton/ci
+    ### registry params
+    - name: harbor-registry
+      type: string
+      default: harbor.example.com
+    ### argocd (update and sync) params
+    - name: argocd-set-flags
+      type: array
+      default:
+        - --insecure
+    - name: argocd-flags
+      type: array
+      default:
+        - --insecure
+    - name: argocd-sync-flags
+      type: array
+      default:
+        - --prune
+    - name: argocd-version
+      type: string
+      default: latest
+
+    ### db-migrate params
+    - name: db-migrate-task
+      description: catalog task to resolve — db-migrate-golang | db-migrate-flyway | db-migrate-alembic
+      type: string
+    - name: db-migrate-source-dir
+      description: migrations directory, relative to the workspace (or to db-migrate-context-dir for Alembic)
+      type: string
+      default: db/migrations
+    - name: db-migrate-context-dir
+      description: Alembic only — where alembic.ini lives
+      type: string
+      default: ./
+    - name: db-migrate-engine
+      description: Flyway only — mysql | postgres
+      type: string
+      default: mysql
+    - name: db-migrate-secret-name
+      type: string
+    - name: db-migrate-host
+      type: string
+    - name: db-migrate-dbname
+      type: string
+
+  tasks:
+    ### task
+    - name: verify-ci-status
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/verify-ci-status/0.1/verify-ci-status.yaml
+      params:
+        - name: service-name
+          value: $(params.service-name)
+        - name: git-source-revision
+          value: $(params.git-source-revision)
+        - name: required-context
+          value: $(params.required-ci-context)
+
+    ### task
+    - name: acquire-run-slot
+      runAfter:
+        - verify-ci-status
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/acquire-run-slot/0.1/acquire-run-slot.yaml
+      params:
+        - name: service-name
+          value: $(params.service-name)
+        - name: own-run
+          value: $(context.pipelineRun.name)
+
+    - name: clone-source-repo
+      runAfter:
+        - acquire-run-slot
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tekton-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/git-clone/0.9/git-clone.yaml
+      params:
+        - name: url
+          value: ssh://git@gitea-ssh.gitea.svc.cluster.local:22/example-corp/$(params.service-name)-source.git
+        - name: revision
+          value: $(params.git-source-revision)
+        - name: subdirectory
+          value: ./
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+        - name: ssh-directory
+          workspace: git-source-ssh-auth
+
+    ### task
+    - name: db-migrate
+      runAfter:
+        - clone-source-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/$(params.db-migrate-task)/0.1/$(params.db-migrate-task).yaml
+      params:
+        - name: MIGRATIONS_DIR
+          value: $(params.db-migrate-source-dir)
+        - name: CONTEXT_DIR
+          value: $(params.db-migrate-context-dir)
+        - name: SERVICE_NAME
+          value: $(params.service-name)
+        - name: DB_ENGINE
+          value: $(params.db-migrate-engine)
+        - name: DB_SECRET_NAME
+          value: $(params.db-migrate-secret-name)
+        - name: DB_HOST
+          value: $(params.db-migrate-host)
+        - name: DB_NAME
+          value: $(params.db-migrate-dbname)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
+    - name: clone-deploy-repo
+      runAfter:
+        - db-migrate
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tekton-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/git-clone/0.9/git-clone.yaml
+      params:
+        - name: url
+          value: ssh://git@gitea-ssh.gitea.svc.cluster.local:22/example-corp/$(params.service-name)-helm.git
+        - name: revision
+          value: main
+        - name: subdirectory
+          value: ""
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+        - name: ssh-directory
+          workspace: git-deploy-ssh-auth
+
+    ### task
+    - name: update-values
+      runAfter:
+        - clone-deploy-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/update-values/0.1/update-values.yaml
+      params:
+        - name: IMAGE_TAG
+          value: 1.0.0-$(params.git-source-revision)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
+    - name: commit-deploy-repo
+      runAfter:
+        - update-values
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tekton-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/git-cli/0.4/git-cli.yaml
+      params:
+        - name: GIT_USER_NAME
+          value: devopsadmin
+        - name: GIT_USER_EMAIL
+          value: devopsadmin@example.com
+        - name: GIT_SCRIPT
+          value: |
+            git config --global --add safe.directory "`pwd`"
+            git add .
+            git status
+            git commit -m "deploy $(params.service-name) 1.0.0-$(params.git-source-revision)" --allow-empty
+            git remote set-url origin ssh://git@gitea-ssh.gitea.svc.cluster.local:22/example-corp/$(params.service-name)-helm.git
+            git push origin HEAD:main
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: ssh-directory
+          workspace: git-deploy-ssh-auth
+
+    ### task
+    - name: update-app
+      runAfter:
+        - commit-deploy-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/argocd-update-app/0.1/argocd-update-app.yaml
+      params:
+        - name: APPLICATION_NAME
+          value: $(params.service-name)
+        - name: FLAGS
+          value:
+            - $(params.argocd-set-flags[*])
+        - name: ARGOCD_VERSION
+          value: $(params.argocd-version)
+
+    ### task
+    - name: sync-app
+      runAfter:
+        - update-app
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/argocd-sync-app/0.1/argocd-sync-app.yaml
+      params:
+        - name: application-name
+          value: $(params.service-name)
+        - name: revision
+          value: HEAD
+        - name: flags
+          value:
+            - $(params.argocd-flags[*])
+        - name: sync-flags
+          value:
+            - $(params.argocd-sync-flags[*])
+        - name: ARGOCD_VERSION
+          value: $(params.argocd-version)
+
+  finally:
+    - name: report-commit-status
+      retries: 2
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/gitea-commit-status/0.1/gitea-commit-status.yaml
+      params:
+        - name: service-name
+          value: $(params.service-name)
+        - name: git-source-revision
+          value: $(params.git-source-revision)
+        - name: status-context
+          value: tekton/cd
+        - name: pipeline-status
+          value: $(tasks.status)

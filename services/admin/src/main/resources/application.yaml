@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: admin
+    version: 1.0.0
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+    import: configserver:http://localhost:8888
+  application:
+    name: admin
+    version: 1.0.0

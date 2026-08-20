@@ -1,0 +1,38 @@
+app:
+  logging:
+    level: info
+
+server:
+  mode: debug
+
+temporal:
+  host: temporal-frontend.temporal.svc.cluster.local:7233
+  namespace: bookstore
+  taskQueue: inventory-task-queue
+
+kafka:
+  broker:
+    bootstrap_servers:
+      - bookstore-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093
+  schema_registry:
+    url: http://schemaregistry.kafka.svc.cluster.local:8081
+
+database:
+  datasource:
+    driver: postgres
+    host: inventory-postgres-rw.bookstore.svc.cluster.local
+    port: 5432
+    db_name: inventory_db
+    params:
+      - sslmode=disable
+
+telemetry:
+  collector:
+    traceUrl: alloy-gateway.grafana.svc.cluster.local:4317
+  profiling:
+    serverAddress: http://alloy-agent.grafana.svc.cluster.local:9095
+  resource:
+    namespace: bookstore
+    environment: dev
+  sampling:
+    ratio: 0.1

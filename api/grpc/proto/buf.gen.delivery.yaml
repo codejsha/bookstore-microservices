@@ -1,0 +1,22 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package
+      path: delivery/v1.proto
+      value: pb/deliverypb
+    - file_option: go_package
+      path: common/v1.proto
+      value: pb/commonpb
+inputs:
+  - directory: ./modules
+    paths:
+      - modules/delivery/v1.proto
+plugins:
+  ### customer (client)
+  - local: protoc-gen-go
+    out: ../../../services/customer/generated/application/port
+    opt: paths=import
+  - local: protoc-gen-go-grpc
+    out: ../../../services/customer/generated/application/port
+    opt: paths=import

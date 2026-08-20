@@ -1,0 +1,47 @@
+enabled: true
+
+existingSecretKey: token
+
+statefulset:
+  replicas: 1
+
+  labels:
+    istio.io/dataplane-mode: none
+
+  persistence:
+    size: 1Gi
+
+  runner:
+    config: |
+      log:
+        level: info
+      cache:
+        enabled: false
+      runner:
+        capacity: 3
+        labels:
+          - "alpine-k8s:docker://docker.io/alpine/k8s:1.36.2"
+      container:
+        require_docker: true
+        docker_timeout: 300s
+
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 512Mi
+
+  dind:
+    extraArgs:
+      - --bip=10.250.0.1/24
+      - --default-address-pool=base=10.251.0.0/16,size=24
+
+    resources:
+      requests:
+        cpu: 10m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 2048Mi

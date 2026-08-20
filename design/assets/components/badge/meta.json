@@ -1,0 +1,18 @@
+{
+  "$schema": "../../../schemas/component-meta.schema.json",
+  "name": "Badge",
+  "description": "Inline status indicator with multiple variants",
+  "variants": {
+    "default": { "svg": "default.svg", "tokens": ["color.primary", "color.primary-foreground"] },
+    "secondary": { "svg": "secondary.svg", "tokens": ["color.secondary", "color.secondary-foreground"] },
+    "destructive": { "svg": "destructive.svg", "tokens": ["color.destructive"] },
+    "outline": { "svg": "outline.svg", "tokens": ["color.border", "color.foreground"] },
+    "ghost": { "svg": "ghost.svg", "tokens": ["color.muted", "color.foreground"] },
+    "link": { "svg": "link.svg", "tokens": ["color.primary"] }
+  },
+  "sizes": ["default"],
+  "states": ["default"],
+  "responsive": false,
+  "codeRef": "services/web/src/shared/components/ui/badge.tsx",
+  "cvaVariants": true
+}

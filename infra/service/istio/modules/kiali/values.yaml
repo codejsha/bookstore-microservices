@@ -1,0 +1,24 @@
+deployment:
+  custom_secrets:
+    - name: grafana-admin-credentials
+      mount: /kiali-override-secrets/grafana-admin-credentials
+      optional: true
+
+external_services:
+  prometheus:
+    url: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
+
+  grafana:
+    enabled: true
+    internal_url: "http://prometheus-grafana.prometheus.svc.cluster.local"
+    external_url: "http://grafana.example.com"
+    datasource_uid: "prometheus"
+    dashboards:
+      - name: "Istio Mesh Dashboard"
+      - name: "Istio Service Dashboard"
+      - name: "Istio Workload Dashboard"
+      - name: "Istio Performance Dashboard"
+      - name: "Istio Control Plane Dashboard"
+      - name: "Istio Wasm Extension Dashboard"
+    auth:
+      type: "basic"

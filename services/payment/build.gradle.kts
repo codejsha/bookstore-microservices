@@ -1,22 +1,20 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jooq.meta.jaxb.*
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 import java.util.*
 
 plugins {
-    kotlin("jvm") version "2.1.10"
-    kotlin("plugin.spring") version "2.1.10"
-    id("org.springframework.boot") version "3.4.3"
+    kotlin("jvm") version "2.3.10"
+    kotlin("plugin.spring") version "2.3.10"
+    kotlin("plugin.serialization") version "2.3.10"
+    id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
 
-    id("com.google.devtools.ksp") version "2.1.10-1.0.31"
-    kotlin("plugin.serialization") version "2.1.10"
-    kotlin("plugin.jpa") version "2.1.10"
-
-    id("org.flywaydb.flyway") version "11.8.0"
-
-    id("com.diffplug.spotless") version "7.2.1"
+    id("com.codejsha.platform.jooq-codegen-plugin") version "0.1.0"
+    id("org.jooq.jooq-codegen-gradle") version "3.19.29"
+    id("com.diffplug.spotless") version "8.3.0"
 }
 
 group = findProperty("group") as String
@@ -24,28 +22,27 @@ version = findProperty("version") as String
 
 kotlin {
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xjsr305=strict")
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
     }
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
 sourceSets {
     main {
         kotlin {
-            srcDirs(
-                "src/main/kotlin",
-                "build/generated/ksp/main/kotlin"
-            )
+            srcDirs("src/main/kotlin", "src/main/generated")
         }
         java {
-            srcDirs(
-                "src/main/generated"
-            )
+            srcDirs("src/main/java", "src/main/generated")
         }
         resources {
             srcDir("src/main/resources")
@@ -64,83 +61,75 @@ sourceSets {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven { url = uri("https://git.example.com/api/packages/example-corp/maven") }
+    maven {
+        url = uri("https://maven.pkg.github.com/codejsha/package-repo")
+    }
 }
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2024.0.1")
-        mavenBom("io.github.openfeign.querydsl:querydsl-bom:6.10.1")
-        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.16.0")
-        mavenBom("io.micrometer:micrometer-bom:1.15.0")
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.1.0")
+        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.24.0")
+        mavenBom("io.micrometer:micrometer-bom:1.16.2")
+        mavenBom("org.testcontainers:testcontainers-bom:2.0.3")
+        mavenBom("io.grpc:grpc-bom:1.78.0")
+        mavenBom("com.google.protobuf:protobuf-bom:4.35.1")
     }
 }
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-
-    // web mvc
-    implementation("org.springframework.boot:spring-boot-starter-web")
-
-    // jpa
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    runtimeOnly("com.mysql:mysql-connector-j")
-
-    // querydsl
-    implementation("jakarta.persistence:jakarta.persistence-api")
-    implementation(group = "com.querydsl", name = "querydsl-jpa", classifier = "jakarta")
-    // querydsl openfeign
-    implementation("io.github.openfeign.querydsl:querydsl-core")
-    ksp("io.github.openfeign.querydsl:querydsl-ksp-codegen")
-    testImplementation("io.github.openfeign.querydsl:querydsl-jpa")
-
-    // grpc
-    implementation("io.grpc:grpc-kotlin-stub:1.4.1")
-    implementation("io.grpc:grpc-protobuf:1.70.0")
-    implementation("com.google.protobuf:protobuf-kotlin:4.29.3")
-
-    // conductor
-    implementation("org.conductoross:conductor-client-spring:4.0.6")
-
-    // observability
-    implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter")
-    implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.16.0-alpha")
-    implementation("io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5:2.16.0-alpha")
-    implementation("io.micrometer:micrometer-registry-otlp")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-
-    // custom
-    implementation("com.codejsha.common:commonlib-kotlin:0.1.0")
-
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.cloud:spring-cloud-starter-config")
-
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+
+    // web
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("com.squareup.moshi:moshi:1.15.2")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
+
+    // data
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.redisson:redisson-spring-boot-starter:4.5.0")
+    implementation("org.springframework.data:spring-data-commons")
+    implementation("org.springframework.boot:spring-boot-starter-jooq")
+    testImplementation("org.springframework.boot:spring-boot-starter-jooq-test")
+    implementation("com.mysql:mysql-connector-j")
+
+    // grpc
+    runtimeOnly("io.grpc:grpc-netty-shaded")
+    implementation("io.grpc:grpc-protobuf")
+    implementation("io.grpc:grpc-stub")
+    implementation("com.google.protobuf:protobuf-java")
+
+    // integration
+    implementation("org.springframework.cloud:spring-cloud-starter-config")
+    compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.24.0")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-otlp")
+    implementation("org.springframework.boot:spring-boot-opentelemetry")
+
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    // temporal
+    implementation("io.temporal:temporal-sdk:1.27.0")
+    implementation("io.temporal:temporal-spring-boot-starter:1.27.0")
+
+    // custom
+    implementation("com.codejsha.platform:shared-library-kotlin:0.1.0-SNAPSHOT")
+
+    // test
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-mysql")
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
-}
-
-val dbProps =
-    Properties().apply {
-        val secretFile = file("/vault/secrets/db.properties")
-        if (secretFile.exists()) {
-            load(secretFile.inputStream())
-        }
-    }
-
-flyway {
-    url = dbProps.getProperty("db.url", "")
-    user = dbProps.getProperty("db.user", "")
-    password = dbProps.getProperty("db.password", "")
-    locations = arrayOf("classpath:db/migrations")
+configurations.all {
+    exclude(group = "io.opentelemetry.instrumentation", module = "opentelemetry-spring-boot-starter")
 }
 
 tasks.withType<Test> {
@@ -178,28 +167,118 @@ tasks.processResources {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
-spotless {
-    java {
-        importOrder("com.codejsha.**", "|", "*", "|", "java.**", "javax.**", "|", "\$*")
-        palantirJavaFormat()
-        removeUnusedImports()
-        formatAnnotations()
-    }
-    kotlin {
-        ktlint()
-            .setEditorConfigPath("$projectDir/.editorconfig")
-        suppressLintsFor {
-            step = "ktlint"
-            shortCode = "standard:no-wildcard-imports"
+tasks.processTestResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+val dbProps =
+    Properties().apply {
+        val secretFile = file("/vault/secrets/db.properties")
+        if (secretFile.exists() && secretFile.isFile) {
+            secretFile.inputStream().use { fis ->
+                load(fis)
+            }
         }
     }
-    kotlinGradle {
-        target("*.gradle.kts")
-        ktlint()
-            .setEditorConfigPath("$projectDir/.editorconfig")
-        suppressLintsFor {
-            step = "ktlint"
-            shortCode = "standard:no-wildcard-imports"
-        }
+val dbName: String = dbProps.getProperty("db.name", "${project.name}_db")
+
+val jooqGenerator =
+    Generator().apply {
+        name = "org.jooq.codegen.KotlinGenerator"
+        database =
+            Database().apply {
+                name = "org.jooq.meta.mysql.MySQLDatabase"
+                schemata = listOf(SchemaMappingType().apply { inputSchema = dbName })
+                includes = "$dbName.*"
+                excludes = "$dbName.flyway_schema_history"
+                forcedTypes =
+                    listOf(
+                        ForcedType().apply {
+                            name = "BOOLEAN"
+                            includeTypes = "TINYINT\\(1\\)"
+                            includeExpression = ".*\\.deleted"
+                        }
+                    )
+            }
+        strategy =
+            Strategy().apply {
+                name = "org.jooq.codegen.DefaultGeneratorStrategy"
+                matchers =
+                    Matchers().apply {
+                        catalogs =
+                            listOf(
+                                MatchersCatalogType().apply {
+                                }
+                            )
+                        tables =
+                            listOf(
+                                MatchersTableType().apply {
+                                    tableClass =
+                                        MatcherRule().apply {
+                                            transform = MatcherTransformType.PASCAL
+                                            expression = "$0_table"
+                                        }
+                                    interfaceClass =
+                                        MatcherRule().apply {
+                                            transform = MatcherTransformType.PASCAL
+                                            expression = "i_$0_entity"
+                                        }
+                                    pojoClass =
+                                        MatcherRule().apply {
+                                            transform = MatcherTransformType.PASCAL
+                                            expression = "$0_entity"
+                                        }
+                                }
+                            )
+                        enums =
+                            listOf(
+                                MatchersEnumType().apply {
+                                    enumClass =
+                                        MatcherRule().apply {
+                                            transform = MatcherTransformType.PASCAL
+                                            expression = "$0"
+                                        }
+                                }
+                            )
+                    }
+            }
+        generate =
+            Generate().apply {
+                withTables(true)
+                withRecords(true)
+                withPojos(true)
+                withInterfaces(true)
+                withDaos(true)
+                withSpringAnnotations(true)
+                withSequences(true)
+                withRoutines(true)
+                withIndexes(true)
+            }
+        target =
+            org.jooq.meta.jaxb.Target().apply {
+                packageName = "com.codejsha.bookstore.generated.infrastructure.adapter.jooq"
+                directory = "$projectDir/src/main/generated"
+            }
     }
+
+jooq {
+    configuration {
+        jdbc {
+            driver = "com.mysql.cj.jdbc.Driver"
+            url = dbProps.getProperty("db.url", "")
+            user = dbProps.getProperty("db.user", "")
+            password = dbProps.getProperty("db.password", "")
+        }
+        generator = jooqGenerator
+        logging = org.jooq.meta.jaxb.Logging.INFO
+        onError = OnError.FAIL
+        onUnused = OnError.LOG
+    }
+}
+
+jooqContainer {
+    databaseType = "mysql"
+    databaseName = dbName
+    location = "filesystem:db/migrations"
+    generator = jooqGenerator
 }

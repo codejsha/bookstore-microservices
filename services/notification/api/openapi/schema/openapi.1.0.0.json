@@ -1,0 +1,1102 @@
+{
+  "openapi": "3.2.0",
+  "info": {
+    "title": "Notification service API",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Admin",
+      "email": "admin@example.com"
+    },
+    "description": "Notification service API of Bookstore microservices"
+  },
+  "tags": [
+    {
+      "name": "Notification"
+    },
+    {
+      "name": "Template"
+    }
+  ],
+  "paths": {
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "Notifications_getAll",
+        "description": "Find all notifications",
+        "parameters": [
+          {
+            "name": "user_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            },
+            "explode": false
+          },
+          {
+            "name": "notification_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/NotificationType"
+            },
+            "explode": false
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Channel"
+            },
+            "explode": false
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/NotificationStatus"
+            },
+            "explode": false
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationFindAllResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access is forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "Notifications_create",
+        "description": "Send new notification",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "headers": {
+              "location": {
+                "required": true,
+                "description": "Location of the created resource",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access is forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendNotificationRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/{uid}": {
+      "get": {
+        "operationId": "Notifications_read",
+        "description": "Find notification",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationFindResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access is forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/{uid}/failed": {
+      "patch": {
+        "operationId": "Notifications_markAsFailed",
+        "description": "Mark notification as failed",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationUpdateResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access is forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/{uid}/sent": {
+      "patch": {
+        "operationId": "Notifications_markAsSent",
+        "description": "Mark notification as sent",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationUpdateResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access is forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/templates": {
+      "get": {
+        "operationId": "Templates_getAll",
+        "description": "Find all templates",
+        "parameters": [
+          {
+            "name": "notification_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/NotificationType"
+            },
+            "explode": false
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Channel"
+            },
+            "explode": false
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateFindAllResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Template"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "Templates_create",
+        "description": "Create new template",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "headers": {
+              "location": {
+                "required": true,
+                "description": "Location of the created resource",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access is forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Template"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateCreateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/templates/{uid}": {
+      "get": {
+        "operationId": "Templates_read",
+        "description": "Find template",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateFindResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Template"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "Templates_update",
+        "description": "Update template",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateUpdateResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access is forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Template"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateUpdateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "Templates_delete",
+        "description": "Delete template",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "There is no content to send for this request, but the headers may be useful. "
+          },
+          "403": {
+            "description": "Access is forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Template"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BadRequestError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Channel": {
+        "type": "string",
+        "enum": [
+          "EMAIL",
+          "SMS",
+          "PUSH"
+        ]
+      },
+      "ForbiddenError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "NotFoundError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "NotificationFindAllResponse": {
+        "type": "object",
+        "required": [
+          "total",
+          "items"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationItem"
+            },
+            "minItems": 0
+          }
+        }
+      },
+      "NotificationFindResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "user_uid",
+          "notification_type",
+          "channel",
+          "status",
+          "title",
+          "content",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "user_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "notification_type": {
+            "$ref": "#/components/schemas/NotificationType"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/Channel"
+          },
+          "status": {
+            "$ref": "#/components/schemas/NotificationStatus"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "sent_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "NotificationItem": {
+        "type": "object",
+        "required": [
+          "uid",
+          "user_uid",
+          "notification_type",
+          "channel",
+          "status",
+          "title",
+          "content",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "user_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "notification_type": {
+            "$ref": "#/components/schemas/NotificationType"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/Channel"
+          },
+          "status": {
+            "$ref": "#/components/schemas/NotificationStatus"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "sent_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "NotificationStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "SENT",
+          "FAILED"
+        ]
+      },
+      "NotificationType": {
+        "type": "string",
+        "enum": [
+          "ORDER_PLACED",
+          "ORDER_CONFIRMED",
+          "ORDER_CANCELLED",
+          "PAYMENT_SUCCESS",
+          "PAYMENT_FAILED",
+          "SHIPMENT_DISPATCHED",
+          "SHIPMENT_DELIVERED",
+          "ACCOUNT_CREATED",
+          "PASSWORD_RESET"
+        ]
+      },
+      "NotificationUpdateResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "user_uid",
+          "notification_type",
+          "channel",
+          "status",
+          "title",
+          "content",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "user_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "notification_type": {
+            "$ref": "#/components/schemas/NotificationType"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/Channel"
+          },
+          "status": {
+            "$ref": "#/components/schemas/NotificationStatus"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "sent_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SendNotificationRequest": {
+        "type": "object",
+        "required": [
+          "user_uid",
+          "notification_type",
+          "channel",
+          "title",
+          "content"
+        ],
+        "properties": {
+          "user_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "notification_type": {
+            "$ref": "#/components/schemas/NotificationType"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/Channel"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "TemplateCreateRequest": {
+        "type": "object",
+        "required": [
+          "notification_type",
+          "channel",
+          "title_template",
+          "content_template"
+        ],
+        "properties": {
+          "notification_type": {
+            "$ref": "#/components/schemas/NotificationType"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/Channel"
+          },
+          "title_template": {
+            "type": "string"
+          },
+          "content_template": {
+            "type": "string"
+          }
+        }
+      },
+      "TemplateFindAllResponse": {
+        "type": "object",
+        "required": [
+          "total",
+          "items"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TemplateItem"
+            },
+            "minItems": 0
+          }
+        }
+      },
+      "TemplateFindResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "notification_type",
+          "channel",
+          "title_template",
+          "content_template",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "notification_type": {
+            "$ref": "#/components/schemas/NotificationType"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/Channel"
+          },
+          "title_template": {
+            "type": "string"
+          },
+          "content_template": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TemplateItem": {
+        "type": "object",
+        "required": [
+          "uid",
+          "notification_type",
+          "channel",
+          "title_template",
+          "content_template",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "notification_type": {
+            "$ref": "#/components/schemas/NotificationType"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/Channel"
+          },
+          "title_template": {
+            "type": "string"
+          },
+          "content_template": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TemplateUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "notification_type": {
+            "$ref": "#/components/schemas/NotificationType"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/Channel"
+          },
+          "title_template": {
+            "type": "string"
+          },
+          "content_template": {
+            "type": "string"
+          }
+        }
+      },
+      "TemplateUpdateResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "notification_type",
+          "channel",
+          "title_template",
+          "content_template",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "notification_type": {
+            "$ref": "#/components/schemas/NotificationType"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/Channel"
+          },
+          "title_template": {
+            "type": "string"
+          },
+          "content_template": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Versions": {
+        "type": "string",
+        "enum": [
+          "1.0.0"
+        ]
+      },
+      "uuid": {
+        "type": "string",
+        "description": "UUid string identifier"
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "Bearer"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "localhost",
+      "variables": {}
+    },
+    {
+      "url": "http://notification.bookstore.svc.cluster.local:8080",
+      "description": "notification service",
+      "variables": {}
+    }
+  ]
+}

@@ -1,3 +1,7 @@
 #!/bin/sh
 
-/bin/sh -c "/app/${SERVICE_NAME}-app run"
+if [ -f /vault/secrets/env-keycloak ]; then
+    . /vault/secrets/env-keycloak
+fi
+
+exec "/app/${SERVICE_NAME}-app" run

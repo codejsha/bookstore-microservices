@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 5
+
+management:
+  otlp:
+    metrics:
+      export:
+        step: 10s
+        base-time-unit: seconds
+  opentelemetry:
+    resource-attributes:
+      "[service.name]": settlement-app
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true

@@ -1,0 +1,18 @@
+{
+  "$schema": "../../../schemas/component-meta.schema.json",
+  "name": "Button",
+  "description": "Primary action button with multiple variants and sizes",
+  "variants": {
+    "default": { "svg": "default.svg", "tokens": ["color.primary", "color.primary-foreground"] },
+    "outline": { "svg": "outline.svg", "tokens": ["color.border", "color.background", "color.foreground"] },
+    "secondary": { "svg": "secondary.svg", "tokens": ["color.secondary", "color.secondary-foreground"] },
+    "ghost": { "svg": "ghost.svg", "tokens": ["color.muted", "color.foreground"] },
+    "destructive": { "svg": "destructive.svg", "tokens": ["color.destructive"] },
+    "link": { "svg": "link.svg", "tokens": ["color.primary"] }
+  },
+  "sizes": ["xs", "sm", "default", "lg", "icon", "icon-xs", "icon-sm", "icon-lg"],
+  "states": ["default", "hover", "focus-visible", "disabled", "aria-expanded"],
+  "responsive": false,
+  "codeRef": "services/web/src/shared/components/ui/button.tsx",
+  "cvaVariants": true
+}

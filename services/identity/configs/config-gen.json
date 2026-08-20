@@ -1,0 +1,28 @@
+{
+  "app": {
+    "logging": {
+      "level": "info"
+    }
+  },
+  "database": {
+    "datasource": {
+      "driver": "postgres",
+      "db_name": "identity_db",
+      "username": "postgres",
+      "password": "test",
+      "params": [
+        "sslmode=disable"
+      ]
+    },
+    "gorm_gen": {
+      "package_root": "github.com/codejsha/bookstore-microservices/identity",
+      "repo_path": "generated/infrastructure/port/repo",
+      "out_path": "generated/infrastructure/port/dao",
+      "model_path": "generated/infrastructure/port/entity",
+      "includes": [],
+      "excludes": [
+        "schema_migrations"
+      ]
+    }
+  }
+}

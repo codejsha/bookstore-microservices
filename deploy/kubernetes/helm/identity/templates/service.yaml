@@ -4,6 +4,12 @@ metadata:
   name: {{ include "identity.fullname" . }}
   labels:
     {{- include "identity.labels" . | nindent 4 }}
+    {{- if .Values.mesh }}
+    {{- if .Values.mesh.waypoint }}
+    istio.io/use-waypoint: {{ .Values.mesh.waypoint }}
+    istio.io/ingress-use-waypoint: "true"
+    {{- end }}
+    {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -11,11 +17,13 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
-    {{- if .Values.service.https.enabled }}
-    - port: {{ .Values.service.https.port }}
-      targetPort: https
+      appProtocol: {{ .Values.service.appProtocol | default "http" }}
+    {{- if .Values.service.grpc.enabled }}
+    - port: {{ .Values.service.grpc.port }}
+      targetPort: grpc
       protocol: TCP
-      name: https
+      name: grpc
+      appProtocol: grpc
     {{- end }}
   selector:
     {{- include "identity.selectorLabels" . | nindent 4 }}

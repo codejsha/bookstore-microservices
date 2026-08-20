@@ -1,0 +1,6 @@
+allowBuilds:
+  protobufjs: set this to true or false
+minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  - '@bookstore/*'
+strictDepBuilds: false

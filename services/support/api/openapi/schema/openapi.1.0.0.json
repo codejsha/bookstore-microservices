@@ -1,0 +1,1634 @@
+{
+  "openapi": "3.2.0",
+  "info": {
+    "title": "Support service API",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Admin",
+      "email": "admin@example.com"
+    },
+    "description": "Support service API of Bookstore microservices"
+  },
+  "tags": [
+    {
+      "name": "Ticket"
+    },
+    {
+      "name": "Comment"
+    },
+    {
+      "name": "Category"
+    },
+    {
+      "name": "Faq"
+    }
+  ],
+  "paths": {
+    "/api/v1/categories": {
+      "get": {
+        "operationId": "Categories_getAll",
+        "description": "List categories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryFindAllResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Category"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "Categories_create",
+        "description": "Create category",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "headers": {
+              "location": {
+                "required": true,
+                "description": "Location of the created resource",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Category"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryCreateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/categories/{uid}": {
+      "get": {
+        "operationId": "Categories_read",
+        "description": "Find category",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryFindResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Category"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "Categories_update",
+        "description": "Update category",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryUpdateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Category"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryUpdateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "Categories_remove",
+        "description": "Delete category",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "There is no content to send for this request, but the headers may be useful. "
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Category"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/faqs": {
+      "get": {
+        "operationId": "Faqs_getAll",
+        "description": "Search FAQs",
+        "parameters": [
+          {
+            "name": "category_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            },
+            "explode": false
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false
+          },
+          {
+            "name": "published_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "explode": false
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqFindAllResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Faq"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "Faqs_create",
+        "description": "Create FAQ",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "headers": {
+              "location": {
+                "required": true,
+                "description": "Location of the created resource",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Faq"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FaqCreateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/faqs/{uid}": {
+      "get": {
+        "operationId": "Faqs_read",
+        "description": "Find FAQ",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          },
+          {
+            "name": "increment_view",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "explode": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqFindResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Faq"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "Faqs_update",
+        "description": "Update FAQ",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqUpdateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Faq"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FaqUpdateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "Faqs_remove",
+        "description": "Delete FAQ",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "There is no content to send for this request, but the headers may be useful. "
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Faq"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tickets": {
+      "get": {
+        "operationId": "Tickets_getAll",
+        "description": "List tickets",
+        "parameters": [
+          {
+            "name": "customer_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            },
+            "explode": false
+          },
+          {
+            "name": "assignee_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            },
+            "explode": false
+          },
+          {
+            "name": "category_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            },
+            "explode": false
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/TicketStatus"
+            },
+            "explode": false
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/TicketPriority"
+            },
+            "explode": false
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketFindAllResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ticket"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "Tickets_create",
+        "description": "Open new ticket",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "headers": {
+              "location": {
+                "required": true,
+                "description": "Location of the created resource",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ticket"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketCreateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tickets/{ticket_uid}/comments": {
+      "get": {
+        "operationId": "Comments_getAll",
+        "description": "List ticket comments",
+        "parameters": [
+          {
+            "name": "ticket_uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          },
+          {
+            "name": "include_internal",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "explode": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentFindAllResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Comment"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "Comments_create",
+        "description": "Add comment to ticket",
+        "parameters": [
+          {
+            "name": "ticket_uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "headers": {
+              "location": {
+                "required": true,
+                "description": "Location of the created resource",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Comment"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentCreateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tickets/{uid}": {
+      "get": {
+        "operationId": "Tickets_read",
+        "description": "Find ticket",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketFindResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ticket"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "Tickets_update",
+        "description": "Update ticket",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketUpdateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ticket"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketUpdateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tickets/{uid}/status": {
+      "patch": {
+        "operationId": "Tickets_updateStatus",
+        "description": "Update ticket status",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketUpdateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ticket"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketUpdateStatusRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuthorRole": {
+        "type": "string",
+        "enum": [
+          "CUSTOMER",
+          "AGENT"
+        ]
+      },
+      "BadRequestError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CategoryCreateRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "parent_uid": {
+            "$ref": "#/components/schemas/uuid"
+          }
+        }
+      },
+      "CategoryFindAllResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryItem"
+            },
+            "minItems": 0
+          }
+        }
+      },
+      "CategoryFindResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "name",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "parent_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CategoryItem": {
+        "type": "object",
+        "required": [
+          "uid",
+          "name",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "parent_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CategoryUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "parent_uid": {
+            "$ref": "#/components/schemas/uuid"
+          }
+        }
+      },
+      "CategoryUpdateResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "name",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "parent_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommentCreateRequest": {
+        "type": "object",
+        "required": [
+          "body"
+        ],
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "internal": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CommentFindAllResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommentItem"
+            },
+            "minItems": 0
+          }
+        }
+      },
+      "CommentItem": {
+        "type": "object",
+        "required": [
+          "uid",
+          "ticket_uid",
+          "author_uid",
+          "author_role",
+          "body",
+          "internal",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "ticket_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "author_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "author_role": {
+            "$ref": "#/components/schemas/AuthorRole"
+          },
+          "body": {
+            "type": "string"
+          },
+          "internal": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FaqCreateRequest": {
+        "type": "object",
+        "required": [
+          "question",
+          "answer"
+        ],
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "category_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "published": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FaqFindAllResponse": {
+        "type": "object",
+        "required": [
+          "total",
+          "items"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FaqItem"
+            },
+            "minItems": 0
+          }
+        }
+      },
+      "FaqFindResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "question",
+          "answer",
+          "view_count",
+          "published",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "category_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "view_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FaqItem": {
+        "type": "object",
+        "required": [
+          "uid",
+          "question",
+          "answer",
+          "view_count",
+          "published",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "category_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "view_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FaqUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "category_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "published": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FaqUpdateResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "question",
+          "answer",
+          "view_count",
+          "published",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "category_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "view_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ForbiddenError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "NotFoundError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "TicketCreateRequest": {
+        "type": "object",
+        "required": [
+          "customer_uid",
+          "subject",
+          "description"
+        ],
+        "properties": {
+          "customer_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/TicketPriority"
+          },
+          "category_uid": {
+            "$ref": "#/components/schemas/uuid"
+          }
+        }
+      },
+      "TicketFindAllResponse": {
+        "type": "object",
+        "required": [
+          "total",
+          "items"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TicketItem"
+            },
+            "minItems": 0
+          }
+        }
+      },
+      "TicketFindResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "customer_uid",
+          "subject",
+          "description",
+          "status",
+          "priority",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "customer_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "category_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "assignee_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TicketStatus"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/TicketPriority"
+          },
+          "resolved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TicketItem": {
+        "type": "object",
+        "required": [
+          "uid",
+          "customer_uid",
+          "subject",
+          "description",
+          "status",
+          "priority",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "customer_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "category_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "assignee_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TicketStatus"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/TicketPriority"
+          },
+          "resolved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TicketPriority": {
+        "type": "string",
+        "enum": [
+          "LOW",
+          "MEDIUM",
+          "HIGH",
+          "URGENT"
+        ]
+      },
+      "TicketStatus": {
+        "type": "string",
+        "enum": [
+          "OPEN",
+          "IN_PROGRESS",
+          "RESOLVED",
+          "CLOSED"
+        ]
+      },
+      "TicketUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/TicketPriority"
+          },
+          "category_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "assignee_uid": {
+            "$ref": "#/components/schemas/uuid"
+          }
+        }
+      },
+      "TicketUpdateResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "customer_uid",
+          "subject",
+          "description",
+          "status",
+          "priority",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "customer_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "category_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "assignee_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TicketStatus"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/TicketPriority"
+          },
+          "resolved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TicketUpdateStatusRequest": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/TicketStatus"
+          }
+        }
+      },
+      "Versions": {
+        "type": "string",
+        "enum": [
+          "1.0.0"
+        ]
+      },
+      "uuid": {
+        "type": "string",
+        "description": "UUid string identifier"
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "Bearer"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "localhost",
+      "variables": {}
+    },
+    {
+      "url": "http://support.bookstore.svc.cluster.local:8080",
+      "description": "support service",
+      "variables": {}
+    }
+  ]
+}

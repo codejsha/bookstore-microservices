@@ -1,0 +1,15 @@
+{
+  "name": "openapi",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@typespec/compiler": "1.14.0",
+    "@typespec/http": "1.14.0",
+    "@typespec/rest": "0.84.0",
+    "@typespec/openapi": "1.14.0",
+    "@typespec/openapi3": "1.14.0",
+    "@typespec/versioning": "0.84.0"
+  },
+  "packageManager": "pnpm@10.33.0"
+}

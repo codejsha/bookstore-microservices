@@ -1,0 +1,51 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: acquire-run-slot
+spec:
+  description: |
+    Serialize runs per service: hold this PipelineRun until every older run
+    labeled with the same bookstore.dev/service has reached a terminal
+    Succeeded condition. Per-repo FIFO ordering lives here because Gitea
+    auto-cancels superseded Actions runs, so nothing above the pipeline can
+    be trusted to queue.
+  params:
+    - name: service-name
+      type: string
+    - name: own-run
+      type: string
+      description: this PipelineRun's name ($(context.pipelineRun.name))
+    - name: namespace
+      type: string
+      default: bookstore-ci
+    - name: KUBECTL_IMAGE
+      type: string
+      default: docker.io/alpine/k8s:1.36.2
+  steps:
+    - name: wait
+      image: $(params.KUBECTL_IMAGE)
+      script: |
+        #!/bin/sh
+        set -eu
+        NS="$(params.namespace)"
+        ME="$(params.own-run)"
+        SVC="$(params.service-name)"
+        MYTS=$(kubectl get pipelinerun -n "$NS" "$ME" -o jsonpath='{.metadata.creationTimestamp}')
+        for _ in $(seq 1 240); do
+          BLOCKING=$(kubectl get pipelinerun -n "$NS" -l "bookstore.dev/service=$SVC" -o json \
+            | jq -r --arg me "$ME" --arg ts "$MYTS" \
+              '[.items[]
+                | select(.metadata.name != $me)
+                | select((.metadata.creationTimestamp < $ts)
+                         or (.metadata.creationTimestamp == $ts and .metadata.name < $me))
+                | select(([.status.conditions[]? | select(.type == "Succeeded" and (.status == "True" or .status == "False"))] | length) == 0)
+               ] | length')
+          if [ "$BLOCKING" = "0" ]; then
+            echo "slot acquired for $SVC"
+            exit 0
+          fi
+          echo "waiting: $BLOCKING older run(s) for $SVC still active"
+          sleep 15
+        done
+        echo "gave up waiting for the $SVC run slot after 60m" >&2
+        exit 1

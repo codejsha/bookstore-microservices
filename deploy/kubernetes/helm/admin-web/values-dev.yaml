@@ -1,0 +1,9 @@
+image:
+  pullPolicy: Always
+
+mesh:
+  waypoint: "bookstore-waypoint"
+
+gatewayApi:
+  enabled: true
+  host: "bookstore-admin.example.com"

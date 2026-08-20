@@ -1,6 +1,8 @@
 SERVICE_NAME := identity
-VERSION := 0.1.0
-KEYCLOAK_VERSION := 26.1.2
+VERSION := 1.0.0
+KEYCLOAK_VERSION := 26.3.3
+
+CONTAINER_ENGINE ?= podman
 
 APP_NAME := $(SERVICE_NAME)-app
 COMMIT := $(shell git rev-parse --short HEAD)
@@ -23,74 +25,105 @@ commit:
 
 .PHONY: spec
 spec:
-	### openapi
-	yq -i '.apis.core@v1.decorators.info-override.version = "$(VERSION)"' ./api/openapi/redocly.yaml
-	yq -i '.apis.oidc@v1.decorators.info-override.version = "$(VERSION)"' ./api/idp/redocly.yaml
-	### helm chart
-	yq -i '.appVersion = "$(VERSION)"' ../../deploy/kubernetes/helm/$(SERVICE_NAME)/Chart.yaml
+	@if [ -f ../../deploy/kubernetes/helm/$(SERVICE_NAME)/Chart.yaml ]; then \
+		yq -i '.appVersion = "$(VERSION)"' ../../deploy/kubernetes/helm/$(SERVICE_NAME)/Chart.yaml; \
+	fi
 
 .PHONY: replace
 replace:
-	go mod edit -replace=github.com/codejsha/bookstore-microservices/commonlib-go=$(LIB_REPO)@$(LIB_VERSION)
+	go mod edit -replace github.com/codejsha/shared-library-go=$(LIB_PATH)
+
+.PHONY: deps
+deps:
+	go mod tidy
+	go mod download
 
 .PHONY: style
 style:
-	go mod tidy
-	go mod download
-	goimports -w ./internal/application/port/openapi
-	gofmt -w ./internal/application/port/openapi
-	goimports -w ./internal/application/port/idp
-	gofmt -w ./internal/application/port/idp
+	goimports -w ./internal/{application,domain,infrastructure}
+	gofmt -w ./internal/{application,domain,infrastructure}
 
 .PHONY: buf
 buf:
-	cd ../../api/proto && sh generate.sh
+	cd ../../api/grpc && make grpc
 
 .PHONY: openapi-bundle
 openapi-bundle:
-	redocly bundle --config ./api/openapi/redocly.yaml core@v1
+	cd api/openapi && pnpm install --frozen-lockfile && pnpm exec tsp compile ./main.tsp --output-dir .
 
 .PHONY: openapi-gen
 openapi-gen:
-	rm -rf ./internal/application/port/openapi
-	openapi-generator-cli generate -c ../../api/openapi/golang/config-all.yaml
-	openapi-generator-cli generate -c ../../api/openapi/golang/config-params.yaml
+	rm -rf ./generated/application/port/openapi
+	oapi-codegen-cli -c api/openapi/config.toml
 
 .PHONY: openapi
 openapi: openapi-bundle openapi-gen
 
-.PHONY: idpapi-download
-idpapi-download:
-	curl -o ./api/idp/admin-openapi.json -L https://www.keycloak.org/docs-api/$(KEYCLOAK_VERSION)/rest-api/openapi.json
+NEXUS_RAW_URL ?= https://nexus.example.com/repository/raw-hosted
+NEXUS_AUTH ?=
+nexus_auth = { if [ -n "$(NEXUS_AUTH)" ]; then printf '%s' "$(NEXUS_AUTH)"; \
+	else printf '%s:%s' "$$(vault kv get -mount=kv -field=username nexus/publisher)" \
+	                    "$$(vault kv get -mount=kv -field=password nexus/publisher)"; fi; }
+
+IDPAPI_SPEC := ./api/idpapi/admin-openapi.json
+IDPAPI_SPEC_URL := $(NEXUS_RAW_URL)/vendor/keycloak/$(KEYCLOAK_VERSION)/admin-openapi.json
+
+.PHONY: idpapi-fetch
+idpapi-fetch:
+	@auth=$$($(nexus_auth)); \
+	[ -n "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_AUTH or ensure Vault kv/nexus/publisher is reachable)" >&2; exit 1; }; \
+	curl -fsS -u "$$auth" -o $(IDPAPI_SPEC) "$(IDPAPI_SPEC_URL)"
+
+$(IDPAPI_SPEC):
+	@$(MAKE) --no-print-directory idpapi-fetch
+
+KEYCLOAK_SRC := $(HOME)/.cache/bookstore/keycloak-$(KEYCLOAK_VERSION)
+
+.PHONY: idpapi-generate
+idpapi-generate:
+	rm -rf $(KEYCLOAK_SRC)
+	git -c advice.detachedHead=false clone --quiet --depth 1 --branch $(KEYCLOAK_VERSION) \
+		https://github.com/keycloak/keycloak.git $(KEYCLOAK_SRC)
+	$(CONTAINER_ENGINE) run --rm \
+		-v $(KEYCLOAK_SRC):/kc -v $(HOME)/.m2:/root/.m2 -w /kc \
+		docker.io/library/maven:3.9-eclipse-temurin-21 \
+		mvn -B -pl services -am -Pjboss-release -DskipTests -Dmaven.test.skip=true process-classes
+	cp $(KEYCLOAK_SRC)/services/target/apidocs-rest/swagger/apidocs/openapi.json $(IDPAPI_SPEC)
+	rm -rf $(KEYCLOAK_SRC)
+
+.PHONY: idpapi-mirror
+idpapi-mirror: idpapi-generate
+	@auth=$$($(nexus_auth)); \
+	[ -n "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_AUTH or ensure Vault kv/nexus/publisher is reachable)" >&2; exit 1; }; \
+	curl -fsS -u "$$auth" --upload-file $(IDPAPI_SPEC) "$(IDPAPI_SPEC_URL)"
+	@echo "mirrored -> $(IDPAPI_SPEC_URL)"
 
 .PHONY: idpapi-bundle
-idpapi-bundle:
-	redocly bundle --config ./api/idp/redocly.yaml oidc@v1
-	redocly bundle --config ./api/idp/redocly.yaml admin@v1
+idpapi-bundle: $(IDPAPI_SPEC)
+	redocly bundle --config ./api/idpapi/redocly.yaml admin@v1
+	python3 ./api/idpapi/patch-spec.py
 
 .PHONY: idpapi-gen
 idpapi-gen:
-	rm -rf ./internal/application/port/idp
-	openapi-generator-cli generate -c ../../api/idp/config-oidc-all.yaml
-	openapi-generator-cli generate -c ../../api/idp/config-oidc-params.yaml
-	openapi-generator-cli generate -c ../../api/idp/config-admin-all.yaml
-	openapi-generator-cli generate -c ../../api/idp/config-admin-params.yaml
-	rm -rf ./internal/application/port/idp/.openapi-generator
+	rm -rf ./generated/application/port/idpapi
+	oapi-codegen-cli -c api/idpapi/admin-config.toml
 
 .PHONY: idpapi
-idpapi: idpapi-download idpapi-bundle idpapi-gen
+idpapi: idpapi-bundle idpapi-gen
+
+.PHONY: gorm
+gorm:
+	rm -rf ./generated/infrastructure/port/{dao,entity,repo}
+	gorm-codegen-cli generate -e gen
+
+.PHONY: api-gen
+api-gen: spec buf openapi idpapi
 
 .PHONY: gen
-gen: spec buf openapi idpapi style
-
-.PHONY: wire
-wire:
-	wire check ./internal/di
-	wire show ./internal/di
-	wire gen ./internal/di
+gen: api-gen gorm
 
 .PHONY: build
-build: spec wire
+build: spec
 ifeq ($(PLATFORM),Darwin)
 	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "$(NAME_FLAG) $(VERSION_FLAG) $(COMMIT_FLAG)" -o ./bin/$(APP_NAME)
 else ifeq ($(PLATFORM),Linux)
@@ -99,33 +132,68 @@ else
 	@echo "Unsupported platform: $(PLATFORM)"
 endif
 
+.PHONY: build-linux
+build-linux: spec
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$(NAME_FLAG) $(VERSION_FLAG) $(COMMIT_FLAG)" -o ./bin/$(APP_NAME)
+
 .PHONY: podman-build
-podman-build:
+podman-build: build-linux
 	podman build \
+		--no-cache \
 		--platform linux/amd64 \
 		--file ./ci/Dockerfile \
 		--build-arg SERVICE_NAME=$(SERVICE_NAME) \
 		--tag harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) .
 
 .PHONY: podman-push
-podman-push:
+podman-push: podman-build
 	podman push harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION)
-
-.PHONY: skopeo-push
-skopeo-push:
-	skopeo copy docker-daemon:harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) \
-		docker://harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) \
-		--dest-cert-dir . --debug
 
 .PHONY: test
 test:
-	go test -v ./...
+	go test -v -json ./internal/...
 
 .PHONY: run
 run:
 	go run ./main.go
 
-.PHONY: migrate-create
-migrate-create:
-	### make migrate-create VAR=create_table
-	migrate create -ext sql -dir db/migrations -seq $(VAR)
+.PHONY: migrate-up
+migrate-up:
+	$(CONTAINER_ENGINE) run --rm --network host -v $(PWD)/db/migrations:/migrations:ro \
+		docker.io/migrate/migrate:v4.18.2 \
+		-path=/migrations \
+		-database "postgres://$${DB_USER:-postgres}:$${DB_PASSWORD}@$${DB_HOST:-localhost}:$${DB_PORT:-5432}/$(SERVICE_NAME)_db?sslmode=$${DB_SSLMODE:-disable}" \
+		up
+
+.PHONY: migrate-down
+migrate-down:
+	$(CONTAINER_ENGINE) run --rm --network host -v $(PWD)/db/migrations:/migrations:ro \
+		docker.io/migrate/migrate:v4.18.2 \
+		-path=/migrations \
+		-database "postgres://$${DB_USER:-postgres}:$${DB_PASSWORD}@$${DB_HOST:-localhost}:$${DB_PORT:-5432}/$(SERVICE_NAME)_db?sslmode=$${DB_SSLMODE:-disable}" \
+		down 1
+
+CONTRACT_SCHEMA_PATH := $(abspath api/openapi/schema/openapi.1.0.0.json)
+
+.PHONY: contract-test-deps
+contract-test-deps:
+	cd ci/contract-test && uv sync
+
+.PHONY: contract-test
+contract-test:
+	cd ci/contract-test && CONTRACT_SCHEMA_PATH=$(CONTRACT_SCHEMA_PATH) uv run pytest
+
+.PHONY: contract-test-cli
+contract-test-cli:
+	cd ci/contract-test && uv run schemathesis run \
+		--url $${CONTRACT_BASE_URL:-http://localhost:8080} \
+		--checks all \
+		$(CONTRACT_SCHEMA_PATH)
+
+.PHONY: load-test-smoke
+load-test-smoke:
+	cd ci/load-test && k6 run smoke.js
+
+.PHONY: load-test
+load-test:
+	cd ci/load-test && k6 run load.js

@@ -1,0 +1,15 @@
+image:
+  tag: "1.0.0"
+
+env:
+  - name: APP_CONFIG_PROFILE
+    value: prod
+  - name: APP_CONFIG_SERVER
+    value: "configserver:http://config-server.cloud-config.svc.cluster.local:8888"
+
+mesh:
+  waypoint: "bookstore-waypoint"
+
+gatewayApi:
+  enabled: true
+  host: "support-api.example.com"

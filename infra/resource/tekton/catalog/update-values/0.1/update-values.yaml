@@ -1,0 +1,52 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: update-values
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Deployment
+    tekton.dev/tags: gitops
+    tekton.dev/displayName: "Update chart image tag"
+spec:
+  description: >-
+    Writes the image tag CI just built into the deploy repo's values.yaml.
+
+    This is what makes a release a release. Without it the deploy commit is
+    empty, the rendered manifests are byte-identical, and Argo CD -- correctly --
+    changes nothing: the pods keep running whatever image they already had. The
+    pipeline goes green end to end and deploys nothing. Pairs with the immutable
+    tag CI now builds (1.0.0-<commit>): a tag that never changes cannot express
+    "something new shipped".
+  workspaces:
+    - name: source
+  params:
+    - name: VALUES_FILE
+      description: values.yaml to edit, relative to the workspace
+      type: string
+      default: values.yaml
+    - name: IMAGE_TAG
+      description: tag to write to .image.tag
+      type: string
+    - name: YQ_IMAGE
+      type: string
+      default: docker.io/mikefarah/yq:4
+  steps:
+    - name: set-tag
+      image: $(params.YQ_IMAGE)
+      workingDir: $(workspaces.source.path)
+      securityContext:
+        runAsUser: 0
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+
+        if [ ! -f "$(params.VALUES_FILE)" ]; then
+          echo "no $(params.VALUES_FILE) in the deploy repo" >&2
+          exit 1
+        fi
+
+        before="$(yq -r '.image.tag // ""' "$(params.VALUES_FILE)")"
+        yq -i '.image.tag = "$(params.IMAGE_TAG)"' "$(params.VALUES_FILE)"
+        echo "image.tag: ${before:-<unset>} -> $(params.IMAGE_TAG)"

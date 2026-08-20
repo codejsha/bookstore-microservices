@@ -2,11 +2,27 @@ image:
   pullPolicy: Always
 
 env:
-  - name: SPRING_PROFILES_ACTIVE
+  - name: APP_CONFIG_PROFILE
     value: dev
-  - name: SPRING_CONFIG_IMPORT
+  - name: APP_CONFIG_SERVER
     value: "configserver:http://config-server.cloud-config.svc.cluster.local:8888"
+  - name: PYROSCOPE_APPLICATION_NAME
+    value: identity
+  - name: PYROSCOPE_SERVER_ADDRESS
+    value: "http://alloy-agent.grafana.svc.cluster.local:9095"
+  - name: PYROSCOPE_PROFILING_ENABLED
+    value: "true"
+  - name: PYROSCOPE_LABELS
+    value: "namespace=bookstore"
 
-istio:
+service:
+  grpc:
+    enabled: true
+    port: 9090
+
+mesh:
+  waypoint: "bookstore-waypoint"
+
+gatewayApi:
   enabled: true
-  host: "identity.example.com"
+  host: "identity-api.example.com"

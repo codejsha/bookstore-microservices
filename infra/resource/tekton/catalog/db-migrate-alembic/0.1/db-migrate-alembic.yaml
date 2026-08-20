@@ -1,0 +1,120 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: db-migrate-alembic
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Database
+    tekton.dev/tags: migrate
+    tekton.dev/displayName: "DB Migrate (Alembic)"
+spec:
+  description: >-
+    Runs `alembic upgrade head` against MySQL using the rootUser/rootPassword
+    keys from the Oracle MySQL Operator secret. The service's pydantic-settings
+    reads <SERVICE>__DATABASE__* env vars to build the SQLAlchemy URL inside
+    Alembic's env.py. A service that owns no database ships no migrations
+    directory; the task detects that and exits cleanly, so the pipeline's later
+    deploy steps still run. Guarding this with a `when` expression instead would
+    skip every task that depends on it -- which here is the whole deploy chain.
+  workspaces:
+    - name: source
+  params:
+    - name: CONTEXT_DIR
+      description: working directory relative to workspace (where alembic.ini lives)
+      type: string
+      default: ./
+    - name: MIGRATIONS_DIR
+      description: migrations directory relative to CONTEXT_DIR; its absence means "nothing to migrate"
+      type: string
+      default: db/migrations
+    - name: SERVICE_NAME
+      description: service name; used to derive the pydantic-settings env prefix (uppercased)
+      type: string
+    - name: DB_SECRET_NAME
+      description: >-
+        K8s secret with rootUser/rootPassword. Read optionally: a service with no
+        database has no such secret, and a missing secretKeyRef would fail the
+        pod before the skip check below can run.
+      type: string
+    - name: DB_HOST
+      description: MySQL host
+      type: string
+    - name: DB_NAME
+      description: MySQL schema
+      type: string
+    - name: NEXUS_PYPI_URL
+      description: >-
+        In-cluster PyPI group the dependency resolve goes through, matching the
+        uv-ci build task. e.g.
+        http://nexus.nexus.svc.cluster.local:8081/repository/pypi-group/simple
+      type: string
+      default: http://nexus.nexus.svc.cluster.local:8081/repository/pypi-group/simple
+    - name: NEXUS_SECRET_NAME
+      description: k8s secret holding Nexus username/password for the index
+      type: string
+      default: nexus-credentials
+  steps:
+    - name: migrate-up
+      image: ghcr.io/astral-sh/uv:python3.13-bookworm
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
+      env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.DB_SECRET_NAME)
+              key: rootUser
+              optional: true
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.DB_SECRET_NAME)
+              key: rootPassword
+              optional: true
+        - name: NEXUS_PYPI_URL
+          value: $(params.NEXUS_PYPI_URL)
+        - name: NEXUS_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: username
+        - name: NEXUS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: password
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+
+        if [ ! -d "$(params.MIGRATIONS_DIR)" ]; then
+          echo "no $(params.MIGRATIONS_DIR) in this service - nothing to migrate"
+          exit 0
+        fi
+
+        proto="${NEXUS_PYPI_URL%%://*}"
+        rest="${NEXUS_PYPI_URL#*://}"
+        host="${rest%%/*}"
+        UV_DEFAULT_INDEX="$proto://$NEXUS_USER:$NEXUS_PASSWORD@$rest"
+        export UV_DEFAULT_INDEX
+        export UV_INDEX_URL="$UV_DEFAULT_INDEX"
+        export UV_INSECURE_HOST="$host"
+
+        if [ -z "${DB_USER:-}" ]; then
+          echo "secret $(params.DB_SECRET_NAME) carries no credentials" >&2
+          exit 1
+        fi
+
+        prefix=$(printf '%s' "$(params.SERVICE_NAME)" | tr '[:lower:]' '[:upper:]')
+        export ${prefix}__DATABASE__HOST="$(params.DB_HOST)"
+        export ${prefix}__DATABASE__DB_NAME="$(params.DB_NAME)"
+        export ${prefix}__DATABASE__USERNAME="$DB_USER"
+        export ${prefix}__DATABASE__PASSWORD="$DB_PASSWORD"
+        uv sync --frozen
+
+        export PYTHONPATH="$(workspaces.source.path)/$(params.CONTEXT_DIR)"
+
+        uv run --with cryptography alembic upgrade head
+
+        chmod -R a+rwX "$(workspaces.source.path)" 2>/dev/null || true

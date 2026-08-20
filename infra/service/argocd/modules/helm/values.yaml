@@ -1,0 +1,184 @@
+global:
+  domain: argocd.example.com
+
+configs:
+  params:
+    server.insecure: true
+  cm:
+    url: "http://argocd.example.com"
+    accounts.dev-ci: apiKey
+    oidc.config: |
+      name: Keycloak
+      issuer: http://keycloak.example.com/realms/platform
+      clientID: argocd
+      clientSecret: $argocd-oidc-secret:oidc.keycloak.clientSecret
+      requestedScopes:
+        - openid
+        - profile
+        - email
+        - groups
+  rbac:
+    create: true
+    policy.default: ""
+    policy.csv: |
+      g, devadmin, role:admin
+
+      p, role:ops, applications, *, */*, allow
+      p, role:ops, logs, get, */*, allow
+      p, role:ops, clusters, get, *, allow
+      p, role:ops, repositories, get, *, allow
+      p, role:ops, projects, get, *, allow
+      g, devopsadmin, role:ops
+
+      p, role:developer, applications, get, */*, allow
+      p, role:developer, applications, sync, */*, allow
+      p, role:developer, logs, get, */*, allow
+      g, dev-user, role:developer
+
+      p, role:ci, applications, get, */*, allow
+      p, role:ci, applications, update, */*, allow
+      p, role:ci, applications, sync, */*, allow
+      g, dev-ci, role:ci
+    scopes: "[groups]"
+
+controller:
+  replicas: 1
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      selector:
+        release: prometheus
+  resources:
+    limits:
+      cpu: 500m
+      memory: 2Gi
+    requests:
+      cpu: 10m
+      memory: 512Mi
+
+dex:
+  enabled: false
+
+redis-ha:
+  enabled: false
+  hardAntiAffinity: false
+  haproxy:
+    hardAntiAffinity: false
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  redis:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+redis:
+  enabled: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+redisSecretInit:
+  enabled: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+server:
+  replicas: 1
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      selector:
+        release: prometheus
+  extensions:
+    enabled: true
+    extensionList:
+      - name: rollout-extension
+        env:
+          - name: EXTENSION_URL
+            value: https://github.com/argoproj-labs/rollout-extension/releases/download/v0.4.0/extension.tar
+    resources:
+      limits:
+        cpu: 50m
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+repoServer:
+  replicas: 1
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      selector:
+        release: prometheus
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+applicationSet:
+  resources:
+    limits:
+      cpu: 100m
+      memory: 256Mi
+    requests:
+      cpu: 10m
+      memory: 128Mi
+
+notifications:
+  enabled: true
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 128Mi
+
+commitServer:
+  enabled: false
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 128Mi

@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../schemas/component-meta.schema.json",
+  "name": "Textarea",
+  "description": "Multi-line text input with validation states",
+  "variants": {
+    "default": { "svg": "default.svg", "tokens": ["color.input", "color.foreground", "color.muted-foreground"] }
+  },
+  "sizes": ["default"],
+  "states": ["default", "focus-visible", "disabled", "aria-invalid"],
+  "responsive": false,
+  "codeRef": "services/web/src/shared/components/ui/textarea.tsx",
+  "cvaVariants": false
+}

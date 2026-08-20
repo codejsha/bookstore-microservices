@@ -1,0 +1,15 @@
+[general]
+gen_lang = "kotlin"
+gen_type = "client"
+input_spec = "../catalog/api/openapi/schema/openapi.1.0.0.json"
+output_dir = "src/main/generated"
+
+[packages]
+api_package = "com.codejsha.bookstore.generated.application.port.restclient.catalog.api"
+model_package = "com.codejsha.bookstore.generated.application.port.restclient.catalog.model"
+constant_package = "com.codejsha.bookstore.generated.application.port.restclient.catalog.model"
+
+[options]
+validation_enabled = true
+kotlin_security_enabled = false
+kotlin_pagination_enabled = false

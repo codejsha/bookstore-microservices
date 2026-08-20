@@ -1,0 +1,15 @@
+[general]
+gen_lang = "kotlin"
+gen_type = "client"
+input_spec = "api/payapi/schema/openapi.json"
+output_dir = "src/main/generated"
+
+[packages]
+api_package = "com.codejsha.bookstore.generated.application.port.payapi.api"
+model_package = "com.codejsha.bookstore.generated.application.port.payapi.model"
+constant_package = "com.codejsha.bookstore.generated.application.port.payapi.model"
+
+[options]
+validation_enabled = true
+kotlin_security_enabled = true
+kotlin_pagination_enabled = true

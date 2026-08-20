@@ -1,0 +1,15 @@
+replicas: 1
+watchAnyNamespace: false
+
+serviceAccountCreate: false
+serviceAccount: strimzi-cluster-operator
+
+resources:
+  limits:
+    memory: 384Mi
+    cpu: 500m
+  requests:
+    memory: 384Mi
+    cpu: 10m
+
+generateNetworkPolicy: false

@@ -1,0 +1,61 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: gitea-commit-status
+spec:
+  description: |
+    Push the run's aggregate result to Gitea as a commit status, so the
+    outcome lands on the commit badge instead of being inferred by an
+    observer. Intended as a finally task: pass $(tasks.status) into
+    pipeline-status and a per-pipeline context (tekton/ci, tekton/cd).
+  params:
+    - name: service-name
+      type: string
+    - name: git-source-revision
+      type: string
+    - name: status-context
+      type: string
+    - name: pipeline-status
+      type: string
+      description: aggregate task status from $(tasks.status) (Succeeded/Completed/Failed/None)
+    - name: gitea-api-url
+      type: string
+      default: http://gitea-http.gitea.svc.cluster.local:3000/api/v1
+    - name: gitea-org
+      type: string
+      default: example-corp
+    - name: source-repo-suffix
+      type: string
+      default: -source
+    - name: CURL_IMAGE
+      type: string
+      default: docker.io/curlimages/curl:8.14.1
+  steps:
+    - name: post-status
+      image: $(params.CURL_IMAGE)
+      env:
+        - name: GITEA_USER
+          valueFrom:
+            secretKeyRef:
+              name: gitea-status-credentials
+              key: username
+        - name: GITEA_PASS
+          valueFrom:
+            secretKeyRef:
+              name: gitea-status-credentials
+              key: password
+      script: |
+        #!/bin/sh
+        set -eu
+        case "$(params.pipeline-status)" in
+          Succeeded|Completed) STATE=success ;;
+          Failed) STATE=failure ;;
+          *) STATE=error ;;
+        esac
+        curl -sf -X POST \
+          -u "$GITEA_USER:$GITEA_PASS" \
+          "$(params.gitea-api-url)/repos/$(params.gitea-org)/$(params.service-name)$(params.source-repo-suffix)/statuses/$(params.git-source-revision)" \
+          -H 'Content-Type: application/json' \
+          -d "{\"state\":\"$STATE\",\"context\":\"$(params.status-context)\",\"description\":\"pipeline $(params.pipeline-status)\"}" \
+          >/dev/null
+        echo "reported $STATE for $(params.status-context) @ $(params.git-source-revision)"

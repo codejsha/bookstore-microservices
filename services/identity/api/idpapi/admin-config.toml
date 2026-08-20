@@ -1,0 +1,14 @@
+[general]
+gen_lang = "go"
+gen_type = "client"
+input_spec = "api/idpapi/schema/admin-openapi.json"
+output_dir = "generated/application/port"
+
+[packages]
+api_package = "idpapi"
+model_package = "idpapi"
+constant_package = "idpapi"
+
+[options]
+validation_enabled = true
+go_security_enabled = true

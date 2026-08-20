@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: settlement
+    version: 1.0.0
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+    import: configserver:http://localhost:8888
+  application:
+    name: settlement
+    version: 1.0.0
+---
+spring:
+  config:
+    activate:
+      on-profile: batch
+  batch:
+    job:
+      enabled: false
+  application:
+    name: settlement
+    version: 1.0.0

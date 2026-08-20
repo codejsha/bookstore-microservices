@@ -1,8 +1,27 @@
 {
+  "app": {
+    "logging": {
+      "level": "info"
+    }
+  },
   "server": {
-    "port": "8080"
+    "port": "8080",
+    "mode": "debug"
+  },
+  "grpc": {
+    "port": "9090"
   },
   "database": {
-    "dsn": "root:password@tcp(127.0.0.1:3306)/customer_db?charset=utf8mb4&parseTime=True&loc=Local"
+    "datasource": {
+      "driver": "postgres",
+      "host": "localhost",
+      "port": 5432,
+      "db_name": "customer_db",
+      "username": "root",
+      "password": "test",
+      "params": [
+        "sslmode=disable"
+      ]
+    }
   }
 }

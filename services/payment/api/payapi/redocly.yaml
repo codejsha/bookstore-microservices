@@ -1,0 +1,4 @@
+apis:
+  core@v1:
+    root: ./openapi_spec_v1.json
+    output: ./schema/openapi.json

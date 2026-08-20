@@ -1,0 +1,35 @@
+{{- if .Values.gatewayApi.enabled -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "admin.fullname" . }}-route
+  labels:
+    {{- include "admin.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ .Values.gatewayApi.gatewayName }}
+      namespace: {{ .Values.gatewayApi.gatewayNamespace }}
+      sectionName: https-{{ splitList "." .Values.gatewayApi.host | first }}
+  hostnames:
+    - {{ .Values.gatewayApi.host }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ .Values.gatewayApi.pathPrefix | default "/" }}
+      {{- with .Values.gatewayApi.stripRequestHeaders }}
+      filters:
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            remove:
+              {{- toYaml . | nindent 14 }}
+      {{- end }}
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ include "admin.fullname" . }}
+          port: {{ .Values.service.port }}
+          weight: 1
+{{- end }}

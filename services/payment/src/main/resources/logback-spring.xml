@@ -6,12 +6,8 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
-    <appender name="OpenTelemetry"
-              class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
-    </appender>
 
     <root level="INFO">
         <appender-ref ref="Console"/>
-        <appender-ref ref="OpenTelemetry"/>
     </root>
 </configuration>

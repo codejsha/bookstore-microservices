@@ -1,0 +1,101 @@
+replicaCount: 1
+revisionHistoryLimit: 3
+
+image:
+  repository: harbor.example.com/bookstore/admin-web
+  tag: 1.0.0
+  pullPolicy: IfNotPresent
+imagePullSecrets:
+  - name: harbor-pull
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: "admin-web"
+  automountServiceAccountToken: false
+  annotations: {}
+
+automountServiceAccountToken: false
+
+podAnnotations: {}
+podLabels:
+  app.kubernetes.io/group: bookstore
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+volumes:
+  - name: tmp
+    emptyDir: {}
+  - name: nginx-cache
+    emptyDir: {}
+  - name: nginx-run
+    emptyDir: {}
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+  - name: nginx-cache
+    mountPath: /var/cache/nginx
+  - name: nginx-run
+    mountPath: /run
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+mesh:
+  waypoint: "bookstore-waypoint"
+
+gatewayApi:
+  enabled: false
+  host: "example.com"
+  gatewayName: "bookstore-gateway"
+  gatewayNamespace: "istio-system"

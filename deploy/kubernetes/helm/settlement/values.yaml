@@ -1,0 +1,173 @@
+replicaCount: 2
+revisionHistoryLimit: 3
+
+image:
+  repository: harbor.example.com/bookstore/settlement
+  tag: 1.0.0
+  pullPolicy: IfNotPresent
+imagePullSecrets:
+  - name: harbor-pull
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  name: "settlement-mysql"
+  automountServiceAccountToken: false
+  annotations: {}
+
+automountServiceAccountToken: true
+
+env:
+  - name: PYROSCOPE_APPLICATION_NAME
+    value: settlement-app
+  - name: PYROSCOPE_SERVER_ADDRESS
+    value: "http://alloy-agent.grafana.svc.cluster.local:9095"
+  - name: PYROSCOPE_FORMAT
+    value: jfr
+  - name: PYROSCOPE_PROFILING_ENABLED
+    value: "true"
+  - name: PYROSCOPE_LABELS
+    value: "namespace=bookstore"
+  - name: OTEL_SERVICE_NAME
+    value: settlement-app
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://alloy-gateway.grafana.svc.cluster.local:4318"
+  - name: OTEL_EXPORTER_OTLP_PROTOCOL
+    value: http/protobuf
+  - name: OTEL_TRACES_EXPORTER
+    value: otlp
+  - name: OTEL_LOGS_EXPORTER
+    value: otlp
+  - name: OTEL_METRICS_EXPORTER
+    value: none
+  - name: OTEL_INSTRUMENTATION_MICROMETER_ENABLED
+    value: "false"
+  - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_EXPERIMENTAL_CAPTURE_KEY_VALUE_PAIR_ATTRIBUTES
+    value: "true"
+  - name: OTEL_TRACES_SAMPLER
+    value: parentbased_traceidratio
+  - name: OTEL_TRACES_SAMPLER_ARG
+    value: "0.1"
+extraEnv: []
+
+podAnnotations:
+  vault.hashicorp.com/agent-inject: "true"
+  vault.hashicorp.com/agent-init-first: "true"
+  vault.hashicorp.com/role: "bookstore-mysql-role"
+  vault.hashicorp.com/agent-inject-secret-db.properties: "database/static-creds/settlement-mysql-static"
+  vault.hashicorp.com/agent-inject-template-db.properties: |
+    {{- with secret "database/static-creds/settlement-mysql-static" -}}
+    db.username={{ .Data.username }}
+    db.password={{ .Data.password }}
+    db.name=settlement_db
+    {{- end -}}
+  vault.hashicorp.com/agent-inject-secret-payment-db.properties: "database/static-creds/settlement-payment-mysql-static"
+  vault.hashicorp.com/agent-inject-template-payment-db.properties: |
+    {{- with secret "database/static-creds/settlement-payment-mysql-static" -}}
+    payment.db.username={{ .Data.username }}
+    payment.db.password={{ .Data.password }}
+    payment.db.name=payment_db
+    {{- end -}}
+podLabels:
+  app.kubernetes.io/group: bookstore
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 384Mi
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  periodSeconds: 5
+  timeoutSeconds: 5
+  failureThreshold: 60
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 0
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 5
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 0
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 5
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+batch:
+  enabled: true
+  suspend: false
+  schedule: "0 2 * * *"
+  timeZone: "Asia/Seoul"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  backoffLimit: 2
+  activeDeadlineSeconds: 3600
+  ttlSecondsAfterFinished: 86400
+  restartPolicy: Never
+  extraEnv: []
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+
+volumes:
+  - name: tmp
+    emptyDir: {}
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+mesh:
+  waypoint: "bookstore-waypoint"
+
+gatewayApi:
+  enabled: false
+  host: "example.com"
+  gatewayName: "bookstore-gateway"
+  gatewayNamespace: "istio-system"

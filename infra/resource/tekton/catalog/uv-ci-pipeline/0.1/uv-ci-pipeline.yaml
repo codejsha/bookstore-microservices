@@ -1,0 +1,329 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: uv-ci-pipeline
+spec:
+  description: |
+    CI half of the uv (Python) flow — everything up to a scanned image in the
+    registry. Triggered only through the Gitea Actions tekton-pipeline
+    workflow (rendered by the uv-triggertemplate); monitor runs with tkn.
+    Deployment is a separate cd-pipeline run, never created by this pipeline.
+    tasks:
+      - clone-source-repo (git-clone)
+      - trivy-fs-scan (trivy fs vuln+secret)
+      - build-app (uv sync + uv run pytest + uv build)
+      - build-image (kaniko)
+      - trivy-image-scan (trivy image)
+
+  workspaces:
+    - name: shared-workspace
+    - name: dockerconfig
+    - name: git-source-ssh-auth
+
+  params:
+    ### run identity params
+    - name: service-name
+      type: string
+    - name: git-source-revision
+      type: string
+    ### registry params
+    - name: harbor-registry
+      type: string
+      default: harbor.example.com
+    ### uv (app build) params
+    - name: uv-image
+      type: string
+      default: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+    - name: context-dir
+      type: string
+      default: .
+    - name: build-script
+      type: string
+      default: |
+        uv sync
+        uv run pytest
+        uv build
+    - name: nexus-pypi-url
+      type: string
+      default: http://nexus.nexus.svc.cluster.local:8081/repository/pypi-group/simple
+    - name: nexus-secret-name
+      type: string
+      default: nexus-credentials
+    ### kaniko (image build) params
+    - name: kaniko-dockerfile
+      type: string
+      default: ./ci/Dockerfile
+    - name: kaniko-context
+      type: string
+      default: ./
+    - name: kaniko-builder-image
+      type: string
+      default: gcr.io/kaniko-project/executor:latest
+    ### security params
+    - name: trivy-fs-context-dir
+      type: string
+      default: ./
+    - name: trivy-severity
+      type: string
+      default: CRITICAL
+    - name: trivy-exit-code
+      type: string
+      default: "0"
+    - name: trivy-image-insecure
+      type: string
+      default: "true"
+    - name: trivy-db-repository
+      type: string
+      default: nexus-docker.nexus.svc.cluster.local:5000/aquasecurity/trivy-db:2
+    - name: trivy-java-db-repository
+      type: string
+      default: nexus-docker.nexus.svc.cluster.local:5000/aquasecurity/trivy-java-db:1
+
+  tasks:
+    ### task
+    - name: acquire-run-slot
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/acquire-run-slot/0.1/acquire-run-slot.yaml
+      params:
+        - name: service-name
+          value: $(params.service-name)
+        - name: own-run
+          value: $(context.pipelineRun.name)
+
+    - name: clone-source-repo
+      runAfter:
+        - acquire-run-slot
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tekton-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/git-clone/0.9/git-clone.yaml
+      params:
+        - name: url
+          value: ssh://git@gitea-ssh.gitea.svc.cluster.local:22/example-corp/$(params.service-name)-source.git
+        - name: revision
+          value: $(params.git-source-revision)
+        - name: subdirectory
+          value: ./
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+        - name: ssh-directory
+          workspace: git-source-ssh-auth
+
+    ### task
+    - name: trivy-fs-scan
+      runAfter:
+        - clone-source-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/trivy-fs-scan/0.1/trivy-fs-scan.yaml
+      params:
+        - name: CONTEXT_DIR
+          value: $(params.trivy-fs-context-dir)
+        - name: SEVERITY
+          value: $(params.trivy-severity)
+        - name: EXIT_CODE
+          value: $(params.trivy-exit-code)
+        - name: INSECURE
+          value: $(params.trivy-image-insecure)
+        - name: DB_REPOSITORY
+          value: $(params.trivy-db-repository)
+        - name: JAVA_DB_REPOSITORY
+          value: $(params.trivy-java-db-repository)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    ### task
+    - name: build-app
+      runAfter:
+        - trivy-fs-scan
+      taskSpec:
+        workspaces:
+          - name: source
+        params:
+          - name: uv-image
+            type: string
+          - name: context-dir
+            type: string
+          - name: build-script
+            type: string
+          - name: nexus-pypi-url
+            type: string
+          - name: nexus-secret-name
+            type: string
+        steps:
+          - name: uv-build
+            image: $(params.uv-image)
+            workingDir: $(workspaces.source.path)/$(params.context-dir)
+            env:
+              - name: NEXUS_PYPI_URL
+                value: $(params.nexus-pypi-url)
+              - name: NEXUS_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: $(params.nexus-secret-name)
+                    key: username
+              - name: NEXUS_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: $(params.nexus-secret-name)
+                    key: password
+            script: |
+              #!/usr/bin/env sh
+              set -eu
+
+              proto="${NEXUS_PYPI_URL%%://*}"
+              rest="${NEXUS_PYPI_URL#*://}"
+              host="${rest%%/*}"
+              UV_DEFAULT_INDEX="$proto://$NEXUS_USER:$NEXUS_PASSWORD@$rest"
+              export UV_DEFAULT_INDEX
+              export UV_INDEX_URL="$UV_DEFAULT_INDEX"
+              export UV_INSECURE_HOST="$host"
+
+              cp uv.lock /tmp/uv.lock.orig 2>/dev/null || true
+
+              $(params.build-script)
+
+              cp /tmp/uv.lock.orig uv.lock 2>/dev/null || true
+      params:
+        - name: uv-image
+          value: $(params.uv-image)
+        - name: context-dir
+          value: $(params.context-dir)
+        - name: build-script
+          value: $(params.build-script)
+        - name: nexus-pypi-url
+          value: $(params.nexus-pypi-url)
+        - name: nexus-secret-name
+          value: $(params.nexus-secret-name)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
+    - name: build-image
+      runAfter:
+        - build-app
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tekton-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/kaniko/0.6/kaniko.yaml
+      params:
+        - name: IMAGE
+          value: $(params.harbor-registry)/bookstore/$(params.service-name):1.0.0-$(params.git-source-revision)
+        - name: DOCKERFILE
+          value: $(params.kaniko-dockerfile)
+        - name: CONTEXT
+          value: $(params.kaniko-context)
+        - name: EXTRA_ARGS
+          value:
+            - --build-arg=IMAGE_VERSION=1.0.0-$(params.git-source-revision)
+            - --build-arg=IMAGE_REVISION=$(params.git-source-revision)
+            - --verbosity=info
+        - name: BUILDER_IMAGE
+          value: $(params.kaniko-builder-image)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    ### task
+    - name: trivy-image-scan
+      runAfter:
+        - build-image
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/trivy-image-scan/0.1/trivy-image-scan.yaml
+      params:
+        - name: IMAGE
+          value: $(params.harbor-registry)/bookstore/$(params.service-name):1.0.0-$(params.git-source-revision)
+        - name: SEVERITY
+          value: $(params.trivy-severity)
+        - name: EXIT_CODE
+          value: $(params.trivy-exit-code)
+        - name: INSECURE
+          value: $(params.trivy-image-insecure)
+        - name: DB_REPOSITORY
+          value: $(params.trivy-db-repository)
+        - name: JAVA_DB_REPOSITORY
+          value: $(params.trivy-java-db-repository)
+      workspaces:
+        - name: dockerconfig
+          workspace: dockerconfig
+
+  finally:
+    - name: report-commit-status
+      retries: 2
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/gitea-commit-status/0.1/gitea-commit-status.yaml
+      params:
+        - name: service-name
+          value: $(params.service-name)
+        - name: git-source-revision
+          value: $(params.git-source-revision)
+        - name: status-context
+          value: tekton/ci
+        - name: pipeline-status
+          value: $(tasks.status)
+    - name: report-trivy-fs-status
+      retries: 2
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/gitea-scan-status/0.1/gitea-scan-status.yaml
+      params:
+        - name: service-name
+          value: $(params.service-name)
+        - name: git-source-revision
+          value: $(params.git-source-revision)
+        - name: status-context
+          value: tekton/ci/trivy-fs
+        - name: found
+          value: $(tasks.trivy-fs-scan.results.found)
+        - name: description
+          value: trivy fs $(params.trivy-severity)

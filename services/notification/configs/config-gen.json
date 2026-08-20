@@ -1,0 +1,21 @@
+{
+  "app": {
+    "logging_level": "info"
+  },
+  "server": {
+    "port": 8080,
+    "mode": "release"
+  },
+  "database": {
+    "host": "mysql",
+    "port": 3306,
+    "db_name": "notification_db",
+    "username": "notification",
+    "password": ""
+  },
+  "telemetry": {
+    "enabled": true,
+    "endpoint": "http://otel-collector:4317",
+    "service_name": "notification"
+  }
+}

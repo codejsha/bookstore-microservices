@@ -1,0 +1,107 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: db-migrate-flyway
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Database
+    tekton.dev/tags: migrate
+    tekton.dev/displayName: "DB Migrate (Flyway)"
+spec:
+  description: >-
+    Runs Flyway against MySQL or PostgreSQL. A service that owns no database
+    (a BFF, for instance) ships no migrations directory; the task detects that
+    and exits cleanly, so the pipeline's later deploy steps still run. Guarding
+    this with a `when` expression instead would skip every task that depends on
+    it -- which here is the whole deploy chain.
+  workspaces:
+    - name: source
+  params:
+    - name: MIGRATIONS_DIR
+      description: migrations directory relative to workspace
+      type: string
+      default: db/migrations
+    - name: DB_ENGINE
+      description: mysql | postgres
+      type: string
+      default: mysql
+    - name: DB_SECRET_NAME
+      description: >-
+        K8s secret holding the credentials. The MySQL operator secret uses
+        rootUser/rootPassword, CloudNativePG uses username/password; both pairs
+        are read optionally and DB_ENGINE decides which one applies.
+      type: string
+    - name: DB_HOST
+      description: database host
+      type: string
+    - name: DB_NAME
+      description: database / schema name
+      type: string
+  steps:
+    - name: migrate-up
+      image: docker.io/flyway/flyway:10-alpine
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.DB_SECRET_NAME)
+              key: rootUser
+              optional: true
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.DB_SECRET_NAME)
+              key: rootPassword
+              optional: true
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.DB_SECRET_NAME)
+              key: username
+              optional: true
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.DB_SECRET_NAME)
+              key: password
+              optional: true
+      command: ["/bin/sh", "-e", "-c"]
+      args:
+        - |
+          if [ ! -d "$(params.MIGRATIONS_DIR)" ]; then
+            echo "no $(params.MIGRATIONS_DIR) in this service - nothing to migrate"
+            exit 0
+          fi
+
+          case "$(params.DB_ENGINE)" in
+            mysql)
+              url="jdbc:mysql://$(params.DB_HOST):3306/$(params.DB_NAME)?sslMode=trust&usePipelineAuth=false&useBatchMultiSend=false"
+              user="$MYSQL_USER"
+              password="$MYSQL_PASSWORD"
+              ;;
+            postgres)
+              url="jdbc:postgresql://$(params.DB_HOST):5432/$(params.DB_NAME)?sslmode=disable"
+              user="$POSTGRES_USER"
+              password="$POSTGRES_PASSWORD"
+              ;;
+            *)
+              echo "unsupported DB_ENGINE: $(params.DB_ENGINE)" >&2
+              exit 1
+              ;;
+          esac
+
+          if [ -z "$user" ]; then
+            echo "secret $(params.DB_SECRET_NAME) carries no credentials for engine $(params.DB_ENGINE)" >&2
+            exit 1
+          fi
+
+          FLYWAY_USER="$user" FLYWAY_PASSWORD="$password" flyway \
+            -url="$url" \
+            -connectRetries=3 \
+            -connectRetriesInterval=10 \
+            -locations="filesystem:$(params.MIGRATIONS_DIR)" \
+            -baselineOnMigrate=true \
+            migrate

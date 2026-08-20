@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../schemas/component-meta.schema.json",
+  "name": "Separator",
+  "description": "Visual divider between content sections",
+  "variants": {
+    "horizontal": { "svg": "horizontal.svg", "tokens": ["color.border"] },
+    "vertical": { "svg": "vertical.svg", "tokens": ["color.border"] }
+  },
+  "sizes": ["default"],
+  "states": ["default"],
+  "responsive": false,
+  "codeRef": "services/web/src/shared/components/ui/separator.tsx",
+  "cvaVariants": false
+}

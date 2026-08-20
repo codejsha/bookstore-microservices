@@ -1,0 +1,11 @@
+image:
+  tag: "1.0.0"
+
+mesh:
+  waypoint: "bookstore-waypoint"
+
+gatewayApi:
+  enabled: true
+  host: "bookstore.example.com"
+  telemetry:
+    enabled: true

@@ -1,0 +1,389 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: golang-ci-pipeline
+spec:
+  description: |
+    CI half of the golang flow — everything up to a scanned image in the
+    registry. Triggered only through the Gitea Actions tekton-pipeline
+    workflow (rendered by the golang-triggertemplate); monitor runs with tkn.
+    Deployment is a separate cd-pipeline run, never created by this pipeline.
+    tasks:
+      - clone-source-repo (git-clone)
+      - clone-lib-repo (git-clone, shared-library-go)
+      - trivy-fs-scan (trivy fs vuln+secret)
+      - build-go-app (make)
+      - build-image (kaniko)
+      - trivy-image-scan (trivy image)
+
+  workspaces:
+    - name: shared-workspace
+    - name: dockerconfig
+    - name: git-source-ssh-auth
+    - name: git-lib-ssh-auth
+
+  params:
+    ### run identity params
+    - name: service-name
+      type: string
+    - name: git-source-revision
+      type: string
+    ### registry params
+    - name: harbor-registry
+      type: string
+      default: harbor.example.com
+    ### git (shared library repo) params
+    - name: git-lib-repo-url
+      type: string
+      default: ssh://git@gitea-ssh.gitea.svc.cluster.local:22/example-corp/shared-library-go.git
+    - name: git-lib-revision
+      type: string
+      default: main
+    - name: git-lib-subdir
+      type: string
+      default: .lib/shared-library-go
+    ### make (app build) params
+    - name: make-image
+      type: string
+      default: docker.io/golang:1.25
+    - name: context-dir
+      type: string
+      default: .
+    - name: target-dir
+      type: string
+      default: .
+    - name: args
+      type: array
+      default:
+        - replace
+        - LIB_PATH=./.lib/shared-library-go
+        - build
+    - name: nexus-go-url
+      type: string
+      default: https://nexus.example.com/repository/go-group/
+    - name: ca-bundle-configmap
+      type: string
+      default: internal-ca
+    ### codegen-verify params
+    - name: codegen-image
+      type: string
+      default: harbor.example.com/bookstore/codegen-toolchain:0.1.0
+    - name: nexus-raw-url
+      type: string
+      default: http://nexus.nexus.svc.cluster.local:8081/repository/raw-hosted
+    - name: nexus-secret-name
+      type: string
+      default: nexus-credentials
+    - name: skip-codegen-verify
+      type: string
+      default: "true"
+    ### kaniko (image build) params
+    - name: kaniko-dockerfile
+      type: string
+      default: ./ci/Dockerfile
+    - name: kaniko-context
+      type: string
+      default: ./
+    - name: kaniko-builder-image
+      type: string
+      default: gcr.io/kaniko-project/executor:latest
+    ### security params
+    - name: trivy-fs-context-dir
+      type: string
+      default: ./
+    - name: trivy-skip-dirs
+      type: string
+      default: ""
+    - name: trivy-severity
+      type: string
+      default: CRITICAL
+    - name: trivy-exit-code
+      type: string
+      default: "0"
+    - name: trivy-image-insecure
+      type: string
+      default: "true"
+    - name: trivy-db-repository
+      type: string
+      default: nexus-docker.nexus.svc.cluster.local:5000/aquasecurity/trivy-db:2
+    - name: trivy-java-db-repository
+      type: string
+      default: nexus-docker.nexus.svc.cluster.local:5000/aquasecurity/trivy-java-db:1
+
+  tasks:
+    ### task
+    - name: acquire-run-slot
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/acquire-run-slot/0.1/acquire-run-slot.yaml
+      params:
+        - name: service-name
+          value: $(params.service-name)
+        - name: own-run
+          value: $(context.pipelineRun.name)
+
+    - name: clone-source-repo
+      runAfter:
+        - acquire-run-slot
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tekton-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/git-clone/0.9/git-clone.yaml
+      params:
+        - name: url
+          value: ssh://git@gitea-ssh.gitea.svc.cluster.local:22/example-corp/$(params.service-name)-source.git
+        - name: revision
+          value: $(params.git-source-revision)
+        - name: subdirectory
+          value: ./
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+        - name: ssh-directory
+          workspace: git-source-ssh-auth
+
+    ### task
+    - name: clone-lib-repo
+      runAfter:
+        - clone-source-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tekton-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/git-clone/0.9/git-clone.yaml
+      params:
+        - name: url
+          value: $(params.git-lib-repo-url)
+        - name: revision
+          value: $(params.git-lib-revision)
+        - name: subdirectory
+          value: $(params.git-lib-subdir)
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+        - name: ssh-directory
+          workspace: git-lib-ssh-auth
+
+    ### task
+    - name: codegen-verify
+      runAfter:
+        - clone-lib-repo
+      when:
+        - input: $(params.skip-codegen-verify)
+          operator: notin
+          values:
+            - "true"
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/codegen-verify/0.1/codegen-verify.yaml
+      params:
+        - name: IMAGE
+          value: $(params.codegen-image)
+        - name: CONTEXT_DIR
+          value: $(params.context-dir)
+        - name: TARGET_DIR
+          value: $(params.target-dir)
+        - name: NEXUS_RAW_URL
+          value: $(params.nexus-raw-url)
+        - name: NEXUS_SECRET_NAME
+          value: $(params.nexus-secret-name)
+        - name: SKIP
+          value: $(params.skip-codegen-verify)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
+    - name: trivy-fs-scan
+      runAfter:
+        - clone-lib-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/trivy-fs-scan/0.1/trivy-fs-scan.yaml
+      params:
+        - name: CONTEXT_DIR
+          value: $(params.trivy-fs-context-dir)
+        - name: SKIP_DIRS
+          value: $(params.trivy-skip-dirs)
+        - name: SEVERITY
+          value: $(params.trivy-severity)
+        - name: EXIT_CODE
+          value: $(params.trivy-exit-code)
+        - name: INSECURE
+          value: $(params.trivy-image-insecure)
+        - name: DB_REPOSITORY
+          value: $(params.trivy-db-repository)
+        - name: JAVA_DB_REPOSITORY
+          value: $(params.trivy-java-db-repository)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    ### task
+    - name: build-go-app
+      runAfter:
+        - trivy-fs-scan
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/make/0.1/make.yaml
+      params:
+        - name: IMAGE
+          value: $(params.make-image)
+        - name: CONTEXT_DIR
+          value: $(params.context-dir)
+        - name: TARGET_DIR
+          value: $(params.target-dir)
+        - name: ARGS
+          value: $(params.args[*])
+        - name: NEXUS_GO_URL
+          value: $(params.nexus-go-url)
+        - name: NEXUS_SECRET_NAME
+          value: $(params.nexus-secret-name)
+        - name: CA_BUNDLE_CONFIGMAP
+          value: $(params.ca-bundle-configmap)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
+    - name: build-image
+      runAfter:
+        - build-go-app
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tekton-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/kaniko/0.6/kaniko.yaml
+      params:
+        - name: IMAGE
+          value: $(params.harbor-registry)/bookstore/$(params.service-name):1.0.0-$(params.git-source-revision)
+        - name: DOCKERFILE
+          value: $(params.kaniko-dockerfile)
+        - name: CONTEXT
+          value: $(params.kaniko-context)
+        - name: EXTRA_ARGS
+          value:
+            - --build-arg=SERVICE_NAME=$(params.service-name)
+            - --build-arg=IMAGE_VERSION=1.0.0-$(params.git-source-revision)
+            - --build-arg=IMAGE_REVISION=$(params.git-source-revision)
+            - --verbosity=info
+        - name: BUILDER_IMAGE
+          value: $(params.kaniko-builder-image)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    ### task
+    - name: trivy-image-scan
+      runAfter:
+        - build-image
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/trivy-image-scan/0.1/trivy-image-scan.yaml
+      params:
+        - name: IMAGE
+          value: $(params.harbor-registry)/bookstore/$(params.service-name):1.0.0-$(params.git-source-revision)
+        - name: SEVERITY
+          value: $(params.trivy-severity)
+        - name: EXIT_CODE
+          value: $(params.trivy-exit-code)
+        - name: INSECURE
+          value: $(params.trivy-image-insecure)
+        - name: DB_REPOSITORY
+          value: $(params.trivy-db-repository)
+        - name: JAVA_DB_REPOSITORY
+          value: $(params.trivy-java-db-repository)
+      workspaces:
+        - name: dockerconfig
+          workspace: dockerconfig
+
+  finally:
+    - name: report-commit-status
+      retries: 2
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/gitea-commit-status/0.1/gitea-commit-status.yaml
+      params:
+        - name: service-name
+          value: $(params.service-name)
+        - name: git-source-revision
+          value: $(params.git-source-revision)
+        - name: status-context
+          value: tekton/ci
+        - name: pipeline-status
+          value: $(tasks.status)
+    - name: report-trivy-fs-status
+      retries: 2
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/gitea-scan-status/0.1/gitea-scan-status.yaml
+      params:
+        - name: service-name
+          value: $(params.service-name)
+        - name: git-source-revision
+          value: $(params.git-source-revision)
+        - name: status-context
+          value: tekton/ci/trivy-fs
+        - name: found
+          value: $(tasks.trivy-fs-scan.results.found)
+        - name: description
+          value: trivy fs $(params.trivy-severity)

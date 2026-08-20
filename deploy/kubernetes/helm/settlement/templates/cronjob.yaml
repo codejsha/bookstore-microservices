@@ -1,0 +1,90 @@
+{{- if .Values.batch.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "settlement.fullname" . }}-batch
+  labels:
+    {{- include "settlement.labels" . | nindent 4 }}
+    app.kubernetes.io/component: batch
+spec:
+  schedule: {{ .Values.batch.schedule | quote }}
+  timeZone: {{ .Values.batch.timeZone | quote }}
+  concurrencyPolicy: {{ .Values.batch.concurrencyPolicy }}
+  startingDeadlineSeconds: {{ .Values.batch.startingDeadlineSeconds }}
+  suspend: {{ .Values.batch.suspend }}
+  successfulJobsHistoryLimit: {{ .Values.batch.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.batch.failedJobsHistoryLimit }}
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "settlement.labels" . | nindent 8 }}
+        app.kubernetes.io/component: batch
+    spec:
+      backoffLimit: {{ .Values.batch.backoffLimit }}
+      activeDeadlineSeconds: {{ .Values.batch.activeDeadlineSeconds }}
+      ttlSecondsAfterFinished: {{ .Values.batch.ttlSecondsAfterFinished }}
+      template:
+        metadata:
+          annotations:
+            vault.hashicorp.com/agent-pre-populate-only: "true"
+            {{- with .Values.podAnnotations }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          labels:
+            {{- include "settlement.labels" . | nindent 12 }}
+            app.kubernetes.io/component: batch
+            {{- with .Values.podLabels }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          serviceAccountName: {{ include "settlement.serviceAccountName" . }}
+          automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+          restartPolicy: {{ .Values.batch.restartPolicy }}
+          {{- with .Values.podSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: {{ .Chart.Name }}-batch
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              env:
+                {{- with .Values.env }}
+                {{- toYaml . | nindent 16 }}
+                {{- end }}
+                {{- with .Values.batch.extraEnv }}
+                {{- toYaml . | nindent 16 }}
+                {{- end }}
+              {{- with .Values.securityContext }}
+              securityContext:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.batch.resources | default .Values.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.volumeMounts }}
+              volumeMounts:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+          {{- with .Values.volumes }}
+          volumes:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

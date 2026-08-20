@@ -1,0 +1,67 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: gitea-scan-status
+spec:
+  description: |
+    Push a scan outcome to Gitea as its own commit-status context, separate
+    from the aggregate pipeline badge. Findings post state=warning, which
+    keeps the combined status (and CD's verify-ci-status gate) green while
+    the commit still carries a visible security flag.
+  params:
+    - name: service-name
+      type: string
+    - name: git-source-revision
+      type: string
+    - name: status-context
+      type: string
+    - name: found
+      type: string
+      description: '"true" when the scan reported findings, anything else means clean'
+    - name: description
+      type: string
+      description: short scan label used in the status description (e.g. "trivy fs CRITICAL")
+      default: scan
+    - name: gitea-api-url
+      type: string
+      default: http://gitea-http.gitea.svc.cluster.local:3000/api/v1
+    - name: gitea-org
+      type: string
+      default: example-corp
+    - name: source-repo-suffix
+      type: string
+      default: -source
+    - name: CURL_IMAGE
+      type: string
+      default: docker.io/curlimages/curl:8.14.1
+  steps:
+    - name: post-status
+      image: $(params.CURL_IMAGE)
+      env:
+        - name: GITEA_USER
+          valueFrom:
+            secretKeyRef:
+              name: gitea-status-credentials
+              key: username
+        - name: GITEA_PASS
+          valueFrom:
+            secretKeyRef:
+              name: gitea-status-credentials
+              key: password
+      script: |
+        #!/bin/sh
+        set -eu
+        if [ "$(params.found)" = "true" ]; then
+          STATE=warning
+          DESC="$(params.description): findings at or above threshold"
+        else
+          STATE=success
+          DESC="$(params.description): clean"
+        fi
+        curl -sf -X POST \
+          -u "$GITEA_USER:$GITEA_PASS" \
+          "$(params.gitea-api-url)/repos/$(params.gitea-org)/$(params.service-name)$(params.source-repo-suffix)/statuses/$(params.git-source-revision)" \
+          -H 'Content-Type: application/json' \
+          -d "{\"state\":\"$STATE\",\"context\":\"$(params.status-context)\",\"description\":\"$DESC\"}" \
+          >/dev/null
+        echo "reported $STATE for $(params.status-context) @ $(params.git-source-revision)"

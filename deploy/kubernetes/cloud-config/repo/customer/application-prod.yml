@@ -1,0 +1,48 @@
+app:
+  logging:
+    level: info
+
+server:
+  mode: release
+
+grpc:
+  port: 9090
+  order_server:
+    host: order.bookstore.svc.cluster.local
+    port: 9090
+  payment_server:
+    host: payment.bookstore.svc.cluster.local
+    port: 9090
+  user_server:
+    host: identity.bookstore.svc.cluster.local
+    port: 9090
+  delivery_server:
+    host: delivery.bookstore.svc.cluster.local
+    port: 9090
+
+kafka:
+  broker:
+    bootstrap_servers:
+      - bookstore-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093
+  schema_registry:
+    url: http://schemaregistry.kafka.svc.cluster.local:8081
+
+database:
+  datasource:
+    driver: postgres
+    host: customer-postgres-rw.bookstore.svc.cluster.local
+    port: 5432
+    db_name: customer_db
+    params:
+      - sslmode=disable
+
+telemetry:
+  collector:
+    traceUrl: alloy-gateway.grafana.svc.cluster.local:4317
+  profiling:
+    serverAddress: http://alloy-agent.grafana.svc.cluster.local:9095
+  resource:
+    namespace: bookstore
+    environment: prod
+  sampling:
+    ratio: 0.1

@@ -1,0 +1,11 @@
+{
+  "name": "proto",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@typespec/compiler": "latest",
+    "@typespec/protobuf": "latest"
+  },
+  "packageManager": "pnpm@10.33.0"
+}

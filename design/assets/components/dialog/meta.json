@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../schemas/component-meta.schema.json",
+  "name": "Dialog",
+  "description": "Modal dialog with overlay, header, content, and footer",
+  "variants": {
+    "default": { "svg": "default.svg", "tokens": ["color.background", "color.foreground", "color.border"] }
+  },
+  "sizes": ["default"],
+  "states": ["default", "open"],
+  "responsive": false,
+  "codeRef": "services/web/src/shared/components/ui/dialog.tsx",
+  "cvaVariants": false
+}

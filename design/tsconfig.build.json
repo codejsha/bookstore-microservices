@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": false,
+    "rootDir": "components",
+    "outDir": "dist"
+  },
+  "include": [
+    "components/ui/**/*.tsx",
+    "components/aria/**/*.tsx",
+    "components/lib/**/*.ts"
+  ],
+  "exclude": [
+    "components/**/*.stories.tsx",
+    "components/native/**/*"
+  ]
+}

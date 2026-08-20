@@ -1,0 +1,39 @@
+tempo:
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  storage:
+    trace:
+      backend: s3
+      s3:
+        bucket: ${s3_bucket}
+        endpoint: ${s3_endpoint}
+        region: ${s3_region}
+        insecure: true
+        forcepathstyle: true
+
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  retention: 168h
+
+persistence:
+  enabled: true
+  size: 20Gi
+  accessModes:
+    - ReadWriteOnce
+
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    release: prometheus
+

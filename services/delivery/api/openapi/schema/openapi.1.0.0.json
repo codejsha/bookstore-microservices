@@ -1,0 +1,2236 @@
+{
+  "openapi": "3.2.0",
+  "info": {
+    "title": "Delivery service API",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Admin",
+      "email": "admin@example.com"
+    },
+    "description": "Delivery service API of Bookstore microservices"
+  },
+  "tags": [
+    {
+      "name": "Shipment"
+    },
+    {
+      "name": "Carrier"
+    },
+    {
+      "name": "Freight"
+    },
+    {
+      "name": "Stats"
+    }
+  ],
+  "paths": {
+    "/api/v1/carriers": {
+      "get": {
+        "operationId": "Carriers_getAll",
+        "description": "List carriers",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/CarrierStatus"
+            },
+            "explode": false
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarrierFindAllResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Carrier"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "Carriers_create",
+        "description": "Register new carrier",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "headers": {
+              "location": {
+                "required": true,
+                "description": "Location of the created resource",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Carrier"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CarrierCreateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/carriers/{uid}": {
+      "get": {
+        "operationId": "Carriers_read",
+        "description": "Find carrier",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarrierFindResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Carrier"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "Carriers_update",
+        "description": "Update carrier",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarrierUpdateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Carrier"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CarrierUpdateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/freights": {
+      "get": {
+        "operationId": "Freights_getAll",
+        "description": "List freights",
+        "parameters": [
+          {
+            "name": "shipment_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            },
+            "explode": false
+          },
+          {
+            "name": "carrier_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            },
+            "explode": false
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/FreightStatus"
+            },
+            "explode": false
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FreightFindAllResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Freight"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "Freights_create",
+        "description": "Create freight",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "headers": {
+              "location": {
+                "required": true,
+                "description": "Location of the created resource",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Freight"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FreightCreateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/freights/shipment/{shipment_uid}": {
+      "get": {
+        "operationId": "Freights_readByShipment",
+        "description": "Find freight by shipment",
+        "parameters": [
+          {
+            "name": "shipment_uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FreightFindResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Freight"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/freights/{uid}": {
+      "get": {
+        "operationId": "Freights_read",
+        "description": "Find freight",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FreightFindResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Freight"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/freights/{uid}/status": {
+      "patch": {
+        "operationId": "Freights_updateStatus",
+        "description": "Update freight status",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FreightUpdateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Freight"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FreightUpdateStatusRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/shipments": {
+      "get": {
+        "operationId": "Shipments_getAll",
+        "description": "List shipments",
+        "parameters": [
+          {
+            "name": "order_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            },
+            "explode": false
+          },
+          {
+            "name": "carrier_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            },
+            "explode": false
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ShipmentStatus"
+            },
+            "explode": false
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "explode": false
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentFindAllResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Shipment"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "Shipments_create",
+        "description": "Create shipment",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "headers": {
+              "location": {
+                "required": true,
+                "description": "Location of the created resource",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Shipment"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipmentCreateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/shipments/{shipment_uid}/tracking": {
+      "post": {
+        "operationId": "Shipments_addTracking",
+        "description": "Add tracking event",
+        "parameters": [
+          {
+            "name": "shipment_uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "headers": {
+              "location": {
+                "required": true,
+                "description": "Location of the created resource",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Shipment"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrackingCreateRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "Shipments_getTrackingHistory",
+        "description": "Get tracking history",
+        "parameters": [
+          {
+            "name": "shipment_uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackingFindAllResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Shipment"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/shipments/{uid}": {
+      "get": {
+        "operationId": "Shipments_read",
+        "description": "Find shipment",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentFindResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Shipment"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/shipments/{uid}/cancel": {
+      "patch": {
+        "operationId": "Shipments_cancel",
+        "description": "Cancel shipment",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The server could not understand the request due to invalid syntax.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Shipment"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/shipments/{uid}/carrier": {
+      "patch": {
+        "operationId": "Shipments_assignCarrier",
+        "description": "Assign carrier to shipment",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The server could not understand the request due to invalid syntax.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Shipment"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipmentAssignCarrierRequest"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/shipments/{uid}/deliver": {
+      "patch": {
+        "operationId": "Shipments_deliver",
+        "description": "Mark shipment as delivered",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The server could not understand the request due to invalid syntax.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Shipment"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/shipments/{uid}/dispatch": {
+      "patch": {
+        "operationId": "Shipments_dispatch",
+        "description": "Dispatch shipment",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The server could not understand the request due to invalid syntax.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Shipment"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/shipments/{uid}/pickup": {
+      "patch": {
+        "operationId": "Shipments_pickUp",
+        "description": "Mark shipment as picked up",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The server could not understand the request due to invalid syntax.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The server cannot find the requested resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Shipment"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/stats/dashboard": {
+      "get": {
+        "operationId": "Stats_getDashboard",
+        "description": "Get delivery dashboard",
+        "parameters": [
+          {
+            "name": "carrier_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/uuid"
+            },
+            "explode": false
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stats"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BadRequestError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CarrierCreateRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "code",
+          "base_rate",
+          "rate_per_kg"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "contact_name": {
+            "type": "string"
+          },
+          "contact_phone": {
+            "type": "string"
+          },
+          "contact_email": {
+            "type": "string"
+          },
+          "base_rate": {
+            "type": "number",
+            "format": "double"
+          },
+          "rate_per_kg": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CarrierFindAllResponse": {
+        "type": "object",
+        "required": [
+          "total",
+          "items"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CarrierItem"
+            },
+            "minItems": 0
+          }
+        }
+      },
+      "CarrierFindResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "name",
+          "code",
+          "base_rate",
+          "rate_per_kg",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "contact_name": {
+            "type": "string"
+          },
+          "contact_phone": {
+            "type": "string"
+          },
+          "contact_email": {
+            "type": "string"
+          },
+          "base_rate": {
+            "type": "number",
+            "format": "double"
+          },
+          "rate_per_kg": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CarrierStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CarrierItem": {
+        "type": "object",
+        "required": [
+          "uid",
+          "name",
+          "code",
+          "base_rate",
+          "rate_per_kg",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "contact_name": {
+            "type": "string"
+          },
+          "contact_phone": {
+            "type": "string"
+          },
+          "contact_email": {
+            "type": "string"
+          },
+          "base_rate": {
+            "type": "number",
+            "format": "double"
+          },
+          "rate_per_kg": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CarrierStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CarrierPerformance": {
+        "type": "object",
+        "required": [
+          "carrier_uid",
+          "carrier_name",
+          "total_shipments",
+          "delivered_count",
+          "failed_count",
+          "total_freight_cost"
+        ],
+        "properties": {
+          "carrier_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "carrier_name": {
+            "type": "string"
+          },
+          "total_shipments": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "delivered_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "failed_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "avg_delivery_hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "total_freight_cost": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CarrierStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "INACTIVE"
+        ]
+      },
+      "CarrierUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "contact_name": {
+            "type": "string"
+          },
+          "contact_phone": {
+            "type": "string"
+          },
+          "contact_email": {
+            "type": "string"
+          },
+          "base_rate": {
+            "type": "number",
+            "format": "double"
+          },
+          "rate_per_kg": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CarrierStatus"
+          }
+        }
+      },
+      "CarrierUpdateResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "name",
+          "code",
+          "base_rate",
+          "rate_per_kg",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "contact_name": {
+            "type": "string"
+          },
+          "contact_phone": {
+            "type": "string"
+          },
+          "contact_email": {
+            "type": "string"
+          },
+          "base_rate": {
+            "type": "number",
+            "format": "double"
+          },
+          "rate_per_kg": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CarrierStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DashboardResponse": {
+        "type": "object",
+        "required": [
+          "total_shipments",
+          "status_counts",
+          "carrier_performances",
+          "total_freight_cost"
+        ],
+        "properties": {
+          "total_shipments": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status_counts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipmentStatusCount"
+            },
+            "minItems": 0
+          },
+          "carrier_performances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CarrierPerformance"
+            },
+            "minItems": 0
+          },
+          "avg_delivery_hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "total_freight_cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "on_time_delivery_rate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ForbiddenError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "FreightCreateRequest": {
+        "type": "object",
+        "required": [
+          "shipment_uid",
+          "carrier_uid",
+          "base_cost"
+        ],
+        "properties": {
+          "shipment_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "carrier_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "base_cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "weight_surcharge": {
+            "type": "number",
+            "format": "double"
+          },
+          "distance_surcharge": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          }
+        }
+      },
+      "FreightFindAllResponse": {
+        "type": "object",
+        "required": [
+          "total",
+          "items"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FreightItem"
+            },
+            "minItems": 0
+          }
+        }
+      },
+      "FreightFindResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "shipment_uid",
+          "carrier_uid",
+          "base_cost",
+          "weight_surcharge",
+          "distance_surcharge",
+          "discount",
+          "total_cost",
+          "currency",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "shipment_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "carrier_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "base_cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "weight_surcharge": {
+            "type": "number",
+            "format": "double"
+          },
+          "distance_surcharge": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "total_cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FreightStatus"
+          },
+          "invoiced_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "paid_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FreightItem": {
+        "type": "object",
+        "required": [
+          "uid",
+          "shipment_uid",
+          "carrier_uid",
+          "base_cost",
+          "weight_surcharge",
+          "distance_surcharge",
+          "discount",
+          "total_cost",
+          "currency",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "shipment_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "carrier_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "base_cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "weight_surcharge": {
+            "type": "number",
+            "format": "double"
+          },
+          "distance_surcharge": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "total_cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FreightStatus"
+          },
+          "invoiced_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "paid_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FreightStatus": {
+        "type": "string",
+        "enum": [
+          "ESTIMATED",
+          "CONFIRMED",
+          "INVOICED",
+          "PAID"
+        ]
+      },
+      "FreightUpdateResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "shipment_uid",
+          "carrier_uid",
+          "base_cost",
+          "weight_surcharge",
+          "distance_surcharge",
+          "discount",
+          "total_cost",
+          "currency",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "shipment_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "carrier_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "base_cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "weight_surcharge": {
+            "type": "number",
+            "format": "double"
+          },
+          "distance_surcharge": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "total_cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FreightStatus"
+          },
+          "invoiced_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "paid_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FreightUpdateStatusRequest": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/FreightStatus"
+          }
+        }
+      },
+      "NoContentResponse": {
+        "type": "object"
+      },
+      "NotFoundError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ShipmentAssignCarrierRequest": {
+        "type": "object",
+        "required": [
+          "carrier_uid"
+        ],
+        "properties": {
+          "carrier_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "tracking_number": {
+            "type": "string"
+          }
+        }
+      },
+      "ShipmentCreateRequest": {
+        "type": "object",
+        "required": [
+          "order_uid",
+          "origin_address",
+          "destination_address",
+          "destination_city",
+          "destination_state",
+          "destination_country_code",
+          "destination_postal_code"
+        ],
+        "properties": {
+          "order_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "carrier_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "origin_address": {
+            "type": "string"
+          },
+          "destination_address": {
+            "type": "string"
+          },
+          "destination_city": {
+            "type": "string"
+          },
+          "destination_state": {
+            "type": "string"
+          },
+          "destination_country_code": {
+            "type": "string"
+          },
+          "destination_postal_code": {
+            "type": "string"
+          },
+          "weight_kg": {
+            "type": "number",
+            "format": "double"
+          },
+          "planned_pickup_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "planned_delivery_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ShipmentFindAllResponse": {
+        "type": "object",
+        "required": [
+          "total",
+          "items"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipmentItem"
+            },
+            "minItems": 0
+          }
+        }
+      },
+      "ShipmentFindResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "order_uid",
+          "origin_address",
+          "destination_address",
+          "destination_city",
+          "destination_state",
+          "destination_country_code",
+          "destination_postal_code",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "order_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "carrier_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "origin_address": {
+            "type": "string"
+          },
+          "destination_address": {
+            "type": "string"
+          },
+          "destination_city": {
+            "type": "string"
+          },
+          "destination_state": {
+            "type": "string"
+          },
+          "destination_country_code": {
+            "type": "string"
+          },
+          "destination_postal_code": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ShipmentStatus"
+          },
+          "tracking_number": {
+            "type": "string"
+          },
+          "weight_kg": {
+            "type": "number",
+            "format": "double"
+          },
+          "planned_pickup_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "planned_delivery_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actual_pickup_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actual_delivery_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ShipmentItem": {
+        "type": "object",
+        "required": [
+          "uid",
+          "order_uid",
+          "origin_address",
+          "destination_address",
+          "destination_city",
+          "destination_state",
+          "destination_country_code",
+          "destination_postal_code",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "order_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "carrier_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "origin_address": {
+            "type": "string"
+          },
+          "destination_address": {
+            "type": "string"
+          },
+          "destination_city": {
+            "type": "string"
+          },
+          "destination_state": {
+            "type": "string"
+          },
+          "destination_country_code": {
+            "type": "string"
+          },
+          "destination_postal_code": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ShipmentStatus"
+          },
+          "tracking_number": {
+            "type": "string"
+          },
+          "weight_kg": {
+            "type": "number",
+            "format": "double"
+          },
+          "planned_pickup_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "planned_delivery_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actual_pickup_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actual_delivery_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ShipmentStatus": {
+        "type": "string",
+        "enum": [
+          "PLANNED",
+          "DISPATCHED",
+          "PICKED_UP",
+          "IN_TRANSIT",
+          "OUT_FOR_DELIVERY",
+          "DELIVERED",
+          "FAILED",
+          "CANCELLED"
+        ]
+      },
+      "ShipmentStatusCount": {
+        "type": "object",
+        "required": [
+          "status",
+          "count"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ShipmentUpdateResponse": {
+        "type": "object",
+        "required": [
+          "uid",
+          "order_uid",
+          "origin_address",
+          "destination_address",
+          "destination_city",
+          "destination_state",
+          "destination_country_code",
+          "destination_postal_code",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "order_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "carrier_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "origin_address": {
+            "type": "string"
+          },
+          "destination_address": {
+            "type": "string"
+          },
+          "destination_city": {
+            "type": "string"
+          },
+          "destination_state": {
+            "type": "string"
+          },
+          "destination_country_code": {
+            "type": "string"
+          },
+          "destination_postal_code": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ShipmentStatus"
+          },
+          "tracking_number": {
+            "type": "string"
+          },
+          "weight_kg": {
+            "type": "number",
+            "format": "double"
+          },
+          "planned_pickup_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "planned_delivery_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actual_pickup_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actual_delivery_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TrackingCreateRequest": {
+        "type": "object",
+        "required": [
+          "status",
+          "location",
+          "description"
+        ],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ShipmentStatus"
+          },
+          "location": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "TrackingFindAllResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrackingItem"
+            },
+            "minItems": 0
+          }
+        }
+      },
+      "TrackingItem": {
+        "type": "object",
+        "required": [
+          "uid",
+          "shipment_uid",
+          "status",
+          "location",
+          "description",
+          "occurred_at",
+          "created_at"
+        ],
+        "properties": {
+          "uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "shipment_uid": {
+            "$ref": "#/components/schemas/uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ShipmentStatus"
+          },
+          "location": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Versions": {
+        "type": "string",
+        "enum": [
+          "1.0.0"
+        ]
+      },
+      "uuid": {
+        "type": "string",
+        "description": "UUid string identifier"
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "Bearer"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "localhost",
+      "variables": {}
+    },
+    {
+      "url": "http://delivery.bookstore.svc.cluster.local:8080",
+      "description": "delivery service",
+      "variables": {}
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/codejsha/bookstore-microservices/commonlib-go/pkg/config"
+	"github.com/codejsha/shared-library-go/pkg/config"
 )
 
 var (

@@ -1,0 +1,7 @@
+{
+  "radius": {
+    "$type": "dimension",
+    "$value": "{radius.base}",
+    "$description": "Default border radius"
+  }
+}

@@ -1,0 +1,16 @@
+imagePullSecrets:
+  - name: harbor-pull
+
+image:
+  pullPolicy: Always
+
+gatewayApi:
+  enabled: true
+  host: "cloud-config.example.com"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    memory: 1Gi

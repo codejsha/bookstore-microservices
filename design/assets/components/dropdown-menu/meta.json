@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../schemas/component-meta.schema.json",
+  "name": "DropdownMenu",
+  "description": "Dropdown menu with trigger, items, separators, and submenus",
+  "variants": {
+    "default": { "svg": "default.svg", "tokens": ["color.popover", "color.popover-foreground", "color.accent"] }
+  },
+  "sizes": ["default"],
+  "states": ["default", "open", "item-focused"],
+  "responsive": false,
+  "codeRef": "services/web/src/shared/components/ui/dropdown-menu.tsx",
+  "cvaVariants": false
+}

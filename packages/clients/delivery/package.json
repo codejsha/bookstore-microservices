@@ -1,0 +1,39 @@
+{
+  "name": "@bookstore/delivery-client",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    "./model/*": {
+      "types": "./dist/model/*.d.ts",
+      "import": "./dist/model/*.js"
+    },
+    "./constant/*": {
+      "types": "./dist/constant/*.d.ts",
+      "import": "./dist/constant/*.js"
+    },
+    "./api/*": {
+      "types": "./dist/api/*.d.ts",
+      "import": "./dist/api/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "registry": "https://nexus.example.com/repository/npm-hosted/",
+    "access": "restricted"
+  },
+  "scripts": {
+    "generate": "oapi-codegen-cli -c ../config.toml -p input_spec=../../../services/delivery/api/openapi/schema/openapi.1.0.0.json -p output_dir=src",
+    "build": "tsup",
+    "prepublishOnly": "tsup"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.0"
+  }
+}

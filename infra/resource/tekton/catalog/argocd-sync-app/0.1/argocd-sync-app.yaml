@@ -1,0 +1,64 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: argocd-sync-app
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Deployment
+    tekton.dev/tags: deploy
+    tekton.dev/displayName: "Argo CD sync application and wait"
+spec:
+  description: >-
+    This task syncs an Argo CD application to a revision and waits until it
+    is healthy. Replaces the upstream argocd-task-sync-and-wait, whose quoted
+    string flags cannot carry more than one flag: here flags are arrays, so
+    each entry reaches the CLI as its own argument, and sync-only flags such
+    as --prune are kept away from the wait command, which does not accept
+    them.
+  params:
+    - name: application-name
+      description: name of the application to sync
+      type: string
+    - name: revision
+      description: the revision to sync to
+      type: string
+      default: HEAD
+    - name: flags
+      description: arguments passed to both the sync and wait commands
+      type: array
+      default: []
+    - name: sync-flags
+      description: arguments passed only to the sync command
+      type: array
+      default: []
+    - name: ARGOCD_VERSION
+      default: latest
+  stepTemplate:
+    envFrom:
+      - configMapRef:
+          name: argocd-env-configmap
+      - secretRef:
+          name: argocd-env-secret
+  steps:
+    - name: sync
+      image: docker.io/argoproj/argocd:$(params.ARGOCD_VERSION)
+      command: ["argocd"]
+      args:
+        - app
+        - sync
+        - "$(params.application-name)"
+        - --revision
+        - "$(params.revision)"
+        - "$(params.flags[*])"
+        - "$(params.sync-flags[*])"
+    - name: wait
+      image: docker.io/argoproj/argocd:$(params.ARGOCD_VERSION)
+      command: ["argocd"]
+      args:
+        - app
+        - wait
+        - "$(params.application-name)"
+        - --health
+        - "$(params.flags[*])"

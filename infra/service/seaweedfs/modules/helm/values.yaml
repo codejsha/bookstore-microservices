@@ -1,0 +1,168 @@
+global:
+  monitoring:
+    enabled: true
+    additionalLabels:
+      release: prometheus
+
+master:
+  enabled: true
+  replicas: 3
+  resources:
+    requests:
+      cpu: 20m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  port: 9333
+  grpcPort: 19333
+  metricsPort: 9327
+  affinity: |
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: master
+  data:
+    type: persistentVolumeClaim
+    size: 5Gi
+
+  podLabels: {}
+  podAnnotations: {}
+  annotations: {}
+
+volume:
+  enabled: true
+  resources:
+    requests:
+      cpu: 20m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  port: 8080
+  grpcPort: 18080
+  metricsPort: 9327
+  replicas: 2
+  affinity: |
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: volume
+  dataDirs:
+    - name: data1
+      type: persistentVolumeClaim
+      storageClass: local-path
+      size: 200Gi
+      maxVolumes: 0
+
+  podLabels: {}
+  podAnnotations: {}
+  annotations: {}
+
+filer:
+  enabled: true
+  replicas: 2
+  resources:
+    requests:
+      cpu: 20m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  affinity: |
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: filer
+  port: 8888
+  grpcPort: 18888
+  metricsPort: 9327
+  data:
+    type: persistentVolumeClaim
+    size: 5Gi
+
+  podLabels: {}
+  podAnnotations: {}
+  annotations: {}
+
+  s3:
+    enabled: true
+    port: 8333
+    enableAuth: true
+
+s3:
+  enabled: false
+  replicas: 1
+  port: 8333
+  metricsPort: 9327
+  enableAuth: true
+
+  podLabels: {}
+  podAnnotations: {}
+  annotations: {}
+
+sftp:
+  enabled: false
+  replicas: 1
+  bindAddress: 0.0.0.0
+  port: 2022
+  metricsPort: 9327
+
+  enableAuth: false
+  existingConfigSecret: null
+  existingSshConfigSecret: null
+
+admin:
+  enabled: true
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+  port: 23646
+  grpcPort: 33646
+
+worker:
+  enabled: false
+  imageOverride: null
+  restartPolicy: null
+  replicas: 1
+  metricsPort: 9327
+
+  maxDetect: 1
+  maxExecute: 2
+  resources:
+    requests:
+      cpu: "10m"
+      memory: "256Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+
+certificates:
+  commonName: "SeaweedFS CA"
+  ipAddresses: []
+  keyAlgorithm: RSA
+  keySize: 2048
+  duration: 2160h
+  renewBefore: 360h
+  ca:
+    duration: 87600h
+    renewBefore: 720h
+  externalCertificates:
+    enabled: false
