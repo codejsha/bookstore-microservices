@@ -7,13 +7,14 @@ metadata:
   annotations:
     tekton.dev/pipelines.minVersion: "0.27.2"
     tekton.dev/categories: Security
-    tekton.dev/tags: scan,vulnerability,secret,sca
+    tekton.dev/tags: scan,vulnerability,sca
     tekton.dev/displayName: "Trivy filesystem scan"
 spec:
   description: >-
     Runs `trivy fs` against the source workspace to detect dependency
-    vulnerabilities and committed secrets. Findings at or above SEVERITY are
-    reported; EXIT_CODE decides whether they also fail the pipeline.
+    vulnerabilities. Findings at or above SEVERITY are reported; EXIT_CODE
+    decides whether they also fail the pipeline. Secret detection is owned by
+    the gitleaks-scan task.
   results:
     - name: found
       description: >-
@@ -102,7 +103,7 @@ spec:
         # shellcheck disable=SC2086
         trivy fs \
           $SKIP_ARGS \
-          --scanners vuln,secret \
+          --scanners vuln \
           --severity "$(params.SEVERITY)" \
           --exit-code 5 \
           --no-progress \

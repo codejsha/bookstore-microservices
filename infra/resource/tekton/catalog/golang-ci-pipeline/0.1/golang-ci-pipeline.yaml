@@ -11,7 +11,8 @@ spec:
     tasks:
       - clone-source-repo (git-clone)
       - clone-lib-repo (git-clone, shared-library-go)
-      - trivy-fs-scan (trivy fs vuln+secret)
+      - trivy-fs-scan (trivy fs vuln)
+      - gitleaks-scan (gitleaks secret detection, commits since last scanned build)
       - build-go-app (make)
       - build-image (kaniko)
       - trivy-image-scan (trivy image)
@@ -109,6 +110,15 @@ spec:
     - name: trivy-java-db-repository
       type: string
       default: nexus-docker.nexus.svc.cluster.local:5000/aquasecurity/trivy-java-db:1
+    - name: gitleaks-exit-code
+      type: string
+      default: "0"
+    - name: gitleaks-exclude-paths
+      type: string
+      default: '(^|/)\.lib/'
+    - name: gitleaks-image
+      type: string
+      default: docker.io/zricethezav/gitleaks:v8.21.2
 
   tasks:
     ### task
@@ -147,6 +157,8 @@ spec:
           value: $(params.git-source-revision)
         - name: subdirectory
           value: ./
+        - name: depth
+          value: "0"
       workspaces:
         - name: output
           workspace: shared-workspace
@@ -247,6 +259,34 @@ spec:
           workspace: shared-workspace
         - name: dockerconfig
           workspace: dockerconfig
+
+    ### task
+    - name: gitleaks-scan
+      runAfter:
+        - clone-lib-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/gitleaks-scan/0.1/gitleaks-scan.yaml
+      params:
+        - name: SCAN_MODE
+          value: git
+        - name: BASELINE_STATUSES_URL
+          value: http://gitea-http.gitea.svc.cluster.local:3000/api/v1/repos/example-corp/$(params.service-name)-source/statuses
+        - name: EXCLUDE_PATHS
+          value: $(params.gitleaks-exclude-paths)
+        - name: EXIT_CODE
+          value: $(params.gitleaks-exit-code)
+        - name: GITLEAKS_IMAGE
+          value: $(params.gitleaks-image)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
 
     ### task
     - name: build-go-app
@@ -387,3 +427,25 @@ spec:
           value: $(tasks.trivy-fs-scan.results.found)
         - name: description
           value: trivy fs $(params.trivy-severity)
+    - name: report-gitleaks-status
+      retries: 2
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/gitea-scan-status/0.1/gitea-scan-status.yaml
+      params:
+        - name: service-name
+          value: $(params.service-name)
+        - name: git-source-revision
+          value: $(params.git-source-revision)
+        - name: status-context
+          value: tekton/ci/gitleaks
+        - name: found
+          value: $(tasks.gitleaks-scan.results.found)
+        - name: description
+          value: gitleaks
