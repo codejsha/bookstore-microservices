@@ -1,0 +1,154 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: gitleaks-scan
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Security
+    tekton.dev/tags: scan,secret,gitleaks
+    tekton.dev/displayName: "Gitleaks secret scan"
+spec:
+  description: >-
+    Runs gitleaks against the source workspace to detect committed secrets —
+    the checked-out tree (SCAN_MODE "dir") or the clone's commit history
+    (SCAN_MODE "git"). In git mode, BASELINE_STATUSES_URL narrows the scan to
+    commits no earlier build has scanned: ancestors of HEAD are walked until
+    one carries the BASELINE_STATUS_CONTEXT commit status this task's badge
+    leaves behind, and only <that commit>..HEAD is scanned; without such a
+    baseline the whole history is scanned. Findings are reported (redacted);
+    EXIT_CODE decides whether they also fail the pipeline.
+  results:
+    - name: found
+      description: >-
+        "true" if leaks were reported, "false" if the scan came back clean.
+        Written even in warn-only mode (EXIT_CODE "0"), so a finally task can
+        surface the outcome as its own commit status.
+  workspaces:
+    - name: source
+  params:
+    - name: CONTEXT_DIR
+      description: directory under workspace to scan
+      type: string
+      default: ./
+    - name: EXCLUDE_PATHS
+      description: >-
+        Comma-separated path regexes added to the gitleaks allowlist. CI clones
+        build-time dependencies into the workspace (e.g. the shared libraries
+        under .lib/); their contents are not this repo's, so leaks there are
+        not this commit's findings.
+      type: string
+      default: ""
+    - name: SCAN_MODE
+      description: >-
+        "dir" scans the checked-out tree as-is. "git" scans every commit in
+        the clone's history, which also catches secrets that were committed
+        and later removed — it sees only as much history as the clone carries,
+        so pair it with a full-depth clone (git-clone depth "0").
+      type: string
+      default: dir
+    - name: BASELINE_STATUSES_URL
+      description: >-
+        Gitea statuses API base for the source repo
+        (…/repos/{org}/{repo}/statuses); the commit sha is appended per
+        lookup. git mode only. Queried with the gitea-status-credentials
+        secret; empty, unfetchable, or no ancestor carrying
+        BASELINE_STATUS_CONTEXT falls back to full history.
+      type: string
+      default: ""
+    - name: BASELINE_STATUS_CONTEXT
+      description: >-
+        Commit-status context that marks a commit as already scanned — the
+        badge the pipeline's finally task posts from this task's result.
+      type: string
+      default: tekton/ci/gitleaks
+    - name: BASELINE_MAX_COMMITS
+      description: >-
+        How many ancestors of HEAD to probe for the baseline before giving
+        up and scanning the full history.
+      type: string
+      default: "50"
+    - name: EXIT_CODE
+      description: >-
+        Exit code the task ends with when gitleaks finds a leak. "1" fails the
+        pipeline; "0" reports the findings and lets it continue, which is how
+        you run the scanner in warn-only mode.
+      type: string
+      default: "1"
+    - name: GITLEAKS_IMAGE
+      description: Gitleaks CLI image
+      type: string
+      default: docker.io/zricethezav/gitleaks:v8.21.2
+  steps:
+    - name: scan
+      image: $(params.GITLEAKS_IMAGE)
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
+      env:
+        - name: GITEA_USER
+          valueFrom:
+            secretKeyRef:
+              name: gitea-status-credentials
+              key: username
+              optional: true
+        - name: GITEA_PASS
+          valueFrom:
+            secretKeyRef:
+              name: gitea-status-credentials
+              key: password
+              optional: true
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        CONFIG_ARGS=""
+        if [ -n "$(params.EXCLUDE_PATHS)" ]; then
+          (
+            printf '[extend]\nuseDefault = true\n\n[allowlist]\npaths = [\n'
+            IFS=','
+            for p in $(params.EXCLUDE_PATHS); do
+              printf "  '''%s''',\n" "$p"
+            done
+            printf ']\n'
+          ) > /tmp/gitleaks.toml
+          CONFIG_ARGS="--config /tmp/gitleaks.toml"
+        fi
+        LOG_OPTS=""
+        if [ "$(params.SCAN_MODE)" = "git" ]; then
+          export HOME=/tmp
+          git config --global --add safe.directory '*'
+          if [ -n "$(params.BASELINE_STATUSES_URL)" ] && [ -n "${GITEA_USER:-}" ]; then
+            auth="$(printf '%s:%s' "$GITEA_USER" "${GITEA_PASS:-}" | base64 | tr -d '\n')"
+            base=""
+            for c in $(git rev-list -n "$(params.BASELINE_MAX_COMMITS)" HEAD~1 2>/dev/null); do
+              statuses="$(wget -q -O - --header "Authorization: Basic $auth" \
+                "$(params.BASELINE_STATUSES_URL)/$c?limit=50" || true)"
+              if printf '%s' "$statuses" | grep -Eq "\"context\" *: *\"$(params.BASELINE_STATUS_CONTEXT)\""; then
+                base="$c"
+                break
+              fi
+            done
+            if [ -n "$base" ]; then
+              LOG_OPTS="--log-opts=$base..HEAD"
+              echo "last scanned build $base — scanning newer commits only"
+            else
+              echo "no previously scanned build found — scanning full history"
+            fi
+          fi
+        fi
+        rc=0
+        # shellcheck disable=SC2086
+        gitleaks "$(params.SCAN_MODE)" . \
+          $CONFIG_ARGS \
+          $LOG_OPTS \
+          --no-banner \
+          --redact \
+          --verbose \
+          --exit-code 5 || rc=$?
+        if [ "$rc" -eq 5 ]; then
+          printf 'true' > "$(results.found.path)"
+          [ "$(params.EXIT_CODE)" = "0" ] || exit "$(params.EXIT_CODE)"
+        elif [ "$rc" -eq 0 ]; then
+          printf 'false' > "$(results.found.path)"
+        else
+          exit "$rc"
+        fi
