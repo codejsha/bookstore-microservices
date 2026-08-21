@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+trap 'echo "${BASH_SOURCE[0]}: line ${LINENO}: status ${?}: user ${USER}: func ${FUNCNAME[0]}"' ERR
+set -o errexit
+set -o errtrace
+set -o xtrace
+
+/bin/cp -f ../vault/example-int-ca.crt .
+ROOT_TOKEN=$(jq -r '.root_token' ../vault/cluster-keys.json)
+perl -pi -e "s/^vault_token.*/vault_token = \"${ROOT_TOKEN}\"/" terraform.tfvars
+
+terraform init -upgrade
+terraform apply -auto-approve -target module.organization
+terraform apply -auto-approve -target module.repo_ssh
+terraform apply -auto-approve -target module.repos
+terraform apply -auto-approve -target module.dev_team
+terraform apply -auto-approve -target module.devops_team
+terraform apply -auto-approve -target module.token

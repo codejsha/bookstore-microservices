@@ -1,0 +1,45 @@
+server:
+  fullname: vault
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+    limits:
+      cpu: 3
+      memory: 1024Mi
+
+  automountServiceAccountToken: true
+
+  networkPolicy:
+    enabled: false
+
+  serviceAccount:
+    create: true
+    automountServiceAccountToken: false
+
+  persistence:
+    enabled: true
+    size: 10Gi
+
+  metrics:
+    enabled: false
+    serviceMonitor:
+      enabled: false
+
+csiProvider:
+  enabled: false
+
+injector:
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+    limits:
+      cpu: 3
+      memory: 1024Mi
+  networkPolicy:
+    enabled: false

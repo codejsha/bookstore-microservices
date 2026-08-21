@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS wishlist;
+DROP TABLE IF EXISTS point;

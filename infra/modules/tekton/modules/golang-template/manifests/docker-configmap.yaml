@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dockerconfig-configmap
+  namespace: "${namespace}"
+data:
+  config.json: |
+    {
+      "auths": {
+        "${harbor_fqdn}": {
+          "auth": "${harbor_auth}"
+        }
+      }
+    }

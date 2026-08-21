@@ -1,0 +1,10 @@
+apiVersion: v2
+name: config-server
+description: Config Server Helm chart for Bookstore microservices
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  - name: istio-mesh
+    version: 0.1.0
+    repository: oci://harbor.example.com/bookstore-helm-charts

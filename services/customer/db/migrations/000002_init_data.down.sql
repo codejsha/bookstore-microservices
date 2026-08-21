@@ -1,0 +1,2 @@
+TRUNCATE TABLE wishlist;
+TRUNCATE TABLE point;

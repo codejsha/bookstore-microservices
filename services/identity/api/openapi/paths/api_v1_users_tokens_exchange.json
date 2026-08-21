@@ -1,0 +1,54 @@
+{
+  "post": {
+    "tags": [
+      "Identity"
+    ],
+    "summary": "Exchange user token",
+    "description": "Exchange user token",
+    "x-go-params-class": "TokenExchangeWebParam",
+    "parameters": [
+      {
+        "name": "X-Refresh-Token",
+        "in": "header",
+        "description": "Refresh token",
+        "schema": {
+          "type": "string"
+        },
+        "required": true
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Token exchanged",
+        "headers": {
+          "Set-Cookie": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/TokenExchangeWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

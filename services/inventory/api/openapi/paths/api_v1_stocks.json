@@ -1,0 +1,91 @@
+{
+  "get": {
+    "tags": [
+      "stocks"
+    ],
+    "summary": "Find all stocks",
+    "description": "Find all stocks",
+    "x-go-params-class": "StockFindAllWebParam",
+    "parameters": [
+      {
+        "name": "book_id",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int64",
+          "nullable": true
+        }
+      },
+      {
+        "name": "warehouse_id",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int64",
+          "nullable": true
+        }
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Sort"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Order"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Limit"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Offset"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/StockFindAllWebResp"
+            }
+          }
+        }
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "stocks"
+    ],
+    "summary": "Add new stock",
+    "description": "Add new stock",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/StockCreateWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Resource created",
+        "headers": {
+          "Location": {
+            "description": "Location of the created resource",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

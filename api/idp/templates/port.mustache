@@ -1,0 +1,57 @@
+{{>partial_header}}
+package {{packageName}}
+
+{{#operations}}
+import (
+	"context"
+
+{{#imports}}	"{{import}}"
+{{/imports}}
+)
+
+{{#generateInterfaces}}
+type {{classname}} interface {
+	{{#operation}}
+
+	{{#summary}}
+    // {{{.}}}
+    {{/summary}}
+    // {{#notes}}{{{unescapedNotes}}} {{/notes}}(operationId: {{operationId}})
+	// {{#lambda.uppercase}}{{httpMethod}}{{/lambda.uppercase}} {{{path}}}
+	{{#isDeprecated}}
+	// Deprecated
+	{{/isDeprecated}}
+	{{#hasParams}}
+    {{#hasPathParams}}
+    {{operationId}} (ctx context.Context, param {{#vendorExtensions.x-go-params-class}}{{{.}}}{{/vendorExtensions.x-go-params-class}}{{^vendorExtensions.x-go-params-class}}{{operationId}}Param{{/vendorExtensions.x-go-params-class}}{{#hasBodyParam}}{{#bodyParam}}{{#isModel}}, req {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}}{{/isModel}}{{^isModel}}, req {{operationId}}Req{{/isModel}}{{/bodyParam}}{{/hasBodyParam}}) ({{#responses}}{{#vendorExtensions.x-go-response-class}}{{{.}}}, {{/vendorExtensions.x-go-response-class}}{{^vendorExtensions.x-go-response-class}}{{#dataType}}{{{.}}}, {{/dataType}}{{/vendorExtensions.x-go-response-class}}{{/responses}}error)
+    {{/hasPathParams}}
+    {{^hasPathParams}}
+    {{#hasHeaderParams}}
+    {{operationId}} (ctx context.Context, param {{#vendorExtensions.x-go-params-class}}{{{.}}}{{/vendorExtensions.x-go-params-class}}{{^vendorExtensions.x-go-params-class}}{{operationId}}Param{{/vendorExtensions.x-go-params-class}}{{#hasBodyParam}}{{#bodyParam}}{{#isModel}}, req {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}}{{/isModel}}{{^isModel}}, req {{operationId}}Req{{/isModel}}{{/bodyParam}}{{/hasBodyParam}}) ({{#responses}}{{#vendorExtensions.x-go-response-class}}{{{.}}}, {{/vendorExtensions.x-go-response-class}}{{^vendorExtensions.x-go-response-class}}{{#dataType}}{{{.}}}, {{/dataType}}{{/vendorExtensions.x-go-response-class}}{{/responses}}error)
+    {{/hasHeaderParams}}
+    {{^hasHeaderParams}}
+    {{#hasCookieParams}}
+    {{operationId}} (ctx context.Context, param {{#vendorExtensions.x-go-params-class}}{{{.}}}{{/vendorExtensions.x-go-params-class}}{{^vendorExtensions.x-go-params-class}}{{operationId}}Param{{/vendorExtensions.x-go-params-class}}{{#hasBodyParam}}{{#bodyParam}}{{#isModel}}, req {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}}{{/isModel}}{{^isModel}}, req {{operationId}}Req{{/isModel}}{{/bodyParam}}{{/hasBodyParam}}) ({{#responses}}{{#vendorExtensions.x-go-response-class}}{{{.}}}, {{/vendorExtensions.x-go-response-class}}{{^vendorExtensions.x-go-response-class}}{{#dataType}}{{{.}}}, {{/dataType}}{{/vendorExtensions.x-go-response-class}}{{/responses}}error)
+    {{/hasCookieParams}}
+    {{^hasCookieParams}}
+    {{#hasQueryParams}}
+    {{operationId}} (ctx context.Context, param {{#vendorExtensions.x-go-params-class}}{{{.}}}{{/vendorExtensions.x-go-params-class}}{{^vendorExtensions.x-go-params-class}}{{operationId}}Param{{/vendorExtensions.x-go-params-class}}{{#hasBodyParam}}{{#bodyParam}}{{#isModel}}, req {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}}{{/isModel}}{{^isModel}}, req {{operationId}}Req{{/isModel}}{{/bodyParam}}{{/hasBodyParam}}) ({{#responses}}{{#vendorExtensions.x-go-response-class}}{{{.}}}, {{/vendorExtensions.x-go-response-class}}{{^vendorExtensions.x-go-response-class}}{{#dataType}}{{{.}}}, {{/dataType}}{{/vendorExtensions.x-go-response-class}}{{/responses}}error)
+    {{/hasQueryParams}}
+    {{^hasQueryParams}}
+    {{#hasFormParams}}
+    {{operationId}} (ctx context.Context, param {{#vendorExtensions.x-go-params-class}}{{{.}}}{{/vendorExtensions.x-go-params-class}}{{^vendorExtensions.x-go-params-class}}{{operationId}}Param{{/vendorExtensions.x-go-params-class}}{{#hasBodyParam}}{{#bodyParam}}{{#isModel}}, req {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}}{{/isModel}}{{^isModel}}, req {{operationId}}Req{{/isModel}}{{/bodyParam}}{{/hasBodyParam}}) ({{#responses}}{{#vendorExtensions.x-go-response-class}}{{{.}}}, {{/vendorExtensions.x-go-response-class}}{{^vendorExtensions.x-go-response-class}}{{#dataType}}{{{.}}}, {{/dataType}}{{/vendorExtensions.x-go-response-class}}{{/responses}}error)
+    {{/hasFormParams}}
+    {{^hasFormParams}}
+    {{#hasBodyParam}}
+    {{operationId}} (ctx context.Context{{#bodyParam}}{{#isModel}}, req {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}}{{/isModel}}{{^isModel}}, req {{operationId}}Req{{/isModel}}{{/bodyParam}}) ({{#responses}}{{#vendorExtensions.x-go-response-class}}{{{.}}}, {{/vendorExtensions.x-go-response-class}}{{^vendorExtensions.x-go-response-class}}{{#dataType}}{{{.}}}, {{/dataType}}{{/vendorExtensions.x-go-response-class}}{{/responses}}error)
+    {{/hasBodyParam}}
+    {{/hasFormParams}}
+    {{/hasQueryParams}}
+    {{/hasCookieParams}}
+    {{/hasHeaderParams}}
+    {{/hasPathParams}}
+    {{/hasParams}}
+	{{/operation}}
+}
+{{/generateInterfaces}}
+{{/operations}}

@@ -1,0 +1,25 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package
+      value: pb/stockpb
+inputs:
+  - directory: .
+    paths:
+      - modules/stock/v1/stock.proto
+plugins:
+  ### catalog
+  - local: protoc-gen-go
+    out: ../../services/catalog/internal/application/port
+    opt: paths=import
+  - local: protoc-gen-go-grpc
+    out: ../../services/catalog/internal/application/port
+    opt: paths=import
+  ### inventory
+  - local: protoc-gen-go
+    out: ../../services/inventory/internal/application/port
+    opt: paths=import
+  - local: protoc-gen-go-grpc
+    out: ../../services/inventory/internal/application/port
+    opt: paths=import

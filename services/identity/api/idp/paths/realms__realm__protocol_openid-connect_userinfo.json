@@ -1,0 +1,47 @@
+{
+  "post": {
+    "tags": [
+      "OpenIDConnect"
+    ],
+    "summary": "User info",
+    "description": "User info",
+    "x-go-params-class": "UserinfoWebParam",
+    "x-go-request-class": "UserinfoRequest",
+    "x-go-response-class": "UserinfoResponse",
+    "parameters": [
+      {
+        "name": "realm",
+        "in": "path",
+        "schema": {
+          "type": "string",
+          "default": "bookstore"
+        },
+        "required": true
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/x-www-form-urlencoded": {
+          "schema": {
+            "$ref": "../oidc-openapi.json#/components/schemas/UserinfoWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "User info",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../oidc-openapi.json#/components/schemas/UserinfoWebResp"
+            }
+          }
+        }
+      }
+    },
+    "security": [
+    ]
+  }
+}

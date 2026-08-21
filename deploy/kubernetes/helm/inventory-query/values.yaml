@@ -1,0 +1,102 @@
+replicaCount: 1
+
+image:
+  repository: harbor.example.com/bookstore/inventory
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+  automountServiceAccountToken: false
+  annotations: {}
+
+automountServiceAccountToken: true
+
+podAnnotations:
+  sidecar.istio.io/rewriteAppHTTPProbers: "false"
+podLabels:
+  app.kubernetes.io/group: bookstore
+
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+  https:
+    enabled: false
+    port: 8443
+
+ingress:
+  enabled: false
+  className: ""
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 45
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 5
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 45
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 5
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+istio:
+  enabled: false
+  host: "example.com"
+  tls:
+    enabled: false
+    httpsRedirect: false
+    mode: "SIMPLE"
+    credentialName: ""
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+  gateway:
+    annotations: {}
+  virtualService:
+    annotations: {}
+  destinationRule:
+    annotations: {}

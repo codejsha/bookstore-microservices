@@ -1,0 +1,42 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package
+      value: pb/userpb
+    - file_option: java_multiple_files
+      value: true
+    - file_option: java_package
+      path: modules/user/v1/user.proto
+      value: com.codejsha.bookstore.service.application.port.pb.userpb
+inputs:
+  - directory: .
+    paths:
+      - modules/user/v1/user.proto
+plugins:
+  ### customer
+  - local: protoc-gen-go
+    out: ../../services/customer/internal/application/port
+    opt: paths=import
+  - local: protoc-gen-go-grpc
+    out: ../../services/customer/internal/application/port
+    opt: paths=import
+  ### identity
+  - local: protoc-gen-go
+    out: ../../services/identity/internal/application/port
+    opt: paths=import
+  - local: protoc-gen-go-grpc
+    out: ../../services/identity/internal/application/port
+    opt: paths=import
+  ### order
+  - protoc_builtin: java
+    protoc_path: /opt/homebrew/bin/protoc
+    out: ../../services/order/src/main/generated
+  - local: protoc-gen-grpc-java
+    out: ../../services/order/src/main/generated
+  ### payment
+  - protoc_builtin: java
+    protoc_path: /opt/homebrew/bin/protoc
+    out: ../../services/payment/src/main/generated
+  - local: protoc-gen-grpc-java
+    out: ../../services/payment/src/main/generated

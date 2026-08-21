@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package author.v1;
+
+service AuthorService {
+  rpc FindAllAuthors (AuthorFindAllProtoReq) returns (AuthorFindAllProtoResp) {}
+  rpc FindAuthor (AuthorFindProtoReq) returns (AuthorFindProtoResp) {}
+}
+
+message AuthorFindAllProtoReq {
+  optional string name = 1;
+  optional int64 book_id = 2;
+  optional QueryFilter filter = 3;
+}
+
+message QueryFilter {
+  string sort = 1;
+  string order = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message AuthorFindAllProtoResp {
+  int64 total = 1;
+  repeated AuthorFindProtoResp items = 2;
+}
+
+message AuthorFindProtoReq {
+  int64 id = 1;
+}
+
+message AuthorFindProtoResp {
+  int64 id = 1;
+  string name = 2;
+}

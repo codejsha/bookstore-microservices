@@ -1,0 +1,9 @@
+env:
+  - name: SPRING_PROFILES_ACTIVE
+    value: command,local
+  - name: SPRING_CONFIG_IMPORT
+    value: "configserver:http://cloud-config.example.com"
+
+istio:
+  enabled: true
+  host: "customer-command.example.com"

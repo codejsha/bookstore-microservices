@@ -1,0 +1,347 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Identity service API",
+    "description": "Identity service API of Bookstore microservices",
+    "version": "0.0.0",
+    "contact": {
+      "name": "Admin",
+      "email": "admin@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://identity.bookstore.svc.cluster.local",
+      "description": "identity service"
+    },
+    {
+      "url": "http://localhost:8080",
+      "description": "localhost"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Identity",
+      "description": "Operations about identity"
+    }
+  ],
+  "paths": {
+    "/api/v1/users/signin": {
+      "$ref": "./paths/api_v1_users_signin.json"
+    },
+    "/api/v1/users/signout": {
+      "$ref": "./paths/api_v1_users_signout.json"
+    },
+    "/api/v1/users/signup": {
+      "$ref": "./paths/api_v1_users_signup.json"
+    },
+    "/api/v1/users/tokens/exchange": {
+      "$ref": "./paths/api_v1_users_tokens_exchange.json"
+    }
+  },
+  "components": {
+    "parameters": {
+      "Sort": {
+        "name": "sort",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "default": "created_at"
+        },
+        "description": "Field to sort by"
+      },
+      "Order": {
+        "name": "order",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "default": "desc"
+        },
+        "description": "Sorting order"
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int",
+          "minimum": 1,
+          "default": 10
+        },
+        "description": "Number of items to return"
+      },
+      "Offset": {
+        "name": "offset",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int",
+          "minimum": 0,
+          "default": 0
+        },
+        "description": "The number of items to skip"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": false
+          },
+          "first_name": {
+            "type": "string",
+            "nullable": false
+          },
+          "last_name": {
+            "type": "string",
+            "nullable": false
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "AuthRole": {
+        "type": "string",
+        "enum": [
+          "unknown",
+          "system",
+          "manage",
+          "profile",
+          "order",
+          "view"
+        ]
+      },
+      "UserFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserFindWebResp"
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
+      },
+      "UserFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/User"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "roles": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AuthRole"
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              }
+            }
+          },
+          {
+            "required": [
+              "id",
+              "email",
+              "roles"
+            ]
+          }
+        ]
+      },
+      "UserUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UserFindWebResp"
+          }
+        ]
+      },
+      "UserWebReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": false
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          },
+          "first_name": {
+            "type": "string",
+            "nullable": false
+          },
+          "last_name": {
+            "type": "string",
+            "nullable": false
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UserCreateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UserWebReq"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "roles": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AuthRole"
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              }
+            }
+          },
+          {
+            "required": [
+              "email",
+              "password",
+              "roles"
+            ]
+          }
+        ]
+      },
+      "UserUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UserWebReq"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "roles": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AuthRole"
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              }
+            }
+          },
+          {
+            "required": [
+              "email",
+              "password",
+              "roles"
+            ]
+          }
+        ]
+      },
+      "SignInWebReq": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "SignInWebResp": {
+        "properties": {
+          "access_token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token"
+        ]
+      },
+      "SignUpWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UserWebReq"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "roles": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AuthRole"
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              }
+            }
+          },
+          {
+            "required": [
+              "email",
+              "password",
+              "roles"
+            ]
+          }
+        ]
+      },
+      "SignUpWebResp": {
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "TokenExchangeWebResp": {
+        "properties": {
+          "access_token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

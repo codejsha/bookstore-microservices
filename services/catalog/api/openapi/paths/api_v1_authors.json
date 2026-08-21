@@ -1,0 +1,105 @@
+{
+  "get": {
+    "tags": [
+      "Author"
+    ],
+    "summary": "Find all authors",
+    "description": "Find all authors",
+    "x-go-params-class": "AuthorFindAllWebParam",
+    "parameters": [
+      {
+        "name": "name",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      {
+        "name": "book_id",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int64",
+          "nullable": true
+        }
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Sort"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Order"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Limit"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Offset"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/AuthorFindAllWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "Author"
+    ],
+    "summary": "Add new author",
+    "description": "Add new author",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/AuthorCreateWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Resource created",
+        "headers": {
+          "Location": {
+            "description": "Location of the created resource",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

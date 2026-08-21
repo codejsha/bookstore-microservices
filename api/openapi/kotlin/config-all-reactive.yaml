@@ -1,0 +1,19 @@
+generatorName: kotlin-spring
+globalProperties:
+  apis: ""
+  models: ""
+additionalProperties:
+  apiPackage: com.codejsha.bookstore.service.application.port.openapi.api
+  modelPackage: com.codejsha.bookstore.service.application.port.openapi.model
+  sourceFolder: ""
+  useSpringBoot3: true
+  interfaceOnly: true
+  useTags: true
+  reactive: true
+  enumPropertyNaming: UPPERCASE
+  documentationProvider: none
+  annotationLibrary: none
+  useSwaggerUI: false
+inputSpec: api/openapi/openapi-bundle.json
+outputDir: src/main/generated
+templateDir: ../../api/openapi/kotlin/templates

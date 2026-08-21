@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package stock.v1;
+
+service StockService {
+  rpc FindAllStocks (StockFindAllProtoReq) returns (StockFindAllProtoResp) {}
+  rpc FindStock (StockFindProtoReq) returns (StockFindProtoResp) {}
+}
+
+message StockFindAllProtoReq {
+  optional int64 book_id = 1;
+  optional int64 warehouse_id = 2;
+  optional QueryFilter filter = 3;
+}
+
+message QueryFilter {
+  string sort = 1;
+  string order = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message StockFindAllProtoResp {
+  int64 total = 1;
+  repeated StockFindProtoResp items = 2;
+}
+
+message StockFindProtoReq {
+  int64 id = 1;
+}
+
+message StockFindProtoResp {
+  int64 id = 1;
+  int64 book_id = 2;
+  int64 warehouse_id = 3;
+  int64 quantity = 4;
+  int64 reserved_quantity = 5;
+}

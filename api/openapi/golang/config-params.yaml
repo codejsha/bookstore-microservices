@@ -1,0 +1,18 @@
+generatorName: go-gin-server
+globalProperties:
+  apis: ""
+additionalProperties:
+  apiPath: openapi
+  packageName: openapi
+  interfaceOnly: true
+inputSpec: api/openapi/openapi-bundle.json
+outputDir: internal/application/port
+ignoreFileOverride: ../../api/openapi/golang/config-params.openapi-generator-ignore
+templateDir: ../../api/openapi/golang/templates
+files:
+  params.mustache:
+    templateType: API
+    destinationFilename: _params.go
+  request.mustache:
+    templateType: API
+    destinationFilename: _requests.go

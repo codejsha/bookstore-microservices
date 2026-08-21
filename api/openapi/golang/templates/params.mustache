@@ -1,0 +1,136 @@
+{{! SPDX-License-Identifier: APACHE-2.0 }}
+{{! SPDX-FileCopyrightText: Copyright 2025 Jinseong Ha }}
+{{>partial_header}}
+package {{packageName}}
+{{#operations}}
+{{#operation}}
+
+{{#hasParams}}
+    {{#hasPathParams}}
+{{#summary}}
+// {{{.}}}
+{{/summary}}
+// {{#notes}}{{{unescapedNotes}}} {{/notes}}(operationId: {{{operationId}}})
+type {{#vendorExtensions.x-go-params-class}}{{{.}}}{{/vendorExtensions.x-go-params-class}}{{^vendorExtensions.x-go-params-class}}{{operationId}}Params{{/vendorExtensions.x-go-params-class}} struct {
+    {{/hasPathParams}}
+    {{^hasPathParams}}
+    {{#hasHeaderParams}}
+{{#summary}}
+// {{{.}}}
+{{/summary}}
+// {{#notes}}{{{unescapedNotes}}} {{/notes}}(operationId: {{{operationId}}})
+type {{#vendorExtensions.x-go-params-class}}{{{.}}}{{/vendorExtensions.x-go-params-class}}{{^vendorExtensions.x-go-params-class}}{{operationId}}Params{{/vendorExtensions.x-go-params-class}} struct {
+    {{/hasHeaderParams}}
+    {{^hasHeaderParams}}
+    {{#hasCookieParams}}
+{{#summary}}
+// {{{.}}}
+{{/summary}}
+// {{#notes}}{{{unescapedNotes}}} {{/notes}}(operationId: {{{operationId}}})
+type {{#vendorExtensions.x-go-params-class}}{{{.}}}{{/vendorExtensions.x-go-params-class}}{{^vendorExtensions.x-go-params-class}}{{operationId}}Params{{/vendorExtensions.x-go-params-class}} struct {
+    {{/hasCookieParams}}
+    {{^hasCookieParams}}
+    {{#hasQueryParams}}
+{{#summary}}
+// {{{.}}}
+{{/summary}}
+// {{#notes}}{{{unescapedNotes}}} {{/notes}}(operationId: {{{operationId}}})
+type {{#vendorExtensions.x-go-params-class}}{{{.}}}{{/vendorExtensions.x-go-params-class}}{{^vendorExtensions.x-go-params-class}}{{operationId}}Params{{/vendorExtensions.x-go-params-class}} struct {
+    {{/hasQueryParams}}
+    {{^hasQueryParams}}
+    {{#hasFormParams}}
+{{#summary}}
+// {{{.}}}
+{{/summary}}
+// {{#notes}}{{{unescapedNotes}}} {{/notes}}(operationId: {{{operationId}}})
+type {{#vendorExtensions.x-go-params-class}}{{{.}}}{{/vendorExtensions.x-go-params-class}}{{^vendorExtensions.x-go-params-class}}{{operationId}}Params{{/vendorExtensions.x-go-params-class}} struct {
+    {{/hasFormParams}}
+    {{/hasQueryParams}}
+    {{/hasCookieParams}}
+    {{/hasHeaderParams}}
+    {{/hasPathParams}}
+{{/hasParams}}
+{{#hasParams}}
+    {{#hasPathParams}}
+    {{#pathParams}}
+    {{#description}}
+    // {{{.}}}
+    {{/description}}
+    {{#deprecated}}
+    // Deprecated
+    {{/deprecated}}
+    {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}} {{#isNullable}}*{{/isNullable}}{{{dataType}}} `uri:"{{baseName}}{{^required}},omitempty{{/required}}"{{#vendorExtensions.x-go-custom-tag}} {{{.}}}{{/vendorExtensions.x-go-custom-tag}}`
+    {{/pathParams}}
+    {{/hasPathParams}}
+    {{#hasHeaderParams}}
+    {{#headerParams}}
+    {{#description}}
+    // {{{.}}}
+    {{/description}}
+    {{#deprecated}}
+    // Deprecated
+    {{/deprecated}}
+    {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}} {{#isNullable}}*{{/isNullable}}{{{dataType}}} `header:"{{baseName}}{{^required}},omitempty{{/required}}"{{#vendorExtensions.x-go-custom-tag}} {{{.}}}{{/vendorExtensions.x-go-custom-tag}}`
+    {{/headerParams}}
+    {{/hasHeaderParams}}
+    {{#hasCookieParams}}
+    {{#cookieParams}}
+    {{#description}}
+    // {{{.}}}
+    {{/description}}
+    {{#deprecated}}
+    // Deprecated
+    {{/deprecated}}
+    {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}} {{#isNullable}}*{{/isNullable}}{{{dataType}}} `cookie:"{{baseName}}{{^required}},omitempty{{/required}}"{{#vendorExtensions.x-go-custom-tag}} {{{.}}}{{/vendorExtensions.x-go-custom-tag}}`
+    {{/cookieParams}}
+    {{/hasCookieParams}}
+    {{#hasQueryParams}}
+    {{#queryParams}}
+    {{#description}}
+    // {{{.}}}
+    {{/description}}
+    {{#deprecated}}
+    // Deprecated
+    {{/deprecated}}
+    {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}} {{#isNullable}}*{{/isNullable}}{{{dataType}}} `form:"{{baseName}}{{^required}},omitempty{{/required}}"{{#vendorExtensions.x-go-custom-tag}} {{{.}}}{{/vendorExtensions.x-go-custom-tag}}`
+    {{/queryParams}}
+    {{/hasQueryParams}}
+    {{#hasFormParams}}
+    {{#formParams}}
+    {{#description}}
+    // {{{.}}}
+    {{/description}}
+    {{#deprecated}}
+    // Deprecated
+    {{/deprecated}}
+    {{#lambda.titlecase}}{{paramName}}{{/lambda.titlecase}} {{#isNullable}}*{{/isNullable}}{{{dataType}}} `form:"{{baseName}}{{^required}},omitempty{{/required}}"{{#vendorExtensions.x-go-custom-tag}} {{{.}}}{{/vendorExtensions.x-go-custom-tag}}`
+    {{/formParams}}
+    {{/hasFormParams}}
+{{/hasParams}}
+{{#hasParams}}
+    {{#hasPathParams}}
+}
+    {{/hasPathParams}}
+    {{^hasPathParams}}
+    {{#hasHeaderParams}}
+}
+    {{/hasHeaderParams}}
+    {{^hasHeaderParams}}
+    {{#hasCookieParams}}
+}
+    {{/hasCookieParams}}
+    {{^hasCookieParams}}
+    {{#hasQueryParams}}
+}
+    {{/hasQueryParams}}
+    {{^hasQueryParams}}
+    {{#hasFormParams}}
+}
+    {{/hasFormParams}}
+    {{/hasQueryParams}}
+    {{/hasCookieParams}}
+    {{/hasHeaderParams}}
+    {{/hasPathParams}}
+{{/hasParams}}
+{{/operation}}
+{{/operations}}

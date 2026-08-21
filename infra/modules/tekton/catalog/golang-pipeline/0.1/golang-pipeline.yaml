@@ -1,0 +1,267 @@
+# SPDX-License-Identifier: APACHE-2.0
+# SPDX-FileCopyrightText: Copyright 2025 Jinseong Ha
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: golang-pipeline
+spec:
+  description: |
+    tasks:
+      - clone-source-repo (git-clone)
+      - build-app (make)
+      - build-image (kaniko)
+      - clone-deploy-repo (git-clone)
+      - update-values (yq)
+      - commit-deploy-repo (git-cli)
+      - update-app (argocd-update-app)
+      - sync-app (argocd-task-sync-and-wait)
+
+  workspaces:
+    - name: shared-workspace
+    - name: dockerconfig
+    - name: kubeconfig
+    - name: git-source-ssh-auth
+    - name: git-deploy-ssh-auth
+
+  params:
+    ### git (source repo) params
+    - name: git-source-repo-url
+      type: string
+    - name: git-source-revision
+      type: string
+    - name: git-source-subdir
+      type: string
+    ### make (app build) params
+    - name: context-dir
+      type: string
+    - name: target-dir
+      type: string
+    - name: args
+      type: array
+    ### kaniko (image build) params
+    - name: kaniko-image
+      type: string
+    - name: kaniko-dockerfile
+      type: string
+    - name: kaniko-context
+      type: string
+    - name: kaniko-extra-args
+      type: array
+    - name: kaniko-builder-image
+      type: string
+    ### git (deploy repo) params
+    - name: git-deploy-user-name
+      type: string
+    - name: git-deploy-user-email
+      type: string
+    - name: git-deploy-script
+      type: string
+    ### argocd (update and sync) params
+    - name: argocd-app-name
+      type: string
+    - name: argocd-set-flags
+      type: array
+    - name: argocd-sync-flags
+      type: string
+    - name: argocd-version
+      type: string
+
+  tasks:
+    ### task
+    - name: clone-source-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/tektoncd/catalog.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/git-clone/0.9/git-clone.yaml
+      params:
+        - name: url
+          value: $(params.git-source-repo-url)
+        - name: revision
+          value: $(params.git-source-revision)
+        - name: subdir
+          value: $(params.git-source-subdir)
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+        - name: ssh-directory
+          workspace: git-source-ssh-auth
+
+    ### task
+    - name: build-go-app
+      runAfter:
+        - clone-source-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: http://gitea.gitea.svc.cluster.local/example-corp/tektoncd-custom-catalog.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/make/0.1/make.yaml
+      params:
+        - name: CONTEXT_DIR
+          value: $(params.context-dir)
+        - name: TARGET_DIR
+          value: $(params.target-dir)
+        - name: ARGS
+          value: $(params.args)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
+    - name: build-image
+      runAfter:
+        - build-go-app
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/tektoncd/catalog.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/kaniko/0.6/kaniko.yaml
+      params:
+        - name: image
+          value: $(params.kaniko-image)
+        - name: dockerfile
+          value: $(params.kaniko-dockerfile)
+        - name: context
+          value: $(params.kaniko-context)
+        - name: extra-args
+          value: $(params.kaniko-extra-args)
+        - name: builder-image
+          value: $(params.kaniko-builder-image)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    ### task
+    - name: clone-deploy-repo
+      runAfter:
+        - build-image
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/tektoncd/catalog.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/git-clone/0.6/git-clone.yaml
+      params:
+        - name: url
+          value: $(params.git-deploy-repo-url)
+        - name: revision
+          value: $(params.git-deploy-revision)
+        - name: subdir
+          value: $(params.git-deploy-subdir)
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+        - name: ssh-directory
+          workspace: git-deploy-ssh-auth
+
+    ### task
+    - name: update-values
+      runAfter:
+        - clone-deploy-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/tektoncd/catalog.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/yq/0.4/yq.yaml
+      params:
+        - name: file
+          value: $(params.values-file)
+        - name: values
+          value: $(params.values)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
+    - name: commit-deploy-repo
+      runAfter:
+        - update-values
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/tektoncd/catalog.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/git-cli/0.4/git-cli.yaml
+      params:
+        - name: GIT_USER_NAME
+          value: $(params.git-deploy-user-name)
+        - name: GIT_USER_EMAIL
+          value: $(params.git-deploy-user-email)
+        - name: GIT_SCRIPT
+          value: $(params.git-deploy-script)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: ssh-directory
+          workspace: git-deploy-ssh-auth
+
+    ### task
+    - name: update-app
+      runAfter:
+        - commit-deploy-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: http://gitea.gitea.svc.cluster.local/example-corp/tektoncd-custom-catalog.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/argocd-update-app/0.1/argocd-update-app.yaml
+      params:
+        - name: APPLICATION_NAME
+          value: $(params.argocd-app-name)
+        - name: FLAGS
+          value:
+            - --revision
+            - $(tasks.commit-cd-repo.results.commit)
+            - $(params.argocd-set-flags)
+        - name: ARGOCD_VERSION
+          value: $(params.argocd-version)
+
+    ### task
+    - name: sync-app
+      runAfter:
+        - update-app
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/tektoncd/catalog.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/argocd-task-sync-and-wait/0.2/argocd-task-sync-and-wait.yaml
+      params:
+        - name: application-name
+          value: $(params.argocd-app-name)
+        - name: revision
+          value: $(tasks.commit-cd-repo.results.commit)
+        - name: flags
+          value: $(params.argocd-sync-flags)
+        - name: argocd-version
+          value: $(params.argocd-version)

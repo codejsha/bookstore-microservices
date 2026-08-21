@@ -1,0 +1,116 @@
+{
+  "get": {
+    "tags": [
+      "Book"
+    ],
+    "summary": "Find all books",
+    "description": "Find all books",
+    "x-go-params-class": "BookFindAllWebParam",
+    "parameters": [
+      {
+        "name": "title",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      {
+        "name": "publisher",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      {
+        "name": "author_ids",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Sort"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Order"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Limit"
+      },
+      {
+        "$ref": "../openapi.json#/components/parameters/Offset"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../openapi.json#/components/schemas/BookFindAllWebResp"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "Book"
+    ],
+    "summary": "Add new book",
+    "description": "Add new book",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../openapi.json#/components/schemas/BookCreateWebReq"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Resource created",
+        "headers": {
+          "Location": {
+            "description": "Location of the created resource",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request"
+      },
+      "403": {
+        "description": "Invalid credentials"
+      },
+      "404": {
+        "description": "Resource not found"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

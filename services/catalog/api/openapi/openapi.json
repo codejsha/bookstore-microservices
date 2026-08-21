@@ -1,0 +1,417 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Catalog service API",
+    "description": "Catalog service API of Bookstore microservices",
+    "version": "0.0.0",
+    "contact": {
+      "name": "Admin",
+      "email": "admin@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://catalog-command.bookstore.svc.cluster.local",
+      "description": "catalog command service"
+    },
+    {
+      "url": "http://catalog-query.bookstore.svc.cluster.local",
+      "description": "catalog query service"
+    },
+    {
+      "url": "http://localhost:8080",
+      "description": "localhost"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Category",
+      "description": "Operations about categories"
+    },
+    {
+      "name": "Book",
+      "description": "Operations about books"
+    },
+    {
+      "name": "Author",
+      "description": "Operations about authors"
+    },
+    {
+      "name": "Publisher",
+      "description": "Operations about publishers"
+    }
+  ],
+  "paths": {
+    "/api/v1/categories": {
+      "$ref": "./paths/api_v1_categories.json"
+    },
+    "/api/v1/books": {
+      "$ref": "./paths/api_v1_books.json"
+    },
+    "/api/v1/books/{id}": {
+      "$ref": "./paths/api_v1_books__id_.json"
+    },
+    "/api/v1/authors": {
+      "$ref": "./paths/api_v1_authors.json"
+    },
+    "/api/v1/authors/{id}": {
+      "$ref": "./paths/api_v1_authors__id_.json"
+    },
+    "/api/v1/publishers": {
+      "$ref": "./paths/api_v1_publishers.json"
+    },
+    "/api/v1/publishers/{id}": {
+      "$ref": "./paths/api_v1_publishers__id_.json"
+    }
+  },
+  "components": {
+    "parameters": {
+      "Sort": {
+        "name": "sort",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "default": "created_at"
+        },
+        "description": "Field to sort by"
+      },
+      "Order": {
+        "name": "order",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "default": "desc"
+        },
+        "description": "Sorting order"
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int",
+          "minimum": 1,
+          "default": 10
+        },
+        "description": "Number of items to return"
+      },
+      "Offset": {
+        "name": "offset",
+        "in": "query",
+        "style": "form",
+        "schema": {
+          "type": "integer",
+          "format": "int",
+          "minimum": 0,
+          "default": 0
+        },
+        "description": "The number of items to skip"
+      }
+    },
+    "schemas": {
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "CategoryFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryFindWebResp"
+            }
+          }
+        }
+      },
+      "CategoryFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Category"
+          }
+        ]
+      },
+      "Book": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "isbn": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/CategoryFindWebResp"
+          },
+          "publisher": {
+            "$ref": "#/components/schemas/PublisherFindWebResp"
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthorFindWebResp"
+            }
+          }
+        }
+      },
+      "BookFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookFindWebResp"
+            }
+          }
+        }
+      },
+      "BookFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Book"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "quantity": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "reserved_quantity": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          }
+        ]
+      },
+      "BookUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BookFindWebResp"
+          }
+        ]
+      },
+      "BookWebReq": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "isbn": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "publisher_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "author_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        }
+      },
+      "BookCreateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BookWebReq"
+          }
+        ]
+      },
+      "BookUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BookWebReq"
+          }
+        ]
+      },
+      "Author": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthorFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthorFindWebResp"
+            }
+          }
+        }
+      },
+      "AuthorFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Author"
+          }
+        ]
+      },
+      "AuthorUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AuthorFindWebResp"
+          }
+        ]
+      },
+      "AuthorWebReq": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthorCreateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AuthorWebReq"
+          }
+        ]
+      },
+      "AuthorUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AuthorWebReq"
+          }
+        ]
+      },
+      "Publisher": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
+        }
+      },
+      "PublisherFindAllWebResp": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublisherFindWebResp"
+            }
+          }
+        }
+      },
+      "PublisherFindWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Publisher"
+          }
+        ]
+      },
+      "PublisherUpdateWebResp": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PublisherFindWebResp"
+          }
+        ]
+      },
+      "PublisherWebReq": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
+        }
+      },
+      "PublisherCreateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PublisherWebReq"
+          }
+        ]
+      },
+      "PublisherUpdateWebReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PublisherWebReq"
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

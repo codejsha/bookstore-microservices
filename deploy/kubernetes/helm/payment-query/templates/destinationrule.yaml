@@ -1,0 +1,18 @@
+{{- if .Values.istio.enabled -}}
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: {{ include "payment-query.fullname" . }}-dr
+  labels:
+    {{- include "payment-query.labels" . | nindent 4 }}
+  {{- with .Values.istio.destinationRule.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ include "payment-query.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+  {{- with .Values.istio.trafficPolicy }}
+  trafficPolicy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

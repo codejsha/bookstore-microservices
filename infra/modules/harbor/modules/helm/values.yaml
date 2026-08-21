@@ -1,0 +1,194 @@
+externalURL: http://harbor.example.com
+
+service:
+  type: NodePort
+  ports:
+    http: 80
+    https: 443
+  nodePorts:
+    http: ""
+    https: ""
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+
+persistence:
+  enabled: true
+  persistentVolumeClaim:
+    registry:
+      size: 100Gi
+    jobservice:
+      size: 100Gi
+    trivy:
+      size: 100Gi
+  imageChartStorage:
+    disableredirect: true
+    type: s3
+    s3:
+      region: us-west-1
+      bucket: harbor-storage
+      regionendpoint: http://minio.minio.svc.cluster.local:9000
+
+tracing:
+  enabled: false
+
+certificateVolume:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 750m
+      memory: 768Mi
+      ephemeral-storage: 2Gi
+
+nginx:
+  tls:
+    enabled: false
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 750m
+      memory: 768Mi
+      ephemeral-storage: 2Gi
+  automountServiceAccountToken: true
+  networkPolicy:
+    enabled: false
+
+portal:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 750m
+      memory: 768Mi
+      ephemeral-storage: 2Gi
+  automountServiceAccountToken: true
+  networkPolicy:
+    enabled: false
+
+core:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 750m
+      memory: 768Mi
+      ephemeral-storage: 2Gi
+  automountServiceAccountToken: true
+  networkPolicy:
+    enabled: false
+
+jobservice:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 750m
+      memory: 768Mi
+      ephemeral-storage: 2Gi
+  automountServiceAccountToken: true
+  networkPolicy:
+    enabled: false
+
+registry:
+  automountServiceAccountToken: true
+  server:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 512Mi
+        ephemeral-storage: 50Mi
+      limits:
+        cpu: 750m
+        memory: 768Mi
+        ephemeral-storage: 2Gi
+  controller:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 512Mi
+        ephemeral-storage: 50Mi
+      limits:
+        cpu: 750m
+        memory: 768Mi
+        ephemeral-storage: 2Gi
+  networkPolicy:
+    enabled: false
+
+trivy:
+  enabled: true
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 750m
+      memory: 768Mi
+      ephemeral-storage: 2Gi
+  automountServiceAccountToken: true
+  networkPolicy:
+    enabled: false
+
+exporter:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 750m
+      memory: 768Mi
+      ephemeral-storage: 2Gi
+  automountServiceAccountToken: true
+
+postgresql:
+  enabled: true
+  auth:
+    enablePostgresUser: true
+    postgresPassword: postgres
+  architecture: standalone
+  primary:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 512Mi
+        ephemeral-storage: 50Mi
+      limits:
+        cpu: 750m
+        memory: 768Mi
+        ephemeral-storage: 2Gi
+    networkPolicy:
+      enabled: false
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  architecture: standalone
+  sentinel:
+    enabled: false
+  master:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 512Mi
+        ephemeral-storage: 50Mi
+      limits:
+        cpu: 750m
+        memory: 768Mi
+        ephemeral-storage: 2Gi
+  networkPolicy:
+    enabled: false
+
+logLevel: debug

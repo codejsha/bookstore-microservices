@@ -1,0 +1,9 @@
+dependencies:
+- name: mysql
+  repository: https://charts.bitnami.com/bitnami
+  version: 13.0.2
+- name: istio-mesh
+  repository: oci://harbor.example.com/bookstore-helm-charts
+  version: 0.1.0
+digest: sha256:c7059248180218b7654f1edb652be1351351c328d319bfc5babef069152c2c28
+generated: "2025-07-06T20:23:01.44456+09:00"
