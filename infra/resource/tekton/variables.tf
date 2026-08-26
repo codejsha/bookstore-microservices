@@ -131,7 +131,7 @@ variable "nexus_raw_url" {
 }
 
 variable "skip_codegen_verify" {
-  description = "\"true\" skips the codegen drift check in CI. Default-on until the codegen-toolchain image is published to Harbor; flip to \"false\" to enable."
+  description = "\"true\" skips the codegen drift check in CI. Default-on until the oapi-codegen-cli image is published to Harbor; flip to \"false\" to enable."
   type        = string
   default     = "true"
 }

@@ -76,9 +76,9 @@ spec:
       type: string
       default: "1.0.0"
     ### codegen-verify params
-    - name: codegen-image
+    - name: oapi-codegen-image
       type: string
-      default: harbor.example.com/bookstore/codegen-toolchain:0.1.0
+      default: harbor.example.com/bookstore/oapi-codegen-cli:1.0.0
     - name: nexus-raw-url
       type: string
       default: http://nexus.nexus.svc.cluster.local:8081/repository/raw-hosted
@@ -240,8 +240,8 @@ spec:
           - name: pathInRepo
             value: task/codegen-verify/0.1/codegen-verify.yaml
       params:
-        - name: IMAGE
-          value: $(params.codegen-image)
+        - name: OAPI_CODEGEN_IMAGE
+          value: $(params.oapi-codegen-image)
         - name: CONTEXT_DIR
           value: $(params.context-dir)
         - name: TARGET_DIR

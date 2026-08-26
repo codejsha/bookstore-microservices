@@ -24,16 +24,44 @@ spec:
 
     It runs api-gen, not gen: the gorm / jOOQ database codegen needs a live
     database via Testcontainers and cannot run here. Those stay a local concern.
+
+    There is no combined toolchain image. Each tool ships on its own: the
+    in-house oapi-codegen-cli and the yq binary are staged from their images
+    into a shared volume by the two stage-* steps, the buf and redocly CLIs are
+    installed from npm inside the verify step, and everything else `make
+    api-gen` drives (make, git, curl, node+pnpm via corepack, python3) comes
+    with the stock node bookworm image the verify step runs on.
   workspaces:
     - name: source
   params:
-    - name: IMAGE
+    - name: OAPI_CODEGEN_IMAGE
       description: >-
-        Codegen toolchain image. Must carry make, git, node+pnpm (for the
-        TypeSpec compiler), the oapi-codegen generator, buf, redocly, yq and
-        python3 -- everything `make api-gen` drives. See
-        infra/resource/tekton/images/codegen-toolchain/Dockerfile.
+        In-house oapi-codegen-cli generator image, built and pushed to Harbor
+        from its own repository (`make podman-publish` there). Debian-slim
+        based; the binary is staged from /usr/local/bin/oapi-codegen-cli.
       type: string
+      default: harbor.example.com/bookstore/oapi-codegen-cli:1.0.0
+    - name: YQ_IMAGE
+      description: >-
+        yq image the binary is staged from (/usr/bin/yq; the image must carry a
+        shell for the stage step's script).
+      type: string
+      default: docker.io/mikefarah/yq:4.53.3
+    - name: NODE_IMAGE
+      description: >-
+        Image the verify step runs `make api-gen` in. Must carry node + corepack
+        plus make, git, curl and python3 -- the full (non-slim) node bookworm
+        image does.
+      type: string
+      default: docker.io/library/node:24-bookworm
+    - name: BUF_VERSION
+      description: "@bufbuild/buf npm package version installed in the verify step"
+      type: string
+      default: "1.71.0"
+    - name: REDOCLY_VERSION
+      description: "@redocly/cli npm package version installed in the verify step"
+      type: string
+      default: "2.38.0"
     - name: CONTEXT_DIR
       description: working directory relative to the workspace
       type: string
@@ -60,15 +88,40 @@ spec:
       description: >-
         "true" turns the check into a no-op. The pipelines also guard this task
         with a `when` on the same flag so no pod is created at all — a runtime
-        skip still has to pull IMAGE, which fails while the codegen-toolchain
-        image is unpublished. The build task does not run after this one, so
-        skipping it here does not skip the build.
+        skip still has to pull every step image, which fails while the
+        oapi-codegen-cli image is unpublished. The build task does not run
+        after this one, so skipping it here does not skip the build.
       type: string
       default: "false"
+  volumes:
+    - name: tools
+      emptyDir: {}
   steps:
+    - name: stage-oapi-codegen
+      image: $(params.OAPI_CODEGEN_IMAGE)
+      volumeMounts:
+        - name: tools
+          mountPath: /tools
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        mkdir -p /tools/bin
+        cp /usr/local/bin/oapi-codegen-cli /tools/bin/oapi-codegen-cli
+    - name: stage-yq
+      image: $(params.YQ_IMAGE)
+      volumeMounts:
+        - name: tools
+          mountPath: /tools
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        cp /usr/bin/yq /tools/bin/yq
     - name: verify
-      image: $(params.IMAGE)
+      image: $(params.NODE_IMAGE)
       workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
+      volumeMounts:
+        - name: tools
+          mountPath: /tools
       env:
         - name: GIT_CONFIG_COUNT
           value: "1"
@@ -76,6 +129,8 @@ spec:
           value: safe.directory
         - name: GIT_CONFIG_VALUE_0
           value: "*"
+        - name: COREPACK_ENABLE_DOWNLOAD_PROMPT
+          value: "0"
         - name: NEXUS_RAW_URL
           value: $(params.NEXUS_RAW_URL)
         - name: NEXUS_USER
@@ -96,6 +151,12 @@ spec:
           echo "codegen-verify: skipped (SKIP=true)."
           exit 0
         fi
+
+        export PATH="/tools/bin:${PATH}"
+        corepack enable
+        npm install -g --no-fund --no-audit \
+          "@bufbuild/buf@$(params.BUF_VERSION)" \
+          "@redocly/cli@$(params.REDOCLY_VERSION)"
 
         export NEXUS_AUTH="${NEXUS_USER}:${NEXUS_PASSWORD}"
 
