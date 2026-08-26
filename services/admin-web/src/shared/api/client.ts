@@ -3,9 +3,11 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const SIGN_IN_PATH = "/oauth2/sign_in";
 
 export interface ApiErrorBody {
-  code: number;
-  message: string;
-  details?: string[];
+  type?: string;
+  title: string;
+  status: number;
+  detail?: string;
+  errors?: string[];
 }
 
 export class ApiError extends Error {
@@ -13,7 +15,7 @@ export class ApiError extends Error {
   body: ApiErrorBody | null;
 
   constructor(status: number, statusText: string, body: ApiErrorBody | null) {
-    super(body?.message ?? `${status} ${statusText}`);
+    super(body?.detail ?? body?.title ?? `${status} ${statusText}`);
     this.name = "ApiError";
     this.status = status;
     this.body = body;
