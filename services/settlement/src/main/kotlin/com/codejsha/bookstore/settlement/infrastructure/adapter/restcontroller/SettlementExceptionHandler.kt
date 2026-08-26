@@ -5,6 +5,7 @@ import com.codejsha.bookstore.generated.application.port.openapi.model.NotFoundE
 import com.codejsha.bookstore.settlement.application.SettlementRunConflictException
 import com.codejsha.bookstore.settlement.application.SettlementRunValidationException
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -23,7 +24,14 @@ class SettlementExceptionHandler {
     @ExceptionHandler(NoSuchElementException::class)
     fun handleNotFound(e: NoSuchElementException): ResponseEntity<NotFoundError> =
         ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(NotFoundError(code = HttpStatus.NOT_FOUND.value(), message = e.message ?: "Settlement not found"))
+            .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+            .body(
+                NotFoundError(
+                    title = HttpStatus.NOT_FOUND.reasonPhrase,
+                    status = HttpStatus.NOT_FOUND.value(),
+                    detail = e.message ?: "Settlement not found",
+                )
+            )
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleBadArgument(e: IllegalArgumentException): ResponseEntity<BadRequestError> =
@@ -31,5 +39,12 @@ class SettlementExceptionHandler {
 
     private fun badRequest(message: String): ResponseEntity<BadRequestError> =
         ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(BadRequestError(code = HttpStatus.BAD_REQUEST.value(), message = message))
+            .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+            .body(
+                BadRequestError(
+                    title = HttpStatus.BAD_REQUEST.reasonPhrase,
+                    status = HttpStatus.BAD_REQUEST.value(),
+                    detail = message,
+                )
+            )
 }
