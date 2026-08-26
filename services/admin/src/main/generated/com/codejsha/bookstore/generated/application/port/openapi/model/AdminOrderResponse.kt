@@ -5,6 +5,7 @@ package com.codejsha.bookstore.generated.application.port.openapi.model
 import java.time.OffsetDateTime
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 
 /**
@@ -24,6 +25,7 @@ data class AdminOrderResponse(
     @field:JsonProperty("discount_amount")
     val discountAmount: Double,
 
+    @field:Valid
     @field:JsonProperty("items")
     val items: List<AdminOrderLineItem>? = null,
 
@@ -35,6 +37,7 @@ data class AdminOrderResponse(
     @field:JsonProperty("order_number")
     val orderNumber: String,
 
+    @field:Valid
     @field:JsonProperty("shipping")
     val shipping: AdminOrderShipping? = null,
 

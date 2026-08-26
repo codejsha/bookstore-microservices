@@ -3,16 +3,22 @@ package com.codejsha.bookstore.admin.infrastructure.adapter.restcontroller
 import com.codejsha.bookstore.admin.domain.model.SelfManagementException
 import com.codejsha.bookstore.admin.domain.model.UnsupportedValueException
 import com.codejsha.bookstore.generated.application.port.openapi.model.BadRequestError
+import com.codejsha.bookstore.generated.application.port.openapi.model.ConflictError
 import com.codejsha.bookstore.generated.application.port.openapi.model.NotFoundError
 import org.junit.jupiter.api.Test
+import org.springframework.core.MethodParameter
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.validation.BeanPropertyBindingResult
+import org.springframework.validation.FieldError
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import java.net.SocketTimeoutException
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 
 class AdminExceptionHandlerTest {
 
@@ -24,8 +30,38 @@ class AdminExceptionHandlerTest {
 
         assertEquals(400, response.statusCode.value())
         val body = assertIs<BadRequestError>(response.body)
-        assertEquals(400, body.code)
-        assertEquals("unknown user status: ACTIVATED", body.message)
+        assertEquals(400, body.status)
+        assertEquals("unknown user status: ACTIVATED", body.detail)
+    }
+
+    @Test
+    fun `bean validation failure maps to the contract BadRequestError shape`() {
+        val e = methodArgumentNotValid(
+            FieldError("request", "name", "size must be between 0 and 255"),
+            FieldError("request", "title", "must not be null"),
+        )
+
+        val response = handler.handleMethodArgumentNotValid(e)
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+        assertEquals(400, response.body!!.status)
+        assertEquals("request validation failed", response.body!!.detail)
+        assertEquals(
+            listOf(
+                "name: size must be between 0 and 255",
+                "title: must not be null",
+            ),
+            response.body!!.errors,
+        )
+    }
+
+    @Test
+    fun `bean validation failure without field errors omits details`() {
+        val response = handler.handleMethodArgumentNotValid(methodArgumentNotValid())
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+        assertEquals("request validation failed", response.body!!.detail)
+        assertNull(response.body!!.errors)
     }
 
     @Test
@@ -34,9 +70,9 @@ class AdminExceptionHandlerTest {
             handler.handleSelfManagement(SelfManagementException("administrators cannot change their own roles"))
 
         assertEquals(409, response.statusCode.value())
-        val body = assertIs<Map<*, *>>(response.body)
-        assertEquals(409, body["code"])
-        assertEquals("administrators cannot change their own roles", body["message"])
+        val body = assertIs<ConflictError>(response.body)
+        assertEquals(409, body.status)
+        assertEquals("administrators cannot change their own roles", body.detail)
     }
 
     @Test
@@ -53,8 +89,8 @@ class AdminExceptionHandlerTest {
 
         assertEquals(404, response.statusCode.value())
         val body = assertIs<NotFoundError>(response.body)
-        assertEquals(404, body.code)
-        assertEquals("Not Found", body.message)
+        assertEquals(404, body.status)
+        assertEquals("Not Found", body.detail)
     }
 
     @Test
@@ -71,7 +107,7 @@ class AdminExceptionHandlerTest {
 
         assertEquals(400, response.statusCode.value())
         val body = assertIs<BadRequestError>(response.body)
-        assertEquals(400, body.code)
+        assertEquals(400, body.status)
     }
 
     @Test
@@ -89,8 +125,8 @@ class AdminExceptionHandlerTest {
 
         assertEquals(500, response.statusCode.value())
         val body = assertIs<Map<*, *>>(response.body)
-        assertEquals(500, body["code"])
-        assertEquals("Internal Server Error", body["message"])
+        assertEquals(500, body["status"])
+        assertEquals("Internal Server Error", body["detail"])
     }
 
     @Test
@@ -101,7 +137,18 @@ class AdminExceptionHandlerTest {
 
         assertEquals(502, response.statusCode.value())
         val body = assertIs<Map<*, *>>(response.body)
-        assertEquals(502, body["code"])
-        assertEquals("Bad Gateway", body["message"])
+        assertEquals(502, body["status"])
+        assertEquals("Bad Gateway", body["detail"])
     }
+
+    private fun methodArgumentNotValid(vararg fieldErrors: FieldError): MethodArgumentNotValidException {
+        val bindingResult = BeanPropertyBindingResult(Any(), "request")
+        fieldErrors.forEach { bindingResult.addError(it) }
+        val parameter =
+            MethodParameter(AdminExceptionHandlerTest::class.java.getDeclaredMethod("target", Any::class.java), 0)
+        return MethodArgumentNotValidException(parameter, bindingResult)
+    }
+
+    @Suppress("UNUSED_PARAMETER", "unused")
+    private fun target(request: Any) = Unit
 }

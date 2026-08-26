@@ -3,6 +3,7 @@
 package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 
 /**
@@ -26,6 +27,7 @@ data class AdminStockResponse(
     val uid: String,
 
     @field:NotNull
+    @field:Valid
     @field:JsonProperty("warehouses")
     val warehouses: List<AdminStockWarehouseItem>,
 )

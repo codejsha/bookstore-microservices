@@ -9,30 +9,52 @@ namespace AdminService;
 @error
 model BadRequestError {
   @statusCode statusCode: 400;
-  code: int32;
-  message: string;
-  details?: string[];
+  @header contentType: "application/problem+json";
+  type?: string;
+  title: string;
+  status: int32;
+  detail?: string;
+  errors?: string[];
 }
 
 @error
 model UnauthorizedError {
   @statusCode statusCode: 401;
-  code: int32;
-  message: string;
+  @header contentType: "application/problem+json";
+  type?: string;
+  title: string;
+  status: int32;
+  detail?: string;
 }
 
 @error
 model ForbiddenError {
   @statusCode statusCode: 403;
-  code: int32;
-  message: string;
+  @header contentType: "application/problem+json";
+  type?: string;
+  title: string;
+  status: int32;
+  detail?: string;
 }
 
 @error
 model NotFoundError {
   @statusCode statusCode: 404;
-  code: int32;
-  message: string;
+  @header contentType: "application/problem+json";
+  type?: string;
+  title: string;
+  status: int32;
+  detail?: string;
+}
+
+@error
+model ConflictError {
+  @statusCode statusCode: 409;
+  @header contentType: "application/problem+json";
+  type?: string;
+  title: string;
+  status: int32;
+  detail?: string;
 }
 
 // ─── Scalars ────────────────────────────────────────────────────────────────

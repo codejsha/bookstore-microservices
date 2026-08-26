@@ -3,11 +3,13 @@
 package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 
 data class AdminRiskEntryListResponse(
 
     @field:NotNull
+    @field:Valid
     @field:JsonProperty("entries")
     val entries: List<AdminRiskEntryResponse>,
 )

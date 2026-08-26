@@ -5,7 +5,7 @@ package com.codejsha.bookstore.generated.application.port.openapi.model
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotNull
 
-data class UnauthorizedError(
+data class ConflictError(
 
     @field:JsonProperty("detail")
     val detail: String? = null,
