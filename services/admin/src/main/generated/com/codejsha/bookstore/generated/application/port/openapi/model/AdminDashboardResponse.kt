@@ -3,6 +3,7 @@
 package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 
 /**
@@ -11,14 +12,17 @@ import jakarta.validation.constraints.NotNull
 data class AdminDashboardResponse(
 
     @field:NotNull
+    @field:Valid
     @field:JsonProperty("orders")
     val orders: AdminMetric,
 
     @field:NotNull
+    @field:Valid
     @field:JsonProperty("warehouses")
     val warehouses: AdminMetric,
 
     @field:NotNull
+    @field:Valid
     @field:JsonProperty("works")
     val works: AdminMetric,
 )

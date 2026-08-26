@@ -5,11 +5,13 @@ package com.codejsha.bookstore.generated.application.port.openapi.model
 import java.time.OffsetDateTime
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 
 data class AdminWorkResponse(
 
     @field:NotNull
+    @field:Valid
     @field:JsonProperty("authors")
     val authors: List<AdminAuthorItem>,
 
@@ -33,6 +35,7 @@ data class AdminWorkResponse(
     val olKey: String? = null,
 
     @field:NotNull
+    @field:Valid
     @field:JsonProperty("subjects")
     val subjects: List<AdminSubjectItem>,
 

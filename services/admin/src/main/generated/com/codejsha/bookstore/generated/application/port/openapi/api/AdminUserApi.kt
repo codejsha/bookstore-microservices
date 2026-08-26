@@ -118,6 +118,7 @@ interface AdminUserApi {
      * 401 (UnauthorizedError) — Access is unauthorized.
      * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * PUT /api/v1/admin/users/{uid}/roles
      * @param uid @PathVariable("uid")
@@ -142,6 +143,7 @@ interface AdminUserApi {
      * 401 (UnauthorizedError) — Access is unauthorized.
      * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/admin/users/{uid}/suspend
      * @param uid @PathVariable("uid")

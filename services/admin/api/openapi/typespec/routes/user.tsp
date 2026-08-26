@@ -35,14 +35,14 @@ interface AdminUsers {
   updateUserRoles(
     @path uid: uuid,
     @body body: AdminUserRolesRequest,
-  ): AdminUserResponse | BadRequestError | UnauthorizedError | ForbiddenError | NotFoundError;
+  ): AdminUserResponse | BadRequestError | UnauthorizedError | ForbiddenError | NotFoundError | ConflictError;
 
   @doc("Suspend an account (disabled in Keycloak). An administrator may not suspend themselves.")
   @route("{uid}/suspend")
   @post
   suspendUser(
     @path uid: uuid,
-  ): AdminUserResponse | BadRequestError | UnauthorizedError | ForbiddenError | NotFoundError;
+  ): AdminUserResponse | BadRequestError | UnauthorizedError | ForbiddenError | NotFoundError | ConflictError;
 
   @doc("Reactivate a suspended account")
   @route("{uid}/reactivate")

@@ -6,6 +6,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 
 /**
@@ -21,6 +22,7 @@ data class AdminSettlementResponse(
     @field:JsonProperty("currency")
     val currency: String,
 
+    @field:Valid
     @field:JsonProperty("details")
     val details: List<AdminSettlementDetailItem>? = null,
 
