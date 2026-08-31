@@ -1,5 +1,6 @@
 SERVICE_NAME := payment
 VERSION := 1.0.0
+GRADLE_VERSION ?= 9.4.1
 
 CONTAINER_ENGINE ?= podman
 HYPERSWITCH_VERSION := 1.122.0
@@ -26,6 +27,12 @@ spec:
 	perl -pi -e 's/^version\s*=.*/version=$(VERSION)/' gradle.properties
 	yq -i '.spring.application.name = "$(SERVICE_NAME)"' src/main/resources/application.yaml
 	yq -i '.spring.application.version = "$(VERSION)"' src/main/resources/application.yaml
+
+.PHONY: wrapper
+wrapper:
+	perl -pi -e 's,gradle-[0-9.]+-bin\.zip,gradle-$(GRADLE_VERSION)-bin.zip,' gradle/wrapper/gradle-wrapper.properties
+	gradle wrapper --gradle-version $(GRADLE_VERSION) --console=plain
+	sh gradlew wrapper --gradle-version $(GRADLE_VERSION) --console=plain
 
 .PHONY: clean
 clean:
