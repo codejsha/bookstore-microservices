@@ -4,7 +4,7 @@ package openapi
 
 type PublisherUpdateResponse struct {
 	Address *string `json:"address,omitempty"`
-	Name    string  `json:"name" validate:"required"`
+	Name    string  `json:"name" binding:"required"`
 	OlKey   *string `json:"ol_key,omitempty"`
-	Uid     string  `json:"uid" validate:"required"`
+	Uid     string  `json:"uid" binding:"required"`
 }

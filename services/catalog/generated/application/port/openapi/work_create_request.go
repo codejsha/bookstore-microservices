@@ -3,11 +3,11 @@
 package openapi
 
 type WorkCreateRequest struct {
-	AuthorUids       []string  `json:"author_uids" validate:"required"`
+	AuthorUids       []string  `json:"author_uids" binding:"required,dive"`
 	CoverUids        *[]string `json:"cover_uids,omitempty"`
 	Description      *string   `json:"description,omitempty"`
-	FirstPublishDate *string   `json:"first_publish_date,omitempty"`
-	OlKey            *string   `json:"ol_key,omitempty"`
+	FirstPublishDate *string   `json:"first_publish_date,omitempty" binding:"omitempty,max=32"`
+	OlKey            *string   `json:"ol_key,omitempty" binding:"omitempty,max=64"`
 	SubjectNames     *[]string `json:"subject_names,omitempty"`
-	Title            string    `json:"title" validate:"required"`
+	Title            string    `json:"title" binding:"required,max=512"`
 }

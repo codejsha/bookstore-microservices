@@ -21,6 +21,10 @@ type WorkApi interface {
 	) (*WorkFindAllResponse, error)
 
 	// Create new work
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	//
 	// Response headers (WorksCreateResponseHeaders):
 	//   location (string) — Location of the created resource
@@ -49,7 +53,9 @@ type WorkApi interface {
 
 	// Update work
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	WorksUpdate(
 		ctx context.Context,
 		uid string,

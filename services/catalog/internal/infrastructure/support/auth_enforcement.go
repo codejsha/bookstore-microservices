@@ -34,11 +34,11 @@ func GinAuthorizationMiddleware() gin.HandlerFunc {
 				c.Next()
 				return
 			}
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+			abortWithProblem(c, http.StatusUnauthorized, "authentication required")
 			return
 		}
 		if writeRoutes[c.Request.Method+" "+route] && !p.HasRole(roleAdmin) {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			abortWithProblem(c, http.StatusForbidden, "forbidden")
 			return
 		}
 		c.Next()

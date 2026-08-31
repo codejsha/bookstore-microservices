@@ -19,7 +19,7 @@ interface Authors {
 
   @doc("Register new author")
   @post
-  create(@body body: AuthorCreateRequest): CreatedResponse;
+  create(@body body: AuthorCreateRequest): CreatedResponse | BadRequestError | ConflictError;
 
   @doc("Find author")
   @route("{uid}")
@@ -29,5 +29,5 @@ interface Authors {
   @doc("Update author")
   @route("{uid}")
   @put
-  update(@path uid: uuid, @body body: AuthorUpdateRequest): AuthorUpdateResponse | NotFoundError;
+  update(@path uid: uuid, @body body: AuthorUpdateRequest): AuthorUpdateResponse | BadRequestError | NotFoundError | ConflictError;
 }

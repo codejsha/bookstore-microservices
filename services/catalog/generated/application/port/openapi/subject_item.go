@@ -3,6 +3,6 @@
 package openapi
 
 type SubjectItem struct {
-	Name string `json:"name" validate:"required"`
-	Uid  string `json:"uid" validate:"required"`
+	Name string `json:"name" binding:"required"`
+	Uid  string `json:"uid" binding:"required"`
 }

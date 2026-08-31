@@ -2,10 +2,13 @@ package repo
 
 import (
 	"context"
+	"errors"
 
 	"github.com/codejsha/bookstore-microservices/catalog/internal/domain/model/command"
 	"github.com/codejsha/bookstore-microservices/catalog/internal/domain/model/option"
 )
+
+var ErrAlreadyExists = errors.New("resource already exists")
 
 type WorkRepo interface {
 	FindAll(ctx context.Context, opt option.WorkQueryOption) (int64, []*WorkResult, error)
@@ -48,6 +51,7 @@ type SubjectRepo interface {
 	FindAll(ctx context.Context, opt option.SubjectQueryOption) (int64, []*SubjectResult, error)
 	FindOne(ctx context.Context, id int64) (*SubjectResult, error)
 	FindByUid(ctx context.Context, uid string) (*SubjectResult, error)
+	FindByName(ctx context.Context, name string) (*SubjectResult, error)
 	FindOrCreateByName(ctx context.Context, name string) (int64, error)
 	Create(ctx context.Context, cmd command.SubjectCreateCommand) (int64, error)
 	Update(ctx context.Context, id int64, cmd command.SubjectUpdateCommand) error

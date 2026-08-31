@@ -6,6 +6,8 @@ import (
 	"gorm.io/gen/field"
 )
 
+// Table over the accepted separators and directions: every row asserts the parsed
+// field name and descending flag, so the cases carry the condition and the result.
 func TestParseSortTerm(t *testing.T) {
 	cases := []struct {
 		in       string
@@ -37,28 +39,28 @@ func TestBuildOrderExprs(t *testing.T) {
 		"created_at": created,
 	}
 
-	t.Run("no sort falls back to id tiebreaker only", func(t *testing.T) {
+	t.Run("whenNoSortGiven_returnsIdTiebreakerOnly", func(t *testing.T) {
 		got := buildOrderExprs("", whitelist, id)
 		if len(got) != 1 {
 			t.Fatalf("len = %d, want 1 (id tiebreaker)", len(got))
 		}
 	})
 
-	t.Run("unknown field is dropped, still id tiebreaker", func(t *testing.T) {
+	t.Run("whenFieldUnknown_returnsIdTiebreakerOnly", func(t *testing.T) {
 		got := buildOrderExprs("bogus,desc", whitelist, id)
 		if len(got) != 1 {
 			t.Fatalf("len = %d, want 1 (unknown dropped -> id only)", len(got))
 		}
 	})
 
-	t.Run("whitelisted field plus id tiebreaker", func(t *testing.T) {
+	t.Run("whenFieldWhitelisted_returnsFieldThenIdTiebreaker", func(t *testing.T) {
 		got := buildOrderExprs("title,desc", whitelist, id)
 		if len(got) != 2 {
 			t.Fatalf("len = %d, want 2 (title + id)", len(got))
 		}
 	})
 
-	t.Run("multiple terms preserve order and append id last", func(t *testing.T) {
+	t.Run("whenMultipleTerms_preservesOrderAndAppendsIdLast", func(t *testing.T) {
 		got := buildOrderExprs("title;created_at,desc", whitelist, id)
 		if len(got) != 3 {
 			t.Fatalf("len = %d, want 3 (title, created_at, id)", len(got))

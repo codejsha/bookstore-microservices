@@ -55,7 +55,7 @@ func (c *subjectController) SubjectsCreate(ctx context.Context, req openapi.Subj
 
 	subject, err := c.catalogUseCase.CreateSubject(ctx, cmd)
 	if err != nil {
-		return err
+		return httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, err))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "subject", subject.Uid, "created", logrus.Fields{"name": req.Name})
@@ -85,7 +85,7 @@ func (c *subjectController) SubjectsUpdate(
 
 	subject, err := c.catalogUseCase.UpdateSubject(ctx, uid, cmd)
 	if err != nil {
-		return nil, httpx.MapNotFound(ctx, err)
+		return nil, httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err)))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "subject", uid, "updated", logrus.Fields{})

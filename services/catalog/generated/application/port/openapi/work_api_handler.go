@@ -45,7 +45,7 @@ func (h *WorkApiHandler) WorksSearch(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -56,7 +56,7 @@ func (h *WorkApiHandler) WorksSearch(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -69,13 +69,17 @@ func (h *WorkApiHandler) WorksSearch(c *gin.Context) {
 	}
 	result, err := h.service.WorksSearch(c.Request.Context(), title, authorUid, subjectUid, olKey, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
 }
 
 // Create new work
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 404 (NotFoundError) — The server cannot find the requested resource.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 //
 // Response headers (WorksCreateResponseHeaders):
 //
@@ -83,11 +87,11 @@ func (h *WorkApiHandler) WorksSearch(c *gin.Context) {
 func (h *WorkApiHandler) WorksCreate(c *gin.Context) {
 	var req WorkCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	if err := h.service.WorksCreate(c.Request.Context(), req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -115,7 +119,7 @@ func (h *WorkApiHandler) WorksFullTextSearch(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -126,7 +130,7 @@ func (h *WorkApiHandler) WorksFullTextSearch(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -134,7 +138,7 @@ func (h *WorkApiHandler) WorksFullTextSearch(c *gin.Context) {
 	}
 	result, err := h.service.WorksFullTextSearch(c.Request.Context(), q, authorUid, subjectUid, size, page)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -147,7 +151,7 @@ func (h *WorkApiHandler) WorksRead(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.WorksRead(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -155,17 +159,19 @@ func (h *WorkApiHandler) WorksRead(c *gin.Context) {
 
 // Update work
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *WorkApiHandler) WorksUpdate(c *gin.Context) {
 	uid := c.Param("uid")
 	var req WorkUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.WorksUpdate(c.Request.Context(), uid, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -179,7 +185,7 @@ func (h *WorkApiHandler) WorksEditions(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -190,7 +196,7 @@ func (h *WorkApiHandler) WorksEditions(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -203,7 +209,7 @@ func (h *WorkApiHandler) WorksEditions(c *gin.Context) {
 	}
 	result, err := h.service.WorksEditions(c.Request.Context(), uid, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)

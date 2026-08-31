@@ -22,7 +22,7 @@ interface Works {
 
   @doc("Create new work")
   @post
-  create(@body body: WorkCreateRequest): CreatedResponse;
+  create(@body body: WorkCreateRequest): CreatedResponse | BadRequestError | NotFoundError | ConflictError;
 
   @doc("Find work with full details")
   @route("{uid}")
@@ -32,7 +32,7 @@ interface Works {
   @doc("Update work")
   @route("{uid}")
   @put
-  update(@path uid: uuid, @body body: WorkUpdateRequest): WorkUpdateResponse | NotFoundError;
+  update(@path uid: uuid, @body body: WorkUpdateRequest): WorkUpdateResponse | BadRequestError | NotFoundError | ConflictError;
 
   @doc("Find editions of a work")
   @route("{uid}/editions")

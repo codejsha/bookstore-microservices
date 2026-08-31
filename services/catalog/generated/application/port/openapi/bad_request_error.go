@@ -3,7 +3,9 @@
 package openapi
 
 type BadRequestError struct {
-	Code    int32     `json:"code" validate:"required"`
-	Details *[]string `json:"details,omitempty"`
-	Message string    `json:"message" validate:"required"`
+	Detail *string   `json:"detail,omitempty"`
+	Errors *[]string `json:"errors,omitempty"`
+	Status int32     `json:"status"`
+	Title  string    `json:"title" binding:"required"`
+	Type   *string   `json:"type,omitempty"`
 }

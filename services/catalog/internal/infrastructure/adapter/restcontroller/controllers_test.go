@@ -113,7 +113,7 @@ func ptrStr(s string) *string { return &s }
 
 // ─── Work controller ───────────────────────────────────────────────────────
 
-func TestWorkController_WorksSearch(t *testing.T) {
+func TestWorkController_WhenSearchFiltersGiven_ReturnsPagedWorks(t *testing.T) {
 	use := &stubUseCase{
 		searchWorks: func(_ context.Context, opt option.WorkQueryOption) (int64, []*aggregate.WorkAggregate, error) {
 			if opt.Title() == nil || *opt.Title() != "hobbit" {
@@ -133,7 +133,7 @@ func TestWorkController_WorksSearch(t *testing.T) {
 	}
 }
 
-func TestWorkController_WorksSearchPropagatesError(t *testing.T) {
+func TestWorkController_WhenSearchUsecaseFails_PropagatesError(t *testing.T) {
 	wantErr := errors.New("usecase down")
 	use := &stubUseCase{
 		searchWorks: func(context.Context, option.WorkQueryOption) (int64, []*aggregate.WorkAggregate, error) {
@@ -147,7 +147,7 @@ func TestWorkController_WorksSearchPropagatesError(t *testing.T) {
 	}
 }
 
-func TestWorkController_WorksRead(t *testing.T) {
+func TestWorkController_WhenWorkExists_ReturnsWorkResponse(t *testing.T) {
 	use := &stubUseCase{
 		findWork: func(_ context.Context, uid string) (*aggregate.WorkAggregate, error) {
 			if uid != "w-1" {
@@ -181,7 +181,7 @@ func TestWorkController_WorksRead(t *testing.T) {
 	}
 }
 
-func TestWorkController_WorksCreate(t *testing.T) {
+func TestWorkController_WhenCreateRequestValid_PassesCommandToUsecase(t *testing.T) {
 	captured := command.WorkCreateCommand{}
 	use := &stubUseCase{
 		createWork: func(_ context.Context, cmd command.WorkCreateCommand) (*aggregate.WorkAggregate, error) {
@@ -208,7 +208,7 @@ func TestWorkController_WorksCreate(t *testing.T) {
 	}
 }
 
-func TestWorkController_WorksUpdate(t *testing.T) {
+func TestWorkController_WhenUpdateRequestValid_ReturnsUpdatedWork(t *testing.T) {
 	use := &stubUseCase{
 		updateWork: func(_ context.Context, uid string, cmd command.WorkUpdateCommand) (*aggregate.WorkAggregate, error) {
 			if uid != "w-9" {
@@ -231,7 +231,7 @@ func TestWorkController_WorksUpdate(t *testing.T) {
 	}
 }
 
-func TestWorkController_WorksCreateMapsNotFound(t *testing.T) {
+func TestWorkController_WhenCreateHitsMissingReference_PreservesNotFoundError(t *testing.T) {
 	use := &stubUseCase{
 		createWork: func(context.Context, command.WorkCreateCommand) (*aggregate.WorkAggregate, error) {
 			return nil, gorm.ErrRecordNotFound
@@ -244,7 +244,7 @@ func TestWorkController_WorksCreateMapsNotFound(t *testing.T) {
 	}
 }
 
-func TestEditionController_EditionsCreateMapsNotFound(t *testing.T) {
+func TestEditionController_WhenCreateHitsMissingReference_PreservesNotFoundError(t *testing.T) {
 	use := &stubUseCase{
 		createEdition: func(context.Context, command.EditionCreateCommand) (*aggregate.EditionAggregate, error) {
 			return nil, gorm.ErrRecordNotFound
@@ -259,7 +259,7 @@ func TestEditionController_EditionsCreateMapsNotFound(t *testing.T) {
 
 // ─── Author controller ────────────────────────────────────────────────────
 
-func TestAuthorController_AuthorsRead(t *testing.T) {
+func TestAuthorController_WhenAuthorExists_ReturnsAuthorResponse(t *testing.T) {
 	use := &stubUseCase{
 		findAuthor: func(context.Context, string) (*aggregate.AuthorAggregate, error) {
 			return &aggregate.AuthorAggregate{Uid: "a-1", Name: "Asimov", AlternateNames: []string{"Paul French"}}, nil
@@ -278,7 +278,7 @@ func TestAuthorController_AuthorsRead(t *testing.T) {
 	}
 }
 
-func TestAuthorController_AuthorsCreate(t *testing.T) {
+func TestAuthorController_WhenCreateRequestValid_PassesCommandToUsecase(t *testing.T) {
 	use := &stubUseCase{
 		createAuthor: func(_ context.Context, cmd command.AuthorCreateCommand) (*aggregate.AuthorAggregate, error) {
 			if cmd.Name != "Le Guin" {
@@ -295,7 +295,7 @@ func TestAuthorController_AuthorsCreate(t *testing.T) {
 
 // ─── Publisher controller ─────────────────────────────────────────────────
 
-func TestPublisherController_PublishersGetAll(t *testing.T) {
+func TestPublisherController_WhenNameFilterGiven_ReturnsPagedPublishers(t *testing.T) {
 	use := &stubUseCase{
 		findAllPublishers: func(_ context.Context, opt option.PublisherQueryOption) (int64, []*aggregate.PublisherAggregate, error) {
 			if opt.Name() == nil || *opt.Name() != "Acme" {
@@ -320,7 +320,7 @@ func TestPublisherController_PublishersGetAll(t *testing.T) {
 
 // ─── Subject controller ───────────────────────────────────────────────────
 
-func TestSubjectController_SubjectsCreate(t *testing.T) {
+func TestSubjectController_WhenCreateRequestValid_PassesCommandToUsecase(t *testing.T) {
 	use := &stubUseCase{
 		createSubject: func(_ context.Context, cmd command.SubjectCreateCommand) (*aggregate.SubjectAggregate, error) {
 			if cmd.Name != "Drama" {
@@ -335,7 +335,7 @@ func TestSubjectController_SubjectsCreate(t *testing.T) {
 	}
 }
 
-func TestSubjectController_SubjectsRead(t *testing.T) {
+func TestSubjectController_WhenSubjectExists_ReturnsSubjectResponse(t *testing.T) {
 	use := &stubUseCase{
 		findSubject: func(context.Context, string) (*aggregate.SubjectAggregate, error) {
 			return &aggregate.SubjectAggregate{Uid: "s-1", Name: "Sci-Fi"}, nil
@@ -353,7 +353,7 @@ func TestSubjectController_SubjectsRead(t *testing.T) {
 
 // ─── Edition controller ───────────────────────────────────────────────────
 
-func TestEditionController_EditionsRead(t *testing.T) {
+func TestEditionController_WhenEditionExists_ReturnsEditionResponse(t *testing.T) {
 	use := &stubUseCase{
 		findEdition: func(context.Context, string) (*aggregate.EditionAggregate, error) {
 			return &aggregate.EditionAggregate{
@@ -374,7 +374,7 @@ func TestEditionController_EditionsRead(t *testing.T) {
 	}
 }
 
-func TestEditionController_EditionsReadOmitsNilPublisher(t *testing.T) {
+func TestEditionController_WhenEditionHasNoPublisher_OmitsPublisherFromResponse(t *testing.T) {
 	use := &stubUseCase{
 		findEdition: func(context.Context, string) (*aggregate.EditionAggregate, error) {
 			return &aggregate.EditionAggregate{Uid: "e-1", Work: &aggregate.WorkAggregate{Uid: "w-1"}}, nil
@@ -392,7 +392,8 @@ func TestEditionController_EditionsReadOmitsNilPublisher(t *testing.T) {
 
 // ─── slice helpers ─────────────────────────────────────────────────────────
 
-func TestPtrStringSlice(t *testing.T) {
+// The non-empty case is asserted too: it must come back as a pointer to the same slice.
+func TestPtrStringSlice_WhenSliceNilOrEmpty_ReturnsNil(t *testing.T) {
 	if got := ptrStringSlice(nil); got != nil {
 		t.Errorf("nil -> %v, want nil", got)
 	}
@@ -404,7 +405,8 @@ func TestPtrStringSlice(t *testing.T) {
 	}
 }
 
-func TestDerefStringSlice(t *testing.T) {
+// The non-nil case is asserted too: it must come back as the pointed-to slice.
+func TestDerefStringSlice_WhenPointerNil_ReturnsNil(t *testing.T) {
 	if got := derefStringSlice(nil); got != nil {
 		t.Errorf("nil -> %v, want nil", got)
 	}

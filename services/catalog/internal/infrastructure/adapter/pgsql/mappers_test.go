@@ -7,7 +7,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/catalog/internal/infrastructure/support/utils"
 )
 
-func TestToWorkResult_PopulatesAuthorsAndSubjects(t *testing.T) {
+func TestToWorkResult_WhenAuxiliaryRowsPresent_PopulatesAuthorsAndSubjects(t *testing.T) {
 	desc := "epic"
 	cover := utils.ToJsonString([]string{"c1", "c2"})
 	ent := &entity.WorkEntity{
@@ -43,7 +43,7 @@ func TestToWorkResult_PopulatesAuthorsAndSubjects(t *testing.T) {
 	}
 }
 
-func TestToWorkResult_EmptyAuxiliaryRows(t *testing.T) {
+func TestToWorkResult_WhenAuxiliaryRowsEmpty_ReturnsEmptyCollections(t *testing.T) {
 	ent := &entity.WorkEntity{Id: 1, Uid: "u", Title: "T"}
 	got := toWorkResult(ent, nil, nil)
 	if len(got.AuthorUids) != 0 || len(got.AuthorNames) != 0 {
@@ -57,7 +57,7 @@ func TestToWorkResult_EmptyAuxiliaryRows(t *testing.T) {
 	}
 }
 
-func TestToAuthorResult(t *testing.T) {
+func TestToAuthorResult_WhenRowHasEveryColumn_ReturnsResult(t *testing.T) {
 	bio := "born 1920"
 	birth := "1920-01-02"
 	photo := utils.ToJsonString([]string{"p1"})
@@ -82,7 +82,7 @@ func TestToAuthorResult(t *testing.T) {
 	}
 }
 
-func TestToPublisherResult(t *testing.T) {
+func TestToPublisherResult_WhenRowHasEveryColumn_ReturnsResult(t *testing.T) {
 	addr := "Mars"
 	ol := "OL/123"
 	got := toPublisherResult(&entity.PublisherEntity{
@@ -99,14 +99,14 @@ func TestToPublisherResult(t *testing.T) {
 	}
 }
 
-func TestToSubjectResult(t *testing.T) {
+func TestToSubjectResult_WhenRowHasEveryColumn_ReturnsResult(t *testing.T) {
 	got := toSubjectResult(&entity.SubjectEntity{Id: 5, Uid: "s-1", Name: "Fantasy"})
 	if got.Id != 5 || got.Uid != "s-1" || got.Name != "Fantasy" {
 		t.Errorf("got = %+v", got)
 	}
 }
 
-func TestToEditionResult(t *testing.T) {
+func TestToEditionResult_WhenRowHasEveryColumn_ReturnsResult(t *testing.T) {
 	isbn10 := "0-7475-3269-9"
 	isbn13 := "978-0-7475-3269-9"
 	pages := int32(223)

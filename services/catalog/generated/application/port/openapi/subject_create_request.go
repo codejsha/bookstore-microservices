@@ -3,5 +3,5 @@
 package openapi
 
 type SubjectCreateRequest struct {
-	Name string `json:"name" validate:"required"`
+	Name string `json:"name" binding:"required,max=255"`
 }

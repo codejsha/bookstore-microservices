@@ -7,16 +7,16 @@ import (
 )
 
 type WorkSearchItem struct {
-	Authors          []AuthorItem         `json:"authors" validate:"required"`
+	Authors          []AuthorItem         `json:"authors" binding:"required,dive"`
 	CoverUids        *[]string            `json:"cover_uids,omitempty"`
-	CreatedAt        time.Time            `json:"created_at" validate:"required"`
+	CreatedAt        time.Time            `json:"created_at" binding:"required"`
 	Description      *string              `json:"description,omitempty"`
 	FirstPublishDate *string              `json:"first_publish_date,omitempty"`
 	Highlight        *WorkSearchHighlight `json:"highlight,omitempty"`
 	OlKey            *string              `json:"ol_key,omitempty"`
-	Score            float32              `json:"score" validate:"required"`
-	Subjects         []SubjectItem        `json:"subjects" validate:"required"`
-	Title            string               `json:"title" validate:"required"`
-	Uid              string               `json:"uid" validate:"required"`
+	Score            float32              `json:"score"`
+	Subjects         []SubjectItem        `json:"subjects" binding:"required,dive"`
+	Title            string               `json:"title" binding:"required"`
+	Uid              string               `json:"uid" binding:"required"`
 	UpdatedAt        *time.Time           `json:"updated_at,omitempty"`
 }

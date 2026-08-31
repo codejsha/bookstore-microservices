@@ -61,7 +61,7 @@ func (c *authorController) AuthorsCreate(ctx context.Context, req openapi.Author
 
 	author, err := c.catalogUseCase.CreateAuthor(ctx, cmd)
 	if err != nil {
-		return err
+		return httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, err))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "author", author.Uid, "created", logrus.Fields{"name": req.Name})
@@ -103,7 +103,7 @@ func (c *authorController) AuthorsUpdate(
 
 	author, err := c.catalogUseCase.UpdateAuthor(ctx, uid, cmd)
 	if err != nil {
-		return nil, httpx.MapNotFound(ctx, err)
+		return nil, httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err)))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "author", uid, "updated", logrus.Fields{})

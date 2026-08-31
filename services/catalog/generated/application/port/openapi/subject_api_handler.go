@@ -30,7 +30,7 @@ func (h *SubjectApiHandler) SubjectsGetAll(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -41,7 +41,7 @@ func (h *SubjectApiHandler) SubjectsGetAll(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -54,13 +54,16 @@ func (h *SubjectApiHandler) SubjectsGetAll(c *gin.Context) {
 	}
 	result, err := h.service.SubjectsGetAll(c.Request.Context(), name, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
 }
 
 // Create subject
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 //
 // Response headers (SubjectsCreateResponseHeaders):
 //
@@ -68,11 +71,11 @@ func (h *SubjectApiHandler) SubjectsGetAll(c *gin.Context) {
 func (h *SubjectApiHandler) SubjectsCreate(c *gin.Context) {
 	var req SubjectCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	if err := h.service.SubjectsCreate(c.Request.Context(), req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -85,7 +88,7 @@ func (h *SubjectApiHandler) SubjectsRead(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.SubjectsRead(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -93,17 +96,19 @@ func (h *SubjectApiHandler) SubjectsRead(c *gin.Context) {
 
 // Update subject
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *SubjectApiHandler) SubjectsUpdate(c *gin.Context) {
 	uid := c.Param("uid")
 	var req SubjectUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.SubjectsUpdate(c.Request.Context(), uid, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)

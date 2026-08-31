@@ -3,10 +3,16 @@ namespace CatalogService;
 // ─── Work models ───────────────────────────────────────────────────────────
 
 model WorkCreateRequest {
+  @maxLength(512)
   title: string;
+
   description?: string;
   cover_uids?: string[];
+
+  @maxLength(32)
   first_publish_date?: string;
+
+  @maxLength(64)
   ol_key?: string;
 
   @minItems(1)
@@ -16,11 +22,18 @@ model WorkCreateRequest {
 }
 
 model WorkUpdateRequest {
+  @maxLength(512)
   title?: string;
+
   description?: string;
   cover_uids?: string[];
+
+  @maxLength(32)
   first_publish_date?: string;
+
+  @maxLength(64)
   ol_key?: string;
+
   author_uids?: uuid[];
   subject_names?: string[];
 }

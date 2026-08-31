@@ -87,6 +87,7 @@ func (s *GinServer) InitializeEngine() {
 	gin.SetMode(s.serverCfg.Mode)
 	gin.DefaultWriter = s.logHelper.Logger.WriterLevel(logrus.InfoLevel)
 	gin.DefaultErrorWriter = s.logHelper.Logger.WriterLevel(logrus.ErrorLevel)
+	RegisterBindingTagNames()
 	s.engine = gin.New()
 	s.engine.Use(GinAccessLogMiddleware(s.logHelper))
 	s.engine.Use(gin.Recovery())

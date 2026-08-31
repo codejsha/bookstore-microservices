@@ -132,6 +132,9 @@ func (s catalogService) FindWorkWithRelated(
 }
 
 func (s catalogService) CreateWork(ctx context.Context, cmd command.WorkCreateCommand) (*aggregate.WorkAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	id, err := s.workRepo.Create(ctx, cmd)
 	if err != nil {
 		return nil, err
@@ -144,6 +147,9 @@ func (s catalogService) CreateWork(ctx context.Context, cmd command.WorkCreateCo
 }
 
 func (s catalogService) UpdateWork(ctx context.Context, uid string, cmd command.WorkUpdateCommand) (*aggregate.WorkAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	existing, err := s.workRepo.FindByUid(ctx, uid)
 	if err != nil {
 		return nil, err
@@ -181,6 +187,9 @@ func (s catalogService) FindEdition(ctx context.Context, uid string) (*aggregate
 }
 
 func (s catalogService) CreateEdition(ctx context.Context, cmd command.EditionCreateCommand) (*aggregate.EditionAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	work, publisherId, err := s.resolveEditionRefs(ctx, cmd.WorkUid, cmd.PublisherUid)
 	if err != nil {
 		return nil, err
@@ -197,6 +206,9 @@ func (s catalogService) CreateEdition(ctx context.Context, cmd command.EditionCr
 }
 
 func (s catalogService) UpdateEdition(ctx context.Context, uid string, cmd command.EditionUpdateCommand) (*aggregate.EditionAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	var (
 		existing    *repo.EditionResult
 		workId      *int64
@@ -302,6 +314,9 @@ func (s catalogService) FindAuthor(ctx context.Context, uid string) (*aggregate.
 }
 
 func (s catalogService) CreateAuthor(ctx context.Context, cmd command.AuthorCreateCommand) (*aggregate.AuthorAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	id, err := s.authorRepo.Create(ctx, cmd)
 	if err != nil {
 		return nil, err
@@ -314,6 +329,9 @@ func (s catalogService) CreateAuthor(ctx context.Context, cmd command.AuthorCrea
 }
 
 func (s catalogService) UpdateAuthor(ctx context.Context, uid string, cmd command.AuthorUpdateCommand) (*aggregate.AuthorAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	existing, err := s.authorRepo.FindByUid(ctx, uid)
 	if err != nil {
 		return nil, err
@@ -361,6 +379,9 @@ func (s catalogService) FindPublisher(ctx context.Context, uid string) (*aggrega
 }
 
 func (s catalogService) CreatePublisher(ctx context.Context, cmd command.PublisherCreateCommand) (*aggregate.PublisherAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	id, err := s.publisherRepo.Create(ctx, cmd)
 	if err != nil {
 		return nil, err
@@ -378,6 +399,9 @@ func (s catalogService) CreatePublisher(ctx context.Context, cmd command.Publish
 }
 
 func (s catalogService) UpdatePublisher(ctx context.Context, uid string, cmd command.PublisherUpdateCommand) (*aggregate.PublisherAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	existing, err := s.publisherRepo.FindByUid(ctx, uid)
 	if err != nil {
 		return nil, err
@@ -426,6 +450,12 @@ func (s catalogService) FindSubject(ctx context.Context, uid string) (*aggregate
 }
 
 func (s catalogService) CreateSubject(ctx context.Context, cmd command.SubjectCreateCommand) (*aggregate.SubjectAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
+	if err := s.ensureSubjectNameFree(ctx, cmd.Name, nil); err != nil {
+		return nil, err
+	}
 	id, err := s.subjectRepo.Create(ctx, cmd)
 	if err != nil {
 		return nil, err
@@ -441,9 +471,17 @@ func (s catalogService) CreateSubject(ctx context.Context, cmd command.SubjectCr
 }
 
 func (s catalogService) UpdateSubject(ctx context.Context, uid string, cmd command.SubjectUpdateCommand) (*aggregate.SubjectAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	existing, err := s.subjectRepo.FindByUid(ctx, uid)
 	if err != nil {
 		return nil, err
+	}
+	if cmd.Name != nil {
+		if err := s.ensureSubjectNameFree(ctx, *cmd.Name, &existing.Id); err != nil {
+			return nil, err
+		}
 	}
 	if err := s.subjectRepo.Update(ctx, existing.Id, cmd); err != nil {
 		return nil, err
@@ -456,6 +494,20 @@ func (s catalogService) UpdateSubject(ctx context.Context, uid string, cmd comma
 		Uid:  sub.Uid,
 		Name: sub.Name,
 	}, nil
+}
+
+func (s catalogService) ensureSubjectNameFree(ctx context.Context, name string, selfId *int64) error {
+	found, err := s.subjectRepo.FindByName(ctx, name)
+	if err != nil {
+		return err
+	}
+	if found == nil {
+		return nil
+	}
+	if selfId != nil && found.Id == *selfId {
+		return nil
+	}
+	return repo.ErrAlreadyExists
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────

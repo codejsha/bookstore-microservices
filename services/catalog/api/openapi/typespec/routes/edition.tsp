@@ -24,7 +24,7 @@ interface Editions {
 
   @doc("Create new edition")
   @post
-  create(@body body: EditionCreateRequest): CreatedResponse;
+  create(@body body: EditionCreateRequest): CreatedResponse | BadRequestError | NotFoundError | ConflictError;
 
   @doc("Find edition with full details")
   @route("{uid}")
@@ -34,5 +34,5 @@ interface Editions {
   @doc("Update edition")
   @route("{uid}")
   @put
-  update(@path uid: uuid, @body body: EditionUpdateRequest): EditionUpdateResponse | NotFoundError;
+  update(@path uid: uuid, @body body: EditionUpdateRequest): EditionUpdateResponse | BadRequestError | NotFoundError | ConflictError;
 }

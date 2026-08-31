@@ -19,7 +19,7 @@ interface Subjects {
 
   @doc("Create subject")
   @post
-  create(@body body: SubjectCreateRequest): CreatedResponse;
+  create(@body body: SubjectCreateRequest): CreatedResponse | BadRequestError | ConflictError;
 
   @doc("Find subject")
   @route("{uid}")
@@ -29,5 +29,5 @@ interface Subjects {
   @doc("Update subject")
   @route("{uid}")
   @put
-  update(@path uid: uuid, @body body: SubjectUpdateRequest): SubjectUpdateResponse | NotFoundError;
+  update(@path uid: uuid, @body body: SubjectUpdateRequest): SubjectUpdateResponse | BadRequestError | NotFoundError | ConflictError;
 }

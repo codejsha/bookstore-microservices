@@ -3,6 +3,7 @@ namespace CatalogService;
 // ─── Edition models ────────────────────────────────────────────────────────
 
 model EditionCreateRequest {
+  @maxLength(512)
   title: string;
 
   @maxLength(10)
@@ -12,17 +13,26 @@ model EditionCreateRequest {
   isbn13?: string;
 
   number_of_pages?: int32;
+
+  @maxLength(32)
   publish_date?: string;
+
   cover_uids?: string[];
   languages?: string[];
+
+  @maxLength(64)
   physical_format?: string;
+
   description?: string;
   work_uid: uuid;
   publisher_uid?: uuid;
+
+  @maxLength(64)
   ol_key?: string;
 }
 
 model EditionUpdateRequest {
+  @maxLength(512)
   title?: string;
 
   @maxLength(10)
@@ -32,13 +42,21 @@ model EditionUpdateRequest {
   isbn13?: string;
 
   number_of_pages?: int32;
+
+  @maxLength(32)
   publish_date?: string;
+
   cover_uids?: string[];
   languages?: string[];
+
+  @maxLength(64)
   physical_format?: string;
+
   description?: string;
   work_uid?: uuid;
   publisher_uid?: uuid;
+
+  @maxLength(64)
   ol_key?: string;
 }
 

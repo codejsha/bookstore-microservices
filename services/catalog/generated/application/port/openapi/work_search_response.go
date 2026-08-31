@@ -3,6 +3,6 @@
 package openapi
 
 type WorkSearchResponse struct {
-	Items []WorkSearchItem `json:"items" validate:"required"`
-	Total int64            `json:"total" validate:"required"`
+	Items []WorkSearchItem `json:"items" binding:"required,dive"`
+	Total int64            `json:"total" binding:"gte=0"`
 }

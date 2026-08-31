@@ -31,7 +31,7 @@ func decodeListQuery(t *testing.T, opt option.WorkQueryOption) map[string]any {
 	return got
 }
 
-func TestBuildListQuery_MatchAllWhenNoFilters(t *testing.T) {
+func TestBuildListQuery_WhenNoFilters_ReturnsMatchAll(t *testing.T) {
 	got := decodeListQuery(t, listOpt())
 
 	query, ok := got["query"].(map[string]any)
@@ -49,7 +49,7 @@ func TestBuildListQuery_MatchAllWhenNoFilters(t *testing.T) {
 	}
 }
 
-func TestBuildListQuery_Filters(t *testing.T) {
+func TestBuildListQuery_WhenFiltersGiven_ReturnsBoolMustClauses(t *testing.T) {
 	title := "hobbit"
 	authorUid := "a-1"
 	subjectUid := "s-1"
@@ -96,7 +96,7 @@ func TestBuildListQuery_Filters(t *testing.T) {
 	}
 }
 
-func TestBuildListQuery_BlankFiltersAreIgnored(t *testing.T) {
+func TestBuildListQuery_WhenFiltersBlank_ReturnsMatchAll(t *testing.T) {
 	blank := ""
 	got := decodeListQuery(t, listOpt(
 		option.WorkQueryOption{}.WithTitle(&blank),
@@ -110,7 +110,7 @@ func TestBuildListQuery_BlankFiltersAreIgnored(t *testing.T) {
 	}
 }
 
-func TestBuildListQuery_Pagination(t *testing.T) {
+func TestBuildListQuery_WhenPageAndSizeGiven_ReturnsFromAndSize(t *testing.T) {
 	got := decodeListQuery(t, listOpt(
 		option.WorkQueryOption{}.WithPage(pageOpt(20, 3, "")),
 	))
@@ -131,17 +131,17 @@ func TestBuildSort(t *testing.T) {
 		want []map[string]any
 	}{
 		{
-			name: "empty sort is tiebreaker only",
+			name: "whenSortEmpty_returnsTiebreakerOnly",
 			sort: "",
 			want: []map[string]any{uidTiebreaker},
 		},
 		{
-			name: "unknown field is skipped",
+			name: "whenFieldUnknown_returnsTiebreakerOnly",
 			sort: "bogus,desc",
 			want: []map[string]any{uidTiebreaker},
 		},
 		{
-			name: "title maps to raw subfield",
+			name: "whenSortingByTitle_returnsRawSubfield",
 			sort: "title,desc",
 			want: []map[string]any{
 				{"title.raw": map[string]any{"order": "desc"}},
@@ -149,7 +149,7 @@ func TestBuildSort(t *testing.T) {
 			},
 		},
 		{
-			name: "colon separator and default direction",
+			name: "whenColonSeparatorWithoutDirection_returnsAscending",
 			sort: "title:whatever",
 			want: []map[string]any{
 				{"title.raw": map[string]any{"order": "asc"}},
@@ -157,7 +157,7 @@ func TestBuildSort(t *testing.T) {
 			},
 		},
 		{
-			name: "date fields sort nulls last",
+			name: "whenSortingByDateField_returnsMissingLast",
 			sort: "updated_at,desc",
 			want: []map[string]any{
 				{"updated_at": map[string]any{"order": "desc", "missing": "_last"}},
@@ -165,7 +165,7 @@ func TestBuildSort(t *testing.T) {
 			},
 		},
 		{
-			name: "multiple terms preserve order",
+			name: "whenMultipleTerms_preservesOrder",
 			sort: " title ; created_at,DESC ",
 			want: []map[string]any{
 				{"title.raw": map[string]any{"order": "asc"}},
