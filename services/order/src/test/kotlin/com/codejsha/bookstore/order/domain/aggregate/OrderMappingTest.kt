@@ -10,7 +10,7 @@ import kotlin.test.assertFailsWith
 class OrderMappingTest {
 
     @Test
-    fun `OrderResult toAggregate converts status string and zeroes nested collections`() {
+    fun `orderResultToAggregate_whenStatusKnown_convertsStatusAndZeroesNestedCollections`() {
         val result = OrderTestFixtures.orderResult(status = OrderStatus.PAID.value)
 
         val agg = result.toAggregate()
@@ -24,14 +24,14 @@ class OrderMappingTest {
     }
 
     @Test
-    fun `OrderResult toAggregate throws when status is unknown`() {
+    fun `orderResultToAggregate_whenStatusUnknown_throwsNoSuchElementException`() {
         val result = OrderTestFixtures.orderResult(status = "MYSTERY")
 
         assertFailsWith<NoSuchElementException> { result.toAggregate() }
     }
 
     @Test
-    fun `OrderItemResult toEntity copies all fields`() {
+    fun `orderItemResultToEntity_whenResultGiven_copiesEveryField`() {
         val result = OrderTestFixtures.orderItemResult(quantity = 3)
 
         val entity = result.toEntity()
@@ -43,7 +43,7 @@ class OrderMappingTest {
     }
 
     @Test
-    fun `OrderAdjustmentResult toEntity converts type string to enum`() {
+    fun `orderAdjustmentResultToEntity_whenTypeKnown_convertsTypeToEnum`() {
         val result = OrderTestFixtures.orderAdjustmentResult(type = "COUPON")
         val entity = result.toEntity()
 
@@ -52,14 +52,14 @@ class OrderMappingTest {
     }
 
     @Test
-    fun `OrderAdjustmentResult toEntity throws when type unknown`() {
+    fun `orderAdjustmentResultToEntity_whenTypeUnknown_throwsNoSuchElementException`() {
         val result = OrderTestFixtures.orderAdjustmentResult(type = "MYSTERY")
 
         assertFailsWith<NoSuchElementException> { result.toEntity() }
     }
 
     @Test
-    fun `OrderShippingResult toEntity copies all fields`() {
+    fun `orderShippingResultToEntity_whenResultGiven_copiesEveryField`() {
         val result = OrderTestFixtures.orderShippingResult()
         val entity = result.toEntity()
 
@@ -69,14 +69,14 @@ class OrderMappingTest {
     }
 
     @Test
-    fun `CartResult toAggregate yields empty items list`() {
+    fun `cartResultToAggregate_whenResultGiven_returnsEmptyItemsList`() {
         val cart = OrderTestFixtures.cartResult().toAggregate()
 
         assertEquals(0, cart.items.size)
     }
 
     @Test
-    fun `CartItemResult toEntity preserves quantity, price, currency`() {
+    fun `cartItemResultToEntity_whenResultGiven_preservesQuantityPriceAndCurrency`() {
         val item = OrderTestFixtures.cartItemResult(quantity = 5).toEntity()
 
         assertEquals(5, item.quantity)
@@ -86,14 +86,15 @@ class OrderMappingTest {
 
 class OrderEnumsTest {
 
+    // Every known value is round-tripped through fromValue first.
     @Test
-    fun `OrderStatus round-trip and unknown lookup`() {
+    fun `orderStatusFromValue_whenValueUnknown_throwsNoSuchElementException`() {
         OrderStatus.entries.forEach { assertEquals(it, OrderStatus.fromValue(it.value)) }
         assertFailsWith<NoSuchElementException> { OrderStatus.fromValue("UNKNOWN") }
     }
 
     @Test
-    fun `OrderAdjustmentType round-trip`() {
+    fun `orderAdjustmentTypeFromValue_whenValueKnown_returnsMatchingEntry`() {
         OrderAdjustmentType.entries.forEach {
             assertEquals(it, OrderAdjustmentType.fromValue(it.value))
         }

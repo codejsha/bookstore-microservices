@@ -3,6 +3,10 @@ package com.codejsha.bookstore.order.infrastructure.adapter.restcontroller
 import com.codejsha.bookstore.order.application.usecase.CartUseCase
 import com.codejsha.bookstore.order.application.usecase.OrderUseCase
 import com.codejsha.bookstore.order.domain.aggregate.CartItemEntity
+import com.codejsha.bookstore.order.domain.model.command.InvalidCommandException
+import com.codejsha.bookstore.order.domain.model.command.OrderCreateCommand
+import com.codejsha.bookstore.order.domain.model.command.OrderItemCreateCommand
+import com.codejsha.bookstore.order.domain.model.command.OrderShippingCreateCommand
 import com.codejsha.bookstore.order.domain.workflow.CancelOrderWorkflowRequest
 import com.codejsha.bookstore.order.domain.workflow.FulfillOrderWorkflowRequest
 import com.codejsha.bookstore.order.domain.workflow.OrderCancellationWorkflow
@@ -30,6 +34,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import java.math.BigDecimal
 import java.util.UUID
 
 @RestController
@@ -58,6 +63,7 @@ class OrderWorkflowController(
             cartUseCase.getCart(UUID.fromString(ownerUserUid), context).items
         }
         val request = repriceFromCart(body.copy(userUid = ownerUserUid), cartItems)
+        validatePlaceOrderRequest(request)
         val workflowId = "place-${request.idempotencyKey}"
         val stub = workflowClient.newWorkflowStub(
             OrderPlacementWorkflow::class.java,
@@ -154,6 +160,49 @@ internal fun repriceFromCart(
         item.copy(price = cartItem.price, currency = cartItem.currency)
     }
     return request.copy(items = repriced)
+}
+
+internal fun validatePlaceOrderRequest(request: PlaceOrderWorkflowRequest) {
+    val userUid = runCatching { UUID.fromString(request.userUid) }.getOrNull()
+        ?: throw InvalidCommandException("user_uid must be a valid uuid, was ${request.userUid}")
+
+    OrderCreateCommand(
+        userUid = userUid,
+        currency = request.currency,
+        itemsAmount = BigDecimal.ZERO,
+        discountAmount = BigDecimal.ZERO,
+        shippingAmount = BigDecimal.ZERO,
+        taxAmount = BigDecimal.ZERO,
+        totalAmount = BigDecimal.ZERO,
+        idempotencyKey = request.idempotencyKey,
+    )
+
+    request.items.forEach { item ->
+        OrderItemCreateCommand(
+            productId = item.productId,
+            sku = null,
+            productName = item.productName,
+            options = null,
+            quantity = item.quantity,
+            currency = item.currency,
+            price = item.price,
+            taxRate = BigDecimal.ZERO,
+        )
+    }
+
+    request.shipping?.let { shipping ->
+        OrderShippingCreateCommand(
+            recipientName = shipping.recipientName,
+            recipientPhone = shipping.recipientPhone,
+            addressLine1 = shipping.addressLine1,
+            addressLine2 = shipping.addressLine2,
+            city = shipping.city,
+            state = shipping.state,
+            postalCode = shipping.postalCode,
+            country = shipping.country,
+            shippingMethod = shipping.shippingMethod,
+        )
+    }
 }
 
 data class CancelOrderTriggerRequest(

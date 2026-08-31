@@ -13,10 +13,10 @@ interface OrderAdjustments {
   apply(
     @path order_uid: uuid,
     @body body: OrderAdjustmentCreateRequest,
-  ): CreatedResponse | NotFoundError;
+  ): CreatedResponse | BadRequestError | NotFoundError;
 
   @doc("Remove adjustment from an order")
   @route("{uid}")
   @delete
-  remove(@path order_uid: uuid, @path uid: uuid): NoContentResponse | NotFoundError;
+  remove(@path order_uid: uuid, @path uid: uuid): NoContentResponse | BadRequestError | NotFoundError;
 }

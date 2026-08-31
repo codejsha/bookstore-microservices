@@ -5,13 +5,10 @@ package com.codejsha.bookstore.generated.application.port.openapi.model
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotNull
 
-data class BadRequestError(
+data class ForbiddenError(
 
     @field:JsonProperty("detail")
     val detail: String? = null,
-
-    @field:JsonProperty("errors")
-    val errors: List<String>? = null,
 
     @field:NotNull
     @field:JsonProperty("status")

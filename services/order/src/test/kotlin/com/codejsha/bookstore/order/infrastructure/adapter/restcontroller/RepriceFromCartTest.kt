@@ -44,7 +44,7 @@ class RepriceFromCartTest {
     )
 
     @Test
-    fun `overrides client prices and currency with the cart's authoritative values`() {
+    fun `repriceFromCart_whenClientPricesDiffer_overridesThemWithTheCartValues`() {
         val cart = listOf(cartItem(productId = 10L, price = "10.00"), cartItem(productId = 11L, price = "5.50"))
         val req = request(
             listOf(
@@ -64,7 +64,7 @@ class RepriceFromCartTest {
     }
 
     @Test
-    fun `rejects an item whose product is not in the cart`() {
+    fun `repriceFromCart_whenItemNotInCart_throws`() {
         val cart = listOf(cartItem(productId = 10L, price = "10.00"))
         val req = request(
             listOf(
@@ -77,7 +77,7 @@ class RepriceFromCartTest {
     }
 
     @Test
-    fun `rejects an empty item list so the saga never charges a zero total`() {
+    fun `repriceFromCart_whenItemListEmpty_throws`() {
         assertFailsWith<BadRequestException> { repriceFromCart(request(emptyList()), emptyList()) }
     }
 }

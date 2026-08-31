@@ -40,7 +40,7 @@ class OrderActivitiesImplTest {
     // ─── createOrder (idempotency) ───────────────────────────────────────────
 
     @Test
-    fun `createOrder returns the existing order and skips inserts when the idempotency key is already present`() {
+    fun `createOrder_whenIdempotencyKeyAlreadyPresent_returnsExistingOrderWithoutInserting`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val shipRepo = mock(OrderShippingRepo::class.java)
@@ -59,7 +59,7 @@ class OrderActivitiesImplTest {
     }
 
     @Test
-    fun `createOrder inserts order and items on first run when the idempotency key is unseen`() {
+    fun `createOrder_whenIdempotencyKeyUnseen_insertsOrderAndItems`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val shipRepo = mock(OrderShippingRepo::class.java)
@@ -76,6 +76,42 @@ class OrderActivitiesImplTest {
         assertEquals(OrderTestFixtures.ORDER_UID.toString(), result.orderUid)
         verify(orderRepo).create(expectedOrderCommand("place-key-2"), userContext)
         verify(itemRepo).create(OrderTestFixtures.ORDER_UID, expectedItemCommand(), userContext)
+    }
+
+    @Test
+    fun `createOrder_whenUserUidMalformed_throwsNonRetryableApplicationFailure`() {
+        val orderRepo = mock(OrderRepo::class.java)
+        val itemRepo = mock(OrderItemRepo::class.java)
+        val shipRepo = mock(OrderShippingRepo::class.java)
+        val activities = newActivities(orderRepo, itemRepo, shipRepo)
+
+        given(orderRepo.findByIdempotencyKey("place-key-3", userContext)).willReturn(null)
+
+        val failure = assertFailsWith<ApplicationFailure> {
+            activities.createOrder(createRequest(idempotencyKey = "place-key-3").copy(userUid = "not-a-uuid"))
+        }
+
+        assertTrue(failure.isNonRetryable)
+        assertEquals("InvalidCommand", failure.type)
+        verifyNoInteractions(itemRepo, shipRepo)
+    }
+
+    @Test
+    fun `createOrder_whenCommandViolatesDomainConstraint_throwsNonRetryableApplicationFailure`() {
+        val orderRepo = mock(OrderRepo::class.java)
+        val itemRepo = mock(OrderItemRepo::class.java)
+        val shipRepo = mock(OrderShippingRepo::class.java)
+        val activities = newActivities(orderRepo, itemRepo, shipRepo)
+
+        given(orderRepo.findByIdempotencyKey("place-key-4", userContext)).willReturn(null)
+
+        val failure = assertFailsWith<ApplicationFailure> {
+            activities.createOrder(createRequest(idempotencyKey = "place-key-4").copy(currency = "usd"))
+        }
+
+        assertTrue(failure.isNonRetryable)
+        assertEquals("InvalidCommand", failure.type)
+        verifyNoInteractions(itemRepo, shipRepo)
     }
 
     private fun createRequest(idempotencyKey: String) = CreateOrderRequest(
@@ -121,7 +157,7 @@ class OrderActivitiesImplTest {
     // ─── loadOrderItems ──────────────────────────────────────────────────────
 
     @Test
-    fun `loadOrderItems maps each order item to a StockReservationItem`() {
+    fun `loadOrderItems_whenOrderHasItems_mapsEachItemToStockReservationItem`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val shipRepo = mock(OrderShippingRepo::class.java)
@@ -143,7 +179,7 @@ class OrderActivitiesImplTest {
     }
 
     @Test
-    fun `loadOrderItems returns empty list when the order has no items`() {
+    fun `loadOrderItems_whenOrderHasNoItems_returnsEmptyList`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val shipRepo = mock(OrderShippingRepo::class.java)
@@ -161,7 +197,7 @@ class OrderActivitiesImplTest {
     // ─── markOrderRefunded ───────────────────────────────────────────────────
 
     @Test
-    fun `markOrderRefunded transitions the order status to REFUNDED`() {
+    fun `markOrderRefunded_whenOrderPaid_transitionsStatusToRefunded`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val shipRepo = mock(OrderShippingRepo::class.java)
@@ -184,7 +220,7 @@ class OrderActivitiesImplTest {
     // ─── markOrderShipped ────────────────────────────────────────────────────
 
     @Test
-    fun `markOrderShipped transitions the order status from PAID to SHIPPED`() {
+    fun `markOrderShipped_whenOrderPaid_transitionsStatusToShipped`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val shipRepo = mock(OrderShippingRepo::class.java)
@@ -212,7 +248,7 @@ class OrderActivitiesImplTest {
     // ─── status transition conflicts ─────────────────────────────────────────
 
     @Test
-    fun `confirmOrder fails non-retryably when the order is no longer PENDING`() {
+    fun `confirmOrder_whenOrderNoLongerPending_throwsNonRetryableApplicationFailure`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val shipRepo = mock(OrderShippingRepo::class.java)
@@ -238,7 +274,7 @@ class OrderActivitiesImplTest {
     }
 
     @Test
-    fun `confirmOrder is a no-op when the order already reached the target status`() {
+    fun `confirmOrder_whenOrderAlreadyAtTargetStatus_writesNothing`() {
         val orderRepo = mock(OrderRepo::class.java)
         val activities = newActivities(orderRepo, mock(OrderItemRepo::class.java), mock(OrderShippingRepo::class.java))
 
@@ -257,7 +293,7 @@ class OrderActivitiesImplTest {
     }
 
     @Test
-    fun `restoreOrderPaid transitions a claimed SHIPPED or REFUNDED order back to PAID`() {
+    fun `restoreOrderPaid_whenOrderShippedOrRefunded_transitionsStatusBackToPaid`() {
         val orderRepo = mock(OrderRepo::class.java)
         val activities = newActivities(orderRepo, mock(OrderItemRepo::class.java), mock(OrderShippingRepo::class.java))
         val from = setOf(OrderStatus.SHIPPED.value, OrderStatus.REFUNDED.value)

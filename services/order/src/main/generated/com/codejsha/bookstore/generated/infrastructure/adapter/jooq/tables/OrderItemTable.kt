@@ -7,10 +7,8 @@ package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.OrderDb
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.ORDER_ITEM_IDX_ORDER_ITEM_ORDER_ID
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.ORDER_ITEM_IDX_ORDER_ITEM_PRODUCT_ID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_ORDER_ITEM__ORDER
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDER_ITEM_PRIMARY
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDER_ITEM_UK_ORDER_ITEM_UID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.OrdersTable.OrdersPath
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.OrderItemRecord
 
 import java.math.BigDecimal
@@ -19,7 +17,6 @@ import java.time.LocalDateTime
 import kotlin.collections.Collection
 import kotlin.collections.List
 
-import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -27,7 +24,6 @@ import org.jooq.Identity
 import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
-import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -40,7 +36,6 @@ import org.jooq.TableField
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
-import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 
@@ -185,45 +180,11 @@ open class OrderItemTable(
      * Create a <code>order_db.order_item</code> table reference
      */
     constructor(): this(DSL.name("order_item"), null)
-
-    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, OrderItemRecord>?, parentPath: InverseForeignKey<out Record, OrderItemRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, ORDER_ITEM, null, null)
-
-    /**
-     * A subtype implementing {@link Path} for simplified path-based joins.
-     */
-    open class OrderItemPath : OrderItemTable, Path<OrderItemRecord> {
-        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, OrderItemRecord>?, parentPath: InverseForeignKey<out Record, OrderItemRecord>?): super(path, childPath, parentPath)
-        private constructor(alias: Name, aliased: Table<OrderItemRecord>): super(alias, aliased)
-        override fun `as`(alias: String): OrderItemPath = OrderItemPath(DSL.name(alias), this)
-        override fun `as`(alias: Name): OrderItemPath = OrderItemPath(alias, this)
-        override fun `as`(alias: Table<*>): OrderItemPath = OrderItemPath(alias.qualifiedName, this)
-    }
     override fun getSchema(): Schema? = if (aliased()) null else OrderDb.ORDER_DB
     override fun getIndexes(): List<Index> = listOf(ORDER_ITEM_IDX_ORDER_ITEM_ORDER_ID, ORDER_ITEM_IDX_ORDER_ITEM_PRODUCT_ID)
     override fun getIdentity(): Identity<OrderItemRecord, Long?> = super.getIdentity() as Identity<OrderItemRecord, Long?>
     override fun getPrimaryKey(): UniqueKey<OrderItemRecord> = KEY_ORDER_ITEM_PRIMARY
     override fun getUniqueKeys(): List<UniqueKey<OrderItemRecord>> = listOf(KEY_ORDER_ITEM_UK_ORDER_ITEM_UID)
-    override fun getReferences(): List<ForeignKey<OrderItemRecord, *>> = listOf(FK_ORDER_ITEM__ORDER)
-
-    private lateinit var _orders: OrdersPath
-
-    /**
-     * Get the implicit join path to the <code>order_db.orders</code> table.
-     */
-    fun orders(): OrdersPath {
-        if (!this::_orders.isInitialized)
-            _orders = OrdersPath(this, FK_ORDER_ITEM__ORDER, null)
-
-        return _orders;
-    }
-
-    val orders: OrdersPath
-        get(): OrdersPath = orders()
-    override fun getChecks(): List<Check<OrderItemRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("chk_order_item_currency"), "(`currency` = upper(`currency`))", true),
-        Internal.createCheck(this, DSL.name("chk_order_item_price"), "(`price` >= 0)", true),
-        Internal.createCheck(this, DSL.name("chk_order_item_subtotal"), "(`subtotal` >= 0)", true)
-    )
     override fun `as`(alias: String): OrderItemTable = OrderItemTable(DSL.name(alias), this)
     override fun `as`(alias: Name): OrderItemTable = OrderItemTable(alias, this)
     override fun `as`(alias: Table<*>): OrderItemTable = OrderItemTable(alias.qualifiedName, this)

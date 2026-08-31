@@ -4,41 +4,51 @@ package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 data class OrderShippingCreateRequest(
 
     @field:NotNull
+    @field:Size(max = 255)
     @field:JsonProperty("address_line1")
     val addressLine1: String,
 
+    @field:Size(max = 255)
     @field:JsonProperty("address_line2")
     val addressLine2: String? = null,
 
     @field:NotNull
+    @field:Size(max = 100)
     @field:JsonProperty("city")
     val city: String,
 
     @field:NotNull
+    @field:Size(max = 2)
     @field:JsonProperty("country")
     val country: String,
 
     @field:NotNull
+    @field:Size(max = 20)
     @field:JsonProperty("postal_code")
     val postalCode: String,
 
     @field:NotNull
+    @field:Size(max = 255)
     @field:JsonProperty("recipient_name")
     val recipientName: String,
 
     @field:NotNull
+    @field:Size(max = 20)
     @field:JsonProperty("recipient_phone")
     val recipientPhone: String,
 
     @field:NotNull
+    @field:Size(max = 100)
     @field:JsonProperty("shipping_method")
     val shippingMethod: String,
 
     @field:NotNull
+    @field:Size(max = 100)
     @field:JsonProperty("state")
     val state: String,
 )

@@ -5,6 +5,7 @@ import com.codejsha.bookstore.order.application.port.repo.CartRepo
 import com.codejsha.bookstore.order.application.port.repo.OrderItemRepo
 import com.codejsha.bookstore.order.application.port.repo.OrderRepo
 import com.codejsha.bookstore.order.application.port.repo.OrderShippingRepo
+import com.codejsha.bookstore.order.domain.model.CartStateConflictException
 import com.codejsha.bookstore.order.domain.model.command.CartAddItemCommand
 import com.codejsha.bookstore.order.domain.model.command.CartCheckoutCommand
 import com.codejsha.bookstore.order.domain.model.command.OrderCreateCommand
@@ -16,6 +17,7 @@ import com.codejsha.bookstore.order.support.OrderTestFixtures
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
+import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -32,7 +34,7 @@ class CartServiceTest {
     private val userUid = OrderTestFixtures.USER_UID
 
     @Test
-    fun `getCart auto-creates cart when none exists for the user`() {
+    fun `getCart_whenCartMissing_createsCart`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val service = newService(cartRepo, cartItemRepo)
@@ -50,7 +52,7 @@ class CartServiceTest {
     }
 
     @Test
-    fun `getCart returns existing cart with items`() {
+    fun `getCart_whenCartExists_returnsCartWithItems`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val service = newService(cartRepo, cartItemRepo)
@@ -67,7 +69,7 @@ class CartServiceTest {
     }
 
     @Test
-    fun `addItem merges quantity when product already in cart`() {
+    fun `addItem_whenProductAlreadyInCart_mergesQuantity`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val service = newService(cartRepo, cartItemRepo)
@@ -91,7 +93,7 @@ class CartServiceTest {
     }
 
     @Test
-    fun `addItem creates new item when product not in cart`() {
+    fun `addItem_whenProductNotInCart_createsItem`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val service = newService(cartRepo, cartItemRepo)
@@ -114,7 +116,7 @@ class CartServiceTest {
     }
 
     @Test
-    fun `updateItemQuantity removes item when new quantity is zero`() {
+    fun `updateItemQuantity_whenQuantityZero_removesItem`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val service = newService(cartRepo, cartItemRepo)
@@ -132,7 +134,7 @@ class CartServiceTest {
     }
 
     @Test
-    fun `updateItemQuantity updates when new quantity is positive`() {
+    fun `updateItemQuantity_whenQuantityPositive_updatesItem`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val service = newService(cartRepo, cartItemRepo)
@@ -149,7 +151,7 @@ class CartServiceTest {
     }
 
     @Test
-    fun `clearCart no-ops when no cart exists`() {
+    fun `clearCart_whenCartMissing_writesNothing`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val service = newService(cartRepo, cartItemRepo)
@@ -162,7 +164,7 @@ class CartServiceTest {
     }
 
     @Test
-    fun `clearCart deletes all items when cart exists`() {
+    fun `clearCart_whenCartExists_deletesEveryItem`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val service = newService(cartRepo, cartItemRepo)
@@ -176,7 +178,7 @@ class CartServiceTest {
     }
 
     @Test
-    fun `checkout returns existing order when idempotency key has been processed`() {
+    fun `checkout_whenIdempotencyKeyAlreadyProcessed_returnsExistingOrder`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val orderRepo = mock(OrderRepo::class.java)
@@ -199,7 +201,7 @@ class CartServiceTest {
     }
 
     @Test
-    fun `checkout under lock builds order from cart items, deletes cart, and marks idempotency`() {
+    fun `checkout_whenCartHasItems_buildsOrderDeletesCartAndMarksIdempotency`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val orderRepo = mock(OrderRepo::class.java)
@@ -254,12 +256,14 @@ class CartServiceTest {
         assertEquals("checkout:$userUid:idem_001", lock.lastKey)
         assertNull(lock.lastTtl, "checkout relies on watchdog auto-renewal, not a fixed lease")
         assertEquals(FakeDistributedLock.TEST_TOKEN, lock.lastUnlockedToken)
-        verify(cartRepo).delete(userUid, ctx)
+        val cascade = inOrder(cartItemRepo, cartRepo)
+        cascade.verify(cartItemRepo).deleteAllByCart(1L, ctx)
+        cascade.verify(cartRepo).delete(userUid, ctx)
         assertEquals(OrderTestFixtures.ORDER_UID.toString(), idempotency.getResult("$userUid:idem_001"))
     }
 
     @Test
-    fun `checkout fails when cart not found`() {
+    fun `checkout_whenCartMissing_throws`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val orderRepo = mock(OrderRepo::class.java)
@@ -272,14 +276,14 @@ class CartServiceTest {
 
         given(cartRepo.findByUser(userUid, ctx)).willReturn(null)
 
-        val ex = assertFailsWith<IllegalStateException> {
+        val ex = assertFailsWith<CartStateConflictException> {
             runBlocking { service.checkout(userUid, CartCheckoutCommand("KRW", "idem", null), ctx) }
         }
         assertNotNull(ex.message)
     }
 
     @Test
-    fun `checkout fails when cart is empty`() {
+    fun `checkout_whenCartEmpty_throws`() {
         val cartRepo = mock(CartRepo::class.java)
         val cartItemRepo = mock(CartItemRepo::class.java)
         val orderRepo = mock(OrderRepo::class.java)
@@ -294,7 +298,7 @@ class CartServiceTest {
             .willReturn(OrderTestFixtures.cartResult(id = 1L))
         given(cartItemRepo.findAllByCart(1L, ctx)).willReturn(emptyList())
 
-        val ex = assertFailsWith<IllegalStateException> {
+        val ex = assertFailsWith<CartStateConflictException> {
             runBlocking { service.checkout(userUid, CartCheckoutCommand("KRW", "idem", null), ctx) }
         }
         assertEquals(true, ex.message?.contains("empty"))

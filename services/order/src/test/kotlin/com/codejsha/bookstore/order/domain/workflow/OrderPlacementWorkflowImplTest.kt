@@ -89,7 +89,7 @@ class OrderPlacementWorkflowImplTest {
     }
 
     @Test
-    fun `happy path reserves stock, charges the server-side total, records payment and confirms`() {
+    fun `placeOrder_whenStockAndPaymentSucceed_recordsPaymentAndConfirmsOrder`() {
         paymentActivities.processPaymentReturn = ProcessPaymentResult(paymentUid = paymentUid, status = "succeeded")
 
         val result = workflow.placeOrder(request)
@@ -127,7 +127,7 @@ class OrderPlacementWorkflowImplTest {
     }
 
     @Test
-    fun `unsuccessful payment status compensates — releases stock, refunds, cancels order`() {
+    fun `placeOrder_whenPaymentUnsuccessful_releasesStockRefundsAndCancelsOrder`() {
         paymentActivities.processPaymentReturn = ProcessPaymentResult(paymentUid = paymentUid, status = "failed")
 
         assertFailsWith<WorkflowFailedException> { workflow.placeOrder(request) }
@@ -141,7 +141,7 @@ class OrderPlacementWorkflowImplTest {
     }
 
     @Test
-    fun `stock reservation failure compensates without charging payment`() {
+    fun `placeOrder_whenStockReservationFails_compensatesWithoutChargingPayment`() {
         inventoryActivities.reserveStockFailure = IllegalStateException("out of stock")
 
         assertFailsWith<WorkflowFailedException> { workflow.placeOrder(request) }
@@ -155,7 +155,7 @@ class OrderPlacementWorkflowImplTest {
     }
 
     @Test
-    fun `re-run for an already paid order returns idempotently without touching stock or payment`() {
+    fun `placeOrder_whenOrderAlreadyPaid_returnsIdempotentlyWithoutTouchingStockOrPayment`() {
         orderActivities.createOrderReturn =
             CreateOrderResult(orderUid = orderUid, status = "PAID", paymentUid = paymentUid)
 
@@ -170,7 +170,7 @@ class OrderPlacementWorkflowImplTest {
     }
 
     @Test
-    fun `re-run for a finalized order fails without compensating`() {
+    fun `placeOrder_whenOrderFinalized_failsWithoutCompensating`() {
         orderActivities.createOrderReturn =
             CreateOrderResult(orderUid = orderUid, status = "CANCELLED", paymentUid = null)
 

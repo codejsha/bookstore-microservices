@@ -3,18 +3,26 @@
 package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 data class CartCheckoutRequest(
 
     @field:NotNull
+    @field:Size(max = 3)
     @field:JsonProperty("currency")
     val currency: String,
 
+    /**
+     * Client key; the server stores it prefixed with the user uid, so the stored key stays within 100 characters
+     */
     @field:NotNull
+    @field:Size(max = 63)
     @field:JsonProperty("idempotency_key")
     val idempotencyKey: String,
 
+    @field:Valid
     @field:JsonProperty("shipping")
     val shipping: OrderShippingCreateRequest? = null,
 )

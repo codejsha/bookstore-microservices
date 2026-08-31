@@ -14,7 +14,10 @@ enum OrderAdjustmentType {
 
 model OrderAdjustmentCreateRequest {
   type: OrderAdjustmentType;
+
+  @maxLength(100)
   label?: string;
+
   amount: decimal;
   meta?: Record<unknown>;
 }

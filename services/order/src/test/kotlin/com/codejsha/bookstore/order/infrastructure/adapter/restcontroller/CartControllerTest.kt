@@ -76,7 +76,7 @@ class CartControllerTest {
     )
 
     @Test
-    fun `cartGet returns the caller's own cart with derived totals`(): Unit = runBlocking {
+    fun `cartGet_whenCallerHasCart_returnsCartWithDerivedTotals`(): Unit = runBlocking {
         val useCase = mock(CartUseCase::class.java)
         val controller = CartController(useCase, resolver)
         given(useCase.getCart(userUid, controllerContext))
@@ -93,7 +93,7 @@ class CartControllerTest {
     }
 
     @Test
-    fun `cartAddItem forwards the item to the caller's cart`(): Unit = runBlocking {
+    fun `cartAddItem_whenRequestValid_forwardsItemToCallersCart`(): Unit = runBlocking {
         val useCase = mock(CartUseCase::class.java)
         val controller = CartController(useCase, resolver)
         val expected = CartAddItemCommand(
@@ -114,7 +114,7 @@ class CartControllerTest {
     }
 
     @Test
-    fun `cartUpdateItem scopes the item to the caller`(): Unit = runBlocking {
+    fun `cartUpdateItem_whenRequestValid_scopesItemToCaller`(): Unit = runBlocking {
         val useCase = mock(CartUseCase::class.java)
         val controller = CartController(useCase, resolver)
         given(useCase.updateItemQuantity(userUid, itemUid, 5, controllerContext))
@@ -128,7 +128,7 @@ class CartControllerTest {
     }
 
     @Test
-    fun `cartRemoveItem scopes the item to the caller`(): Unit = runBlocking {
+    fun `cartRemoveItem_whenRequestValid_scopesItemToCaller`(): Unit = runBlocking {
         val useCase = mock(CartUseCase::class.java)
         val controller = CartController(useCase, resolver)
 
@@ -139,7 +139,7 @@ class CartControllerTest {
     }
 
     @Test
-    fun `cartClear clears the caller's cart`(): Unit = runBlocking {
+    fun `cartClear_whenCalled_clearsCallersCart`(): Unit = runBlocking {
         val useCase = mock(CartUseCase::class.java)
         val controller = CartController(useCase, resolver)
 
@@ -171,7 +171,7 @@ class CartControllerTest {
     )
 
     @Test
-    fun `cartCheckout returns the placed order`(): Unit = runBlocking {
+    fun `cartCheckout_whenRequestValid_returnsPlacedOrder`(): Unit = runBlocking {
         val useCase = mock(CartUseCase::class.java)
         val controller = CartController(useCase, resolver)
         val expected = CartCheckoutCommand(currency = "USD", idempotencyKey = "key-1", shipping = null)
@@ -188,7 +188,7 @@ class CartControllerTest {
     }
 
     @Test
-    fun `a non-uuid subject owns no cart`(): Unit = runBlocking {
+    fun `cartGet_whenSubjectNotUuid_ownsNoCart`(): Unit = runBlocking {
         val useCase = mock(CartUseCase::class.java)
         val controller = CartController(useCase, resolver)
         bindSubject("service-account-batch")

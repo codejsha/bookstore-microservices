@@ -56,7 +56,7 @@ class OrderCancellationWorkflowImplTest {
     }
 
     @Test
-    fun `PAID order releases stock, refunds server-resolved payment, marks refunded and returns REFUNDED`() {
+    fun `cancelOrder_whenOrderPaid_releasesStockRefundsPaymentAndReturnsRefunded`() {
         val items = listOf(
             StockReservationItem(productId = 200L, quantity = 2),
             StockReservationItem(productId = 201L, quantity = 1),
@@ -81,7 +81,7 @@ class OrderCancellationWorkflowImplTest {
     }
 
     @Test
-    fun `PENDING order releases stock, cancels order without refund and returns CANCELLED`() {
+    fun `cancelOrder_whenOrderPending_releasesStockAndReturnsCancelledWithoutRefund`() {
         val items = listOf(StockReservationItem(productId = 200L, quantity = 2))
         orderActivities.cancellationState = OrderCancellationState(status = "PENDING", paymentUid = null)
         orderActivities.orderItems = items
@@ -103,7 +103,7 @@ class OrderCancellationWorkflowImplTest {
     }
 
     @Test
-    fun `PAID order with no items skips the stock release step`() {
+    fun `cancelOrder_whenOrderHasNoItems_skipsStockRelease`() {
         orderActivities.cancellationState = OrderCancellationState(status = "PAID", paymentUid = paymentUid)
         orderActivities.orderItems = emptyList()
 
@@ -118,7 +118,7 @@ class OrderCancellationWorkflowImplTest {
     }
 
     @Test
-    fun `PAID order with a non-refundable payment restores PAID and fails without releasing stock`() {
+    fun `cancelOrder_whenPaymentNotRefundable_restoresPaidAndFailsWithoutReleasingStock`() {
         orderActivities.cancellationState = OrderCancellationState(status = "PAID", paymentUid = paymentUid)
         orderActivities.orderItems = listOf(StockReservationItem(productId = 200L, quantity = 2))
         paymentActivities.refundPaymentReturn = false
@@ -135,7 +135,7 @@ class OrderCancellationWorkflowImplTest {
     }
 
     @Test
-    fun `SHIPPED order is rejected — no stock release, refund, or status change`() {
+    fun `cancelOrder_whenOrderShipped_writesNothing`() {
         orderActivities.cancellationState = OrderCancellationState(status = "SHIPPED", paymentUid = paymentUid)
 
         assertFailsWith<WorkflowFailedException> {

@@ -6,11 +6,9 @@ package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables
 
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.OrderDb
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.CART_ITEM_IDX_CART_ITEM_CART_ID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_CART_ITEM__CART
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CART_ITEM_PRIMARY
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CART_ITEM_UK_CART_ITEM_UID
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CART_ITEM_UQ_CART_ITEM_PRODUCT
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.CartTable.CartPath
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.CartItemRecord
 
 import java.math.BigDecimal
@@ -19,7 +17,6 @@ import java.time.LocalDateTime
 import kotlin.collections.Collection
 import kotlin.collections.List
 
-import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -27,7 +24,6 @@ import org.jooq.Identity
 import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
-import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -40,7 +36,6 @@ import org.jooq.TableField
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
-import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 
@@ -150,44 +145,11 @@ open class CartItemTable(
      * Create a <code>order_db.cart_item</code> table reference
      */
     constructor(): this(DSL.name("cart_item"), null)
-
-    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, CartItemRecord>?, parentPath: InverseForeignKey<out Record, CartItemRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, CART_ITEM, null, null)
-
-    /**
-     * A subtype implementing {@link Path} for simplified path-based joins.
-     */
-    open class CartItemPath : CartItemTable, Path<CartItemRecord> {
-        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, CartItemRecord>?, parentPath: InverseForeignKey<out Record, CartItemRecord>?): super(path, childPath, parentPath)
-        private constructor(alias: Name, aliased: Table<CartItemRecord>): super(alias, aliased)
-        override fun `as`(alias: String): CartItemPath = CartItemPath(DSL.name(alias), this)
-        override fun `as`(alias: Name): CartItemPath = CartItemPath(alias, this)
-        override fun `as`(alias: Table<*>): CartItemPath = CartItemPath(alias.qualifiedName, this)
-    }
     override fun getSchema(): Schema? = if (aliased()) null else OrderDb.ORDER_DB
     override fun getIndexes(): List<Index> = listOf(CART_ITEM_IDX_CART_ITEM_CART_ID)
     override fun getIdentity(): Identity<CartItemRecord, Long?> = super.getIdentity() as Identity<CartItemRecord, Long?>
     override fun getPrimaryKey(): UniqueKey<CartItemRecord> = KEY_CART_ITEM_PRIMARY
     override fun getUniqueKeys(): List<UniqueKey<CartItemRecord>> = listOf(KEY_CART_ITEM_UK_CART_ITEM_UID, KEY_CART_ITEM_UQ_CART_ITEM_PRODUCT)
-    override fun getReferences(): List<ForeignKey<CartItemRecord, *>> = listOf(FK_CART_ITEM__CART)
-
-    private lateinit var _cart: CartPath
-
-    /**
-     * Get the implicit join path to the <code>order_db.cart</code> table.
-     */
-    fun cart(): CartPath {
-        if (!this::_cart.isInitialized)
-            _cart = CartPath(this, FK_CART_ITEM__CART, null)
-
-        return _cart;
-    }
-
-    val cart: CartPath
-        get(): CartPath = cart()
-    override fun getChecks(): List<Check<CartItemRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("chk_cart_item_price"), "(`price` >= 0)", true),
-        Internal.createCheck(this, DSL.name("chk_cart_item_quantity"), "(`quantity` > 0)", true)
-    )
     override fun `as`(alias: String): CartItemTable = CartItemTable(DSL.name(alias), this)
     override fun `as`(alias: Name): CartItemTable = CartItemTable(alias, this)
     override fun `as`(alias: Table<*>): CartItemTable = CartItemTable(alias.qualifiedName, this)

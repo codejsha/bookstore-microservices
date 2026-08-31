@@ -14,7 +14,7 @@ class PaymentWorkflowContractTest {
     private val mapper = ObjectMapper()
 
     @Test
-    fun `ProcessPaymentRequest serializes with the wire field names the payment worker expects`() {
+    fun `processPaymentRequest_whenSerialized_usesTheWireFieldNamesThePaymentWorkerExpects`() {
         val payload = converter.toPayload(
             ProcessPaymentRequest(
                 orderUid = "44444444-4444-4444-4444-444444444444",
@@ -32,7 +32,7 @@ class PaymentWorkflowContractTest {
     }
 
     @Test
-    fun `ProcessPaymentResult deserializes the payment worker's canonical response, tolerating unknown fields`() {
+    fun `processPaymentResult_whenResponseCarriesUnknownFields_deserializesTolerantly`() {
         val json = """
             {
               "paymentUid": "99999999-9999-9999-9999-999999999999",
@@ -54,7 +54,7 @@ class PaymentWorkflowContractTest {
     }
 
     @Test
-    fun `refund activity results deserialize as booleans`() {
+    fun `refundActivityResult_whenDeserialized_returnsBoolean`() {
         val payload = Payload.newBuilder()
             .putMetadata("encoding", ByteString.copyFromUtf8("json/plain"))
             .setData(ByteString.copyFromUtf8("true"))

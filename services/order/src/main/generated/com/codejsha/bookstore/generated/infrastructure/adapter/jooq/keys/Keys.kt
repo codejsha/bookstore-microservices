@@ -17,7 +17,6 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.recor
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.OrderShippingRecord
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.OrdersRecord
 
-import org.jooq.ForeignKey
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
 import org.jooq.impl.Internal
@@ -44,12 +43,3 @@ val KEY_ORDERS_PRIMARY: UniqueKey<OrdersRecord> = Internal.createUniqueKey(Order
 val KEY_ORDERS_UK_UID: UniqueKey<OrdersRecord> = Internal.createUniqueKey(OrdersTable.ORDERS, DSL.name("KEY_orders_uk_uid"), arrayOf(OrdersTable.ORDERS.UID), true)
 val KEY_ORDERS_UQ_ORDERS_IDEMPOTENCY_KEY: UniqueKey<OrdersRecord> = Internal.createUniqueKey(OrdersTable.ORDERS, DSL.name("KEY_orders_uq_orders_idempotency_key"), arrayOf(OrdersTable.ORDERS.IDEMPOTENCY_KEY), true)
 val KEY_ORDERS_UQ_ORDERS_ORDER_NUMBER: UniqueKey<OrdersRecord> = Internal.createUniqueKey(OrdersTable.ORDERS, DSL.name("KEY_orders_uq_orders_order_number"), arrayOf(OrdersTable.ORDERS.ORDER_NUMBER), true)
-
-// -------------------------------------------------------------------------
-// FOREIGN KEY definitions
-// -------------------------------------------------------------------------
-
-val FK_CART_ITEM__CART: ForeignKey<CartItemRecord, CartRecord> = Internal.createForeignKey(CartItemTable.CART_ITEM, DSL.name("fk_cart_item__cart"), arrayOf(CartItemTable.CART_ITEM.CART_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CART_PRIMARY, arrayOf(CartTable.CART.ID), true)
-val FK_ORDER_ADJUSTMENT__ORDER: ForeignKey<OrderAdjustmentRecord, OrdersRecord> = Internal.createForeignKey(OrderAdjustmentTable.ORDER_ADJUSTMENT, DSL.name("fk_order_adjustment__order"), arrayOf(OrderAdjustmentTable.ORDER_ADJUSTMENT.ORDER_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDERS_PRIMARY, arrayOf(OrdersTable.ORDERS.ID), true)
-val FK_ORDER_ITEM__ORDER: ForeignKey<OrderItemRecord, OrdersRecord> = Internal.createForeignKey(OrderItemTable.ORDER_ITEM, DSL.name("fk_order_item__order"), arrayOf(OrderItemTable.ORDER_ITEM.ORDER_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDERS_PRIMARY, arrayOf(OrdersTable.ORDERS.ID), true)
-val FK_ORDER_SHIPPING__ORDER: ForeignKey<OrderShippingRecord, OrdersRecord> = Internal.createForeignKey(OrderShippingTable.ORDER_SHIPPING, DSL.name("fk_order_shipping__order"), arrayOf(OrderShippingTable.ORDER_SHIPPING.ORDER_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDERS_PRIMARY, arrayOf(OrdersTable.ORDERS.ID), true)

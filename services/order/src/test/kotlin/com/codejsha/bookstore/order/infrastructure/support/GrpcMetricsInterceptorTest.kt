@@ -74,7 +74,7 @@ class GrpcMetricsInterceptorTest {
         FindOrderRequest.newBuilder().setUid(OrderTestFixtures.ORDER_UID.toString()).build()
 
     @Test
-    fun `records rpc server duration tagged with service, method and status`(): Unit = runBlocking {
+    fun `intercept_whenCallCompletes_recordsDurationTaggedWithServiceMethodAndStatus`(): Unit = runBlocking {
         val ownerUid = OrderTestFixtures.USER_UID
         given(useCase.findOrder(OrderTestFixtures.ORDER_UID, ActorContext(actorId = 0L, actorType = ActorType.USER)))
             .willReturn(orderAggregate(ownerUid))
@@ -111,7 +111,7 @@ class GrpcMetricsInterceptorTest {
     )
 
     @Test
-    fun `records an UNAUTHENTICATED call rejected before the service is reached`() {
+    fun `intercept_whenCallRejectedBeforeTheService_recordsUnauthenticatedStatus`() {
         assertFailsWith<StatusRuntimeException> { stub(null).findOrder(findRequest()) }
 
         val timer = registry.find("rpc.server.duration").timers().single()

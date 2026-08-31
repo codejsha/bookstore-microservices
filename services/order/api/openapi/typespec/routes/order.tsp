@@ -16,19 +16,19 @@ interface Orders {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): OrderFindAllResponse;
+  ): OrderFindAllResponse | BadRequestError;
 
   @doc("Place a new order with items and optional shipping")
   @post
-  place(@body body: PlaceOrderRequest): CreatedResponse;
+  place(@body body: PlaceOrderRequest): CreatedResponse | BadRequestError | ConflictError;
 
   @doc("Find order with full details")
   @route("{uid}")
   @get
-  read(@path uid: uuid): OrderFindResponse | NotFoundError;
+  read(@path uid: uuid): OrderFindResponse | BadRequestError | ForbiddenError | NotFoundError;
 
   @doc("Cancel a pending order")
   @route("{uid}/cancel")
   @post
-  cancel(@path uid: uuid): OrderFindResponse | BadRequestError | NotFoundError;
+  cancel(@path uid: uuid): OrderFindResponse | BadRequestError | ForbiddenError | NotFoundError | ConflictError;
 }

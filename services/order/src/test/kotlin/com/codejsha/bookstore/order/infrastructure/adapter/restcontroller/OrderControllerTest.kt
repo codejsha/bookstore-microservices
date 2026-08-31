@@ -70,7 +70,7 @@ class OrderControllerTest {
     }
 
     @Test
-    fun `ordersGetAll forwards filters and maps page`(): Unit = runBlocking {
+    fun `ordersGetAll_whenFiltersGiven_forwardsThemAndMapsPage`(): Unit = runBlocking {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
@@ -92,7 +92,7 @@ class OrderControllerTest {
     }
 
     @Test
-    fun `ordersPlace builds OrderCreateCommand and item commands from request`(): Unit = runBlocking {
+    fun `ordersPlace_whenRequestValid_buildsOrderAndItemCommands`(): Unit = runBlocking {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
@@ -178,7 +178,7 @@ class OrderControllerTest {
     }
 
     @Test
-    fun `ordersRead maps aggregate including items, shipping, and adjustments`(): Unit = runBlocking {
+    fun `ordersRead_whenOrderExists_mapsItemsShippingAndAdjustments`(): Unit = runBlocking {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
@@ -195,7 +195,7 @@ class OrderControllerTest {
     }
 
     @Test
-    fun `ordersCancel returns mapped aggregate after cancel`(): Unit = runBlocking {
+    fun `ordersCancel_whenOrderCancellable_returnsMappedAggregate`(): Unit = runBlocking {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
@@ -214,7 +214,7 @@ class OrderControllerTest {
     }
 
     @Test
-    fun `orderItemsAdd builds item command and returns Created`(): Unit = runBlocking {
+    fun `orderItemsAdd_whenRequestValid_buildsItemCommandAndReturnsCreated`(): Unit = runBlocking {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
@@ -252,7 +252,7 @@ class OrderControllerTest {
     }
 
     @Test
-    fun `orderItemsUpdate builds update command and returns OK`(): Unit = runBlocking {
+    fun `orderItemsUpdate_whenRequestValid_buildsUpdateCommandAndReturnsOk`(): Unit = runBlocking {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
@@ -291,7 +291,7 @@ class OrderControllerTest {
     }
 
     @Test
-    fun `orderItemsRemove returns NoContent and forwards uids`(): Unit = runBlocking {
+    fun `orderItemsRemove_whenRequestValid_forwardsUidsAndReturnsNoContent`(): Unit = runBlocking {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
@@ -311,7 +311,7 @@ class OrderControllerTest {
     }
 
     @Test
-    fun `orderShippingSet builds command and returns OK`(): Unit = runBlocking {
+    fun `orderShippingSet_whenRequestValid_buildsCommandAndReturnsOk`(): Unit = runBlocking {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
@@ -347,7 +347,7 @@ class OrderControllerTest {
     }
 
     @Test
-    fun `orderShippingUpdate builds update command and returns OK`(): Unit = runBlocking {
+    fun `orderShippingUpdate_whenRequestValid_buildsUpdateCommandAndReturnsOk`(): Unit = runBlocking {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
@@ -383,7 +383,7 @@ class OrderControllerTest {
     }
 
     @Test
-    fun `orderAdjustmentsApply maps body to command and returns Created`(): Unit = runBlocking {
+    fun `orderAdjustmentsApply_whenRequestValid_mapsBodyToCommandAndReturnsCreated`(): Unit = runBlocking {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
@@ -413,7 +413,7 @@ class OrderControllerTest {
     }
 
     @Test
-    fun `orderAdjustmentsRemove returns NoContent`(): Unit = runBlocking {
+    fun `orderAdjustmentsRemove_whenRequestValid_returnsNoContent`(): Unit = runBlocking {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
