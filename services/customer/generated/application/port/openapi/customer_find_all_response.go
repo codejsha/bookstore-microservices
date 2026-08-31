@@ -3,6 +3,6 @@
 package openapi
 
 type CustomerFindAllResponse struct {
-	Items []CustomerFindResponse `json:"items" validate:"required"`
-	Total int64                  `json:"total" validate:"required"`
+	Items []CustomerFindResponse `json:"items" binding:"required,dive"`
+	Total int64                  `json:"total" binding:"gte=0"`
 }

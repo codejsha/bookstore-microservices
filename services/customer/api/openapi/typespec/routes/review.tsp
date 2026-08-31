@@ -41,7 +41,7 @@ interface CustomerReviews {
     @path uid: uuid,
     @path review_uid: uuid,
     @body body: ReviewUpdateRequest,
-  ): ReviewFindResponse | NotFoundError;
+  ): ReviewFindResponse | BadRequestError | NotFoundError;
 
   @doc("Delete a review")
   @route("{review_uid}")

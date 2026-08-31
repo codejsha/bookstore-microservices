@@ -28,7 +28,7 @@ func (h *OrderApiHandler) CustomerOrdersGetAll(c *gin.Context) {
 	if statusStr != "" {
 		v, err := ParseOrderStatus(statusStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid status"))
 			return
 		}
 		status = &v
@@ -38,7 +38,7 @@ func (h *OrderApiHandler) CustomerOrdersGetAll(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -49,7 +49,7 @@ func (h *OrderApiHandler) CustomerOrdersGetAll(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -62,7 +62,7 @@ func (h *OrderApiHandler) CustomerOrdersGetAll(c *gin.Context) {
 	}
 	result, err := h.service.CustomerOrdersGetAll(c.Request.Context(), uid, status, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -76,7 +76,7 @@ func (h *OrderApiHandler) CustomerOrdersRead(c *gin.Context) {
 	orderUid := c.Param("order_uid")
 	result, err := h.service.CustomerOrdersRead(c.Request.Context(), uid, orderUid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)

@@ -3,6 +3,6 @@
 package openapi
 
 type PointBalanceResponse struct {
-	Balance int32  `json:"balance" validate:"required"`
-	UserUid string `json:"user_uid" validate:"required"`
+	Balance int32  `json:"balance"`
+	UserUid string `json:"user_uid" binding:"required"`
 }

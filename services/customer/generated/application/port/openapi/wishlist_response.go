@@ -3,5 +3,5 @@
 package openapi
 
 type WishlistResponse struct {
-	BookUids []string `json:"book_uids" validate:"required"`
+	BookUids []string `json:"book_uids" binding:"required,dive"`
 }

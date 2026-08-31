@@ -4,6 +4,6 @@ package openapi
 
 type ReviewUpdateRequest struct {
 	Content *string `json:"content,omitempty"`
-	Rating  *int32  `json:"rating,omitempty"`
-	Title   *string `json:"title,omitempty"`
+	Rating  *int32  `json:"rating,omitempty" binding:"omitempty,gte=1,lte=5"`
+	Title   *string `json:"title,omitempty" binding:"omitempty,max=255"`
 }

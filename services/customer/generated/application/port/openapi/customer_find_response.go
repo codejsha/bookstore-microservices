@@ -8,5 +8,5 @@ type CustomerFindResponse struct {
 	LastName  *string     `json:"last_name,omitempty"`
 	Phone     *string     `json:"phone,omitempty"`
 	Roles     *[]AuthRole `json:"roles,omitempty"`
-	Uid       string      `json:"uid" validate:"required"`
+	Uid       string      `json:"uid" binding:"required"`
 }

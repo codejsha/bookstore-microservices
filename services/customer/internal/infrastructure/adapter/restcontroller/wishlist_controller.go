@@ -8,6 +8,8 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/generated/application/port/openapi"
 	"github.com/codejsha/bookstore-microservices/customer/internal/application/usecase"
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/aggregate"
+	"github.com/codejsha/bookstore-microservices/customer/internal/domain/model/command"
+	"github.com/codejsha/bookstore-microservices/customer/internal/infrastructure/httpx"
 )
 
 var _ openapi.WishlistApi = (*wishlistController)(nil)
@@ -35,9 +37,14 @@ func (c *wishlistController) WishlistsAddBooks(
 	uid string,
 	req openapi.WishlistAddRequest,
 ) (*openapi.WishlistResponse, error) {
-	wishlist, err := c.customerUseCase.AddBooksToWishlist(ctx, uid, req.BookUids)
+	cmd := command.WishlistAddCommand{
+		UserUid:  uid,
+		BookUids: req.BookUids,
+	}
+
+	wishlist, err := c.customerUseCase.AddBooksToWishlist(ctx, cmd)
 	if err != nil {
-		return nil, err
+		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "wishlist", uid, "added", logrus.Fields{"books": len(req.BookUids)})
@@ -51,9 +58,14 @@ func (c *wishlistController) WishlistsRemoveBooks(
 	uid string,
 	req openapi.WishlistRemoveRequest,
 ) (*openapi.WishlistResponse, error) {
-	wishlist, err := c.customerUseCase.RemoveBooksFromWishlist(ctx, uid, req.BookUids)
+	cmd := command.WishlistRemoveCommand{
+		UserUid:  uid,
+		BookUids: req.BookUids,
+	}
+
+	wishlist, err := c.customerUseCase.RemoveBooksFromWishlist(ctx, cmd)
 	if err != nil {
-		return nil, err
+		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "wishlist", uid, "removed", logrus.Fields{"books": len(req.BookUids)})

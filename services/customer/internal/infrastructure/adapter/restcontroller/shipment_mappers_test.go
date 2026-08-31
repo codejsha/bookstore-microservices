@@ -7,8 +7,8 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/aggregate"
 )
 
-func TestToShipmentResponse(t *testing.T) {
-	t.Run("fully populated aggregate maps every field", func(t *testing.T) {
+func TestToShipmentResponse_WhenAggregateFullyPopulated_MapsEveryField(t *testing.T) {
+	t.Run("whenAggregateFullyPopulated_mapsEveryField", func(t *testing.T) {
 		a := &aggregate.ShipmentAggregate{
 			Uid:                    "sh-1",
 			OrderUid:               "o-1",
@@ -45,7 +45,7 @@ func TestToShipmentResponse(t *testing.T) {
 		assertStrPtr(t, "UpdatedAt", got.UpdatedAt, "2026-06-29T09:00:00Z")
 	})
 
-	t.Run("empty optional strings become nil pointers", func(t *testing.T) {
+	t.Run("whenOptionalStringsEmpty_returnsNilPointers", func(t *testing.T) {
 		got := toShipmentResponse(&aggregate.ShipmentAggregate{Uid: "sh-2"})
 		if got.Uid != "sh-2" {
 			t.Errorf("Uid = %q, want sh-2", got.Uid)
@@ -74,7 +74,7 @@ func TestToShipmentResponse(t *testing.T) {
 	})
 }
 
-func TestToShipmentStatusRest(t *testing.T) {
+func TestToShipmentStatusRest_WhenDomainStatusGiven_ReturnsRestStatus(t *testing.T) {
 	cases := []struct {
 		in   aggregate.ShipmentStatus
 		want openapi.ShipmentStatus

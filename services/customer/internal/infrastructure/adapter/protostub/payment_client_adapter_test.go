@@ -6,7 +6,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/generated/application/port/pb/paymentpb"
 )
 
-func TestToPaymentAggregate(t *testing.T) {
+func TestToPaymentAggregate_WhenProtoFullyPopulated_MapsEveryField(t *testing.T) {
 	got := toPaymentAggregate(&paymentpb.Payment{
 		Uid:           "p-1",
 		PaymentUid:    "px-1",
@@ -35,7 +35,8 @@ func TestToPaymentAggregate(t *testing.T) {
 	}
 }
 
-func TestOptionalString(t *testing.T) {
+// The non-empty case is asserted too: it must come back as a pointer to that string.
+func TestOptionalString_WhenStringEmpty_ReturnsNil(t *testing.T) {
 	if got := optionalString(""); got != nil {
 		t.Errorf("empty string -> %v, want nil", got)
 	}

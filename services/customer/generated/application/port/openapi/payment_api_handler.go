@@ -33,7 +33,7 @@ func (h *PaymentApiHandler) CustomerPaymentsGetAll(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -44,7 +44,7 @@ func (h *PaymentApiHandler) CustomerPaymentsGetAll(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -57,7 +57,7 @@ func (h *PaymentApiHandler) CustomerPaymentsGetAll(c *gin.Context) {
 	}
 	result, err := h.service.CustomerPaymentsGetAll(c.Request.Context(), uid, orderUid, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -71,7 +71,7 @@ func (h *PaymentApiHandler) CustomerPaymentsRead(c *gin.Context) {
 	paymentUid := c.Param("payment_uid")
 	result, err := h.service.CustomerPaymentsRead(c.Request.Context(), uid, paymentUid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)

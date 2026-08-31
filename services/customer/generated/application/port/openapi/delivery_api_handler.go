@@ -28,7 +28,7 @@ func (h *DeliveryApiHandler) DeliveryList(c *gin.Context) {
 	if statusStr != "" {
 		v, err := ParseShipmentStatus(statusStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid status"))
 			return
 		}
 		status = &v
@@ -38,7 +38,7 @@ func (h *DeliveryApiHandler) DeliveryList(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -46,7 +46,7 @@ func (h *DeliveryApiHandler) DeliveryList(c *gin.Context) {
 	}
 	result, err := h.service.DeliveryList(c.Request.Context(), orderUid, status, size)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -59,7 +59,7 @@ func (h *DeliveryApiHandler) DeliveryTrack(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.DeliveryTrack(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)

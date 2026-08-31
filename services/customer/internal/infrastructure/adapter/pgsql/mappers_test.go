@@ -1,20 +1,23 @@
 package pgsql
 
 import (
+	"errors"
+	"math"
 	"testing"
 	"time"
 
 	"github.com/codejsha/bookstore-microservices/customer/generated/infrastructure/port/entity"
+	"github.com/codejsha/bookstore-microservices/customer/internal/application/port/repo"
 )
 
-func TestToPointResult(t *testing.T) {
+func TestToPointResult_WhenRowGiven_ReturnsResult(t *testing.T) {
 	got := toPointResult(&entity.CustomerPointEntity{Id: 1, Uid: "p-1", UserId: 7, Balance: 1500})
 	if got.Id != 1 || got.Uid != "p-1" || got.UserId != 7 || got.Balance != 1500 {
 		t.Errorf("got = %+v", got)
 	}
 }
 
-func TestToPointHistoryResult(t *testing.T) {
+func TestToPointHistoryResult_WhenRowGiven_ReturnsResult(t *testing.T) {
 	now := time.Now()
 	reason := "earned via review"
 	got := toPointHistoryResult(&entity.CustomerPointHistoryEntity{
@@ -31,7 +34,7 @@ func TestToPointHistoryResult(t *testing.T) {
 	}
 }
 
-func TestToReviewResult(t *testing.T) {
+func TestToReviewResult_WhenRowGiven_ReturnsResult(t *testing.T) {
 	now := time.Now()
 	updated := now.Add(time.Hour)
 	title := "Good"
@@ -51,7 +54,7 @@ func TestToReviewResult(t *testing.T) {
 	}
 }
 
-func TestToWishlistResult(t *testing.T) {
+func TestToWishlistResult_WhenRowGiven_ReturnsResult(t *testing.T) {
 	now := time.Now()
 	got := toWishlistResult(&entity.CustomerWishlistEntity{Id: 1, Uid: "w-1", UserId: 5, BookId: 9, CreatedAt: now})
 	if got.Id != 1 || got.UserId != 5 || got.BookId != 9 {
@@ -59,5 +62,39 @@ func TestToWishlistResult(t *testing.T) {
 	}
 	if !got.CreatedAt.Equal(now) {
 		t.Errorf("CreatedAt = %v", got.CreatedAt)
+	}
+}
+
+func TestNextBalance(t *testing.T) {
+	tests := []struct {
+		name    string
+		current int32
+		delta   int32
+		want    int32
+		wantErr error
+	}{
+		{"whenDeltaPositive_returnsSum", 100, 50, 150, nil},
+		{"whenDeltaNegative_returnsRemainder", 100, -40, 60, nil},
+		{"whenDeltaDrainsBalance_returnsZero", 100, -100, 0, nil},
+		{"whenDeltaExceedsBalance_returnsErrInsufficientPoints", 10, -50, 0, repo.ErrInsufficientPoints},
+		{"whenSumExceedsInt32_returnsErrPointBalanceOverflow", math.MaxInt32 - 5, 10, 0, repo.ErrPointBalanceOverflow},
+		{"whenSumHitsInt32Ceiling_returnsMaxInt32", math.MaxInt32 - 5, 5, math.MaxInt32, nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := nextBalance(tt.current, tt.delta)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("err = %v, want %v", err, tt.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("err = %v, want nil", err)
+			}
+			if got != tt.want {
+				t.Errorf("got = %d, want %d", got, tt.want)
+			}
+		})
 	}
 }

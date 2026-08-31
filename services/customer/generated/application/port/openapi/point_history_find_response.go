@@ -7,9 +7,9 @@ import (
 )
 
 type PointHistoryFindResponse struct {
-	Amount     int32           `json:"amount" validate:"required"`
-	ChangeType PointChangeType `json:"change_type" validate:"required"`
-	CreatedAt  time.Time       `json:"created_at" validate:"required"`
-	Reason     *string         `json:"reason,omitempty"`
-	Uid        string          `json:"uid" validate:"required"`
+	Amount     int32           `json:"amount"`
+	ChangeType PointChangeType `json:"change_type" binding:"required"`
+	CreatedAt  time.Time       `json:"created_at" binding:"required"`
+	Reason     *string         `json:"reason,omitempty" binding:"omitempty,max=255"`
+	Uid        string          `json:"uid" binding:"required"`
 }

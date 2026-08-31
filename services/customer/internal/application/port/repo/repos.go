@@ -12,6 +12,8 @@ import (
 
 var ErrInsufficientPoints = errors.New("insufficient points")
 
+var ErrPointBalanceOverflow = errors.New("point balance limit exceeded")
+
 var ErrReviewExists = errors.New("review already exists for this book")
 
 type PointRepo interface {

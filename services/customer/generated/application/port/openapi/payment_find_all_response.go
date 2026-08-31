@@ -3,6 +3,6 @@
 package openapi
 
 type PaymentFindAllResponse struct {
-	Items []PaymentFindResponse `json:"items" validate:"required"`
-	Total int64                 `json:"total" validate:"required"`
+	Items []PaymentFindResponse `json:"items" binding:"required,dive"`
+	Total int64                 `json:"total" binding:"gte=0"`
 }

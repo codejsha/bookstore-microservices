@@ -4,5 +4,5 @@ package openapi
 
 // Remove books from wishlist
 type WishlistRemoveRequest struct {
-	BookUids []string `json:"book_uids" validate:"required"`
+	BookUids []string `json:"book_uids" binding:"required,dive"`
 }

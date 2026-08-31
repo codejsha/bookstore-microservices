@@ -9,8 +9,8 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/internal/infrastructure/httpx"
 )
 
-func TestWithActor(t *testing.T) {
-	t.Run("attaches x-actor-uid for a non-admin caller and omits x-actor-admin", func(t *testing.T) {
+func TestWithActor_WhenCallerIsNotAdmin_AttachesActorUidOnly(t *testing.T) {
+	t.Run("whenCallerIsNotAdmin_attachesActorUidOnly", func(t *testing.T) {
 		ctx := httpx.WithCaller(context.Background(), httpx.Caller{UserUid: "u-1", IsAdmin: false})
 		md, ok := metadata.FromOutgoingContext(withActor(ctx))
 		if !ok {
@@ -25,7 +25,7 @@ func TestWithActor(t *testing.T) {
 		}
 	})
 
-	t.Run("attaches x-actor-admin=true for an admin caller", func(t *testing.T) {
+	t.Run("whenCallerIsAdmin_attachesActorAdmin", func(t *testing.T) {
 		ctx := httpx.WithCaller(context.Background(), httpx.Caller{UserUid: "admin-1", IsAdmin: true})
 		md, ok := metadata.FromOutgoingContext(withActor(ctx))
 		if !ok {
@@ -41,7 +41,7 @@ func TestWithActor(t *testing.T) {
 		}
 	})
 
-	t.Run("no metadata when the request carried no principal", func(t *testing.T) {
+	t.Run("whenNoPrincipal_attachesNoMetadata", func(t *testing.T) {
 		if _, ok := metadata.FromOutgoingContext(withActor(context.Background())); ok {
 			t.Error("outgoing metadata was set for an unauthenticated context, want none")
 		}

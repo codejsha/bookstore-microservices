@@ -53,6 +53,7 @@ type ReviewApi interface {
 
 	// Edit a review
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	CustomerReviewsEdit(
 		ctx context.Context,

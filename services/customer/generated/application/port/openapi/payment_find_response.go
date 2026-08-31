@@ -14,6 +14,6 @@ type PaymentFindResponse struct {
 	PaymentDate  *time.Time `json:"payment_date,omitempty"`
 	Reason       *string    `json:"reason,omitempty"`
 	Status       *string    `json:"status,omitempty"`
-	Uid          string     `json:"uid" validate:"required"`
+	Uid          string     `json:"uid" binding:"required"`
 	UserUid      *string    `json:"user_uid,omitempty"`
 }

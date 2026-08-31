@@ -3,6 +3,6 @@
 package openapi
 
 type ReviewFindAllResponse struct {
-	Items []ReviewFindResponse `json:"items" validate:"required"`
-	Total int64                `json:"total" validate:"required"`
+	Items []ReviewFindResponse `json:"items" binding:"required,dive"`
+	Total int64                `json:"total" binding:"gte=0"`
 }

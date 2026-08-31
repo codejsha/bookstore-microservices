@@ -53,25 +53,25 @@ func GinOwnershipMiddleware() gin.HandlerFunc {
 func requireAdmin(c *gin.Context) bool {
 	p := PrincipalFromContext(c)
 	if p == nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		abortWithProblem(c, http.StatusUnauthorized, "authentication required")
 		return false
 	}
 	if p.HasRole(RoleAdmin) {
 		return true
 	}
-	c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+	abortWithProblem(c, http.StatusForbidden, "forbidden")
 	return false
 }
 
 func requireOwnerOrAdmin(c *gin.Context, targetUid string) bool {
 	p := PrincipalFromContext(c)
 	if p == nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		abortWithProblem(c, http.StatusUnauthorized, "authentication required")
 		return false
 	}
 	if p.Sub == targetUid || p.HasRole(RoleAdmin) {
 		return true
 	}
-	c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+	abortWithProblem(c, http.StatusForbidden, "forbidden")
 	return false
 }

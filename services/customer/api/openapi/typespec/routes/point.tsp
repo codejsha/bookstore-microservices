@@ -15,7 +15,7 @@ interface Points {
   @doc("Earn points for a customer")
   @route("earn")
   @post
-  earn(@path uid: uuid, @body body: PointEarnRequest): PointBalanceResponse | NotFoundError;
+  earn(@path uid: uuid, @body body: PointEarnRequest): PointBalanceResponse | BadRequestError | NotFoundError;
 
   @doc("Spend points for a customer")
   @route("spend")

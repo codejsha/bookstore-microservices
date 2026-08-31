@@ -19,16 +19,20 @@ model PointBalanceResponse {
 @doc("Earn points for a customer")
 model PointEarnRequest {
   @minValue(1)
+  @maxValue(1000000)
   amount: int32;
 
+  @maxLength(255)
   reason?: string;
 }
 
 @doc("Spend points for a customer")
 model PointSpendRequest {
   @minValue(1)
+  @maxValue(1000000)
   amount: int32;
 
+  @maxLength(255)
   reason?: string;
 }
 
@@ -38,7 +42,10 @@ model PointHistoryFindResponse {
   uid: uuid;
   change_type: PointChangeType;
   amount: int32;
+
+  @maxLength(255)
   reason?: string;
+
   created_at: utcDateTime;
 }
 

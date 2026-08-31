@@ -3,9 +3,9 @@
 package openapi
 
 type OrderFindResponse struct {
-	OrderItems *[]OrderItem `json:"order_items,omitempty"`
+	OrderItems *[]OrderItem `json:"order_items,omitempty" binding:"omitempty,dive"`
 	Status     *OrderStatus `json:"status,omitempty"`
 	TotalPrice *float64     `json:"total_price,omitempty"`
-	Uid        string       `json:"uid" validate:"required"`
+	Uid        string       `json:"uid" binding:"required"`
 	UserUid    *string      `json:"user_uid,omitempty"`
 }

@@ -18,6 +18,7 @@ type WishlistApi interface {
 
 	// Add books to customer's wishlist
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	WishlistsAddBooks(
 		ctx context.Context,
@@ -27,6 +28,7 @@ type WishlistApi interface {
 
 	// Remove books from customer's wishlist
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	WishlistsRemoveBooks(
 		ctx context.Context,

@@ -9,7 +9,9 @@ model ReviewCreateRequest {
   @maxValue(5)
   rating: int32;
 
+  @maxLength(255)
   title?: string;
+
   content?: string;
 }
 
@@ -18,7 +20,9 @@ model ReviewUpdateRequest {
   @maxValue(5)
   rating?: int32;
 
+  @maxLength(255)
   title?: string;
+
   content?: string;
 }
 
@@ -31,7 +35,9 @@ model ReviewFindResponse {
   @maxValue(5)
   rating: int32;
 
+  @maxLength(255)
   title?: string;
+
   content?: string;
   created_at: utcDateTime;
   updated_at?: utcDateTime;

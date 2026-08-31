@@ -43,8 +43,8 @@ type CustomerUseCase interface {
 
 	// ─── Wishlist ───────────────────────
 	GetWishlist(ctx context.Context, userUid string) (*aggregate.WishlistAggregate, error)
-	AddBooksToWishlist(ctx context.Context, userUid string, bookUids []string) (*aggregate.WishlistAggregate, error)
-	RemoveBooksFromWishlist(ctx context.Context, userUid string, bookUids []string) (*aggregate.WishlistAggregate, error)
+	AddBooksToWishlist(ctx context.Context, cmd command.WishlistAddCommand) (*aggregate.WishlistAggregate, error)
+	RemoveBooksFromWishlist(ctx context.Context, cmd command.WishlistRemoveCommand) (*aggregate.WishlistAggregate, error)
 
 	// ─── Points ─────────────────────────
 	GetPointBalance(ctx context.Context, userUid string) (*aggregate.PointAggregate, error)

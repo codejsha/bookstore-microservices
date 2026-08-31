@@ -136,7 +136,7 @@ func GinPrincipalMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		p, err := ParsePrincipal(c)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			abortWithProblem(c, http.StatusBadRequest, err.Error())
 			return
 		}
 		if p != nil {

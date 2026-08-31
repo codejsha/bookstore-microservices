@@ -23,8 +23,8 @@ const callerUid = "u-1"
 
 var theCaller = usecase.Caller{UserUid: callerUid}
 
-func TestTrackShipment(t *testing.T) {
-	t.Run("maps the returned shipment", func(t *testing.T) {
+func TestTrackShipment_WhenDeliveryReturnsShipment_ReturnsAggregate(t *testing.T) {
+	t.Run("whenDeliveryReturnsShipment_mapsEveryField", func(t *testing.T) {
 		svc := &customerService{orderClient: ownerOf(callerUid), deliveryClient: &stubDeliveryClient{
 			trackShipmentFn: func(_ context.Context, uid string, gotCaller string) (*aggregate.ShipmentAggregate, error) {
 				if uid != "sh-1" {
@@ -52,7 +52,7 @@ func TestTrackShipment(t *testing.T) {
 		}
 	})
 
-	t.Run("nil shipment yields nil aggregate", func(t *testing.T) {
+	t.Run("whenShipmentNil_returnsNilAggregate", func(t *testing.T) {
 		svc := &customerService{orderClient: ownerOf(callerUid), deliveryClient: &stubDeliveryClient{
 			trackShipmentFn: func(context.Context, string, string) (*aggregate.ShipmentAggregate, error) {
 				return nil, nil
@@ -67,7 +67,7 @@ func TestTrackShipment(t *testing.T) {
 		}
 	})
 
-	t.Run("downstream error is wrapped", func(t *testing.T) {
+	t.Run("whenDeliveryFails_returnsWrappedError", func(t *testing.T) {
 		wantErr := errors.New("delivery down")
 		svc := &customerService{orderClient: ownerOf(callerUid), deliveryClient: &stubDeliveryClient{
 			trackShipmentFn: func(context.Context, string, string) (*aggregate.ShipmentAggregate, error) {
@@ -80,8 +80,8 @@ func TestTrackShipment(t *testing.T) {
 	})
 }
 
-func TestListOrderShipments(t *testing.T) {
-	t.Run("forwards filters and maps each shipment", func(t *testing.T) {
+func TestListOrderShipments_WhenFiltersGiven_ForwardsFiltersAndMapsShipments(t *testing.T) {
+	t.Run("whenFiltersGiven_forwardsFiltersAndMapsShipments", func(t *testing.T) {
 		svc := &customerService{orderClient: ownerOf(callerUid), deliveryClient: &stubDeliveryClient{
 			listShipmentsFn: func(_ context.Context, orderUid string, status *string, pageSize *int32, _ string) (int64, []*aggregate.ShipmentAggregate, error) {
 				if orderUid != "o-1" {
@@ -113,7 +113,7 @@ func TestListOrderShipments(t *testing.T) {
 		}
 	})
 
-	t.Run("nil status and size omit the filters", func(t *testing.T) {
+	t.Run("whenStatusAndSizeNil_omitsFilters", func(t *testing.T) {
 		svc := &customerService{orderClient: ownerOf(callerUid), deliveryClient: &stubDeliveryClient{
 			listShipmentsFn: func(_ context.Context, _ string, status *string, pageSize *int32, _ string) (int64, []*aggregate.ShipmentAggregate, error) {
 				if status != nil {
@@ -134,7 +134,7 @@ func TestListOrderShipments(t *testing.T) {
 		}
 	})
 
-	t.Run("downstream error is wrapped", func(t *testing.T) {
+	t.Run("whenDeliveryFails_returnsWrappedError", func(t *testing.T) {
 		wantErr := errors.New("delivery down")
 		svc := &customerService{orderClient: ownerOf(callerUid), deliveryClient: &stubDeliveryClient{
 			listShipmentsFn: func(context.Context, string, *string, *int32, string) (int64, []*aggregate.ShipmentAggregate, error) {
@@ -149,14 +149,14 @@ func TestListOrderShipments(t *testing.T) {
 
 // ─── Ownership (BOLA) ────────────────────────────────────────────────────────
 
-func TestTrackShipment_OwnershipEnforced(t *testing.T) {
+func TestTrackShipment_WhenShipmentBelongsToAnotherCustomer_ReturnsNil(t *testing.T) {
 	delivery := &stubDeliveryClient{
 		trackShipmentFn: func(context.Context, string, string) (*aggregate.ShipmentAggregate, error) {
 			return &aggregate.ShipmentAggregate{Uid: "sh-1", OrderUid: "o-1"}, nil
 		},
 	}
 
-	t.Run("another customer's shipment is indistinguishable from a missing one", func(t *testing.T) {
+	t.Run("whenOwnedByAnotherCustomer_returnsNilLikeAMissingShipment", func(t *testing.T) {
 		svc := &customerService{orderClient: ownerOf("someone-else"), deliveryClient: delivery}
 
 		got, err := svc.TrackShipment(context.Background(), "sh-1", theCaller)
@@ -169,7 +169,7 @@ func TestTrackShipment_OwnershipEnforced(t *testing.T) {
 		}
 	})
 
-	t.Run("an admin may read any shipment", func(t *testing.T) {
+	t.Run("whenCallerIsAdmin_returnsAnyShipment", func(t *testing.T) {
 		svc := &customerService{orderClient: ownerOf("someone-else"), deliveryClient: delivery}
 
 		got, err := svc.TrackShipment(context.Background(), "sh-1", usecase.Caller{UserUid: "ops", IsAdmin: true})
@@ -182,7 +182,7 @@ func TestTrackShipment_OwnershipEnforced(t *testing.T) {
 		}
 	})
 
-	t.Run("an unauthenticated caller owns nothing", func(t *testing.T) {
+	t.Run("whenCallerUnauthenticated_returnsNil", func(t *testing.T) {
 		svc := &customerService{orderClient: ownerOf(callerUid), deliveryClient: delivery}
 
 		got, err := svc.TrackShipment(context.Background(), "sh-1", usecase.Caller{})
@@ -196,8 +196,8 @@ func TestTrackShipment_OwnershipEnforced(t *testing.T) {
 	})
 }
 
-func TestListOrderShipments_OwnershipEnforced(t *testing.T) {
-	t.Run("another customer's order yields nothing and never reaches delivery", func(t *testing.T) {
+func TestListOrderShipments_WhenOrderBelongsToAnotherCustomer_ReturnsEmptyWithoutCallingDelivery(t *testing.T) {
+	t.Run("whenOrderOwnedByAnotherCustomer_returnsEmptyWithoutCallingDelivery", func(t *testing.T) {
 		listed := false
 		svc := &customerService{
 			orderClient: ownerOf("someone-else"),
@@ -222,7 +222,7 @@ func TestListOrderShipments_OwnershipEnforced(t *testing.T) {
 		}
 	})
 
-	t.Run("an unknown order yields nothing", func(t *testing.T) {
+	t.Run("whenOrderUnknown_returnsEmpty", func(t *testing.T) {
 		svc := &customerService{
 			orderClient: &stubOrderClient{
 				findOrderFn: func(context.Context, string) (*aggregate.OrderAggregate, error) {
