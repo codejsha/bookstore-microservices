@@ -8,10 +8,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 
+	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/command"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/service"
 )
+
+const pgUniqueViolationCode = "23505"
 
 var ErrBadRequest = errors.New("bad request")
 
@@ -40,14 +44,26 @@ func MapError(ctx context.Context, err error) error {
 	switch {
 	case errors.Is(err, ErrBadRequest):
 		record(ctx, http.StatusBadRequest, err.Error())
+	case errors.Is(err, command.ErrInvalidCommand):
+		record(ctx, http.StatusBadRequest, err.Error())
 	case errors.Is(err, service.ErrUserAlreadyExists):
 		record(ctx, http.StatusConflict, "user already exists")
+	case isUniqueViolation(err):
+		record(ctx, http.StatusConflict, "resource already exists")
 	case errors.Is(err, service.ErrElevatedRoleOnRegister):
 		record(ctx, http.StatusBadRequest, "registration may not grant elevated roles")
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		record(ctx, http.StatusNotFound, "resource not found")
 	}
 	return err
+}
+
+func isUniqueViolation(err error) bool {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return true
+	}
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolationCode
 }
 
 func record(ctx context.Context, status int, message string) {
@@ -91,9 +107,11 @@ func GinResponseMapping() gin.HandlerFunc {
 			switch {
 			case es.status != 0:
 				status = es.status
-				body = []byte(fmt.Sprintf(`{"error":%q}`, es.message))
+				body = []byte(fmt.Sprintf(`{"title":%q,"status":%d,"detail":%q}`, http.StatusText(es.status), es.status, es.message))
+				orig.Header().Set("Content-Type", "application/problem+json")
 			case status >= http.StatusInternalServerError:
-				body = []byte(`{"error":"internal server error"}`)
+				body = []byte(fmt.Sprintf(`{"title":%q,"status":%d,"detail":"internal server error"}`, http.StatusText(status), status))
+				orig.Header().Set("Content-Type", "application/problem+json")
 			}
 			orig.WriteHeader(status)
 			_, _ = orig.Write(body)

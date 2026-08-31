@@ -7,10 +7,10 @@ import (
 )
 
 type RiskEntryResponse struct {
-	ExpiresAt time.Time `json:"expires_at" validate:"required"`
-	FlaggedAt time.Time `json:"flagged_at" validate:"required"`
+	ExpiresAt time.Time `json:"expires_at" binding:"required"`
+	FlaggedAt time.Time `json:"flagged_at" binding:"required"`
 	FlaggedBy *string   `json:"flagged_by,omitempty"`
-	Level     RiskLevel `json:"level" validate:"required"`
-	Reason    string    `json:"reason" validate:"required"`
-	UserUid   string    `json:"user_uid" validate:"required"`
+	Level     RiskLevel `json:"level" binding:"required"`
+	Reason    string    `json:"reason" binding:"required"`
+	UserUid   string    `json:"user_uid" binding:"required"`
 }

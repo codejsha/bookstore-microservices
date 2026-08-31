@@ -19,14 +19,15 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/internal/application/usecase"
 	"github.com/codejsha/bookstore-microservices/identity/internal/config"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/aggregate"
+	"github.com/codejsha/bookstore-microservices/identity/internal/domain/constant"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/command"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/option"
 )
 
 const (
-	statusActive      = string(openapi.USERSTATUS_ACTIVE)
-	statusSuspended   = string(openapi.USERSTATUS_SUSPENDED)
-	statusDeactivated = string(openapi.USERSTATUS_DEACTIVATED)
+	statusActive      = string(constant.USERSTATUS_ACTIVE_VALUE)
+	statusSuspended   = string(constant.USERSTATUS_SUSPENDED_VALUE)
+	statusDeactivated = string(constant.USERSTATUS_DEACTIVATED_VALUE)
 )
 
 var _ usecase.IdentityUseCase = (*identityService)(nil)
@@ -113,6 +114,9 @@ func selfServiceRoles(requested []string) ([]string, error) {
 }
 
 func (s identityService) RegisterUser(ctx context.Context, cmd command.UserRegisterCommand) (*aggregate.UserAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	users, err := s.usersClient.ListUsers(ctx, s.cfg.Keycloak.Realm, cmd.Email)
 	if err != nil {
 		return nil, err
@@ -165,7 +169,7 @@ func (s identityService) RegisterUser(ctx context.Context, cmd command.UserRegis
 		return nil, fmt.Errorf("failed to assign realm roles in IdP: %w", err)
 	}
 
-	localRow, err := s.upsertLocal(ctx, users[0], statusActive)
+	localRow, err := s.upsertLocal(ctx, users[0], statusActive, roles)
 	if err != nil {
 		s.deleteOrphanedIdpUser(ctx, *users[0].Id)
 		return nil, fmt.Errorf("failed to sync user to local DB: %w", err)
@@ -225,6 +229,9 @@ func (s identityService) FindUserByEmail(ctx context.Context, email string) (*ag
 // ─── User management ────────────────────────────────────────────────────────
 
 func (s identityService) UpdateUser(ctx context.Context, uid string, cmd command.UserUpdateCommand) (*aggregate.UserAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	user, err := s.userRepo.FindByUid(ctx, uid)
 	if err != nil {
 		return nil, err
@@ -266,6 +273,9 @@ func (s identityService) UpdateUser(ctx context.Context, uid string, cmd command
 }
 
 func (s identityService) UpdateUserRoles(ctx context.Context, uid string, cmd command.UserRolesCommand) (*aggregate.UserAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	user, err := s.userRepo.FindByUid(ctx, uid)
 	if err != nil {
 		return nil, err
@@ -374,11 +384,17 @@ func (s identityService) SyncUserFromIdp(ctx context.Context, idpId string) (*ag
 		return nil, fmt.Errorf("failed to get user from IdP: %w", err)
 	}
 
+	roles, err := s.usersClient.GetUserRealmRoles(ctx, s.cfg.Keycloak.Realm, idpId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get realm roles from IdP: %w", err)
+	}
+	idpUser.RealmRoles = &roles
+
 	status := statusActive
 	if idpUser.Enabled != nil && !*idpUser.Enabled {
 		status = statusSuspended
 	}
-	if _, err := s.upsertLocal(ctx, idpUser, status); err != nil {
+	if _, err := s.upsertLocal(ctx, idpUser, status, roles); err != nil {
 		return nil, fmt.Errorf("failed to upsert user to local DB: %w", err)
 	}
 
@@ -387,7 +403,12 @@ func (s identityService) SyncUserFromIdp(ctx context.Context, idpId string) (*ag
 	return userAgg, nil
 }
 
-func (s identityService) upsertLocal(ctx context.Context, idpUser idp.UserRepresentation, status string) (*repo.UserResult, error) {
+func (s identityService) upsertLocal(
+	ctx context.Context,
+	idpUser idp.UserRepresentation,
+	status string,
+	roles []string,
+) (*repo.UserResult, error) {
 	if idpUser.Id == nil {
 		return nil, fmt.Errorf("IdP user is missing id")
 	}
@@ -404,7 +425,10 @@ func (s identityService) upsertLocal(ctx context.Context, idpUser idp.UserRepres
 	if idpUser.LastName != nil {
 		profile.LastName = *idpUser.LastName
 	}
-	if idpUser.RealmRoles != nil {
+	switch {
+	case roles != nil:
+		profile.Roles = roles
+	case idpUser.RealmRoles != nil:
 		profile.Roles = *idpUser.RealmRoles
 	}
 	return s.userRepo.Upsert(ctx, profile)

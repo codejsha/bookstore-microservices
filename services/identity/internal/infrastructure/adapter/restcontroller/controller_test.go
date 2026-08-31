@@ -78,7 +78,7 @@ func newAggregate(idpId, email, first, last, phone, status string) *aggregate.Us
 
 // ─── tests ──────────────────────────────────────────────────────────────────
 
-func TestUsersRegister(t *testing.T) {
+func TestUsersRegister_WhenRequestValid_ReturnsRegisteredUser(t *testing.T) {
 	captured := command.UserRegisterCommand{}
 	use := &stubUseCase{
 		registerUser: func(_ context.Context, cmd command.UserRegisterCommand) (*aggregate.UserAggregate, error) {
@@ -106,7 +106,7 @@ func TestUsersRegister(t *testing.T) {
 	}
 }
 
-func TestUsersGetAll(t *testing.T) {
+func TestUsersGetAll_WhenFiltersGiven_ReturnsPagedUsers(t *testing.T) {
 	use := &stubUseCase{
 		findAllUsers: func(_ context.Context, opt option.UserQueryOption) (int64, []*aggregate.UserAggregate, error) {
 			if opt.Email() == nil || *opt.Email() != "x@x.com" {
@@ -129,7 +129,7 @@ func TestUsersGetAll(t *testing.T) {
 	}
 }
 
-func TestUsersGetAll_Error(t *testing.T) {
+func TestUsersGetAll_WhenUsecaseFails_PropagatesError(t *testing.T) {
 	wantErr := errors.New("repo down")
 	use := &stubUseCase{
 		findAllUsers: func(context.Context, option.UserQueryOption) (int64, []*aggregate.UserAggregate, error) {
@@ -143,7 +143,7 @@ func TestUsersGetAll_Error(t *testing.T) {
 	}
 }
 
-func TestUsersUpdate(t *testing.T) {
+func TestUsersUpdate_WhenRequestValid_ReturnsUpdatedUser(t *testing.T) {
 	use := &stubUseCase{
 		updateUser: func(_ context.Context, uid string, cmd command.UserUpdateCommand) (*aggregate.UserAggregate, error) {
 			if uid != "uid-1" {
@@ -166,7 +166,7 @@ func TestUsersUpdate(t *testing.T) {
 	}
 }
 
-func TestUsersDeactivate_OverridesStatus(t *testing.T) {
+func TestUsersDeactivate_WhenUsecaseSucceeds_ReturnsDeactivatedStatus(t *testing.T) {
 	use := &stubUseCase{
 		deactivateUser: func(context.Context, string) (*aggregate.UserAggregate, error) {
 			return newAggregate("idp-1", "u@x.com", "F", "L", "", "ACTIVE"), nil
@@ -182,7 +182,7 @@ func TestUsersDeactivate_OverridesStatus(t *testing.T) {
 	}
 }
 
-func TestUsersSuspend_OverridesStatus(t *testing.T) {
+func TestUsersSuspend_WhenUsecaseSucceeds_ReturnsSuspendedStatus(t *testing.T) {
 	use := &stubUseCase{
 		suspendUser: func(context.Context, string) (*aggregate.UserAggregate, error) {
 			return newAggregate("idp-1", "u@x.com", "F", "L", "", "ACTIVE"), nil
@@ -198,7 +198,7 @@ func TestUsersSuspend_OverridesStatus(t *testing.T) {
 	}
 }
 
-func TestUsersReactivate_OverridesStatus(t *testing.T) {
+func TestUsersReactivate_WhenUsecaseSucceeds_ReturnsActiveStatus(t *testing.T) {
 	use := &stubUseCase{
 		reactivateUser: func(context.Context, string) (*aggregate.UserAggregate, error) {
 			return newAggregate("idp-1", "u@x.com", "F", "L", "", "SUSPENDED"), nil
@@ -214,7 +214,7 @@ func TestUsersReactivate_OverridesStatus(t *testing.T) {
 	}
 }
 
-func TestUsersUpdateRoles(t *testing.T) {
+func TestUsersUpdateRoles_WhenRequestValid_PassesRolesToUsecase(t *testing.T) {
 	captured := command.UserRolesCommand{}
 	use := &stubUseCase{
 		updateUserRoles: func(_ context.Context, _ string, cmd command.UserRolesCommand) (*aggregate.UserAggregate, error) {
@@ -234,7 +234,7 @@ func TestUsersUpdateRoles(t *testing.T) {
 	}
 }
 
-func TestUsersSyncFromIdp(t *testing.T) {
+func TestUsersSyncFromIdp_WhenStatusMissing_ReturnsActiveStatus(t *testing.T) {
 	use := &stubUseCase{
 		syncUserFromIdp: func(_ context.Context, idpId string) (*aggregate.UserAggregate, error) {
 			if idpId != "idp-99" {
@@ -255,7 +255,8 @@ func TestUsersSyncFromIdp(t *testing.T) {
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 
-func TestParseStatusOrDefault(t *testing.T) {
+// The table also covers the known statuses, each of which must map to its own value.
+func TestParseStatusOrDefault_WhenStatusBlankOrUnknown_ReturnsActive(t *testing.T) {
 	cases := []struct {
 		in   string
 		want openapi.UserStatus
@@ -273,7 +274,8 @@ func TestParseStatusOrDefault(t *testing.T) {
 	}
 }
 
-func TestAuthRolesToStrings(t *testing.T) {
+// The populated case is asserted too: it must come back as the role names in order.
+func TestAuthRolesToStrings_WhenRolesNil_ReturnsNil(t *testing.T) {
 	if got := authRolesToStrings(nil); got != nil {
 		t.Errorf("nil -> %v, want nil", got)
 	}

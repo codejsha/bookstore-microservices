@@ -40,7 +40,7 @@ func (h *UserApiHandler) UsersGetAll(c *gin.Context) {
 	if statusStr != "" {
 		v, err := ParseUserStatus(statusStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid status"))
 			return
 		}
 		status = &v
@@ -50,7 +50,7 @@ func (h *UserApiHandler) UsersGetAll(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -61,7 +61,7 @@ func (h *UserApiHandler) UsersGetAll(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -74,7 +74,7 @@ func (h *UserApiHandler) UsersGetAll(c *gin.Context) {
 	}
 	result, err := h.service.UsersGetAll(c.Request.Context(), email, name, phone, status, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -86,12 +86,12 @@ func (h *UserApiHandler) UsersGetAll(c *gin.Context) {
 func (h *UserApiHandler) UsersRegister(c *gin.Context) {
 	var req UserRegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.UsersRegister(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -104,7 +104,7 @@ func (h *UserApiHandler) UsersReadByEmail(c *gin.Context) {
 	email := c.Param("email")
 	result, err := h.service.UsersReadByEmail(c.Request.Context(), email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -117,7 +117,7 @@ func (h *UserApiHandler) UsersSyncFromIdp(c *gin.Context) {
 	idpUid := c.Param("idp_uid")
 	result, err := h.service.UsersSyncFromIdp(c.Request.Context(), idpUid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -130,7 +130,7 @@ func (h *UserApiHandler) UsersRead(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.UsersRead(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -143,12 +143,12 @@ func (h *UserApiHandler) UsersUpdate(c *gin.Context) {
 	uid := c.Param("uid")
 	var req UserUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.UsersUpdate(c.Request.Context(), uid, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -162,7 +162,7 @@ func (h *UserApiHandler) UsersDeactivate(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.UsersDeactivate(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -176,7 +176,7 @@ func (h *UserApiHandler) UsersReactivate(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.UsersReactivate(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -189,12 +189,12 @@ func (h *UserApiHandler) UsersUpdateRoles(c *gin.Context) {
 	uid := c.Param("uid")
 	var req UserRolesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.UsersUpdateRoles(c.Request.Context(), uid, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -208,7 +208,7 @@ func (h *UserApiHandler) UsersSuspend(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.UsersSuspend(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)

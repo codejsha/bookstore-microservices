@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/service"
@@ -35,7 +36,7 @@ func do(r *gin.Engine) *httptest.ResponseRecorder {
 	return w
 }
 
-func TestGinResponseMapping_UserAlreadyExistsBecomes409(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerWrapsUserAlreadyExists_Returns409ProblemDetails(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
 		return 0, nil, MapError(c.Request.Context(),
 			fmt.Errorf("%w with email a@b.c", service.ErrUserAlreadyExists))
@@ -44,12 +45,12 @@ func TestGinResponseMapping_UserAlreadyExistsBecomes409(t *testing.T) {
 	if w.Code != http.StatusConflict {
 		t.Fatalf("status = %d, want 409", w.Code)
 	}
-	if body := w.Body.String(); body != `{"error":"user already exists"}` {
+	if body := w.Body.String(); body != `{"title":"Conflict","status":409,"detail":"user already exists"}` {
 		t.Errorf("body = %q, want conflict json", body)
 	}
 }
 
-func TestGinResponseMapping_ElevatedRoleBecomes400(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerWrapsElevatedRole_Returns400ProblemDetails(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
 		return 0, nil, MapError(c.Request.Context(),
 			fmt.Errorf("%w: %q", service.ErrElevatedRoleOnRegister, "MANAGE"))
@@ -58,12 +59,41 @@ func TestGinResponseMapping_ElevatedRoleBecomes400(t *testing.T) {
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want 400", w.Code)
 	}
-	if body := w.Body.String(); body != `{"error":"registration may not grant elevated roles"}` {
+	if body := w.Body.String(); body != `{"title":"Bad Request","status":400,"detail":"registration may not grant elevated roles"}` {
 		t.Errorf("body = %q, want bad-request json", body)
 	}
 }
 
-func TestGinResponseMapping_GormNotFoundBecomes404(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerWrapsUniqueViolation_Returns409ProblemDetails(t *testing.T) {
+	r := newTestEngine(func(c *gin.Context) (int, any, error) {
+		return 0, nil, MapError(c.Request.Context(),
+			fmt.Errorf("failed to sync user to local DB: %w",
+				&pgconn.PgError{Code: "23505", ConstraintName: "uk_users_email"}))
+	})
+	w := do(r)
+	if w.Code != http.StatusConflict {
+		t.Fatalf("status = %d, want 409", w.Code)
+	}
+	if body := w.Body.String(); body != `{"title":"Conflict","status":409,"detail":"resource already exists"}` {
+		t.Errorf("body = %q, want conflict json", body)
+	}
+}
+
+func TestGinResponseMapping_WhenHandlerWrapsDuplicatedKey_Returns409ProblemDetails(t *testing.T) {
+	r := newTestEngine(func(c *gin.Context) (int, any, error) {
+		return 0, nil, MapError(c.Request.Context(),
+			fmt.Errorf("upsert user: %w", gorm.ErrDuplicatedKey))
+	})
+	w := do(r)
+	if w.Code != http.StatusConflict {
+		t.Fatalf("status = %d, want 409", w.Code)
+	}
+	if body := w.Body.String(); body != `{"title":"Conflict","status":409,"detail":"resource already exists"}` {
+		t.Errorf("body = %q, want conflict json", body)
+	}
+}
+
+func TestGinResponseMapping_WhenHandlerWrapsGormNotFound_Returns404ProblemDetails(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
 		return 0, nil, MapError(c.Request.Context(),
 			fmt.Errorf("find user: %w", gorm.ErrRecordNotFound))
@@ -72,12 +102,12 @@ func TestGinResponseMapping_GormNotFoundBecomes404(t *testing.T) {
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404", w.Code)
 	}
-	if body := w.Body.String(); body != `{"error":"resource not found"}` {
+	if body := w.Body.String(); body != `{"title":"Not Found","status":404,"detail":"resource not found"}` {
 		t.Errorf("body = %q, want resource-not-found json", body)
 	}
 }
 
-func TestGinResponseMapping_InternalErrorIsSanitized(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerFailsUnexpectedly_Returns500WithoutDetail(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
 		return 0, nil, MapError(c.Request.Context(),
 			errors.New(`failed to create user: 500 {"error":"internal keycloak detail"}`))
@@ -86,12 +116,12 @@ func TestGinResponseMapping_InternalErrorIsSanitized(t *testing.T) {
 	if w.Code != http.StatusInternalServerError {
 		t.Fatalf("status = %d, want 500", w.Code)
 	}
-	if body := w.Body.String(); body != `{"error":"internal server error"}` {
+	if body := w.Body.String(); body != `{"title":"Internal Server Error","status":500,"detail":"internal server error"}` {
 		t.Errorf("body = %q, want sanitized json", body)
 	}
 }
 
-func TestGinResponseMapping_SuccessPassthrough(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerSucceeds_PassesResponseThrough(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
 		return http.StatusOK, gin.H{"uid": "abc"}, nil
 	})
@@ -104,7 +134,7 @@ func TestGinResponseMapping_SuccessPassthrough(t *testing.T) {
 	}
 }
 
-func TestGinResponseMapping_ClientErrorPassthrough(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerWrote4xx_PassesResponseThrough(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	r.Use(GinResponseMapping())

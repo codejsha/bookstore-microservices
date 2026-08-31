@@ -21,7 +21,7 @@ func NewRiskApiHandler(service RiskApi) *RiskApiHandler {
 func (h *RiskApiHandler) RiskGetAll(c *gin.Context) {
 	result, err := h.service.RiskGetAll(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -34,12 +34,12 @@ func (h *RiskApiHandler) RiskFlagPrincipal(c *gin.Context) {
 	uid := c.Param("uid")
 	var req RiskFlagRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.RiskFlagPrincipal(c.Request.Context(), uid, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -49,7 +49,7 @@ func (h *RiskApiHandler) RiskFlagPrincipal(c *gin.Context) {
 func (h *RiskApiHandler) RiskUnflagPrincipal(c *gin.Context) {
 	uid := c.Param("uid")
 	if err := h.service.RiskUnflagPrincipal(c.Request.Context(), uid); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.Status(http.StatusNoContent)

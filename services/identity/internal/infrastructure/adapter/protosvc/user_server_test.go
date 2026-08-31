@@ -65,7 +65,7 @@ func newAggregate(idpId, email string, roles []string) *aggregate.UserAggregate 
 	})
 }
 
-func TestUserGrpcServer_FindUser(t *testing.T) {
+func TestUserGrpcServer_WhenUserExists_ReturnsUser(t *testing.T) {
 	use := &stubUseCase{
 		findUser: func(_ context.Context, uid string) (*aggregate.UserAggregate, error) {
 			if uid != "u-1" {
@@ -91,7 +91,7 @@ func TestUserGrpcServer_FindUser(t *testing.T) {
 	}
 }
 
-func TestUserGrpcServer_FindUser_NotFound(t *testing.T) {
+func TestUserGrpcServer_WhenUserMissing_ReturnsNotFoundStatus(t *testing.T) {
 	use := &stubUseCase{
 		findUser: func(context.Context, string) (*aggregate.UserAggregate, error) {
 			return nil, gorm.ErrRecordNotFound
@@ -104,7 +104,7 @@ func TestUserGrpcServer_FindUser_NotFound(t *testing.T) {
 	}
 }
 
-func TestUserGrpcServer_FindUser_InternalErrorHidesDetails(t *testing.T) {
+func TestUserGrpcServer_WhenLookupFailsUnexpectedly_ReturnsInternalStatusWithoutDetail(t *testing.T) {
 	use := &stubUseCase{
 		findUser: func(context.Context, string) (*aggregate.UserAggregate, error) {
 			return nil, errors.New("secret internal db dsn leaked")
@@ -120,7 +120,7 @@ func TestUserGrpcServer_FindUser_InternalErrorHidesDetails(t *testing.T) {
 	}
 }
 
-func TestUserGrpcServer_ListUsers(t *testing.T) {
+func TestUserGrpcServer_WhenFiltersGiven_ForwardsThemToTheUsecase(t *testing.T) {
 	use := &stubUseCase{
 		findAllUsers: func(_ context.Context, opt option.UserQueryOption) (int64, []*aggregate.UserAggregate, error) {
 			if opt.Email() == nil || *opt.Email() != "x@x.com" {
@@ -157,7 +157,7 @@ func TestUserGrpcServer_ListUsers(t *testing.T) {
 	}
 }
 
-func TestNewPageOption(t *testing.T) {
+func TestNewPageOption_WhenPagingGiven_ReturnsOption(t *testing.T) {
 	p := newPageOption(0, "", "")
 	if p.GetSize() != 0 {
 		t.Errorf("zero pageSize -> Size %d", p.GetSize())

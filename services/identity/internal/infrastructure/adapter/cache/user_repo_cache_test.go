@@ -92,7 +92,7 @@ func (f *fakeRepo) SoftDelete(_ context.Context, idpUid string) error {
 	return f.writeErr
 }
 
-func TestFindByUid_CacheHitSkipsRepo(t *testing.T) {
+func TestFindByUid_WhenEntryCached_SkipsRepo(t *testing.T) {
 	store := &fakeStore{entry: &repo.UserResult{Email: "cached@example.com"}}
 	inner := &fakeRepo{}
 	r := NewCachingUserRepo(inner, store)
@@ -109,7 +109,7 @@ func TestFindByUid_CacheHitSkipsRepo(t *testing.T) {
 	}
 }
 
-func TestFindByUid_MissPopulatesCache(t *testing.T) {
+func TestFindByUid_WhenEntryMissing_ReadsRepoAndPopulatesCache(t *testing.T) {
 	store := &fakeStore{getErr: errors.New("miss")}
 	inner := &fakeRepo{user: &repo.UserResult{Email: "db@example.com"}}
 	r := NewCachingUserRepo(inner, store)
@@ -132,7 +132,7 @@ func TestFindByUid_MissPopulatesCache(t *testing.T) {
 	}
 }
 
-func TestFindByUid_NotFoundIsNotCached(t *testing.T) {
+func TestFindByUid_WhenRepoFails_DoesNotCacheNegativeEntry(t *testing.T) {
 	store := &fakeStore{getErr: errors.New("miss")}
 	inner := &fakeRepo{findErr: errors.New("record not found")}
 	r := NewCachingUserRepo(inner, store)
@@ -145,7 +145,8 @@ func TestFindByUid_NotFoundIsNotCached(t *testing.T) {
 	}
 }
 
-func TestWrites_InvalidateCachedUser(t *testing.T) {
+// Every write method is driven through the same subtest, named after the method under test.
+func TestWrites_WhenWriteSucceeds_InvalidateCachedUser(t *testing.T) {
 	ctx := context.Background()
 	cases := map[string]func(repo.UserRepo) error{
 		"Upsert": func(r repo.UserRepo) error {
@@ -174,7 +175,7 @@ func TestWrites_InvalidateCachedUser(t *testing.T) {
 	}
 }
 
-func TestWrites_FailedWriteDoesNotInvalidate(t *testing.T) {
+func TestWrites_WhenWriteFails_LeaveCachedUserInPlace(t *testing.T) {
 	store := &fakeStore{}
 	inner := &fakeRepo{writeErr: errors.New("db down")}
 	r := NewCachingUserRepo(inner, store)

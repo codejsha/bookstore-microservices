@@ -15,5 +15,6 @@ type UsersClient interface {
 
 	LogoutUser(ctx context.Context, realm string, userId string) error
 
+	GetUserRealmRoles(ctx context.Context, realm string, userId string) ([]string, error)
 	SetUserRealmRoles(ctx context.Context, realm string, userId string, roles []string) error
 }

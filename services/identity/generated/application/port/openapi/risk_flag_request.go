@@ -3,8 +3,8 @@
 package openapi
 
 type RiskFlagRequest struct {
-	Level  RiskLevel `json:"level" validate:"required"`
-	Reason string    `json:"reason" validate:"required"`
+	Level  RiskLevel `json:"level" binding:"required"`
+	Reason string    `json:"reason" binding:"required"`
 	// Time-to-live in seconds; defaults to 86400 (24h), capped at 30 days
 	TtlSeconds *int64 `json:"ttl_seconds,omitempty"`
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/codejsha/bookstore-microservices/identity/generated/application/port/openapi"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/constant"
 )
 
@@ -23,17 +22,11 @@ func isAdmin(p *Principal) bool {
 }
 
 func writeUnauthorized(c *gin.Context) {
-	c.AbortWithStatusJSON(http.StatusUnauthorized, openapi.UnauthorizedError{
-		Code:    http.StatusUnauthorized,
-		Message: "authentication required",
-	})
+	abortWithProblem(c, http.StatusUnauthorized, "authentication required")
 }
 
 func writeForbidden(c *gin.Context) {
-	c.AbortWithStatusJSON(http.StatusForbidden, openapi.ForbiddenError{
-		Code:    http.StatusForbidden,
-		Message: "insufficient privileges",
-	})
+	abortWithProblem(c, http.StatusForbidden, "insufficient privileges")
 }
 
 func requireAdmin(c *gin.Context) bool {

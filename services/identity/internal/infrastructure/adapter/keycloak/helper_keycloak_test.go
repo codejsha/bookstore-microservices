@@ -54,7 +54,7 @@ func (f *fakeTokenCache) Unlock(_ context.Context, _, _ string) error {
 	return nil
 }
 
-func TestGetTokens_AdoptsValidCachedSession(t *testing.T) {
+func TestGetTokens_WhenCachedSessionFresh_AdoptsIt(t *testing.T) {
 	now := time.Now()
 	cache := &fakeTokenCache{entry: &cachedAdminToken{
 		AccessToken:      "cached-access",
@@ -73,7 +73,7 @@ func TestGetTokens_AdoptsValidCachedSession(t *testing.T) {
 	}
 }
 
-func TestGetTokens_CacheErrorFallsThrough(t *testing.T) {
+func TestGetTokens_WhenCacheFails_FallsThroughToKeycloak(t *testing.T) {
 	h := &AdminTokenHelper{
 		tokenCache:  &fakeTokenCache{getErr: errors.New("cache miss")},
 		restyClient: resty.New().SetTimeout(200 * time.Millisecond),
@@ -87,7 +87,7 @@ func TestGetTokens_CacheErrorFallsThrough(t *testing.T) {
 	}
 }
 
-func TestGetTokens_WinnerAcquiresAndReleasesLock(t *testing.T) {
+func TestGetTokens_WhenLockAcquired_ReleasesItAfterTheRoundTrip(t *testing.T) {
 	cache := &fakeTokenCache{getErr: errors.New("cache miss")}
 	h := &AdminTokenHelper{
 		tokenCache:  cache,
@@ -130,7 +130,7 @@ func (f *flakyCache) TryLock(context.Context, string, time.Duration) (string, er
 }
 func (f *flakyCache) Unlock(context.Context, string, string) error { return nil }
 
-func TestGetTokens_LosingReplicaAdoptsPublishedSession(t *testing.T) {
+func TestGetTokens_WhenLockHeldByAnotherReplica_AdoptsThePublishedSession(t *testing.T) {
 	now := time.Now()
 	cache := &flakyCache{
 		stale: &cachedAdminToken{ExpiresAt: now.Add(-1 * time.Minute), RefreshExpiresAt: now.Add(-1 * time.Minute)},
@@ -152,7 +152,7 @@ func TestGetTokens_LosingReplicaAdoptsPublishedSession(t *testing.T) {
 	}
 }
 
-func TestStoreToCache_WritesSessionWithRefreshTTL(t *testing.T) {
+func TestStoreToCache_WhenSessionFresh_WritesItWithRefreshTtl(t *testing.T) {
 	now := time.Now()
 	cache := &fakeTokenCache{}
 	h := &AdminTokenHelper{
@@ -179,15 +179,15 @@ func TestStoreToCache_WritesSessionWithRefreshTTL(t *testing.T) {
 	}
 }
 
-func TestFresh_TreatsWithinSkewAsStale(t *testing.T) {
+func TestFresh_WhenExpiryWithinSkew_ReturnsFalse(t *testing.T) {
 	now := time.Now()
 	cases := map[string]struct {
 		expiresAt time.Time
 		want      bool
 	}{
-		"comfortably ahead": {now.Add(2 * expirySkew), true},
-		"within skew":       {now.Add(expirySkew / 2), false},
-		"already expired":   {now.Add(-time.Second), false},
+		"whenExpiryComfortablyAhead_returnsTrue": {now.Add(2 * expirySkew), true},
+		"whenExpiryWithinSkew_returnsFalse": {now.Add(expirySkew / 2), false},
+		"whenAlreadyExpired_returnsFalse": {now.Add(-time.Second), false},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -198,7 +198,7 @@ func TestFresh_TreatsWithinSkewAsStale(t *testing.T) {
 	}
 }
 
-func TestGetTokens_NearExpiryCachedAccessTokenNotAdopted(t *testing.T) {
+func TestGetTokens_WhenCachedTokenNearExpiry_FallsThroughToKeycloak(t *testing.T) {
 	now := time.Now()
 	cache := &fakeTokenCache{entry: &cachedAdminToken{
 		AccessToken:      "near-expiry-access",
@@ -219,7 +219,7 @@ func TestGetTokens_NearExpiryCachedAccessTokenNotAdopted(t *testing.T) {
 	}
 }
 
-func TestStoreToCache_SkipsExpiredSession(t *testing.T) {
+func TestStoreToCache_WhenSessionExpired_SkipsTheWrite(t *testing.T) {
 	cache := &fakeTokenCache{}
 	h := &AdminTokenHelper{
 		tokenCache:       cache,

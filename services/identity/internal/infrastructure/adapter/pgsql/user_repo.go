@@ -22,6 +22,8 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/option"
 )
 
+const emptyRolesJSON = `{"values":[]}`
+
 var _ repo.UserRepo = (*userRepository)(nil)
 
 type userRepository struct {
@@ -154,7 +156,7 @@ func (r userRepository) Upsert(ctx context.Context, profile repo.UserUpsert) (*r
 	existing.FirstName = profile.FirstName
 	existing.LastName = profile.LastName
 	existing.Phone = profile.Phone
-	if rolesJSON != "" {
+	if profile.Roles != nil {
 		existing.Role = rolesJSON
 	}
 	if profile.Status != "" {
@@ -208,7 +210,7 @@ func (r userRepository) SoftDelete(ctx context.Context, idpUid string) error {
 		u := q.UsersEntity
 		if _, err := u.WithContext(ctx).
 			Where(u.IdpUid.Eq(idpUid)).
-			UpdateSimple(u.Status.Value("DEACTIVATED"), u.UpdatedAt.Value(time.Now())); err != nil {
+			UpdateSimple(u.Status.Value(string(constant.USERSTATUS_DEACTIVATED_VALUE)), u.UpdatedAt.Value(time.Now())); err != nil {
 			return err
 		}
 		if _, err := u.WithContext(ctx).Where(u.IdpUid.Eq(idpUid)).Delete(); err != nil {
@@ -219,16 +221,13 @@ func (r userRepository) SoftDelete(ctx context.Context, idpUid string) error {
 }
 
 func encodeRoles(roles []string) string {
-	if roles == nil {
-		return ""
-	}
 	values := make([]constant.AuthRoleValue, len(roles))
 	for i, r := range roles {
 		values[i] = constant.AuthRoleValue(r)
 	}
 	b, err := json.Marshal(constant.AuthRoleJson{Values: values})
 	if err != nil {
-		return ""
+		return emptyRolesJSON
 	}
 	return string(b)
 }

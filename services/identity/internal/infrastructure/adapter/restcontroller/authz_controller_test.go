@@ -73,7 +73,7 @@ func checkRisk(
 	return rec.Code
 }
 
-func TestCheck_ActiveTokenAllowed(t *testing.T) {
+func TestCheck_WhenTokenActive_Returns200(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: true, Sub: "user-1", Iat: 1700}}
 	rev := &fakeRevocationChecker{}
 
@@ -88,14 +88,14 @@ func TestCheck_ActiveTokenAllowed(t *testing.T) {
 	}
 }
 
-func TestCheck_InactiveTokenDenied(t *testing.T) {
+func TestCheck_WhenTokenInactive_Returns403(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: false}}
 	if code := check(t, in, &fakeRevocationChecker{}, "Bearer dead-token"); code != http.StatusForbidden {
 		t.Fatalf("status = %d, want 403", code)
 	}
 }
 
-func TestCheck_RevokedSubjectDeniedDespiteActiveToken(t *testing.T) {
+func TestCheck_WhenSubjectRevoked_Returns403(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: true, Sub: "user-1"}}
 	rev := &fakeRevocationChecker{revoked: true}
 
@@ -104,14 +104,14 @@ func TestCheck_RevokedSubjectDeniedDespiteActiveToken(t *testing.T) {
 	}
 }
 
-func TestCheck_IntrospectionFailureFailsClosed(t *testing.T) {
+func TestCheck_WhenIntrospectionFails_Returns403(t *testing.T) {
 	in := &fakeIntrospector{err: errors.New("keycloak unreachable")}
 	if code := check(t, in, &fakeRevocationChecker{}, "Bearer any"); code != http.StatusForbidden {
 		t.Fatalf("status = %d, want 403 when the verdict cannot be established", code)
 	}
 }
 
-func TestCheck_DenylistFailureFailsClosed(t *testing.T) {
+func TestCheck_WhenDenylistUnavailable_Returns403(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: true, Sub: "user-1"}}
 	rev := &fakeRevocationChecker{err: errors.New("valkey unreachable")}
 
@@ -120,7 +120,7 @@ func TestCheck_DenylistFailureFailsClosed(t *testing.T) {
 	}
 }
 
-func TestCheck_MissingOrMalformedBearerIsUnauthorized(t *testing.T) {
+func TestCheck_WhenBearerMissingOrMalformed_Returns401WithoutIntrospecting(t *testing.T) {
 	for name, header := range map[string]string{
 		"absent":      "",
 		"no scheme":   "abc.def.ghi",
@@ -139,13 +139,13 @@ func TestCheck_MissingOrMalformedBearerIsUnauthorized(t *testing.T) {
 	}
 }
 
-func TestBearerToken_IsSchemeCaseInsensitive(t *testing.T) {
+func TestBearerToken_WhenSchemeLowercase_ReturnsToken(t *testing.T) {
 	if got := bearerToken("bearer abc"); got != "abc" {
 		t.Fatalf("bearerToken(%q) = %q, want %q", "bearer abc", got, "abc")
 	}
 }
 
-func TestCheck_BlockedPrincipalDenied(t *testing.T) {
+func TestCheck_WhenPrincipalBlocked_Returns403(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: true, Sub: "user-1", Iat: 1700}}
 	risk := &fakeRiskChecker{entry: &security.RiskEntry{Sub: "user-1", Level: security.RiskLevelBlock}}
 
@@ -154,7 +154,7 @@ func TestCheck_BlockedPrincipalDenied(t *testing.T) {
 	}
 }
 
-func TestCheck_RestrictedPrincipalReadAllowedWriteDenied(t *testing.T) {
+func TestCheck_WhenPrincipalRestricted_Allows200OnReadAnd403OnWrite(t *testing.T) {
 	entry := &security.RiskEntry{Sub: "user-1", Level: security.RiskLevelRestrict}
 
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: true, Sub: "user-1", Iat: 1700}}
@@ -168,7 +168,7 @@ func TestCheck_RestrictedPrincipalReadAllowedWriteDenied(t *testing.T) {
 	}
 }
 
-func TestCheck_RiskStoreUnavailableFailsClosed(t *testing.T) {
+func TestCheck_WhenRiskStoreUnavailable_Returns403(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: true, Sub: "user-1", Iat: 1700}}
 	risk := &fakeRiskChecker{err: errors.New("valkey down")}
 
