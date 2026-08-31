@@ -2,11 +2,13 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import aliased
 
 from internal.application.port.repo.repos import TicketCategoryRepository
 from internal.domain.aggregate.ticket_category_aggregate import TicketCategoryAggregate
+from internal.domain.error import ConflictError
 from internal.infrastructure.adapter.mysql.models import TicketCategoryEntity
 from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
 
@@ -42,7 +44,11 @@ class MySQLTicketCategoryRepository(TicketCategoryRepository):
                 entity.updated_at = category.updated_at
                 entity.version = entity.version + 1
 
-            await session.commit()
+            try:
+                await session.commit()
+            except IntegrityError as exc:
+                await session.rollback()
+                raise ConflictError("Category name already exists") from exc
             await session.refresh(entity)
             parent_uid = await self._resolve_parent_uid(session, entity.parent_id)
             return self._to_aggregate(entity, parent_uid)
@@ -75,6 +81,20 @@ class MySQLTicketCategoryRepository(TicketCategoryRepository):
                 )
             ).first()
             return row[0] if row else None
+
+    async def find_by_name(self, name: str) -> TicketCategoryAggregate | None:
+        async with self._session_factory() as session:
+            row = (
+                await session.execute(
+                    select(TicketCategoryEntity, _ParentCategory.uid)
+                    .outerjoin(_ParentCategory, TicketCategoryEntity.parent_id == _ParentCategory.id)
+                    .where(TicketCategoryEntity.name == name)
+                )
+            ).first()
+            if row is None:
+                return None
+            entity, parent_uid_bytes = row
+            return self._to_aggregate(entity, parent_uid_bytes)
 
     async def find_all(self) -> list[TicketCategoryAggregate]:
         async with self._session_factory() as session:

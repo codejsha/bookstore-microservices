@@ -5,7 +5,6 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     Enum,
-    ForeignKey,
     LargeBinary,
     String,
     Text,
@@ -63,9 +62,7 @@ class TicketCategoryEntity(Base):
     uid: Mapped[bytes] = mapped_column(Uid, unique=True, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    parent_id: Mapped[int | None] = mapped_column(
-        BigInteger, ForeignKey("ticket_category.id", ondelete="SET NULL"), nullable=True
-    )
+    parent_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(Timestamp, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(Timestamp, nullable=False)
     deleted_at: Mapped[datetime | None] = mapped_column(Timestamp, nullable=True)
@@ -79,9 +76,7 @@ class TicketEntity(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     uid: Mapped[bytes] = mapped_column(Uid, unique=True, nullable=False, index=True)
     customer_uid: Mapped[bytes] = mapped_column(Uid, nullable=False, index=True)
-    category_id: Mapped[int | None] = mapped_column(
-        BigInteger, ForeignKey("ticket_category.id", ondelete="SET NULL"), nullable=True
-    )
+    category_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
     assignee_uid: Mapped[bytes | None] = mapped_column(Uid, nullable=True, index=True)
     subject: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
@@ -100,9 +95,7 @@ class TicketCommentEntity(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     uid: Mapped[bytes] = mapped_column(Uid, unique=True, nullable=False, index=True)
-    ticket_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("ticket.id", ondelete="CASCADE"), nullable=False, index=True
-    )
+    ticket_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
     author_uid: Mapped[bytes] = mapped_column(Uid, nullable=False)
     author_role: Mapped[AuthorRole] = mapped_column(AuthorRoleCol, nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
@@ -119,9 +112,7 @@ class FaqEntity(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     uid: Mapped[bytes] = mapped_column(Uid, unique=True, nullable=False, index=True)
-    category_id: Mapped[int | None] = mapped_column(
-        BigInteger, ForeignKey("ticket_category.id", ondelete="SET NULL"), nullable=True
-    )
+    category_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
     question: Mapped[str] = mapped_column(String(500), nullable=False)
     answer: Mapped[str] = mapped_column(Text, nullable=False)
     view_count: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)

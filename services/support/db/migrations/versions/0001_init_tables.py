@@ -1,26 +1,5 @@
 """init tables
 
-Baseline for the support schema. This transcribes the legacy golang-migrate SQL
-file (000001_init_tables) that this service carried before it moved to Alembic;
-that file was never run by any Alembic-based pipeline, so its DDL had never
-actually been applied.
-
-Two corrections against that legacy DDL, both required for the service to work:
-
-  - The user-identifying columns (`ticket.customer_id`, `ticket.assignee_id`,
-    `ticket_comment.author_id`) were BIGINT. Platform-wide, a user is identified
-    across service boundaries by their UUID -- the JWT `sub` -- and a numeric id
-    is internal to whichever service owns the row. Support has no way to resolve
-    a UUID subject to another service's numeric id, so ownership checks could
-    never succeed. They are BINARY(16) uid columns here.
-  - The `DEFAULT` clauses on `ticket_comment.internal`, `faq.view_count` and
-    `faq.published` are dropped: the repo standard is that the application sets
-    every value (the models carry the same defaults Python-side).
-
-The column types are imported from the SQLAlchemy models rather than restated,
-so `alembic revision --autogenerate` against a database built from this revision
-produces an empty diff.
-
 Revision ID: 0001_init_tables
 Revises:
 Create Date: 2026-07-13

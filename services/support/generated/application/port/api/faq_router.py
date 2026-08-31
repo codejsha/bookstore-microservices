@@ -18,7 +18,7 @@ router = APIRouter(
 
 @router.get(
     "/api/v1/faqs",
-    summary="Search FAQs",
+    summary="Search FAQs  Errors:   422 (UnprocessableEntityError) — Client error",
     response_model=FaqFindAllResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -38,7 +38,7 @@ async def faqs_get_all(
 
 @router.post(
     "/api/v1/faqs",
-    summary="Create FAQ",
+    summary="Create FAQ  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   422 (UnprocessableEntityError) — Client error",
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},
     },
@@ -58,7 +58,7 @@ async def faqs_create(
 
 @router.get(
     "/api/v1/faqs/{uid}",
-    summary="Find FAQ  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Find FAQ  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=FaqFindResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -74,7 +74,7 @@ async def faqs_read(
 
 @router.delete(
     "/api/v1/faqs/{uid}",
-    summary="Delete FAQ  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Delete FAQ  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
 )
 async def faqs_remove(
     uid: str = Path(...),
@@ -85,7 +85,7 @@ async def faqs_remove(
 
 @router.patch(
     "/api/v1/faqs/{uid}",
-    summary="Update FAQ  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Update FAQ  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=FaqUpdateResponse,
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},

@@ -23,13 +23,13 @@ async def ticket_id(session_factory: async_sessionmaker[AsyncSession]) -> int:
     return await repo.find_id_by_uid(ticket.uid)
 
 
-async def test_save_inserts_comment(comment_repo: MySQLTicketCommentRepository, ticket_id: int) -> None:
+async def test_save_new_inserts_row(comment_repo: MySQLTicketCommentRepository, ticket_id: int) -> None:
     comment = make_comment(ticket_id=ticket_id)
     saved = await comment_repo.save(comment)
     assert saved.uid == comment.uid
 
 
-async def test_find_by_uid_returns_saved(comment_repo: MySQLTicketCommentRepository, ticket_id: int) -> None:
+async def test_find_by_uid_roundtrips(comment_repo: MySQLTicketCommentRepository, ticket_id: int) -> None:
     comment = make_comment(ticket_id=ticket_id)
     await comment_repo.save(comment)
     found = await comment_repo.find_by_uid(comment.uid)
@@ -37,7 +37,7 @@ async def test_find_by_uid_returns_saved(comment_repo: MySQLTicketCommentReposit
     assert found.body == comment.body
 
 
-async def test_find_by_ticket_id_includes_internal_by_default(
+async def test_find_by_ticket_id_include_internal_omitted_keeps_internal_comments(
     comment_repo: MySQLTicketCommentRepository, ticket_id: int
 ) -> None:
     await comment_repo.save(make_comment(ticket_id=ticket_id, internal=False))
@@ -46,7 +46,7 @@ async def test_find_by_ticket_id_includes_internal_by_default(
     assert len(items) == 2
 
 
-async def test_find_by_ticket_id_excludes_internal_when_disabled(
+async def test_find_by_ticket_id_include_internal_false_excludes_internal_comments(
     comment_repo: MySQLTicketCommentRepository, ticket_id: int
 ) -> None:
     await comment_repo.save(make_comment(ticket_id=ticket_id, internal=False))
@@ -56,7 +56,9 @@ async def test_find_by_ticket_id_excludes_internal_when_disabled(
     assert items[0].internal is False
 
 
-async def test_find_by_ticket_id_orders_ascending(comment_repo: MySQLTicketCommentRepository, ticket_id: int) -> None:
+async def test_find_by_ticket_id_orders_comments_oldest_first(
+    comment_repo: MySQLTicketCommentRepository, ticket_id: int
+) -> None:
     from datetime import UTC, datetime, timedelta
 
     base = datetime.now(UTC)

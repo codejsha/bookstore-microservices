@@ -6,5 +6,5 @@ from typing import Optional
 
 
 class CommentCreateRequest(BaseModel):
-    body: str
+    body: str = Field(min_length=1, max_length=16000, pattern="[\s\S]*\S[\s\S]*")
     internal: Optional[bool] = Field(default=None)

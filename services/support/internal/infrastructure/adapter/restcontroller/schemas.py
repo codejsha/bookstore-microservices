@@ -6,21 +6,28 @@ from pydantic import BaseModel
 from internal.domain.constant.author_role import AuthorRole
 from internal.domain.constant.ticket_priority import TicketPriority
 from internal.domain.constant.ticket_status import TicketStatus
+from internal.domain.model.command import (
+    NonBlankStr100,
+    NonBlankStr255,
+    NonBlankStr500,
+    NonBlankStr16000,
+    Str500,
+)
 
 # ─── Tickets ─────────────────────────────────────────────────────────────
 
 
 class CreateTicketRequest(BaseModel):
     customer_uid: UUID
-    subject: str
-    description: str
+    subject: NonBlankStr255
+    description: NonBlankStr16000
     priority: TicketPriority = TicketPriority.MEDIUM
     category_uid: UUID | None = None
 
 
 class UpdateTicketRequest(BaseModel):
-    subject: str | None = None
-    description: str | None = None
+    subject: NonBlankStr255 | None = None
+    description: NonBlankStr16000 | None = None
     priority: TicketPriority | None = None
     category_uid: UUID | None = None
     assignee_uid: UUID | None = None
@@ -55,7 +62,7 @@ class PaginatedTicketResponse(BaseModel):
 
 
 class AddCommentRequest(BaseModel):
-    body: str
+    body: NonBlankStr16000
     internal: bool = False
 
 
@@ -74,14 +81,14 @@ class CommentResponse(BaseModel):
 
 
 class CreateCategoryRequest(BaseModel):
-    name: str
-    description: str | None = None
+    name: NonBlankStr100
+    description: Str500 | None = None
     parent_uid: UUID | None = None
 
 
 class UpdateCategoryRequest(BaseModel):
-    name: str | None = None
-    description: str | None = None
+    name: NonBlankStr100 | None = None
+    description: Str500 | None = None
     parent_uid: UUID | None = None
 
 
@@ -98,15 +105,15 @@ class CategoryResponse(BaseModel):
 
 
 class CreateFaqRequest(BaseModel):
-    question: str
-    answer: str
+    question: NonBlankStr500
+    answer: NonBlankStr16000
     category_uid: UUID | None = None
     published: bool = False
 
 
 class UpdateFaqRequest(BaseModel):
-    question: str | None = None
-    answer: str | None = None
+    question: NonBlankStr500 | None = None
+    answer: NonBlankStr16000 | None = None
     category_uid: UUID | None = None
     published: bool | None = None
 
@@ -127,7 +134,3 @@ class PaginatedFaqResponse(BaseModel):
     total: int
     page: int
     size: int
-
-
-class ErrorResponse(BaseModel):
-    detail: str

@@ -6,6 +6,6 @@ from typing import Optional
 
 
 class CategoryCreateRequest(BaseModel):
-    description: Optional[str] = Field(default=None)
-    name: str
+    description: Optional[str] = Field(default=None, max_length=500)
+    name: str = Field(min_length=1, max_length=100, pattern="[\s\S]*\S[\s\S]*")
     parent_uid: Optional[str] = Field(default=None)

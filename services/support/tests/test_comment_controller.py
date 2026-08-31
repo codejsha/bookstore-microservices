@@ -33,7 +33,7 @@ def customer_client(service: MagicMock) -> TestClient:
     return TestClient(app, headers={"x-user-id": str(CUSTOMER_UID), "x-user-roles": "VIEW"})
 
 
-def test_add_comment_returns_201(client: TestClient, service: MagicMock) -> None:
+def test_add_comment_valid_request_created(client: TestClient, service: MagicMock) -> None:
     comment = make_comment()
     service.add_comment.return_value = comment
     response = client.post(
@@ -43,7 +43,7 @@ def test_add_comment_returns_201(client: TestClient, service: MagicMock) -> None
     assert response.status_code == 201
 
 
-def test_add_comment_returns_404_when_ticket_missing(client: TestClient, service: MagicMock) -> None:
+def test_add_comment_missing_ticket_not_found(client: TestClient, service: MagicMock) -> None:
     service.add_comment.return_value = None
     response = client.post(
         f"/api/v1/tickets/{uuid4()}/comments",
@@ -52,20 +52,22 @@ def test_add_comment_returns_404_when_ticket_missing(client: TestClient, service
     assert response.status_code == 404
 
 
-def test_list_comments_returns_404_when_ticket_missing(client: TestClient, service: MagicMock) -> None:
+def test_list_comments_missing_ticket_not_found(client: TestClient, service: MagicMock) -> None:
     service.list_comments.return_value = None
     response = client.get(f"/api/v1/tickets/{uuid4()}/comments")
     assert response.status_code == 404
 
 
-def test_list_comments_returns_200(client: TestClient, service: MagicMock) -> None:
+def test_list_comments_found_ok_with_all(client: TestClient, service: MagicMock) -> None:
     service.list_comments.return_value = [make_comment(), make_comment(internal=True)]
     response = client.get(f"/api/v1/tickets/{uuid4()}/comments")
     assert response.status_code == 200
     assert len(response.json()) == 2
 
 
-def test_non_staff_cannot_forge_author_uid_or_role(customer_client: TestClient, service: MagicMock) -> None:
+def test_add_comment_customer_caller_uses_caller_uid_and_customer_role(
+    customer_client: TestClient, service: MagicMock
+) -> None:
     service.get_ticket.return_value = make_ticket(customer_uid=CUSTOMER_UID)
     service.add_comment.return_value = make_comment()
     response = customer_client.post(
@@ -78,7 +80,7 @@ def test_non_staff_cannot_forge_author_uid_or_role(customer_client: TestClient, 
     assert command.author_role == AuthorRole.CUSTOMER
 
 
-def test_staff_comment_uses_own_uid_and_agent_role(client: TestClient, service: MagicMock) -> None:
+def test_add_comment_staff_caller_uses_caller_uid_and_agent_role(client: TestClient, service: MagicMock) -> None:
     service.get_ticket.return_value = make_ticket()
     service.add_comment.return_value = make_comment(author_role=AuthorRole.AGENT)
     response = client.post(
@@ -91,7 +93,7 @@ def test_staff_comment_uses_own_uid_and_agent_role(client: TestClient, service: 
     assert command.author_role == AuthorRole.AGENT
 
 
-def test_list_comments_passes_include_internal_flag(client: TestClient, service: MagicMock) -> None:
+def test_list_comments_with_include_internal_passes_it_to_service(client: TestClient, service: MagicMock) -> None:
     service.list_comments.return_value = [make_comment()]
     response = client.get(f"/api/v1/tickets/{uuid4()}/comments", params={"include_internal": "false"})
     assert response.status_code == 200

@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 
 from internal.domain.aggregate.ticket_category_aggregate import TicketCategoryAggregate
+from internal.domain.error import ConflictError, UnknownReferenceError
 from internal.domain.model.command.category_command import (
     CreateCategoryCommand,
     UpdateCategoryCommand,
@@ -30,7 +31,12 @@ def create_category_router(service: SupportService) -> APIRouter:
             description=request.description,
             parent_uid=request.parent_uid,
         )
-        return _to_response(await service.create_category(command))
+        try:
+            return _to_response(await service.create_category(command))
+        except ConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except UnknownReferenceError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @router.get("/{uid}", response_model=CategoryResponse)
     async def get_category(uid: UUID) -> CategoryResponse:
@@ -50,7 +56,12 @@ def create_category_router(service: SupportService) -> APIRouter:
             description=request.description,
             parent_uid=request.parent_uid,
         )
-        category = await service.update_category(uid, command)
+        try:
+            category = await service.update_category(uid, command)
+        except ConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except UnknownReferenceError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         if category is None:
             raise HTTPException(status_code=404, detail="Category not found")
         return _to_response(category)

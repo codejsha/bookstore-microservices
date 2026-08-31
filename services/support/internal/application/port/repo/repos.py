@@ -55,6 +55,9 @@ class TicketCategoryRepository(ABC):
     async def find_id_by_uid(self, uid: UUID) -> int | None: ...
 
     @abstractmethod
+    async def find_by_name(self, name: str) -> TicketCategoryAggregate | None: ...
+
+    @abstractmethod
     async def find_all(self) -> list[TicketCategoryAggregate]: ...
 
     @abstractmethod
