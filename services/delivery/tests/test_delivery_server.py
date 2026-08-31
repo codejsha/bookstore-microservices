@@ -52,7 +52,9 @@ def servicer(service: MagicMock) -> DeliveryServiceServicer:
 
 
 class TestTrackShipment:
-    async def test_maps_aggregate_to_proto(self, servicer: DeliveryServiceServicer, service: MagicMock) -> None:
+    async def test_track_shipment_found_maps_aggregate_to_proto(
+        self, servicer: DeliveryServiceServicer, service: MagicMock
+    ) -> None:
         now = datetime(2026, 6, 28, 12, 0, 0, tzinfo=UTC)
         shipment = make_shipment(status=ShipmentStatus.IN_TRANSIT, now=now)
         shipment.tracking_number = "DLVABCDEF0123456789"
@@ -77,20 +79,24 @@ class TestTrackShipment:
         assert s.carrier_uid == ""
         service.get_shipment.assert_awaited_once_with(shipment.uid)
 
-    async def test_aborts_not_found(self, servicer: DeliveryServiceServicer, service: MagicMock) -> None:
+    async def test_track_shipment_missing_aborts_not_found(
+        self, servicer: DeliveryServiceServicer, service: MagicMock
+    ) -> None:
         service.get_shipment = AsyncMock(return_value=None)
         context = FakeContext()
         with pytest.raises(_Aborted):
             await servicer.TrackShipment(pb.TrackShipmentRequest(uid=str(uuid4())), context)
         assert context.code == grpc.StatusCode.NOT_FOUND
 
-    async def test_aborts_invalid_uid(self, servicer: DeliveryServiceServicer, service: MagicMock) -> None:
+    async def test_track_shipment_malformed_uid_aborts_invalid_argument(
+        self, servicer: DeliveryServiceServicer, service: MagicMock
+    ) -> None:
         context = FakeContext()
         with pytest.raises(_Aborted):
             await servicer.TrackShipment(pb.TrackShipmentRequest(uid="not-a-uuid"), context)
         assert context.code == grpc.StatusCode.INVALID_ARGUMENT
 
-    async def test_unauthenticated_without_caller_metadata(
+    async def test_track_shipment_missing_caller_metadata_aborts_unauthenticated(
         self, servicer: DeliveryServiceServicer, service: MagicMock
     ) -> None:
         service.get_shipment = AsyncMock(return_value=make_shipment())
@@ -100,7 +106,7 @@ class TestTrackShipment:
         assert context.code == grpc.StatusCode.UNAUTHENTICATED
         service.get_shipment.assert_not_awaited()
 
-    async def test_unauthenticated_with_non_uuid_caller(
+    async def test_track_shipment_non_uuid_caller_uid_aborts_unauthenticated(
         self, servicer: DeliveryServiceServicer, service: MagicMock
     ) -> None:
         service.get_shipment = AsyncMock(return_value=make_shipment())
@@ -111,7 +117,9 @@ class TestTrackShipment:
 
 
 class TestListShipments:
-    async def test_maps_list_and_total(self, servicer: DeliveryServiceServicer, service: MagicMock) -> None:
+    async def test_list_shipments_found_maps_list_and_total(
+        self, servicer: DeliveryServiceServicer, service: MagicMock
+    ) -> None:
         shipments = [make_shipment(), make_shipment()]
         service.list_shipments = AsyncMock(return_value=(shipments, 2))
 
@@ -122,7 +130,7 @@ class TestListShipments:
         assert response.total_size == 2
         assert [s.uid for s in response.shipments] == [str(s.uid) for s in shipments]
 
-    async def test_passes_order_uid_and_status_filters(
+    async def test_list_shipments_with_filters_passes_order_uid_and_status(
         self, servicer: DeliveryServiceServicer, service: MagicMock
     ) -> None:
         service.list_shipments = AsyncMock(return_value=([], 0))
@@ -140,7 +148,7 @@ class TestListShipments:
         assert option.order_uid == order_uid
         assert option.status == ShipmentStatus.DISPATCHED
 
-    async def test_status_unspecified_means_no_status_filter(
+    async def test_list_shipments_unspecified_status_omits_status_filter(
         self, servicer: DeliveryServiceServicer, service: MagicMock
     ) -> None:
         service.list_shipments = AsyncMock(return_value=([], 0))
@@ -151,7 +159,7 @@ class TestListShipments:
         assert option.status is None
         assert option.order_uid == order_uid
 
-    async def test_next_page_token_set_when_more_results(
+    async def test_list_shipments_more_results_remain_sets_next_page_token(
         self, servicer: DeliveryServiceServicer, service: MagicMock
     ) -> None:
         service.list_shipments = AsyncMock(return_value=([make_shipment()], 50))
@@ -160,7 +168,7 @@ class TestListShipments:
         )
         assert response.next_page_token == "1"
 
-    async def test_next_page_token_empty_on_last_page(
+    async def test_list_shipments_last_page_has_empty_next_page_token(
         self, servicer: DeliveryServiceServicer, service: MagicMock
     ) -> None:
         service.list_shipments = AsyncMock(return_value=([make_shipment()], 10))
@@ -169,7 +177,7 @@ class TestListShipments:
         )
         assert response.next_page_token == ""
 
-    async def test_unauthenticated_without_caller_metadata(
+    async def test_list_shipments_missing_caller_metadata_aborts_unauthenticated(
         self, servicer: DeliveryServiceServicer, service: MagicMock
     ) -> None:
         service.list_shipments = AsyncMock(return_value=([make_shipment()], 1))
@@ -179,7 +187,7 @@ class TestListShipments:
         assert context.code == grpc.StatusCode.UNAUTHENTICATED
         service.list_shipments.assert_not_awaited()
 
-    async def test_permission_denied_without_order_scope(
+    async def test_list_shipments_missing_order_scope_aborts_permission_denied(
         self, servicer: DeliveryServiceServicer, service: MagicMock
     ) -> None:
         service.list_shipments = AsyncMock(return_value=([make_shipment()], 1))
@@ -189,7 +197,7 @@ class TestListShipments:
         assert context.code == grpc.StatusCode.PERMISSION_DENIED
         service.list_shipments.assert_not_awaited()
 
-    async def test_list_is_scoped_to_requested_order(
+    async def test_list_shipments_by_order_excludes_other_orders(
         self, servicer: DeliveryServiceServicer, service: MagicMock
     ) -> None:
         own_order = uuid4()
@@ -219,12 +227,14 @@ class TestStatusEnumMapping:
             (ShipmentStatus.CANCELLED, pb.SHIPMENT_STATUS_CANCELLED),
         ],
     )
-    def test_domain_to_pb_and_back(self, domain_status: ShipmentStatus, pb_status: int) -> None:
+    def test_status_mapping_domain_status_round_trips_through_proto(
+        self, domain_status: ShipmentStatus, pb_status: int
+    ) -> None:
         assert _STATUS_TO_PB[domain_status] == pb_status
         assert _PB_TO_STATUS[pb_status] == domain_status
 
-    def test_every_domain_status_is_mapped(self) -> None:
+    def test_status_mapping_every_domain_status_has_proto_entry(self) -> None:
         assert set(_STATUS_TO_PB.keys()) == set(ShipmentStatus)
 
-    def test_unspecified_has_no_domain_mapping(self) -> None:
+    def test_status_mapping_unspecified_proto_has_no_domain_entry(self) -> None:
         assert pb.SHIPMENT_STATUS_UNSPECIFIED not in _PB_TO_STATUS

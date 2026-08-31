@@ -20,7 +20,7 @@ router = APIRouter(
 
 @router.get(
     "/api/v1/freights",
-    summary="List freights",
+    summary="List freights  Errors:   422 (UnprocessableEntityError) — Client error",
     response_model=FreightFindAllResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -40,7 +40,7 @@ async def freights_get_all(
 
 @router.post(
     "/api/v1/freights",
-    summary="Create freight",
+    summary="Create freight  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   422 (UnprocessableEntityError) — Client error",
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},
     },
@@ -60,7 +60,7 @@ async def freights_create(
 
 @router.get(
     "/api/v1/freights/shipment/{shipment_uid}",
-    summary="Find freight by shipment  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Find freight by shipment  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=FreightFindResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -75,7 +75,7 @@ async def freights_read_by_shipment(
 
 @router.get(
     "/api/v1/freights/{uid}",
-    summary="Find freight  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Find freight  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=FreightFindResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -90,7 +90,7 @@ async def freights_read(
 
 @router.patch(
     "/api/v1/freights/{uid}/status",
-    summary="Update freight status  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Update freight status  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=FreightUpdateResponse,
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},

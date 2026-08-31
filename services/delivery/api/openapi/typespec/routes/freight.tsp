@@ -17,21 +17,21 @@ interface Freights {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): FreightFindAllResponse;
+  ): FreightFindAllResponse | UnprocessableEntityError;
 
   @doc("Create freight")
   @post
-  create(@body body: FreightCreateRequest): CreatedResponse;
+  create(@body body: FreightCreateRequest): CreatedResponse | BadRequestError | UnprocessableEntityError;
 
   @doc("Find freight")
   @route("{uid}")
   @get
-  read(@path uid: uuid): FreightFindResponse | NotFoundError;
+  read(@path uid: uuid): FreightFindResponse | NotFoundError | UnprocessableEntityError;
 
   @doc("Find freight by shipment")
   @route("shipment/{shipment_uid}")
   @get
-  readByShipment(@path shipment_uid: uuid): FreightFindResponse | NotFoundError;
+  readByShipment(@path shipment_uid: uuid): FreightFindResponse | NotFoundError | UnprocessableEntityError;
 
   @doc("Update freight status")
   @route("{uid}/status")
@@ -39,5 +39,5 @@ interface Freights {
   updateStatus(
     @path uid: uuid,
     @body body: FreightUpdateStatusRequest,
-  ): FreightUpdateResponse | NotFoundError;
+  ): FreightUpdateResponse | NotFoundError | UnprocessableEntityError;
 }

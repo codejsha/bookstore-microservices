@@ -19,7 +19,9 @@ def service(freight_repo: MagicMock) -> FreightService:
 
 
 class TestCreateFreight:
-    async def test_computes_total_cost(self, service: FreightService, freight_repo: MagicMock) -> None:
+    async def test_create_freight_with_surcharges_computes_total_cost(
+        self, service: FreightService, freight_repo: MagicMock
+    ) -> None:
         command = CreateFreightCommand(
             shipment_uid=uuid4(),
             carrier_uid=uuid4(),
@@ -34,21 +36,25 @@ class TestCreateFreight:
         assert result.status == FreightStatus.ESTIMATED
         freight_repo.save.assert_called_once()
 
-    async def test_uses_default_zero_surcharges(self, service: FreightService, freight_repo: MagicMock) -> None:
+    async def test_create_freight_without_surcharges_defaults_them_to_zero(
+        self, service: FreightService, freight_repo: MagicMock
+    ) -> None:
         command = CreateFreightCommand(shipment_uid=uuid4(), carrier_uid=uuid4(), base_cost=500.0)
         result = await service.create_freight(command)
         assert result.total_cost == pytest.approx(500.0)
 
 
 class TestGetFreight:
-    async def test_returns_freight_when_found(self, service: FreightService, freight_repo: MagicMock) -> None:
+    async def test_get_freight_roundtrips(self, service: FreightService, freight_repo: MagicMock) -> None:
         freight = make_freight()
         freight_repo.find_by_uid.return_value = freight
         assert await service.get_freight(freight.uid) is freight
 
 
 class TestFindByShipment:
-    async def test_delegates_to_repository(self, service: FreightService, freight_repo: MagicMock) -> None:
+    async def test_find_by_shipment_delegates_to_repository(
+        self, service: FreightService, freight_repo: MagicMock
+    ) -> None:
         shipment_uid = uuid4()
         freight = make_freight(shipment_uid=shipment_uid)
         freight_repo.find_by_shipment_uid.return_value = freight
@@ -57,7 +63,9 @@ class TestFindByShipment:
 
 
 class TestListFreights:
-    async def test_delegates_to_repository(self, service: FreightService, freight_repo: MagicMock) -> None:
+    async def test_list_freights_with_option_delegates_to_repository(
+        self, service: FreightService, freight_repo: MagicMock
+    ) -> None:
         option = FreightFilterOption()
         freight_repo.find_all.return_value = ([make_freight()], 1)
         result, total = await service.list_freights(option)
@@ -65,13 +73,15 @@ class TestListFreights:
 
 
 class TestUpdateStatus:
-    async def test_returns_none_when_missing(self, service: FreightService, freight_repo: MagicMock) -> None:
+    async def test_update_status_missing_is_none(self, service: FreightService, freight_repo: MagicMock) -> None:
         freight_repo.find_by_uid.return_value = None
         result = await service.update_status(uuid4(), UpdateFreightStatusCommand(status=FreightStatus.PAID))
         assert result is None
         freight_repo.save.assert_not_called()
 
-    async def test_invoiced_sets_invoiced_at(self, service: FreightService, freight_repo: MagicMock) -> None:
+    async def test_update_status_invoiced_sets_invoiced_at(
+        self, service: FreightService, freight_repo: MagicMock
+    ) -> None:
         freight = make_freight(status=FreightStatus.CONFIRMED)
         freight_repo.find_by_uid.return_value = freight
         result = await service.update_status(freight.uid, UpdateFreightStatusCommand(status=FreightStatus.INVOICED))
@@ -80,7 +90,7 @@ class TestUpdateStatus:
         assert result.invoiced_at is not None
         assert result.paid_at is None
 
-    async def test_paid_sets_paid_at(self, service: FreightService, freight_repo: MagicMock) -> None:
+    async def test_update_status_paid_sets_paid_at(self, service: FreightService, freight_repo: MagicMock) -> None:
         freight = make_freight(status=FreightStatus.INVOICED)
         freight_repo.find_by_uid.return_value = freight
         result = await service.update_status(freight.uid, UpdateFreightStatusCommand(status=FreightStatus.PAID))
@@ -88,7 +98,9 @@ class TestUpdateStatus:
         assert result.status == FreightStatus.PAID
         assert result.paid_at is not None
 
-    async def test_other_statuses_leave_timestamps(self, service: FreightService, freight_repo: MagicMock) -> None:
+    async def test_update_status_neither_invoiced_nor_paid_leaves_timestamps(
+        self, service: FreightService, freight_repo: MagicMock
+    ) -> None:
         freight = make_freight(status=FreightStatus.ESTIMATED)
         freight_repo.find_by_uid.return_value = freight
         result = await service.update_status(freight.uid, UpdateFreightStatusCommand(status=FreightStatus.CONFIRMED))

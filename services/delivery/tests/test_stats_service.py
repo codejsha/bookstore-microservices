@@ -5,7 +5,7 @@ from internal.domain.model.option.delivery_option import StatsFilterOption
 from internal.domain.service.delivery_service import StatsService
 
 
-async def test_get_dashboard_delegates_to_repository(stats_repo: MagicMock) -> None:
+async def test_get_dashboard_with_option_delegates_to_repository(stats_repo: MagicMock) -> None:
     dashboard = DeliveryDashboard(
         total_shipments=10,
         status_counts=[],

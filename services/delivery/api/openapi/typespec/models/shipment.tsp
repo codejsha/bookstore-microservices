@@ -18,12 +18,29 @@ enum ShipmentStatus {
 model ShipmentCreateRequest {
   order_uid: uuid;
   carrier_uid?: uuid;
+  @minLength(1)
+  @maxLength(500)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   origin_address: string;
+  @minLength(1)
+  @maxLength(500)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   destination_address: string;
+  @minLength(1)
+  @maxLength(100)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   destination_city: string;
+  @maxLength(100)
   destination_state: string;
+  @minLength(1)
+  @maxLength(3)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   destination_country_code: string;
+  @minLength(1)
+  @maxLength(20)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   destination_postal_code: string;
+  @minValueExclusive(0)
   weight_kg?: float64;
   planned_pickup_at?: utcDateTime;
   planned_delivery_at?: utcDateTime;
@@ -31,6 +48,9 @@ model ShipmentCreateRequest {
 
 model ShipmentAssignCarrierRequest {
   carrier_uid: uuid;
+  @minLength(1)
+  @maxLength(100)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   tracking_number?: string;
 }
 
@@ -65,7 +85,12 @@ model ShipmentFindAllResponse is PaginatedResponse<ShipmentItem>;
 
 model TrackingCreateRequest {
   status: ShipmentStatus;
+  @minLength(1)
+  @maxLength(255)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   location: string;
+  @minLength(1)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   description: string;
 }
 

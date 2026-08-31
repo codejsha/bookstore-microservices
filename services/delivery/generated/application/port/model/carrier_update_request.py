@@ -8,10 +8,10 @@ from ..constant.carrier_status import CarrierStatus
 
 
 class CarrierUpdateRequest(BaseModel):
-    base_rate: Optional[float] = Field(default=None)
-    contact_email: Optional[str] = Field(default=None)
-    contact_name: Optional[str] = Field(default=None)
-    contact_phone: Optional[str] = Field(default=None)
-    name: Optional[str] = Field(default=None)
-    rate_per_kg: Optional[float] = Field(default=None)
+    base_rate: Optional[float] = Field(default=None, ge=0)
+    contact_email: Optional[str] = Field(default=None, max_length=255, pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    contact_name: Optional[str] = Field(default=None, min_length=1, max_length=255, pattern="[\s\S]*\S[\s\S]*")
+    contact_phone: Optional[str] = Field(default=None, min_length=1, max_length=50, pattern="[\s\S]*\S[\s\S]*")
+    name: Optional[str] = Field(default=None, min_length=1, max_length=255, pattern="[\s\S]*\S[\s\S]*")
+    rate_per_kg: Optional[float] = Field(default=None, ge=0)
     status: Optional[CarrierStatus] = Field(default=None)

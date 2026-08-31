@@ -24,38 +24,38 @@ def _app(router) -> FastAPI:
     return app
 
 
-def test_carriers_require_auth() -> None:
+def test_carriers_anonymous_caller_unauthorized() -> None:
     app = _app(create_carrier_router(MagicMock(spec=CarrierService)))
     assert TestClient(app).get("/api/v1/carriers").status_code == 401
 
 
-def test_carriers_require_staff() -> None:
+def test_carriers_customer_caller_forbidden() -> None:
     app = _app(create_carrier_router(MagicMock(spec=CarrierService)))
     assert TestClient(app, headers=CUSTOMER_HEADERS).get("/api/v1/carriers").status_code == 403
 
 
-def test_stats_require_staff() -> None:
+def test_stats_customer_caller_forbidden() -> None:
     app = _app(create_stats_router(MagicMock(spec=StatsService)))
     assert TestClient(app, headers=CUSTOMER_HEADERS).get("/api/v1/stats/dashboard").status_code == 403
 
 
-def test_freight_require_staff() -> None:
+def test_freights_customer_caller_forbidden() -> None:
     app = _app(create_freight_router(MagicMock(spec=FreightService)))
     assert TestClient(app, headers=CUSTOMER_HEADERS).get("/api/v1/freights").status_code == 403
 
 
-def test_shipment_list_requires_staff() -> None:
+def test_shipment_list_customer_caller_forbidden() -> None:
     app = _app(create_shipment_router(MagicMock(spec=ShipmentService)))
     assert TestClient(app, headers=CUSTOMER_HEADERS).get("/api/v1/shipments").status_code == 403
 
 
-def test_shipment_dispatch_requires_staff() -> None:
+def test_shipment_dispatch_customer_caller_forbidden() -> None:
     app = _app(create_shipment_router(MagicMock(spec=ShipmentService)))
     resp = TestClient(app, headers=CUSTOMER_HEADERS).patch(f"/api/v1/shipments/{uuid4()}/dispatch")
     assert resp.status_code == 403
 
 
-def test_shipment_single_read_requires_auth_only() -> None:
+def test_shipment_read_customer_caller_passes_authz() -> None:
     service = MagicMock(spec=ShipmentService)
     service.get_shipment.return_value = None
     app = _app(create_shipment_router(service))

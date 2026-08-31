@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 
-class NotFoundError(BaseModel):
+class ConflictError(BaseModel):
     detail: Optional[str] = Field(default=None)
     status: int
     title: str

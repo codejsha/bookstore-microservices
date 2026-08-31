@@ -31,7 +31,7 @@ def _reset(service: MagicMock) -> None:
     service.reset_mock(return_value=True, side_effect=True)
 
 
-def test_dashboard_returns_aggregated_metrics(client: TestClient, service: MagicMock) -> None:
+def test_dashboard_ok_with_service_metrics(client: TestClient, service: MagicMock) -> None:
     service.get_dashboard.return_value = DeliveryDashboard(
         total_shipments=5,
         status_counts=[ShipmentStatusCount(status="PLANNED", count=3)],
@@ -59,7 +59,7 @@ def test_dashboard_returns_aggregated_metrics(client: TestClient, service: Magic
     assert body["on_time_delivery_rate"] == 80.0
 
 
-def test_dashboard_passes_filters(client: TestClient, service: MagicMock) -> None:
+def test_dashboard_with_filters_passes_them_to_service(client: TestClient, service: MagicMock) -> None:
     service.get_dashboard.return_value = DeliveryDashboard(
         total_shipments=0,
         status_counts=[],

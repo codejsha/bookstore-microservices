@@ -10,21 +10,50 @@ enum CarrierStatus {
 // ─── Carrier models ─────────────────────────────────────────────────────────
 
 model CarrierCreateRequest {
+  @minLength(1)
+  @maxLength(255)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   name: string;
+  @minLength(1)
+  @maxLength(50)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   code: string;
+  @minLength(1)
+  @maxLength(255)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   contact_name?: string;
+  @minLength(1)
+  @maxLength(50)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   contact_phone?: string;
+  @maxLength(255)
+  @pattern("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
   contact_email?: string;
+  @minValue(0)
   base_rate: float64;
+  @minValue(0)
   rate_per_kg: float64;
 }
 
 model CarrierUpdateRequest {
+  @minLength(1)
+  @maxLength(255)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   name?: string;
+  @minLength(1)
+  @maxLength(255)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   contact_name?: string;
+  @minLength(1)
+  @maxLength(50)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   contact_phone?: string;
+  @maxLength(255)
+  @pattern("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
   contact_email?: string;
+  @minValue(0)
   base_rate?: float64;
+  @minValue(0)
   rate_per_kg?: float64;
   status?: CarrierStatus;
 }

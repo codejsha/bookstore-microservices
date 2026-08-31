@@ -65,6 +65,9 @@ class CarrierRepository(ABC):
     async def find_by_uid(self, uid: UUID) -> CarrierAggregate | None: ...
 
     @abstractmethod
+    async def find_by_code(self, code: str) -> CarrierAggregate | None: ...
+
+    @abstractmethod
     async def find_all(self, option: CarrierFilterOption) -> tuple[list[CarrierAggregate], int]: ...
 
     @abstractmethod

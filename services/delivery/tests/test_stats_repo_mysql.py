@@ -167,7 +167,7 @@ async def stats_repo(mysql_url: str) -> AsyncIterator[MySQLStatsRepository]:
         await engine.dispose()
 
 
-async def test_dashboard_totals(stats_repo: MySQLStatsRepository) -> None:
+async def test_get_dashboard_aggregates_shipment_totals(stats_repo: MySQLStatsRepository) -> None:
     dash = await stats_repo.get_dashboard(StatsFilterOption())
 
     assert dash.total_shipments == 5
@@ -180,7 +180,9 @@ async def test_dashboard_totals(stats_repo: MySQLStatsRepository) -> None:
     assert status_counts[ShipmentStatus.FAILED] == 1
 
 
-async def test_per_carrier_avg_is_not_biased_by_freight_fanout(stats_repo: MySQLStatsRepository) -> None:
+async def test_get_dashboard_freight_rows_fan_out_keeps_per_carrier_averages_unbiased(
+    stats_repo: MySQLStatsRepository,
+) -> None:
     dash = await stats_repo.get_dashboard(StatsFilterOption())
     perf = {p.carrier_name: p for p in dash.carrier_performances}
 
@@ -198,7 +200,9 @@ async def test_per_carrier_avg_is_not_biased_by_freight_fanout(stats_repo: MySQL
     assert c2.total_freight_cost == pytest.approx(200.0)
 
 
-async def test_carrier_filter_scopes_dashboard(stats_repo: MySQLStatsRepository) -> None:
+async def test_get_dashboard_by_carrier_scopes_totals_to_carrier(
+    stats_repo: MySQLStatsRepository,
+) -> None:
     dash = await stats_repo.get_dashboard(StatsFilterOption(carrier_uid=C2))
 
     assert dash.total_shipments == 1

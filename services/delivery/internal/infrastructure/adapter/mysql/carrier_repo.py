@@ -63,6 +63,13 @@ class MySQLCarrierRepository(CarrierRepository):
             ).scalar_one_or_none()
             return self._to_aggregate(entity) if entity else None
 
+    async def find_by_code(self, code: str) -> CarrierAggregate | None:
+        async with self._session_factory() as session:
+            entity = (
+                await session.execute(select(CarrierEntity).where(CarrierEntity.code == code))
+            ).scalar_one_or_none()
+            return self._to_aggregate(entity) if entity else None
+
     async def find_all(self, option: CarrierFilterOption) -> tuple[list[CarrierAggregate], int]:
         async with self._session_factory() as session:
             query = select(CarrierEntity).where(CarrierEntity.deleted_at.is_(None))
