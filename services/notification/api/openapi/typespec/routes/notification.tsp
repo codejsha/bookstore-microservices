@@ -18,24 +18,24 @@ interface Notifications {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): NotificationFindAllResponse | ForbiddenError;
+  ): NotificationFindAllResponse | ForbiddenError | UnprocessableEntityError;
 
   @doc("Send new notification")
   @post
-  create(@body body: SendNotificationRequest): CreatedResponse | ForbiddenError;
+  create(@body body: SendNotificationRequest): CreatedResponse | ForbiddenError | UnprocessableEntityError;
 
   @doc("Find notification")
   @route("{uid}")
   @get
-  read(@path uid: uuid): NotificationFindResponse | ForbiddenError | NotFoundError;
+  read(@path uid: uuid): NotificationFindResponse | ForbiddenError | NotFoundError | UnprocessableEntityError;
 
   @doc("Mark notification as sent")
   @route("{uid}/sent")
   @patch(#{ implicitOptionality: false })
-  markAsSent(@path uid: uuid): NotificationUpdateResponse | ForbiddenError | NotFoundError;
+  markAsSent(@path uid: uuid): NotificationUpdateResponse | ForbiddenError | NotFoundError | UnprocessableEntityError;
 
   @doc("Mark notification as failed")
   @route("{uid}/failed")
   @patch(#{ implicitOptionality: false })
-  markAsFailed(@path uid: uuid): NotificationUpdateResponse | ForbiddenError | NotFoundError;
+  markAsFailed(@path uid: uuid): NotificationUpdateResponse | ForbiddenError | NotFoundError | UnprocessableEntityError;
 }

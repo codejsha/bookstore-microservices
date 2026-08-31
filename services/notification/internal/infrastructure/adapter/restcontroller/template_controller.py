@@ -1,9 +1,11 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from sqlalchemy.exc import IntegrityError
 
 from internal.domain.constant.channel import Channel
 from internal.domain.constant.notification_type import NotificationType
+from internal.domain.error import TemplateAlreadyExistsError
 from internal.domain.model.command.notification_command import (
     CreateTemplateCommand,
     UpdateTemplateCommand,
@@ -34,7 +36,10 @@ def create_template_router(service: NotificationService) -> APIRouter:
             title_template=request.title_template,
             content_template=request.content_template,
         )
-        aggregate = await service.create_template(command)
+        try:
+            aggregate = await service.create_template(command)
+        except (TemplateAlreadyExistsError, IntegrityError) as exc:
+            raise _conflict(exc) from exc
         return Response(
             status_code=201,
             headers={"Location": f"/api/v1/templates/{aggregate.uid}"},
@@ -76,7 +81,10 @@ def create_template_router(service: NotificationService) -> APIRouter:
             title_template=request.title_template,
             content_template=request.content_template,
         )
-        aggregate = await service.update_template(uid, command)
+        try:
+            aggregate = await service.update_template(uid, command)
+        except (TemplateAlreadyExistsError, IntegrityError) as exc:
+            raise _conflict(exc) from exc
         if aggregate is None:
             raise HTTPException(status_code=404, detail="Template not found")
         return _to_response(aggregate)
@@ -87,6 +95,14 @@ def create_template_router(service: NotificationService) -> APIRouter:
             raise HTTPException(status_code=404, detail="Template not found")
 
     return router
+
+
+def _conflict(exc: Exception) -> HTTPException:
+    if isinstance(exc, TemplateAlreadyExistsError):
+        detail = f"Template already exists for {exc.notification_type.value} via {exc.channel.value}"
+    else:
+        detail = "Template already exists for this notification type and channel"
+    return HTTPException(status_code=409, detail=detail)
 
 
 def _to_response(aggregate) -> TemplateResponse:

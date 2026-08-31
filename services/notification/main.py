@@ -11,6 +11,7 @@ from internal.di.container import Container
 from internal.infrastructure.adapter.restcontroller.notification_controller import create_notification_router
 from internal.infrastructure.adapter.restcontroller.template_controller import create_template_router
 from internal.infrastructure.support.logging import access_log_middleware, configure_logging
+from internal.infrastructure.support.problem import register_problem_handlers
 from internal.infrastructure.support.telemetry import instrument_fastapi, setup_telemetry
 
 _WORKER_SHUTDOWN_TIMEOUT = 10.0
@@ -49,6 +50,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    register_problem_handlers(app)
     app.include_router(create_notification_router(container.notification_service))
     app.include_router(create_template_router(container.notification_service))
 

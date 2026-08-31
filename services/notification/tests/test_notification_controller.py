@@ -32,7 +32,7 @@ def _reset(service: MagicMock) -> None:
     service.reset_mock(return_value=True, side_effect=True)
 
 
-def test_send_notification_returns_201(client: TestClient, service: MagicMock) -> None:
+def test_send_notification_valid_request_created(client: TestClient, service: MagicMock) -> None:
     notification = make_notification()
     service.send_notification.return_value = notification
     response = client.post(
@@ -50,13 +50,28 @@ def test_send_notification_returns_201(client: TestClient, service: MagicMock) -
     assert response.headers["location"] == f"/api/v1/notifications/{notification.uid}"
 
 
-def test_get_notification_returns_404_when_missing(client: TestClient, service: MagicMock) -> None:
+def test_send_notification_over_length_content_unprocessable(client: TestClient, service: MagicMock) -> None:
+    response = client.post(
+        "/api/v1/notifications",
+        json={
+            "user_uid": str(uuid4()),
+            "notification_type": "ORDER_PLACED",
+            "channel": "EMAIL",
+            "title": "Hello",
+            "content": "x" * 10001,
+        },
+    )
+    assert response.status_code == 422
+    service.send_notification.assert_not_called()
+
+
+def test_get_notification_missing_not_found(client: TestClient, service: MagicMock) -> None:
     service.get_notification.return_value = None
     response = client.get(f"/api/v1/notifications/{uuid4()}")
     assert response.status_code == 404
 
 
-def test_get_notification_returns_200(client: TestClient, service: MagicMock) -> None:
+def test_get_notification_found_ok(client: TestClient, service: MagicMock) -> None:
     notification = make_notification()
     service.get_notification.return_value = notification
     response = client.get(f"/api/v1/notifications/{notification.uid}")
@@ -64,7 +79,7 @@ def test_get_notification_returns_200(client: TestClient, service: MagicMock) ->
     assert response.json()["title"] == notification.title
 
 
-def test_list_passes_filters(client: TestClient, service: MagicMock) -> None:
+def test_list_notifications_with_filters_passes_them_to_service(client: TestClient, service: MagicMock) -> None:
     service.list_notifications.return_value = ([make_notification()], 1)
     response = client.get(
         "/api/v1/notifications",
@@ -81,7 +96,7 @@ def test_list_passes_filters(client: TestClient, service: MagicMock) -> None:
     assert option.size == 5
 
 
-def test_list_passes_notification_type_filter(client: TestClient, service: MagicMock) -> None:
+def test_list_notifications_by_type_passes_it_to_service(client: TestClient, service: MagicMock) -> None:
     service.list_notifications.return_value = ([], 0)
     response = client.get("/api/v1/notifications", params={"notification_type": "ORDER_PLACED"})
     assert response.status_code == 200
@@ -89,13 +104,13 @@ def test_list_passes_notification_type_filter(client: TestClient, service: Magic
     assert option.notification_type == NotificationType.ORDER_PLACED
 
 
-def test_mark_as_sent_returns_404(client: TestClient, service: MagicMock) -> None:
+def test_mark_as_sent_missing_not_found(client: TestClient, service: MagicMock) -> None:
     service.mark_as_sent.return_value = None
     response = client.patch(f"/api/v1/notifications/{uuid4()}/sent")
     assert response.status_code == 404
 
 
-def test_mark_as_sent_returns_200(client: TestClient, service: MagicMock) -> None:
+def test_mark_as_sent_found_ok(client: TestClient, service: MagicMock) -> None:
     notification = make_notification(status=NotificationStatus.SENT)
     service.mark_as_sent.return_value = notification
     response = client.patch(f"/api/v1/notifications/{notification.uid}/sent")
@@ -103,7 +118,7 @@ def test_mark_as_sent_returns_200(client: TestClient, service: MagicMock) -> Non
     assert response.json()["status"] == "SENT"
 
 
-def test_mark_as_failed_returns_200(client: TestClient, service: MagicMock) -> None:
+def test_mark_as_failed_found_ok(client: TestClient, service: MagicMock) -> None:
     notification = make_notification(status=NotificationStatus.FAILED)
     service.mark_as_failed.return_value = notification
     response = client.patch(f"/api/v1/notifications/{notification.uid}/failed")
@@ -111,7 +126,7 @@ def test_mark_as_failed_returns_200(client: TestClient, service: MagicMock) -> N
     assert response.json()["status"] == "FAILED"
 
 
-def test_mark_as_failed_returns_404(client: TestClient, service: MagicMock) -> None:
+def test_mark_as_failed_missing_not_found(client: TestClient, service: MagicMock) -> None:
     service.mark_as_failed.return_value = None
     response = client.patch(f"/api/v1/notifications/{uuid4()}/failed")
     assert response.status_code == 404

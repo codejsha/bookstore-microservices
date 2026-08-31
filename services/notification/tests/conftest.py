@@ -43,6 +43,8 @@ def notification_repo() -> MagicMock:
 def template_repo() -> MagicMock:
     repo = MagicMock(spec=TemplateRepository)
     repo.save.side_effect = lambda t: t
+    repo.find_by_type_and_channel.return_value = None
+    repo.purge_deleted_by_type_and_channel.return_value = False
     return repo
 
 
