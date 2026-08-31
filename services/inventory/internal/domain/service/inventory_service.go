@@ -107,6 +107,9 @@ func (s *stockService) FindStockHistory(ctx context.Context, editionUid string, 
 // ─── Stock operations ───────────────────────────────────────────────────────
 
 func (s *stockService) ReceiveStock(ctx context.Context, cmd command.StockReceiveCommand) (*aggregate.StockAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	if cmd.Quantity <= 0 {
 		return nil, fmt.Errorf("receive quantity must be positive: got %d: %w", cmd.Quantity, repo.ErrInvalidQuantity)
 	}
@@ -114,6 +117,9 @@ func (s *stockService) ReceiveStock(ctx context.Context, cmd command.StockReceiv
 }
 
 func (s *stockService) ReleaseStock(ctx context.Context, cmd command.StockReleaseCommand) (*aggregate.StockAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	if cmd.Quantity <= 0 {
 		return nil, fmt.Errorf("release quantity must be positive: got %d: %w", cmd.Quantity, repo.ErrInvalidQuantity)
 	}
@@ -121,6 +127,9 @@ func (s *stockService) ReleaseStock(ctx context.Context, cmd command.StockReleas
 }
 
 func (s *stockService) AdjustStock(ctx context.Context, cmd command.StockAdjustCommand) (*aggregate.StockAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	if cmd.Quantity == 0 {
 		return nil, fmt.Errorf("adjust quantity must be non-zero: %w", repo.ErrInvalidQuantity)
 	}
@@ -129,6 +138,9 @@ func (s *stockService) AdjustStock(ctx context.Context, cmd command.StockAdjustC
 }
 
 func (s *stockService) ReserveStock(ctx context.Context, cmd command.StockReserveCommand) (*aggregate.StockAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	if cmd.Quantity <= 0 {
 		return nil, fmt.Errorf("reserve quantity must be positive: got %d: %w", cmd.Quantity, repo.ErrInvalidQuantity)
 	}
@@ -138,6 +150,9 @@ func (s *stockService) ReserveStock(ctx context.Context, cmd command.StockReserv
 // ─── Saga (Temporal) stock operations ─────────────────────────────────────────
 
 func (s *stockService) ReserveStockForOrder(ctx context.Context, cmd command.StockOrderReserveCommand) (*aggregate.StockAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	if cmd.Quantity <= 0 {
 		return nil, fmt.Errorf("reserve quantity must be positive: got %d: %w", cmd.Quantity, repo.ErrInvalidQuantity)
 	}
@@ -155,6 +170,9 @@ func (s *stockService) ReserveStockForOrder(ctx context.Context, cmd command.Sto
 }
 
 func (s *stockService) ReleaseStockForOrder(ctx context.Context, cmd command.StockOrderReleaseCommand) (*aggregate.StockAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	res, err := s.reservationRepo.Release(ctx, repo.ReleaseParams{
 		ReservationKey: reservationKey(cmd.OrderUid, cmd.EditionId),
 		Reason:         cmd.Reason,
@@ -198,6 +216,9 @@ func (s *stockService) FindWarehouse(ctx context.Context, uid string) (*aggregat
 }
 
 func (s *stockService) RegisterWarehouse(ctx context.Context, cmd command.WarehouseCreateCommand) (*aggregate.WarehouseAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	res, err := s.warehouseRepo.Create(ctx, repo.WarehouseCreateParams{
 		Name:     cmd.Name,
 		Address:  cmd.Address,
@@ -210,6 +231,9 @@ func (s *stockService) RegisterWarehouse(ctx context.Context, cmd command.Wareho
 }
 
 func (s *stockService) UpdateWarehouse(ctx context.Context, uid string, cmd command.WarehouseUpdateCommand) (*aggregate.WarehouseAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	res, err := s.warehouseRepo.Update(ctx, repo.WarehouseUpdateParams{
 		Uid:      uid,
 		Name:     cmd.Name,
@@ -228,6 +252,9 @@ func (s *stockService) UpdateWarehouse(ctx context.Context, uid string, cmd comm
 // ─── Stock transfer ─────────────────────────────────────────────────────────
 
 func (s *stockService) TransferStock(ctx context.Context, cmd command.StockTransferCommand) (*aggregate.StockTransferAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	if cmd.Quantity <= 0 {
 		return nil, fmt.Errorf("transfer quantity must be positive: got %d: %w", cmd.Quantity, repo.ErrInvalidQuantity)
 	}
@@ -315,8 +342,8 @@ func (s *stockService) CancelTransfer(ctx context.Context, uid string) (*aggrega
 // ─── Stock audit ────────────────────────────────────────────────────────────
 
 func (s *stockService) CreateAudit(ctx context.Context, cmd command.StockAuditCreateCommand) (*aggregate.StockAuditAggregate, error) {
-	if len(cmd.Items) == 0 {
-		return nil, fmt.Errorf("audit must contain at least one item")
+	if err := cmd.Validate(); err != nil {
+		return nil, err
 	}
 	items := make([]repo.AuditItemParam, len(cmd.Items))
 	for i, it := range cmd.Items {
@@ -383,8 +410,8 @@ func (s *stockService) CompleteAudit(ctx context.Context, uid string) (*aggregat
 // ─── Monthly closing ────────────────────────────────────────────────────────
 
 func (s *stockService) CreateMonthlyClosing(ctx context.Context, cmd command.MonthlyClosingCommand) (*aggregate.MonthlyClosingAggregate, error) {
-	if cmd.Month < 1 || cmd.Month > 12 {
-		return nil, fmt.Errorf("closing month must be 1-12: got %d", cmd.Month)
+	if err := cmd.Validate(); err != nil {
+		return nil, err
 	}
 	res, err := s.closingRepo.Create(ctx, repo.ClosingCreateParams{
 		WarehouseUid: cmd.WarehouseUid,

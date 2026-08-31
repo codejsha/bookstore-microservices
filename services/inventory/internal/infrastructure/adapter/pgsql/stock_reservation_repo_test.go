@@ -16,6 +16,12 @@ import (
 )
 
 var testSchemaDDL = []string{
+	`CREATE TABLE warehouse (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		uid TEXT, name TEXT, address TEXT, capacity INTEGER,
+		created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
+		actor INTEGER, version INTEGER
+	)`,
 	`CREATE TABLE stock (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		uid TEXT, edition_id INTEGER, edition_uid TEXT,
@@ -117,7 +123,7 @@ func reserveParams(key string, editionId int64, qty int32) repo.ReserveParams {
 	}
 }
 
-func TestReserve_SplitsAcrossTwoWarehouses(t *testing.T) {
+func TestReserve_WhenNoWarehouseHoldsEnough_SplitsAcrossWarehouses(t *testing.T) {
 	r, db := newTestRepo(t)
 	seedStock(t, db, 100, 1, 3)
 	seedStock(t, db, 100, 2, 4)
@@ -140,7 +146,7 @@ func TestReserve_SplitsAcrossTwoWarehouses(t *testing.T) {
 	}
 }
 
-func TestReserve_ExactFitSingleWarehouseDoesNotSplit(t *testing.T) {
+func TestReserve_WhenOneWarehouseFitsExactly_DoesNotSplit(t *testing.T) {
 	r, db := newTestRepo(t)
 	seedStock(t, db, 100, 1, 2)
 	seedStock(t, db, 100, 2, 5)
@@ -163,7 +169,7 @@ func TestReserve_ExactFitSingleWarehouseDoesNotSplit(t *testing.T) {
 	}
 }
 
-func TestReserve_InsufficientTotalNoPartialWrites(t *testing.T) {
+func TestReserve_WhenTotalStockInsufficient_WritesNothing(t *testing.T) {
 	r, db := newTestRepo(t)
 	seedStock(t, db, 100, 1, 3)
 	seedStock(t, db, 100, 2, 4)
@@ -183,7 +189,7 @@ func TestReserve_InsufficientTotalNoPartialWrites(t *testing.T) {
 	}
 }
 
-func TestReserve_ReplayIsIdempotent(t *testing.T) {
+func TestReserve_WhenReservationKeyReplayed_WritesNothingTwice(t *testing.T) {
 	r, db := newTestRepo(t)
 	seedStock(t, db, 100, 1, 3)
 	seedStock(t, db, 100, 2, 4)
@@ -217,7 +223,7 @@ func TestReserve_ReplayIsIdempotent(t *testing.T) {
 	}
 }
 
-func TestRelease_CreditsBothWarehouses(t *testing.T) {
+func TestRelease_WhenReservationSpansWarehouses_CreditsEachOfThem(t *testing.T) {
 	r, db := newTestRepo(t)
 	seedStock(t, db, 100, 1, 3)
 	seedStock(t, db, 100, 2, 4)
@@ -256,7 +262,7 @@ func TestRelease_CreditsBothWarehouses(t *testing.T) {
 	}
 }
 
-func TestRelease_UnknownKeyIsNoOp(t *testing.T) {
+func TestRelease_WhenReservationKeyUnknown_WritesNothing(t *testing.T) {
 	r, _ := newTestRepo(t)
 	got, err := r.Release(context.Background(), repo.ReleaseParams{ReservationKey: "missing"})
 	if err != nil {
@@ -267,7 +273,7 @@ func TestRelease_UnknownKeyIsNoOp(t *testing.T) {
 	}
 }
 
-func TestAllocateReservation_Ordering(t *testing.T) {
+func TestAllocateReservation_WhenWarehousesRanked_AllocatesInThatOrder(t *testing.T) {
 	rows := []entity.StockEntity{
 		{Id: 1, Quantity: 2},
 		{Id: 2, Quantity: 5},
@@ -288,7 +294,7 @@ func TestAllocateReservation_Ordering(t *testing.T) {
 	}
 }
 
-func TestAllocateReservation_Insufficient(t *testing.T) {
+func TestAllocateReservation_WhenStockInsufficient_ReturnsErrInsufficientStock(t *testing.T) {
 	rows := []entity.StockEntity{{Id: 1, Quantity: 2}, {Id: 2, Quantity: 1}}
 	if _, err := allocateReservation(rows, 100, 5); !errors.Is(err, repo.ErrInsufficientStock) {
 		t.Errorf("err = %v, want ErrInsufficientStock", err)

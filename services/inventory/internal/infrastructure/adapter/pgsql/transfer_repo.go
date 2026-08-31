@@ -119,7 +119,7 @@ func (r *stockTransferRepository) Create(ctx context.Context, p repo.TransferCre
 			e := tx.Where("edition_uid = ? AND warehouse_uid = ?", p.EditionUid, p.SourceWarehouseUid).
 				First(&source).Error
 			if errors.Is(e, gorm.ErrRecordNotFound) {
-				return fmt.Errorf("no stock for edition %s in source warehouse %s", p.EditionUid, p.SourceWarehouseUid)
+				return fmt.Errorf("no stock for edition %s in source warehouse %s: %w", p.EditionUid, p.SourceWarehouseUid, repo.ErrStockNotFound)
 			}
 			if e != nil {
 				return e
@@ -128,7 +128,7 @@ func (r *stockTransferRepository) Create(ctx context.Context, p repo.TransferCre
 			var target entity.WarehouseEntity
 			e = tx.Where("uid = ?", p.TargetWarehouseUid).First(&target).Error
 			if errors.Is(e, gorm.ErrRecordNotFound) {
-				return fmt.Errorf("target warehouse %s not found", p.TargetWarehouseUid)
+				return fmt.Errorf("target warehouse %s not found: %w", p.TargetWarehouseUid, repo.ErrWarehouseNotFound)
 			}
 			if e != nil {
 				return e
@@ -143,7 +143,7 @@ func (r *stockTransferRepository) Create(ctx context.Context, p repo.TransferCre
 				changeType:   changeTypeOutbound,
 				reason:       p.Reason,
 			}); err != nil {
-				if errors.Is(err, errVersionConflict) {
+				if isRetryableConflict(err) {
 					retry = true
 				}
 				return err
@@ -247,7 +247,7 @@ func (r *stockTransferRepository) finalize(
 				return e
 			}
 			if err := apply(tx, &t); err != nil {
-				if errors.Is(err, errVersionConflict) {
+				if isRetryableConflict(err) {
 					retry = true
 				}
 				return err

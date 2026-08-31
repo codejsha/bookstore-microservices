@@ -3,6 +3,6 @@
 package openapi
 
 type StockHistoryFindAllResponse struct {
-	Items []StockHistoryFindResponse `json:"items" validate:"required"`
-	Total int64                      `json:"total" validate:"required"`
+	Items []StockHistoryFindResponse `json:"items" binding:"required,dive"`
+	Total int64                      `json:"total" binding:"gte=0"`
 }

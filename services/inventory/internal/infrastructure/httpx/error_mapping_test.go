@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -35,7 +36,7 @@ func do(r *gin.Engine) *httptest.ResponseRecorder {
 	return w
 }
 
-func TestGinResponseMapping_NotFoundBecomes404(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerReturnsNotFound_Returns404ProblemDetails(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
 		return 0, nil, MapNotFound(c.Request.Context(), ErrNotFound)
 	})
@@ -43,12 +44,12 @@ func TestGinResponseMapping_NotFoundBecomes404(t *testing.T) {
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404", w.Code)
 	}
-	if body := w.Body.String(); body != `{"error":"resource not found"}` {
+	if body := w.Body.String(); body != `{"title":"Not Found","status":404,"detail":"resource not found"}` {
 		t.Errorf("body = %q, want resource-not-found json", body)
 	}
 }
 
-func TestGinResponseMapping_GormNotFoundBecomes404(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerWrapsGormNotFound_Returns404ProblemDetails(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
 		return 0, nil, MapNotFound(c.Request.Context(), fmt.Errorf("load work: %w", gorm.ErrRecordNotFound))
 	})
@@ -56,12 +57,12 @@ func TestGinResponseMapping_GormNotFoundBecomes404(t *testing.T) {
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404", w.Code)
 	}
-	if body := w.Body.String(); body != `{"error":"resource not found"}` {
+	if body := w.Body.String(); body != `{"title":"Not Found","status":404,"detail":"resource not found"}` {
 		t.Errorf("body = %q, want resource-not-found json", body)
 	}
 }
 
-func TestGinResponseMapping_BusinessErrorsBecome4xx(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerWrapsBusinessError_Returns4xxProblemDetails(t *testing.T) {
 	cases := []struct {
 		name       string
 		err        error
@@ -69,28 +70,40 @@ func TestGinResponseMapping_BusinessErrorsBecome4xx(t *testing.T) {
 		wantBody   string
 	}{
 		{
-			name:       "invalid quantity → 400",
+			name:       "whenQuantityInvalid_returns400",
 			err:        fmt.Errorf("reserve quantity must be positive: got %d: %w", -1, repo.ErrInvalidQuantity),
 			wantStatus: http.StatusBadRequest,
-			wantBody:   `{"error":"invalid quantity"}`,
+			wantBody:   `{"title":"Bad Request","status":400,"detail":"invalid quantity"}`,
 		},
 		{
-			name:       "insufficient stock → 400",
+			name:       "whenStockInsufficient_returns400",
 			err:        fmt.Errorf("insufficient stock for edition x: %w", repo.ErrInsufficientStock),
 			wantStatus: http.StatusBadRequest,
-			wantBody:   `{"error":"insufficient stock"}`,
+			wantBody:   `{"title":"Bad Request","status":400,"detail":"insufficient stock"}`,
 		},
 		{
-			name:       "same warehouse transfer → 400",
+			name:       "whenTransferWarehousesMatch_returns400",
 			err:        fmt.Errorf("transfer must differ: %w", repo.ErrSameWarehouse),
 			wantStatus: http.StatusBadRequest,
-			wantBody:   `{"error":"source and target warehouse must differ"}`,
+			wantBody:   `{"title":"Bad Request","status":400,"detail":"source and target warehouse must differ"}`,
 		},
 		{
-			name:       "duplicate closing → 409",
+			name:       "whenStockNotFound_returns404",
+			err:        fmt.Errorf("stock not found for edition e in warehouse w: %w", repo.ErrStockNotFound),
+			wantStatus: http.StatusNotFound,
+			wantBody:   `{"title":"Not Found","status":404,"detail":"stock not found"}`,
+		},
+		{
+			name:       "whenWarehouseNotFound_returns404",
+			err:        fmt.Errorf("warehouse w not found: %w", repo.ErrWarehouseNotFound),
+			wantStatus: http.StatusNotFound,
+			wantBody:   `{"title":"Not Found","status":404,"detail":"warehouse not found"}`,
+		},
+		{
+			name:       "whenClosingDuplicated_returns409",
 			err:        fmt.Errorf("closing already exists for warehouse x 2026-07: %w", repo.ErrDuplicateClosing),
 			wantStatus: http.StatusConflict,
-			wantBody:   `{"error":"monthly closing already exists for this warehouse and period"}`,
+			wantBody:   `{"title":"Conflict","status":409,"detail":"monthly closing already exists for this warehouse and period"}`,
 		},
 	}
 	for _, tc := range cases {
@@ -109,7 +122,7 @@ func TestGinResponseMapping_BusinessErrorsBecome4xx(t *testing.T) {
 	}
 }
 
-func TestGinResponseMapping_UnknownBusinessErrorStays500(t *testing.T) {
+func TestGinResponseMapping_WhenBusinessErrorUnknown_Returns500WithoutDetail(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
 		return 0, nil, MapBusinessError(c.Request.Context(), errors.New("some unexpected failure"))
 	})
@@ -117,12 +130,12 @@ func TestGinResponseMapping_UnknownBusinessErrorStays500(t *testing.T) {
 	if w.Code != http.StatusInternalServerError {
 		t.Fatalf("status = %d, want 500", w.Code)
 	}
-	if body := w.Body.String(); body != `{"error":"internal server error"}` {
+	if body := w.Body.String(); body != `{"title":"Internal Server Error","status":500,"detail":"internal server error"}` {
 		t.Errorf("body = %q, want sanitized json", body)
 	}
 }
 
-func TestGinResponseMapping_InternalErrorIsSanitized(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerFailsUnexpectedly_Returns500WithoutDetail(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
 		return 0, nil, errors.New(`pq: duplicate key value violates unique constraint "users_email"`)
 	})
@@ -130,12 +143,12 @@ func TestGinResponseMapping_InternalErrorIsSanitized(t *testing.T) {
 	if w.Code != http.StatusInternalServerError {
 		t.Fatalf("status = %d, want 500", w.Code)
 	}
-	if body := w.Body.String(); body != `{"error":"internal server error"}` {
+	if body := w.Body.String(); body != `{"title":"Internal Server Error","status":500,"detail":"internal server error"}` {
 		t.Errorf("body = %q, want sanitized json", body)
 	}
 }
 
-func TestGinResponseMapping_SuccessPassthrough(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerSucceeds_PassesResponseThrough(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
 		return http.StatusOK, gin.H{"uid": "abc"}, nil
 	})
@@ -148,18 +161,49 @@ func TestGinResponseMapping_SuccessPassthrough(t *testing.T) {
 	}
 }
 
-func TestGinResponseMapping_ClientErrorPassthrough(t *testing.T) {
+func TestGinResponseMapping_WhenHandlerWrote4xx_PassesResponseThrough(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	r.Use(GinResponseMapping())
 	r.GET("/x", func(c *gin.Context) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+		c.JSON(http.StatusBadRequest, gin.H{"title": "Bad Request", "status": 400, "detail": "invalid size"})
 	})
 	w := do(r)
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want 400", w.Code)
 	}
-	if body := w.Body.String(); body != `{"error":"invalid size"}` {
+	if body := w.Body.String(); body != `{"detail":"invalid size","status":400,"title":"Bad Request"}` {
 		t.Errorf("body = %q, want untouched 400 body", body)
+	}
+}
+
+func TestGinResponseMapping_WhenStockNotFoundWrappedInGenericError_Returns404(t *testing.T) {
+	r := newTestEngine(func(c *gin.Context) (int, any, error) {
+		err := fmt.Errorf("complete transfer %s: %w", "t-1",
+			fmt.Errorf("stock not found for edition e in warehouse w: %w", repo.ErrStockNotFound))
+		return 0, nil, MapBusinessError(c.Request.Context(), err)
+	})
+	w := do(r)
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want 404", w.Code)
+	}
+	if body := w.Body.String(); body != `{"title":"Not Found","status":404,"detail":"stock not found"}` {
+		t.Errorf("body = %q, want stock-not-found json", body)
+	}
+}
+
+func TestMapBusinessError_WhenStockNotFoundWrapped_PreservesSentinel(t *testing.T) {
+	in := fmt.Errorf("no stock for edition e in source warehouse w: %w", repo.ErrStockNotFound)
+	out := MapBusinessError(context.Background(), in)
+	if !errors.Is(out, repo.ErrStockNotFound) {
+		t.Errorf("out = %v, want wrapped ErrStockNotFound", out)
+	}
+}
+
+func TestMapBusinessError_WhenWarehouseNotFoundWrapped_PreservesSentinel(t *testing.T) {
+	in := fmt.Errorf("target warehouse w not found: %w", repo.ErrWarehouseNotFound)
+	out := MapBusinessError(context.Background(), in)
+	if !errors.Is(out, repo.ErrWarehouseNotFound) {
+		t.Errorf("out = %v, want wrapped ErrWarehouseNotFound", out)
 	}
 }

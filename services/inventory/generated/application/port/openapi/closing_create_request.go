@@ -3,7 +3,7 @@
 package openapi
 
 type ClosingCreateRequest struct {
-	Month        int32  `json:"month" validate:"required"`
-	WarehouseUid string `json:"warehouse_uid" validate:"required"`
-	Year         int32  `json:"year" validate:"required"`
+	Month        int32  `json:"month" binding:"required,gte=1,lte=12"`
+	WarehouseUid string `json:"warehouse_uid" binding:"required"`
+	Year         int32  `json:"year" binding:"required,gte=2000,lte=2100"`
 }

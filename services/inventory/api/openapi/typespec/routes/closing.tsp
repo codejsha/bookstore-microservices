@@ -22,7 +22,7 @@ interface Closings {
 
   @doc("Create monthly closing (월 마감)")
   @post
-  create(@body body: ClosingCreateRequest): ClosingFindResponse;
+  create(@body body: ClosingCreateRequest): ClosingFindResponse | BadRequestError | NotFoundError;
 
   @doc("Find monthly closing")
   @route("{uid}")

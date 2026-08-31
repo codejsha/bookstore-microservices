@@ -21,6 +21,9 @@ type ClosingApi interface {
 	) (*ClosingFindAllResponse, error)
 
 	// Create monthly closing (월 마감)
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 404 (NotFoundError) — The server cannot find the requested resource.
 	ClosingsCreate(
 		ctx context.Context,
 		req ClosingCreateRequest,

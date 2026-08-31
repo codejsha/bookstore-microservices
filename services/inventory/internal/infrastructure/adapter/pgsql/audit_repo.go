@@ -116,7 +116,7 @@ func (r *stockAuditRepository) Create(ctx context.Context, p repo.AuditCreatePar
 		var warehouse entity.WarehouseEntity
 		e := tx.Where("uid = ?", p.WarehouseUid).First(&warehouse).Error
 		if errors.Is(e, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("warehouse %s not found", p.WarehouseUid)
+			return fmt.Errorf("warehouse %s not found: %w", p.WarehouseUid, repo.ErrWarehouseNotFound)
 		}
 		if e != nil {
 			return e
@@ -142,7 +142,7 @@ func (r *stockAuditRepository) Create(ctx context.Context, p repo.AuditCreatePar
 			e := tx.Where("edition_uid = ? AND warehouse_uid = ?", it.EditionUid, warehouse.Uid).
 				First(&stock).Error
 			if errors.Is(e, gorm.ErrRecordNotFound) {
-				return fmt.Errorf("no stock for edition %s in warehouse %s", it.EditionUid, warehouse.Uid)
+				return fmt.Errorf("no stock for edition %s in warehouse %s: %w", it.EditionUid, warehouse.Uid, repo.ErrStockNotFound)
 			}
 			if e != nil {
 				return e
@@ -207,7 +207,7 @@ func (r *stockAuditRepository) Complete(ctx context.Context, uid string) (*repo.
 					reason:       &reason,
 					allowCreate:  true,
 				}); err != nil {
-					if errors.Is(err, errVersionConflict) {
+					if isRetryableConflict(err) {
 						retry = true
 					}
 					return err

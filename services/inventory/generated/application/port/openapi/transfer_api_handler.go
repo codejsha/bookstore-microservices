@@ -40,7 +40,7 @@ func (h *TransferApiHandler) TransfersGetAll(c *gin.Context) {
 	if statusStr != "" {
 		v, err := ParseTransferStatus(statusStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid status"))
 			return
 		}
 		status = &v
@@ -50,7 +50,7 @@ func (h *TransferApiHandler) TransfersGetAll(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -61,7 +61,7 @@ func (h *TransferApiHandler) TransfersGetAll(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -74,22 +74,25 @@ func (h *TransferApiHandler) TransfersGetAll(c *gin.Context) {
 	}
 	result, err := h.service.TransfersGetAll(c.Request.Context(), editionUid, sourceWarehouseUid, targetWarehouseUid, status, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
 }
 
 // Create stock transfer between warehouses
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *TransferApiHandler) TransfersCreate(c *gin.Context) {
 	var req TransferCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.TransfersCreate(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -102,7 +105,7 @@ func (h *TransferApiHandler) TransfersRead(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.TransfersRead(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -116,7 +119,7 @@ func (h *TransferApiHandler) TransfersCancel(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.TransfersCancel(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -130,7 +133,7 @@ func (h *TransferApiHandler) TransfersComplete(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.TransfersComplete(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)

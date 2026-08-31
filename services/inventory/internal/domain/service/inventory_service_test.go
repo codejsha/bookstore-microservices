@@ -13,6 +13,26 @@ import (
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
 )
 
+const (
+	uidEdition1         = "aaaaaaa1-0000-4000-8000-000000000001"
+	uidEdition2         = "aaaaaaa1-0000-4000-8000-000000000002"
+	uidEdition3         = "aaaaaaa1-0000-4000-8000-000000000003"
+	uidEdition4         = "aaaaaaa1-0000-4000-8000-000000000004"
+	uidEdition5         = "aaaaaaa1-0000-4000-8000-000000000005"
+	uidWarehouse1       = "bbbbbbb1-0000-4000-8000-000000000001"
+	uidWarehouse2       = "bbbbbbb1-0000-4000-8000-000000000002"
+	uidWarehouse3       = "bbbbbbb1-0000-4000-8000-000000000003"
+	uidWarehouse4       = "bbbbbbb1-0000-4000-8000-000000000004"
+	uidWarehouse5       = "bbbbbbb1-0000-4000-8000-000000000005"
+	uidWarehouse6       = "bbbbbbb1-0000-4000-8000-000000000006"
+	uidWarehouse7       = "bbbbbbb1-0000-4000-8000-000000000007"
+	uidWarehouseMissing = "bbbbbbb1-0000-4000-8000-0000000000ff"
+	uidTransfer1        = "ccccccc1-0000-4000-8000-000000000001"
+	uidAudit1           = "ddddddd1-0000-4000-8000-000000000001"
+	uidClosing1         = "eeeeeee1-0000-4000-8000-000000000001"
+	uidMissing          = "ffffffff-0000-4000-8000-0000000000ff"
+)
+
 // ─── stub StockRepo ─────────────────────────────────────────────────────────
 
 type stubStockRepo struct {
@@ -95,27 +115,27 @@ func (s *stubStockHistoryRepo) FindAll(ctx context.Context, stockUid string, pag
 
 // ─── Stock query tests ──────────────────────────────────────────────────────
 
-func TestFindStock_Found(t *testing.T) {
+func TestFindStock_WhenStockExists_ReturnsAggregate(t *testing.T) {
 	stockRepo := &stubStockRepo{
 		findAllFn: func(_ context.Context, opt option.StockQueryOption) (int64, []*repo.StockResult, error) {
-			if opt.EditionUid() == nil || *opt.EditionUid() != "ed-1" {
+			if opt.EditionUid() == nil || *opt.EditionUid() != uidEdition1 {
 				t.Errorf("EditionUid = %v, want ed-1", opt.EditionUid())
 			}
 			return 2, []*repo.StockResult{
-				{Id: 1, Uid: "stk-1", EditionUid: "ed-1", WarehouseUid: "wh-1", WarehouseName: "W1", Quantity: 10},
-				{Id: 1, Uid: "stk-1", EditionUid: "ed-1", WarehouseUid: "wh-2", WarehouseName: "W2", Quantity: 5},
+				{Id: 1, Uid: "stk-1", EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, WarehouseName: "W1", Quantity: 10},
+				{Id: 1, Uid: "stk-1", EditionUid: uidEdition1, WarehouseUid: uidWarehouse2, WarehouseName: "W2", Quantity: 5},
 			}, nil
 		},
 	}
 	svc := &stockService{stockRepo: stockRepo}
-	got, err := svc.FindStock(context.Background(), "ed-1")
+	got, err := svc.FindStock(context.Background(), uidEdition1)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
 	if got == nil {
 		t.Fatal("got nil aggregate, want populated")
 	}
-	if got.EditionUid != "ed-1" {
+	if got.EditionUid != uidEdition1 {
 		t.Errorf("EditionUid = %q, want ed-1", got.EditionUid)
 	}
 	if got.TotalQuantity != 15 {
@@ -124,12 +144,12 @@ func TestFindStock_Found(t *testing.T) {
 	if len(got.Warehouses) != 2 {
 		t.Fatalf("Warehouses len = %d, want 2", len(got.Warehouses))
 	}
-	if got.Warehouses[0].WarehouseUid != "wh-1" || got.Warehouses[0].Quantity != 10 {
+	if got.Warehouses[0].WarehouseUid != uidWarehouse1 || got.Warehouses[0].Quantity != 10 {
 		t.Errorf("Warehouses[0] = %+v", got.Warehouses[0])
 	}
 }
 
-func TestFindStock_NotFound(t *testing.T) {
+func TestFindStock_WhenStockMissing_ReturnsNotFoundError(t *testing.T) {
 	stockRepo := &stubStockRepo{
 		findAllFn: func(context.Context, option.StockQueryOption) (int64, []*repo.StockResult, error) {
 			return 0, nil, nil
@@ -145,7 +165,7 @@ func TestFindStock_NotFound(t *testing.T) {
 	}
 }
 
-func TestFindStock_RepoError(t *testing.T) {
+func TestFindStock_WhenRepoFails_ReturnsRepoError(t *testing.T) {
 	wantErr := errors.New("db down")
 	stockRepo := &stubStockRepo{
 		findAllFn: func(context.Context, option.StockQueryOption) (int64, []*repo.StockResult, error) {
@@ -153,20 +173,20 @@ func TestFindStock_RepoError(t *testing.T) {
 		},
 	}
 	svc := &stockService{stockRepo: stockRepo}
-	_, err := svc.FindStock(context.Background(), "ed-1")
+	_, err := svc.FindStock(context.Background(), uidEdition1)
 	if !errors.Is(err, wantErr) {
 		t.Errorf("err = %v, want %v", err, wantErr)
 	}
 }
 
-func TestFindAllStocks_GroupsByEditionPreservesOrder(t *testing.T) {
+func TestFindAllStocks_WhenRowsSpanEditions_GroupsByEditionInRowOrder(t *testing.T) {
 	stockRepo := &stubStockRepo{
 		findAllFn: func(context.Context, option.StockQueryOption) (int64, []*repo.StockResult, error) {
 			return 2, []*repo.StockResult{
-				{Id: 1, Uid: "stk-A", EditionUid: "ed-A", WarehouseUid: "wh-1", Quantity: 3},
-				{Id: 2, Uid: "stk-B", EditionUid: "ed-B", WarehouseUid: "wh-1", Quantity: 7},
-				{Id: 3, Uid: "stk-A", EditionUid: "ed-A", WarehouseUid: "wh-2", Quantity: 2},
-				{Id: 4, Uid: "stk-B", EditionUid: "ed-B", WarehouseUid: "wh-2", Quantity: 1},
+				{Id: 1, Uid: "stk-A", EditionUid: "ed-A", WarehouseUid: uidWarehouse1, Quantity: 3},
+				{Id: 2, Uid: "stk-B", EditionUid: "ed-B", WarehouseUid: uidWarehouse1, Quantity: 7},
+				{Id: 3, Uid: "stk-A", EditionUid: "ed-A", WarehouseUid: uidWarehouse2, Quantity: 2},
+				{Id: 4, Uid: "stk-B", EditionUid: "ed-B", WarehouseUid: uidWarehouse2, Quantity: 1},
 			}, nil
 		},
 	}
@@ -189,7 +209,7 @@ func TestFindAllStocks_GroupsByEditionPreservesOrder(t *testing.T) {
 	}
 }
 
-func TestFindAllStocks_RepoError(t *testing.T) {
+func TestFindAllStocks_WhenRepoFails_ReturnsRepoError(t *testing.T) {
 	wantErr := errors.New("boom")
 	stockRepo := &stubStockRepo{
 		findAllFn: func(context.Context, option.StockQueryOption) (int64, []*repo.StockResult, error) {
@@ -203,16 +223,16 @@ func TestFindAllStocks_RepoError(t *testing.T) {
 	}
 }
 
-func TestToStockAggregate_Empty(t *testing.T) {
+func TestToStockAggregate_WhenNoRows_ReturnsZeroQuantities(t *testing.T) {
 	if got := toStockAggregate(nil); got != nil {
 		t.Errorf("got = %+v, want nil", got)
 	}
 }
 
-func TestToStockAggregate_SumsQuantities(t *testing.T) {
+func TestToStockAggregate_WhenRowsSpanWarehouses_SumsQuantities(t *testing.T) {
 	got := toStockAggregate([]*repo.StockResult{
-		{Uid: "stk", EditionUid: "ed", WarehouseUid: "w1", Quantity: 4},
-		{Uid: "stk", EditionUid: "ed", WarehouseUid: "w2", Quantity: 6},
+		{Uid: "stk", EditionUid: uidEdition3, WarehouseUid: uidWarehouse6, Quantity: 4},
+		{Uid: "stk", EditionUid: uidEdition3, WarehouseUid: uidWarehouse7, Quantity: 6},
 	})
 	if got.TotalQuantity != 10 {
 		t.Errorf("TotalQuantity = %d, want 10", got.TotalQuantity)
@@ -224,12 +244,12 @@ func TestToStockAggregate_SumsQuantities(t *testing.T) {
 
 // ─── Warehouse CRUD tests ──────────────────────────────────────────────────
 
-func TestRegisterWarehouse(t *testing.T) {
+func TestRegisterWarehouse_WhenCommandValid_ReturnsCreatedWarehouse(t *testing.T) {
 	var captured repo.WarehouseCreateParams
 	wh := &stubWarehouseRepo{
 		createFn: func(_ context.Context, p repo.WarehouseCreateParams) (*repo.WarehouseResult, error) {
 			captured = p
-			return &repo.WarehouseResult{Uid: "wh-new", Name: p.Name, Address: p.Address, Capacity: p.Capacity}, nil
+			return &repo.WarehouseResult{Uid: uidWarehouse4, Name: p.Name, Address: p.Address, Capacity: p.Capacity}, nil
 		},
 	}
 	svc := &stockService{warehouseRepo: wh}
@@ -254,7 +274,7 @@ func TestRegisterWarehouse(t *testing.T) {
 	}
 }
 
-func TestUpdateWarehouse_AppliesPatch(t *testing.T) {
+func TestUpdateWarehouse_WhenWarehouseExists_AppliesPatch(t *testing.T) {
 	var captured repo.WarehouseUpdateParams
 	wh := &stubWarehouseRepo{
 		updateFn: func(_ context.Context, p repo.WarehouseUpdateParams) (*repo.WarehouseResult, error) {
@@ -265,13 +285,13 @@ func TestUpdateWarehouse_AppliesPatch(t *testing.T) {
 	svc := &stockService{warehouseRepo: wh}
 	name := "New"
 	cap := int32(200)
-	got, err := svc.UpdateWarehouse(context.Background(), "wh-1", command.WarehouseUpdateCommand{
+	got, err := svc.UpdateWarehouse(context.Background(), uidWarehouse1, command.WarehouseUpdateCommand{
 		Name: &name, Capacity: &cap,
 	})
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if captured.Uid != "wh-1" {
+	if captured.Uid != uidWarehouse1 {
 		t.Errorf("Uid = %q, want wh-1", captured.Uid)
 	}
 	if captured.Name == nil || *captured.Name != "New" {
@@ -285,14 +305,14 @@ func TestUpdateWarehouse_AppliesPatch(t *testing.T) {
 	}
 }
 
-func TestUpdateWarehouse_NotFound(t *testing.T) {
+func TestUpdateWarehouse_WhenWarehouseMissing_ReturnsNotFoundError(t *testing.T) {
 	wh := &stubWarehouseRepo{
 		updateFn: func(context.Context, repo.WarehouseUpdateParams) (*repo.WarehouseResult, error) {
 			return nil, nil
 		},
 	}
 	svc := &stockService{warehouseRepo: wh}
-	got, err := svc.UpdateWarehouse(context.Background(), "wh-x", command.WarehouseUpdateCommand{})
+	got, err := svc.UpdateWarehouse(context.Background(), uidWarehouse5, command.WarehouseUpdateCommand{})
 	if err != nil {
 		t.Fatalf("err = %v, want nil for missing warehouse", err)
 	}
@@ -301,14 +321,14 @@ func TestUpdateWarehouse_NotFound(t *testing.T) {
 	}
 }
 
-func TestFindWarehouse(t *testing.T) {
+func TestFindWarehouse_WhenWarehouseExists_ReturnsAggregate(t *testing.T) {
 	wh := &stubWarehouseRepo{
 		findByUid: func(_ context.Context, uid string) (*repo.WarehouseResult, error) {
 			return &repo.WarehouseResult{Uid: uid, Name: "Main", Capacity: 100}, nil
 		},
 	}
 	svc := &stockService{warehouseRepo: wh}
-	got, err := svc.FindWarehouse(context.Background(), "wh-1")
+	got, err := svc.FindWarehouse(context.Background(), uidWarehouse1)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -317,7 +337,7 @@ func TestFindWarehouse(t *testing.T) {
 	}
 }
 
-func TestFindWarehouse_NotFound(t *testing.T) {
+func TestFindWarehouse_WhenWarehouseMissing_ReturnsNotFoundError(t *testing.T) {
 	wh := &stubWarehouseRepo{
 		findByUid: func(context.Context, string) (*repo.WarehouseResult, error) { return nil, nil },
 	}
@@ -331,10 +351,10 @@ func TestFindWarehouse_NotFound(t *testing.T) {
 	}
 }
 
-func TestFindAllWarehouses(t *testing.T) {
+func TestFindAllWarehouses_WhenRepoReturnsRows_ReturnsAggregates(t *testing.T) {
 	wh := &stubWarehouseRepo{
 		findAllFn: func(_ context.Context, opt option.WarehouseQueryOption) (int64, []*repo.WarehouseResult, error) {
-			return 1, []*repo.WarehouseResult{{Uid: "wh-1", Name: "Main", Capacity: 100}}, nil
+			return 1, []*repo.WarehouseResult{{Uid: uidWarehouse1, Name: "Main", Capacity: 100}}, nil
 		},
 	}
 	svc := &stockService{warehouseRepo: wh}
@@ -356,7 +376,7 @@ func newStockSvc(stk *stubStockRepo, hist *stubStockHistoryRepo) *stockService {
 	return &stockService{stockRepo: stk, stockHistoryRepo: hist}
 }
 
-func TestReceiveStock_IncrementsAndRecordsHistory(t *testing.T) {
+func TestReceiveStock_WhenQuantityPositive_IncrementsStockAndRecordsHistory(t *testing.T) {
 	var applied *repo.ApplyChangeParams
 	stk := &stubStockRepo{
 		applyChangeFn: func(_ context.Context, p repo.ApplyChangeParams) error {
@@ -364,13 +384,13 @@ func TestReceiveStock_IncrementsAndRecordsHistory(t *testing.T) {
 			return nil
 		},
 		findAllFn: func(_ context.Context, _ option.StockQueryOption) (int64, []*repo.StockResult, error) {
-			return 1, []*repo.StockResult{{Id: 7, Uid: "stk-1", EditionUid: "ed-1", WarehouseUid: "wh-1", Quantity: 8}}, nil
+			return 1, []*repo.StockResult{{Id: 7, Uid: "stk-1", EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 8}}, nil
 		},
 	}
 	svc := newStockSvc(stk, nil)
 	reason := "shipment received"
 	got, err := svc.ReceiveStock(context.Background(), command.StockReceiveCommand{
-		EditionUid: "ed-1", WarehouseUid: "wh-1", Quantity: 3, Reason: &reason,
+		EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 3, Reason: &reason,
 	})
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -378,7 +398,7 @@ func TestReceiveStock_IncrementsAndRecordsHistory(t *testing.T) {
 	if applied == nil || applied.Delta != 3 || applied.ChangeType != "INBOUND" {
 		t.Errorf("applied = %+v", applied)
 	}
-	if applied.EditionUid != "ed-1" || applied.WarehouseUid != "wh-1" {
+	if applied.EditionUid != uidEdition1 || applied.WarehouseUid != uidWarehouse1 {
 		t.Errorf("applied target = %+v", applied)
 	}
 	if got == nil || got.TotalQuantity != 8 {
@@ -386,17 +406,17 @@ func TestReceiveStock_IncrementsAndRecordsHistory(t *testing.T) {
 	}
 }
 
-func TestReserveStock_DecrementsAndRecordsReservation(t *testing.T) {
+func TestReserveStock_WhenStockAvailable_DecrementsStockAndRecordsReservation(t *testing.T) {
 	var applied *repo.ApplyChangeParams
 	stk := &stubStockRepo{
 		applyChangeFn: func(_ context.Context, p repo.ApplyChangeParams) error { applied = &p; return nil },
 		findAllFn: func(context.Context, option.StockQueryOption) (int64, []*repo.StockResult, error) {
-			return 1, []*repo.StockResult{{Uid: "stk-1", EditionUid: "ed-1", WarehouseUid: "wh-1", Quantity: 7}}, nil
+			return 1, []*repo.StockResult{{Uid: "stk-1", EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 7}}, nil
 		},
 	}
 	svc := newStockSvc(stk, nil)
 	if _, err := svc.ReserveStock(context.Background(), command.StockReserveCommand{
-		EditionUid: "ed-1", WarehouseUid: "wh-1", Quantity: 3,
+		EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 3,
 	}); err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -405,66 +425,66 @@ func TestReserveStock_DecrementsAndRecordsReservation(t *testing.T) {
 	}
 }
 
-func TestReserveStock_RejectsNonPositive(t *testing.T) {
+func TestReserveStock_WhenQuantityNotPositive_ReturnsErrInvalidCommand(t *testing.T) {
 	svc := newStockSvc(&stubStockRepo{}, nil)
 	if _, err := svc.ReserveStock(context.Background(), command.StockReserveCommand{
-		EditionUid: "ed", WarehouseUid: "wh", Quantity: 0,
+		EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: 0,
 	}); err == nil {
 		t.Errorf("expected error for non-positive quantity")
 	}
 }
 
-func TestReceiveStock_RejectsNonPositive(t *testing.T) {
+func TestReceiveStock_WhenQuantityNotPositive_ReturnsErrInvalidCommand(t *testing.T) {
 	svc := newStockSvc(&stubStockRepo{}, nil)
 	if _, err := svc.ReceiveStock(context.Background(), command.StockReceiveCommand{
-		EditionUid: "ed", WarehouseUid: "wh", Quantity: 0,
+		EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: 0,
 	}); err == nil {
 		t.Errorf("expected error for non-positive receive quantity")
 	}
 }
 
-func TestReleaseStock_RejectsNonPositive(t *testing.T) {
+func TestReleaseStock_WhenQuantityNotPositive_ReturnsErrInvalidCommand(t *testing.T) {
 	svc := newStockSvc(&stubStockRepo{}, nil)
 	if _, err := svc.ReleaseStock(context.Background(), command.StockReleaseCommand{
-		EditionUid: "ed", WarehouseUid: "wh", Quantity: -1,
+		EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: -1,
 	}); err == nil {
 		t.Errorf("expected error for non-positive release quantity")
 	}
 }
 
-func TestAdjustStock_RejectsZero(t *testing.T) {
+func TestAdjustStock_WhenQuantityZero_ReturnsErrInvalidCommand(t *testing.T) {
 	svc := newStockSvc(&stubStockRepo{}, nil)
 	if _, err := svc.AdjustStock(context.Background(), command.StockAdjustCommand{
-		EditionUid: "ed", WarehouseUid: "wh", Quantity: 0, Reason: "noop",
+		EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: 0, Reason: "noop",
 	}); err == nil {
 		t.Errorf("expected error for zero adjustment")
 	}
 }
 
-func TestApplyStockChange_RepoError(t *testing.T) {
+func TestApplyStockChange_WhenRepoFails_ReturnsRepoError(t *testing.T) {
 	wantErr := errors.New("stock not found for edition ed-1 in warehouse wh-missing")
 	stk := &stubStockRepo{
 		applyChangeFn: func(context.Context, repo.ApplyChangeParams) error { return wantErr },
 	}
 	svc := newStockSvc(stk, nil)
 	if _, err := svc.ReceiveStock(context.Background(), command.StockReceiveCommand{
-		EditionUid: "ed-1", WarehouseUid: "wh-missing", Quantity: 1,
+		EditionUid: uidEdition1, WarehouseUid: uidWarehouseMissing, Quantity: 1,
 	}); !errors.Is(err, wantErr) {
 		t.Errorf("err = %v, want %v", err, wantErr)
 	}
 }
 
-func TestAdjustStock_AppliesNegativeDelta(t *testing.T) {
+func TestAdjustStock_WhenQuantityNegative_AppliesNegativeDelta(t *testing.T) {
 	var applied *repo.ApplyChangeParams
 	stk := &stubStockRepo{
 		applyChangeFn: func(_ context.Context, p repo.ApplyChangeParams) error { applied = &p; return nil },
 		findAllFn: func(context.Context, option.StockQueryOption) (int64, []*repo.StockResult, error) {
-			return 1, []*repo.StockResult{{Uid: "stk", EditionUid: "ed", WarehouseUid: "wh", Quantity: 6}}, nil
+			return 1, []*repo.StockResult{{Uid: "stk", EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: 6}}, nil
 		},
 	}
 	svc := newStockSvc(stk, nil)
 	if _, err := svc.AdjustStock(context.Background(), command.StockAdjustCommand{
-		EditionUid: "ed", WarehouseUid: "wh", Quantity: -4, Reason: "damaged",
+		EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: -4, Reason: "damaged",
 	}); err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -478,17 +498,17 @@ func TestAdjustStock_AppliesNegativeDelta(t *testing.T) {
 
 // ─── Saga reservation tests ─────────────────────────────────────────────────
 
-func TestReserveStockForOrder_UsesDeterministicKey(t *testing.T) {
+func TestReserveStockForOrder_WhenOrderGiven_UsesDeterministicReservationKey(t *testing.T) {
 	var gotParams repo.ReserveParams
 	stk := &stubStockRepo{
 		findAllFn: func(context.Context, option.StockQueryOption) (int64, []*repo.StockResult, error) {
-			return 1, []*repo.StockResult{{Uid: "stk", EditionUid: "ed-uid", WarehouseUid: "wh", Quantity: 7}}, nil
+			return 1, []*repo.StockResult{{Uid: "stk", EditionUid: uidEdition4, WarehouseUid: uidWarehouse3, Quantity: 7}}, nil
 		},
 	}
 	resv := &stubReservationRepo{
 		reserveFn: func(_ context.Context, p repo.ReserveParams) (*repo.ReservationResult, error) {
 			gotParams = p
-			return &repo.ReservationResult{EditionUid: "ed-uid", WarehouseUid: "wh", Quantity: 3, Status: "RESERVED"}, nil
+			return &repo.ReservationResult{EditionUid: uidEdition4, WarehouseUid: uidWarehouse3, Quantity: 3, Status: "RESERVED"}, nil
 		},
 	}
 	svc := &stockService{stockRepo: stk, reservationRepo: resv}
@@ -505,7 +525,7 @@ func TestReserveStockForOrder_UsesDeterministicKey(t *testing.T) {
 	}
 }
 
-func TestReserveStockForOrder_RejectsNonPositive(t *testing.T) {
+func TestReserveStockForOrder_WhenQuantityNotPositive_ReturnsErrInvalidCommand(t *testing.T) {
 	svc := &stockService{reservationRepo: &stubReservationRepo{}}
 	if _, err := svc.ReserveStockForOrder(context.Background(), command.StockOrderReserveCommand{
 		OrderUid: "o", EditionId: 1, Quantity: 0,
@@ -514,17 +534,17 @@ func TestReserveStockForOrder_RejectsNonPositive(t *testing.T) {
 	}
 }
 
-func TestReleaseStockForOrder_SameKeyAsReserve(t *testing.T) {
+func TestReleaseStockForOrder_WhenOrderGiven_UsesTheReserveKey(t *testing.T) {
 	var gotKey string
 	stk := &stubStockRepo{
 		findAllFn: func(context.Context, option.StockQueryOption) (int64, []*repo.StockResult, error) {
-			return 1, []*repo.StockResult{{Uid: "stk", EditionUid: "ed-uid", WarehouseUid: "wh", Quantity: 10}}, nil
+			return 1, []*repo.StockResult{{Uid: "stk", EditionUid: uidEdition4, WarehouseUid: uidWarehouse3, Quantity: 10}}, nil
 		},
 	}
 	resv := &stubReservationRepo{
 		releaseFn: func(_ context.Context, p repo.ReleaseParams) (*repo.ReservationResult, error) {
 			gotKey = p.ReservationKey
-			return &repo.ReservationResult{EditionUid: "ed-uid", WarehouseUid: "wh", Quantity: 3, Status: "RELEASED"}, nil
+			return &repo.ReservationResult{EditionUid: uidEdition4, WarehouseUid: uidWarehouse3, Quantity: 3, Status: "RELEASED"}, nil
 		},
 	}
 	svc := &stockService{stockRepo: stk, reservationRepo: resv}
@@ -538,7 +558,7 @@ func TestReleaseStockForOrder_SameKeyAsReserve(t *testing.T) {
 	}
 }
 
-func TestReleaseStockForOrder_NoReservationIsNoOp(t *testing.T) {
+func TestReleaseStockForOrder_WhenNoReservationExists_ReturnsWithoutWriting(t *testing.T) {
 	resv := &stubReservationRepo{
 		releaseFn: func(context.Context, repo.ReleaseParams) (*repo.ReservationResult, error) {
 			return nil, nil
@@ -558,17 +578,17 @@ func TestReleaseStockForOrder_NoReservationIsNoOp(t *testing.T) {
 
 // ─── FindStockHistory ─────────────────────────────────────────────────────
 
-func TestFindStockHistory(t *testing.T) {
+func TestFindStockHistory_WhenStockExists_ReturnsHistory(t *testing.T) {
 	now := time.Now()
 	stk := &stubStockRepo{
 		findAllFn: func(_ context.Context, opt option.StockQueryOption) (int64, []*repo.StockResult, error) {
-			if opt.EditionUid() == nil || *opt.EditionUid() != "ed-1" {
+			if opt.EditionUid() == nil || *opt.EditionUid() != uidEdition1 {
 				t.Errorf("EditionUid = %v", opt.EditionUid())
 			}
-			if opt.WarehouseUid() == nil || *opt.WarehouseUid() != "wh-1" {
+			if opt.WarehouseUid() == nil || *opt.WarehouseUid() != uidWarehouse1 {
 				t.Errorf("WarehouseUid = %v", opt.WarehouseUid())
 			}
-			return 1, []*repo.StockResult{{Id: 7, Uid: "stk-1", EditionUid: "ed-1", WarehouseUid: "wh-1", Quantity: 4}}, nil
+			return 1, []*repo.StockResult{{Id: 7, Uid: "stk-1", EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 4}}, nil
 		},
 	}
 	hist := &stubStockHistoryRepo{
@@ -584,8 +604,8 @@ func TestFindStockHistory(t *testing.T) {
 		},
 	}
 	svc := newStockSvc(stk, hist)
-	wh := "wh-1"
-	total, entries, err := svc.FindStockHistory(context.Background(), "ed-1", &wh, pagination.NewPageOptionDefault())
+	wh := uidWarehouse1
+	total, entries, err := svc.FindStockHistory(context.Background(), uidEdition1, &wh, pagination.NewPageOptionDefault())
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -597,14 +617,14 @@ func TestFindStockHistory(t *testing.T) {
 	}
 }
 
-func TestFindStockHistory_StockNotFound(t *testing.T) {
+func TestFindStockHistory_WhenStockMissing_ReturnsNotFoundError(t *testing.T) {
 	stk := &stubStockRepo{
 		findAllFn: func(context.Context, option.StockQueryOption) (int64, []*repo.StockResult, error) {
 			return 0, nil, nil
 		},
 	}
 	svc := newStockSvc(stk, nil)
-	total, entries, err := svc.FindStockHistory(context.Background(), "ed-x", nil, pagination.NewPageOptionDefault())
+	total, entries, err := svc.FindStockHistory(context.Background(), uidEdition5, nil, pagination.NewPageOptionDefault())
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}

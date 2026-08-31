@@ -82,48 +82,48 @@ func (s *stubBalanceRepo) FindAll(ctx context.Context, opt option.BalanceQueryOp
 
 // ─── Transfer tests ─────────────────────────────────────────────────────────
 
-func TestTransferStock_CreatesTransfer(t *testing.T) {
+func TestTransferStock_WhenCommandValid_CreatesTransfer(t *testing.T) {
 	var captured repo.TransferCreateParams
 	tr := &stubTransferRepo{
 		createFn: func(_ context.Context, p repo.TransferCreateParams) (*repo.TransferResult, error) {
 			captured = p
-			return &repo.TransferResult{Uid: "tr-1", EditionUid: p.EditionUid, Status: "PENDING", Quantity: p.Quantity}, nil
+			return &repo.TransferResult{Uid: uidTransfer1, EditionUid: p.EditionUid, Status: "PENDING", Quantity: p.Quantity}, nil
 		},
 	}
 	svc := &stockService{transferRepo: tr}
 	got, err := svc.TransferStock(context.Background(), command.StockTransferCommand{
-		EditionUid: "ed-1", SourceWarehouseUid: "wh-1", TargetWarehouseUid: "wh-2", Quantity: 5,
+		EditionUid: uidEdition1, SourceWarehouseUid: uidWarehouse1, TargetWarehouseUid: uidWarehouse2, Quantity: 5,
 	})
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if captured.EditionUid != "ed-1" || captured.SourceWarehouseUid != "wh-1" || captured.TargetWarehouseUid != "wh-2" || captured.Quantity != 5 {
+	if captured.EditionUid != uidEdition1 || captured.SourceWarehouseUid != uidWarehouse1 || captured.TargetWarehouseUid != uidWarehouse2 || captured.Quantity != 5 {
 		t.Errorf("captured = %+v", captured)
 	}
-	if got == nil || got.Uid != "tr-1" || got.Status != "PENDING" {
+	if got == nil || got.Uid != uidTransfer1 || got.Status != "PENDING" {
 		t.Errorf("got = %+v", got)
 	}
 }
 
-func TestTransferStock_RejectsNonPositive(t *testing.T) {
+func TestTransferStock_WhenQuantityNotPositive_ReturnsErrInvalidCommand(t *testing.T) {
 	svc := &stockService{transferRepo: &stubTransferRepo{}}
 	if _, err := svc.TransferStock(context.Background(), command.StockTransferCommand{
-		EditionUid: "ed", SourceWarehouseUid: "wh-1", TargetWarehouseUid: "wh-2", Quantity: 0,
+		EditionUid: uidEdition3, SourceWarehouseUid: uidWarehouse1, TargetWarehouseUid: uidWarehouse2, Quantity: 0,
 	}); err == nil {
 		t.Errorf("expected error for non-positive transfer quantity")
 	}
 }
 
-func TestTransferStock_RejectsSameWarehouse(t *testing.T) {
+func TestTransferStock_WhenWarehousesMatch_ReturnsErrInvalidCommand(t *testing.T) {
 	svc := &stockService{transferRepo: &stubTransferRepo{}}
 	if _, err := svc.TransferStock(context.Background(), command.StockTransferCommand{
-		EditionUid: "ed", SourceWarehouseUid: "wh-1", TargetWarehouseUid: "wh-1", Quantity: 3,
+		EditionUid: uidEdition3, SourceWarehouseUid: uidWarehouse1, TargetWarehouseUid: uidWarehouse1, Quantity: 3,
 	}); err == nil {
 		t.Errorf("expected error when source and target warehouses match")
 	}
 }
 
-func TestFindTransfer_NotFound(t *testing.T) {
+func TestFindTransfer_WhenTransferMissing_ReturnsNotFoundError(t *testing.T) {
 	tr := &stubTransferRepo{findByUidFn: func(context.Context, string) (*repo.TransferResult, error) { return nil, nil }}
 	svc := &stockService{transferRepo: tr}
 	got, err := svc.FindTransfer(context.Background(), "missing")
@@ -135,7 +135,7 @@ func TestFindTransfer_NotFound(t *testing.T) {
 	}
 }
 
-func TestCompleteTransfer_HappyPath(t *testing.T) {
+func TestCompleteTransfer_WhenTransferPending_MovesStockAndCompletes(t *testing.T) {
 	var completed string
 	tr := &stubTransferRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.TransferResult, error) {
@@ -147,16 +147,16 @@ func TestCompleteTransfer_HappyPath(t *testing.T) {
 		},
 	}
 	svc := &stockService{transferRepo: tr}
-	got, err := svc.CompleteTransfer(context.Background(), "tr-1")
+	got, err := svc.CompleteTransfer(context.Background(), uidTransfer1)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if completed != "tr-1" || got == nil || got.Status != "COMPLETED" {
+	if completed != uidTransfer1 || got == nil || got.Status != "COMPLETED" {
 		t.Errorf("completed=%q got=%+v", completed, got)
 	}
 }
 
-func TestCompleteTransfer_InvalidState(t *testing.T) {
+func TestCompleteTransfer_WhenTransferNotPending_ReturnsStateError(t *testing.T) {
 	tr := &stubTransferRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.TransferResult, error) {
 			return &repo.TransferResult{Uid: uid, Status: "CANCELLED"}, nil
@@ -167,12 +167,12 @@ func TestCompleteTransfer_InvalidState(t *testing.T) {
 		},
 	}
 	svc := &stockService{transferRepo: tr}
-	if _, err := svc.CompleteTransfer(context.Background(), "tr-1"); err == nil {
+	if _, err := svc.CompleteTransfer(context.Background(), uidTransfer1); err == nil {
 		t.Errorf("expected error completing a CANCELLED transfer")
 	}
 }
 
-func TestCancelTransfer_InvalidState(t *testing.T) {
+func TestCancelTransfer_WhenTransferNotPending_ReturnsStateError(t *testing.T) {
 	tr := &stubTransferRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.TransferResult, error) {
 			return &repo.TransferResult{Uid: uid, Status: "IN_TRANSIT"}, nil
@@ -183,12 +183,12 @@ func TestCancelTransfer_InvalidState(t *testing.T) {
 		},
 	}
 	svc := &stockService{transferRepo: tr}
-	if _, err := svc.CancelTransfer(context.Background(), "tr-1"); err == nil {
+	if _, err := svc.CancelTransfer(context.Background(), uidTransfer1); err == nil {
 		t.Errorf("expected error cancelling an IN_TRANSIT transfer")
 	}
 }
 
-func TestCancelTransfer_NotFound(t *testing.T) {
+func TestCancelTransfer_WhenTransferMissing_ReturnsNotFoundError(t *testing.T) {
 	tr := &stubTransferRepo{findByUidFn: func(context.Context, string) (*repo.TransferResult, error) { return nil, nil }}
 	svc := &stockService{transferRepo: tr}
 	got, err := svc.CancelTransfer(context.Background(), "missing")
@@ -202,26 +202,26 @@ func TestCancelTransfer_NotFound(t *testing.T) {
 
 // ─── Audit tests ────────────────────────────────────────────────────────────
 
-func TestCreateAudit_ComputesFromItems(t *testing.T) {
+func TestCreateAudit_WhenItemsGiven_ComputesDifferencesFromThem(t *testing.T) {
 	var captured repo.AuditCreateParams
 	ar := &stubAuditRepo{
 		createFn: func(_ context.Context, p repo.AuditCreateParams) (*repo.AuditResult, error) {
 			captured = p
 			return &repo.AuditResult{
-				Uid: "au-1", WarehouseUid: p.WarehouseUid, Status: "IN_PROGRESS",
-				Items: []repo.AuditItemResult{{EditionUid: "ed-1", SystemQuantity: 10, ActualQuantity: 8, Difference: -2}},
+				Uid: uidAudit1, WarehouseUid: p.WarehouseUid, Status: "IN_PROGRESS",
+				Items: []repo.AuditItemResult{{EditionUid: uidEdition1, SystemQuantity: 10, ActualQuantity: 8, Difference: -2}},
 			}, nil
 		},
 	}
 	svc := &stockService{auditRepo: ar}
 	got, err := svc.CreateAudit(context.Background(), command.StockAuditCreateCommand{
-		WarehouseUid: "wh-1",
-		Items:        []command.StockAuditItemCommand{{EditionUid: "ed-1", ActualQuantity: 8}},
+		WarehouseUid: uidWarehouse1,
+		Items:        []command.StockAuditItemCommand{{EditionUid: uidEdition1, ActualQuantity: 8}},
 	})
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if captured.WarehouseUid != "wh-1" || len(captured.Items) != 1 || captured.Items[0].ActualQuantity != 8 {
+	if captured.WarehouseUid != uidWarehouse1 || len(captured.Items) != 1 || captured.Items[0].ActualQuantity != 8 {
 		t.Errorf("captured = %+v", captured)
 	}
 	if got == nil || len(got.Items) != 1 || got.Items[0].Difference != -2 {
@@ -229,14 +229,14 @@ func TestCreateAudit_ComputesFromItems(t *testing.T) {
 	}
 }
 
-func TestCreateAudit_RejectsEmptyItems(t *testing.T) {
+func TestCreateAudit_WhenItemsEmpty_ReturnsErrInvalidCommand(t *testing.T) {
 	svc := &stockService{auditRepo: &stubAuditRepo{}}
-	if _, err := svc.CreateAudit(context.Background(), command.StockAuditCreateCommand{WarehouseUid: "wh-1"}); err == nil {
+	if _, err := svc.CreateAudit(context.Background(), command.StockAuditCreateCommand{WarehouseUid: uidWarehouse1}); err == nil {
 		t.Errorf("expected error for empty audit items")
 	}
 }
 
-func TestCompleteAudit_AlreadyCompleted(t *testing.T) {
+func TestCompleteAudit_WhenAuditAlreadyCompleted_ReturnsStateError(t *testing.T) {
 	ar := &stubAuditRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.AuditResult, error) {
 			return &repo.AuditResult{Uid: uid, Status: "COMPLETED"}, nil
@@ -247,12 +247,12 @@ func TestCompleteAudit_AlreadyCompleted(t *testing.T) {
 		},
 	}
 	svc := &stockService{auditRepo: ar}
-	if _, err := svc.CompleteAudit(context.Background(), "au-1"); err == nil {
+	if _, err := svc.CompleteAudit(context.Background(), uidAudit1); err == nil {
 		t.Errorf("expected error completing an already-completed audit")
 	}
 }
 
-func TestCompleteAudit_HappyPath(t *testing.T) {
+func TestCompleteAudit_WhenAuditOpen_AppliesAdjustmentsAndCompletes(t *testing.T) {
 	ar := &stubAuditRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.AuditResult, error) {
 			return &repo.AuditResult{Uid: uid, Status: "IN_PROGRESS"}, nil
@@ -262,7 +262,7 @@ func TestCompleteAudit_HappyPath(t *testing.T) {
 		},
 	}
 	svc := &stockService{auditRepo: ar}
-	got, err := svc.CompleteAudit(context.Background(), "au-1")
+	got, err := svc.CompleteAudit(context.Background(), uidAudit1)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -273,20 +273,20 @@ func TestCompleteAudit_HappyPath(t *testing.T) {
 
 // ─── Closing tests ──────────────────────────────────────────────────────────
 
-func TestCreateMonthlyClosing_HappyPath(t *testing.T) {
+func TestCreateMonthlyClosing_WhenPeriodValid_CreatesClosing(t *testing.T) {
 	var captured repo.ClosingCreateParams
 	cr := &stubClosingRepo{
 		createFn: func(_ context.Context, p repo.ClosingCreateParams) (*repo.ClosingResult, error) {
 			captured = p
 			return &repo.ClosingResult{
-				Uid: "cl-1", WarehouseUid: p.WarehouseUid, Year: p.Year, Month: p.Month, Status: "CLOSED",
-				Items: []repo.ClosingItemResult{{EditionUid: "ed-1", OpeningQuantity: 3, InboundQuantity: 5, OutboundQuantity: 2, ClosingQuantity: 6}},
+				Uid: uidClosing1, WarehouseUid: p.WarehouseUid, Year: p.Year, Month: p.Month, Status: "CLOSED",
+				Items: []repo.ClosingItemResult{{EditionUid: uidEdition1, OpeningQuantity: 3, InboundQuantity: 5, OutboundQuantity: 2, ClosingQuantity: 6}},
 			}, nil
 		},
 	}
 	svc := &stockService{closingRepo: cr}
 	got, err := svc.CreateMonthlyClosing(context.Background(), command.MonthlyClosingCommand{
-		WarehouseUid: "wh-1", Year: 2026, Month: 7,
+		WarehouseUid: uidWarehouse1, Year: 2026, Month: 7,
 	})
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -299,16 +299,16 @@ func TestCreateMonthlyClosing_HappyPath(t *testing.T) {
 	}
 }
 
-func TestCreateMonthlyClosing_RejectsInvalidMonth(t *testing.T) {
+func TestCreateMonthlyClosing_WhenMonthOutOfRange_ReturnsErrInvalidCommand(t *testing.T) {
 	svc := &stockService{closingRepo: &stubClosingRepo{}}
 	if _, err := svc.CreateMonthlyClosing(context.Background(), command.MonthlyClosingCommand{
-		WarehouseUid: "wh-1", Year: 2026, Month: 13,
+		WarehouseUid: uidWarehouse1, Year: 2026, Month: 13,
 	}); err == nil {
 		t.Errorf("expected error for month 13")
 	}
 }
 
-func TestFindClosing_NotFound(t *testing.T) {
+func TestFindClosing_WhenClosingMissing_ReturnsNotFoundError(t *testing.T) {
 	cr := &stubClosingRepo{findByUidFn: func(context.Context, string) (*repo.ClosingResult, error) { return nil, nil }}
 	svc := &stockService{closingRepo: cr}
 	got, err := svc.FindClosing(context.Background(), "missing")
@@ -322,11 +322,11 @@ func TestFindClosing_NotFound(t *testing.T) {
 
 // ─── Balance tests ──────────────────────────────────────────────────────────
 
-func TestFindStockBalance_MapsRows(t *testing.T) {
+func TestFindStockBalance_WhenRepoReturnsRows_MapsThemToAggregates(t *testing.T) {
 	br := &stubBalanceRepo{
 		findAllFn: func(_ context.Context, _ option.BalanceQueryOption) (int64, []*repo.BalanceResult, error) {
 			return 1, []*repo.BalanceResult{{
-				EditionUid: "ed-1", WarehouseUid: "wh-1", WarehouseName: "Main",
+				EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, WarehouseName: "Main",
 				InboundQuantity: 10, OutboundQuantity: 4, AdjustQuantity: -1, CurrentQuantity: 5,
 			}}, nil
 		},
@@ -344,7 +344,7 @@ func TestFindStockBalance_MapsRows(t *testing.T) {
 	}
 }
 
-func TestFindStockBalance_RepoError(t *testing.T) {
+func TestFindStockBalance_WhenRepoFails_ReturnsRepoError(t *testing.T) {
 	wantErr := errors.New("report failed")
 	br := &stubBalanceRepo{
 		findAllFn: func(context.Context, option.BalanceQueryOption) (int64, []*repo.BalanceResult, error) {

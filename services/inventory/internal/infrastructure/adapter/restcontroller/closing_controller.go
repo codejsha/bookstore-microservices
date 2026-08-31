@@ -35,6 +35,10 @@ func (c *closingController) ClosingsGetAll(
 	page *int32,
 	sort *string,
 ) (*openapi.ClosingFindAllResponse, error) {
+	if err := optionalUidParam(ctx, "warehouse_uid", warehouseUid); err != nil {
+		return nil, err
+	}
+
 	opt := option.NewClosingQueryOption(
 		option.ClosingQueryOption{}.WithWarehouseUid(warehouseUid),
 		option.ClosingQueryOption{}.WithYear(year),
@@ -77,6 +81,10 @@ func (c *closingController) ClosingsCreate(ctx context.Context, req openapi.Clos
 }
 
 func (c *closingController) ClosingsRead(ctx context.Context, uid string) (*openapi.ClosingFindResponse, error) {
+	if err := requireUidParam(ctx, "uid", uid); err != nil {
+		return nil, err
+	}
+
 	closing, err := c.inventoryUseCase.FindClosing(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapNotFound(ctx, err)

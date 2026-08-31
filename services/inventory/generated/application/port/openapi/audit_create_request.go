@@ -3,7 +3,7 @@
 package openapi
 
 type AuditCreateRequest struct {
-	Items        []AuditItemRequest `json:"items" validate:"required"`
-	Notes        *string            `json:"notes,omitempty"`
-	WarehouseUid string             `json:"warehouse_uid" validate:"required"`
+	Items        []AuditItemRequest `json:"items" binding:"required,dive"`
+	Notes        *string            `json:"notes,omitempty" binding:"omitempty,max=500"`
+	WarehouseUid string             `json:"warehouse_uid" binding:"required"`
 }

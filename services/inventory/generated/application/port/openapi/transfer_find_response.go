@@ -8,13 +8,13 @@ import (
 
 type TransferFindResponse struct {
 	CompletedAt        *time.Time     `json:"completed_at,omitempty"`
-	CreatedAt          time.Time      `json:"created_at" validate:"required"`
-	EditionUid         string         `json:"edition_uid" validate:"required"`
-	Quantity           int32          `json:"quantity" validate:"required"`
+	CreatedAt          time.Time      `json:"created_at" binding:"required"`
+	EditionUid         string         `json:"edition_uid" binding:"required"`
+	Quantity           int32          `json:"quantity"`
 	Reason             *string        `json:"reason,omitempty"`
-	SourceWarehouseUid string         `json:"source_warehouse_uid" validate:"required"`
-	Status             TransferStatus `json:"status" validate:"required"`
-	TargetWarehouseUid string         `json:"target_warehouse_uid" validate:"required"`
-	Uid                string         `json:"uid" validate:"required"`
+	SourceWarehouseUid string         `json:"source_warehouse_uid" binding:"required"`
+	Status             TransferStatus `json:"status" binding:"required"`
+	TargetWarehouseUid string         `json:"target_warehouse_uid" binding:"required"`
+	Uid                string         `json:"uid" binding:"required"`
 	UpdatedAt          *time.Time     `json:"updated_at,omitempty"`
 }

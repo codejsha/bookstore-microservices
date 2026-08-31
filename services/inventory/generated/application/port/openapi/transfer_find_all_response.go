@@ -3,6 +3,6 @@
 package openapi
 
 type TransferFindAllResponse struct {
-	Items []TransferFindResponse `json:"items" validate:"required"`
-	Total int64                  `json:"total" validate:"required"`
+	Items []TransferFindResponse `json:"items" binding:"required,dive"`
+	Total int64                  `json:"total" binding:"gte=0"`
 }

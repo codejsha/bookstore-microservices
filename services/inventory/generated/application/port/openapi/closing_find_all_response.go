@@ -3,6 +3,6 @@
 package openapi
 
 type ClosingFindAllResponse struct {
-	Items []ClosingFindResponse `json:"items" validate:"required"`
-	Total int64                 `json:"total" validate:"required"`
+	Items []ClosingFindResponse `json:"items" binding:"required,dive"`
+	Total int64                 `json:"total" binding:"gte=0"`
 }

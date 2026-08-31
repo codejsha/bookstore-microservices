@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/codejsha/bookstore-microservices/inventory/internal/application/port/repo"
+	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/command"
 )
 
 var ErrNotFound = errors.New("resource not found")
@@ -44,12 +45,18 @@ func MapBusinessError(ctx context.Context, err error) error {
 		return err
 	}
 	switch {
+	case errors.Is(err, command.ErrInvalidCommand):
+		es.status, es.message = http.StatusBadRequest, err.Error()
 	case errors.Is(err, repo.ErrInvalidQuantity):
 		es.status, es.message = http.StatusBadRequest, repo.ErrInvalidQuantity.Error()
 	case errors.Is(err, repo.ErrInsufficientStock):
 		es.status, es.message = http.StatusBadRequest, repo.ErrInsufficientStock.Error()
 	case errors.Is(err, repo.ErrSameWarehouse):
 		es.status, es.message = http.StatusBadRequest, repo.ErrSameWarehouse.Error()
+	case errors.Is(err, repo.ErrStockNotFound):
+		es.status, es.message = http.StatusNotFound, repo.ErrStockNotFound.Error()
+	case errors.Is(err, repo.ErrWarehouseNotFound):
+		es.status, es.message = http.StatusNotFound, repo.ErrWarehouseNotFound.Error()
 	case errors.Is(err, repo.ErrDuplicateClosing):
 		es.status, es.message = http.StatusConflict, repo.ErrDuplicateClosing.Error()
 	}
@@ -90,9 +97,11 @@ func GinResponseMapping() gin.HandlerFunc {
 			switch {
 			case es.status != 0:
 				status = es.status
-				body = []byte(fmt.Sprintf(`{"error":%q}`, es.message))
+				body = []byte(fmt.Sprintf(`{"title":%q,"status":%d,"detail":%q}`, http.StatusText(es.status), es.status, es.message))
+				orig.Header().Set("Content-Type", "application/problem+json")
 			case status >= http.StatusInternalServerError:
-				body = []byte(`{"error":"internal server error"}`)
+				body = []byte(fmt.Sprintf(`{"title":%q,"status":%d,"detail":"internal server error"}`, http.StatusText(status), status))
+				orig.Header().Set("Content-Type", "application/problem+json")
 			}
 			orig.WriteHeader(status)
 			_, _ = orig.Write(body)

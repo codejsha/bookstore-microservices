@@ -58,7 +58,7 @@ func (c *warehouseController) WarehousesCreate(ctx context.Context, req openapi.
 
 	warehouse, err := c.inventoryUseCase.RegisterWarehouse(ctx, cmd)
 	if err != nil {
-		return err
+		return httpx.MapBusinessError(ctx, err)
 	}
 
 	go runSideEffects(context.WithoutCancel(ctx), "warehouse", warehouse.Uid, "created", logrus.Fields{"name": req.Name})
@@ -66,6 +66,10 @@ func (c *warehouseController) WarehousesCreate(ctx context.Context, req openapi.
 }
 
 func (c *warehouseController) WarehousesRead(ctx context.Context, uid string) (*openapi.WarehouseFindResponse, error) {
+	if err := requireUidParam(ctx, "uid", uid); err != nil {
+		return nil, err
+	}
+
 	warehouse, err := c.inventoryUseCase.FindWarehouse(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapNotFound(ctx, err)
@@ -82,6 +86,10 @@ func (c *warehouseController) WarehousesUpdate(
 	uid string,
 	req openapi.WarehouseUpdateRequest,
 ) (*openapi.WarehouseUpdateResponse, error) {
+	if err := requireUidParam(ctx, "uid", uid); err != nil {
+		return nil, err
+	}
+
 	cmd := command.WarehouseUpdateCommand{
 		Name:     req.Name,
 		Address:  req.Address,
@@ -90,7 +98,7 @@ func (c *warehouseController) WarehousesUpdate(
 
 	warehouse, err := c.inventoryUseCase.UpdateWarehouse(ctx, uid, cmd)
 	if err != nil {
-		return nil, httpx.MapNotFound(ctx, err)
+		return nil, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err))
 	}
 	if warehouse == nil {
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)

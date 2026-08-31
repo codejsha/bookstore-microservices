@@ -22,7 +22,7 @@ interface Transfers {
 
   @doc("Create stock transfer between warehouses")
   @post
-  create(@body body: TransferCreateRequest): TransferFindResponse;
+  create(@body body: TransferCreateRequest): TransferFindResponse | BadRequestError | NotFoundError;
 
   @doc("Find stock transfer")
   @route("{uid}")

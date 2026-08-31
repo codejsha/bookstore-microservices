@@ -19,7 +19,7 @@ interface Warehouses {
 
   @doc("Register new warehouse")
   @post
-  create(@body body: WarehouseCreateRequest): CreatedResponse;
+  create(@body body: WarehouseCreateRequest): CreatedResponse | BadRequestError;
 
   @doc("Find warehouse")
   @route("{uid}")
@@ -29,5 +29,5 @@ interface Warehouses {
   @doc("Update warehouse")
   @route("{uid}")
   @put
-  update(@path uid: uuid, @body body: WarehouseUpdateRequest): WarehouseUpdateResponse | NotFoundError;
+  update(@path uid: uuid, @body body: WarehouseUpdateRequest): WarehouseUpdateResponse | BadRequestError | NotFoundError;
 }

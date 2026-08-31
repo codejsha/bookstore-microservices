@@ -15,6 +15,7 @@ import (
 const (
 	errTypeInsufficientStock = "InsufficientStock"
 	errTypeInvalidQuantity   = "InvalidQuantity"
+	errTypeInvalidCommand    = "InvalidCommand"
 )
 
 func classifyReservationError(err error) error {
@@ -23,6 +24,8 @@ func classifyReservationError(err error) error {
 		return temporal.NewNonRetryableApplicationError(err.Error(), errTypeInsufficientStock, err)
 	case errors.Is(err, repo.ErrInvalidQuantity):
 		return temporal.NewNonRetryableApplicationError(err.Error(), errTypeInvalidQuantity, err)
+	case errors.Is(err, command.ErrInvalidCommand):
+		return temporal.NewNonRetryableApplicationError(err.Error(), errTypeInvalidCommand, err)
 	default:
 		return err
 	}
@@ -69,7 +72,7 @@ func (a *StockActivities) ReleaseStock(ctx context.Context, req ReleaseStockRequ
 			Reason:    &reason,
 		}); err != nil {
 			logger.Error("Failed to release stock", "orderRef", orderRef, "productId", item.ProductID, "error", err)
-			return err
+			return classifyReservationError(err)
 		}
 		logger.Info("Released stock", "orderRef", orderRef, "productId", item.ProductID, "quantity", item.Quantity)
 	}

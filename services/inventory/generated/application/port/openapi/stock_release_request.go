@@ -4,8 +4,8 @@ package openapi
 
 // Release stock from a warehouse (outbound)
 type StockReleaseRequest struct {
-	EditionUid   string  `json:"edition_uid" validate:"required"`
-	Quantity     int32   `json:"quantity" validate:"required"`
-	Reason       *string `json:"reason,omitempty"`
-	WarehouseUid string  `json:"warehouse_uid" validate:"required"`
+	EditionUid   string  `json:"edition_uid" binding:"required"`
+	Quantity     int32   `json:"quantity" binding:"required,gte=1"`
+	Reason       *string `json:"reason,omitempty" binding:"omitempty,max=255"`
+	WarehouseUid string  `json:"warehouse_uid" binding:"required"`
 }

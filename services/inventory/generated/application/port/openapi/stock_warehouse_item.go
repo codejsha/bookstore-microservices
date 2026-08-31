@@ -3,7 +3,7 @@
 package openapi
 
 type StockWarehouseItem struct {
-	Quantity      int32  `json:"quantity" validate:"required"`
-	WarehouseName string `json:"warehouse_name" validate:"required"`
-	WarehouseUid  string `json:"warehouse_uid" validate:"required"`
+	Quantity      int32  `json:"quantity"`
+	WarehouseName string `json:"warehouse_name" binding:"required"`
+	WarehouseUid  string `json:"warehouse_uid" binding:"required"`
 }

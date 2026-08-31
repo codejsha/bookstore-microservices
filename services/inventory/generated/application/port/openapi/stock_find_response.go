@@ -3,8 +3,8 @@
 package openapi
 
 type StockFindResponse struct {
-	EditionUid    string               `json:"edition_uid" validate:"required"`
-	TotalQuantity int32                `json:"total_quantity" validate:"required"`
-	Uid           string               `json:"uid" validate:"required"`
-	Warehouses    []StockWarehouseItem `json:"warehouses" validate:"required"`
+	EditionUid    string               `json:"edition_uid" binding:"required"`
+	TotalQuantity int32                `json:"total_quantity"`
+	Uid           string               `json:"uid" binding:"required"`
+	Warehouses    []StockWarehouseItem `json:"warehouses" binding:"required,dive"`
 }

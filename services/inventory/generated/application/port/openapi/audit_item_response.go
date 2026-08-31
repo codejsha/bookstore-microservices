@@ -3,8 +3,8 @@
 package openapi
 
 type AuditItemResponse struct {
-	ActualQuantity int32  `json:"actual_quantity" validate:"required"`
-	Difference     int32  `json:"difference" validate:"required"`
-	EditionUid     string `json:"edition_uid" validate:"required"`
-	SystemQuantity int32  `json:"system_quantity" validate:"required"`
+	ActualQuantity int32  `json:"actual_quantity"`
+	Difference     int32  `json:"difference"`
+	EditionUid     string `json:"edition_uid" binding:"required"`
+	SystemQuantity int32  `json:"system_quantity"`
 }

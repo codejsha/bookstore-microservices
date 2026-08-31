@@ -3,7 +3,7 @@
 package openapi
 
 type WarehouseUpdateRequest struct {
-	Address  *string `json:"address,omitempty"`
-	Capacity *int32  `json:"capacity,omitempty"`
-	Name     *string `json:"name,omitempty"`
+	Address  *string `json:"address,omitempty" binding:"omitempty,max=255"`
+	Capacity *int32  `json:"capacity,omitempty" binding:"omitempty,gte=0"`
+	Name     *string `json:"name,omitempty" binding:"omitempty,max=255"`
 }

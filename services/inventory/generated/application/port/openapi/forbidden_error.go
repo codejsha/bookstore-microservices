@@ -3,6 +3,8 @@
 package openapi
 
 type ForbiddenError struct {
-	Code    int32  `json:"code" validate:"required"`
-	Message string `json:"message" validate:"required"`
+	Detail *string `json:"detail,omitempty"`
+	Status int32   `json:"status"`
+	Title  string  `json:"title" binding:"required"`
+	Type   *string `json:"type,omitempty"`
 }

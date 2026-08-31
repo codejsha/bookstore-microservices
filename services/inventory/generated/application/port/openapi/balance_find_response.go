@@ -3,11 +3,11 @@
 package openapi
 
 type BalanceFindResponse struct {
-	AdjustQuantity   int32  `json:"adjust_quantity" validate:"required"`
-	CurrentQuantity  int32  `json:"current_quantity" validate:"required"`
-	EditionUid       string `json:"edition_uid" validate:"required"`
-	InboundQuantity  int32  `json:"inbound_quantity" validate:"required"`
-	OutboundQuantity int32  `json:"outbound_quantity" validate:"required"`
-	WarehouseName    string `json:"warehouse_name" validate:"required"`
-	WarehouseUid     string `json:"warehouse_uid" validate:"required"`
+	AdjustQuantity   int32  `json:"adjust_quantity"`
+	CurrentQuantity  int32  `json:"current_quantity"`
+	EditionUid       string `json:"edition_uid" binding:"required"`
+	InboundQuantity  int32  `json:"inbound_quantity"`
+	OutboundQuantity int32  `json:"outbound_quantity"`
+	WarehouseName    string `json:"warehouse_name" binding:"required"`
+	WarehouseUid     string `json:"warehouse_uid" binding:"required"`
 }

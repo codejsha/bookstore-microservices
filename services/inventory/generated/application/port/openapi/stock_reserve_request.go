@@ -4,9 +4,9 @@ package openapi
 
 // Reserve stock for an order
 type StockReserveRequest struct {
-	EditionUid string `json:"edition_uid" validate:"required"`
-	Quantity   int32  `json:"quantity" validate:"required"`
+	EditionUid string `json:"edition_uid" binding:"required"`
+	Quantity   int32  `json:"quantity" binding:"required,gte=1"`
 	// Order reference
-	Reason       *string `json:"reason,omitempty"`
-	WarehouseUid string  `json:"warehouse_uid" validate:"required"`
+	Reason       *string `json:"reason,omitempty" binding:"omitempty,max=255"`
+	WarehouseUid string  `json:"warehouse_uid" binding:"required"`
 }

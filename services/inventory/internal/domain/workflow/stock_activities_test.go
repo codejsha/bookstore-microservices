@@ -29,7 +29,7 @@ func (s *stubInventoryUC) ReleaseStockForOrder(ctx context.Context, cmd command.
 	return s.releaseFn(ctx, cmd)
 }
 
-func TestClassifyReservationError(t *testing.T) {
+func TestClassifyReservationError_WhenErrorGiven_ReturnsRetryClassification(t *testing.T) {
 	cases := []struct {
 		name        string
 		in          error
@@ -38,21 +38,21 @@ func TestClassifyReservationError(t *testing.T) {
 		nonRetryabl bool
 	}{
 		{
-			name:        "insufficient stock is permanent",
+			name:        "whenStockInsufficient_returnsNonRetryable",
 			in:          fmt.Errorf("no warehouse: %w", repo.ErrInsufficientStock),
 			wantAppErr:  true,
 			wantType:    errTypeInsufficientStock,
 			nonRetryabl: true,
 		},
 		{
-			name:        "invalid quantity is permanent",
+			name:        "whenQuantityInvalid_returnsNonRetryable",
 			in:          fmt.Errorf("bad qty: %w", repo.ErrInvalidQuantity),
 			wantAppErr:  true,
 			wantType:    errTypeInvalidQuantity,
 			nonRetryabl: true,
 		},
 		{
-			name:       "transient DB error stays retryable",
+			name:       "whenDbErrorTransient_returnsRetryable",
 			in:         errors.New("dial tcp: connection refused"),
 			wantAppErr: false,
 		},
@@ -86,7 +86,7 @@ func TestClassifyReservationError(t *testing.T) {
 	}
 }
 
-func TestReserveStock_InsufficientIsNonRetryable(t *testing.T) {
+func TestReserveStock_WhenStockInsufficient_ReturnsNonRetryableApplicationError(t *testing.T) {
 	var suite testsuite.WorkflowTestSuite
 	env := suite.NewTestActivityEnvironment()
 
@@ -118,7 +118,7 @@ func TestReserveStock_InsufficientIsNonRetryable(t *testing.T) {
 	}
 }
 
-func TestReserveStock_TransientStaysRetryable(t *testing.T) {
+func TestReserveStock_WhenDbErrorTransient_ReturnsRetryableError(t *testing.T) {
 	var suite testsuite.WorkflowTestSuite
 	env := suite.NewTestActivityEnvironment()
 
@@ -132,6 +132,78 @@ func TestReserveStock_TransientStaysRetryable(t *testing.T) {
 
 	_, err := env.ExecuteActivity(act.ReserveStock, ReserveStockRequest{
 		OrderUid: "order-2",
+		Items:    []StockReservationItem{{ProductID: 7, Quantity: 5}},
+	})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	var appErr *temporal.ApplicationError
+	if errors.As(err, &appErr) && appErr.NonRetryable() {
+		t.Errorf("transient DB error must stay retryable, got non-retryable ApplicationError: %v", err)
+	}
+}
+
+func TestClassifyReservationError_WhenCommandInvalid_ReturnsNonRetryableApplicationError(t *testing.T) {
+	got := classifyReservationError(fmt.Errorf("order_uid must not be blank: %w", command.ErrInvalidCommand))
+
+	var appErr *temporal.ApplicationError
+	if !errors.As(got, &appErr) {
+		t.Fatalf("expected ApplicationError, got %T: %v", got, got)
+	}
+	if !appErr.NonRetryable() {
+		t.Errorf("invalid command must be non-retryable")
+	}
+	if appErr.Type() != errTypeInvalidCommand {
+		t.Errorf("type = %q, want %q", appErr.Type(), errTypeInvalidCommand)
+	}
+}
+
+func TestReleaseStock_WhenCommandInvalid_ReturnsNonRetryableApplicationError(t *testing.T) {
+	var suite testsuite.WorkflowTestSuite
+	env := suite.NewTestActivityEnvironment()
+
+	uc := &stubInventoryUC{
+		releaseFn: func(_ context.Context, cmd command.StockOrderReleaseCommand) (*aggregate.StockAggregate, error) {
+			return nil, cmd.Validate()
+		},
+	}
+	act := NewStockActivities(uc)
+	env.RegisterActivity(act.ReleaseStock)
+
+	_, err := env.ExecuteActivity(act.ReleaseStock, ReleaseStockRequest{
+		OrderUid: "order-3",
+		Items:    []StockReservationItem{{ProductID: 0, Quantity: 1}},
+	})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	var appErr *temporal.ApplicationError
+	if !errors.As(err, &appErr) {
+		t.Fatalf("expected ApplicationError, got %T: %v", err, err)
+	}
+	if !appErr.NonRetryable() {
+		t.Errorf("invalid release input must fail fast instead of retrying forever")
+	}
+	if appErr.Type() != errTypeInvalidCommand {
+		t.Errorf("type = %q, want %q", appErr.Type(), errTypeInvalidCommand)
+	}
+}
+
+func TestReleaseStock_WhenDbErrorTransient_ReturnsRetryableError(t *testing.T) {
+	var suite testsuite.WorkflowTestSuite
+	env := suite.NewTestActivityEnvironment()
+
+	uc := &stubInventoryUC{
+		releaseFn: func(context.Context, command.StockOrderReleaseCommand) (*aggregate.StockAggregate, error) {
+			return nil, errors.New("dial tcp: connection refused")
+		},
+	}
+	act := NewStockActivities(uc)
+	env.RegisterActivity(act.ReleaseStock)
+
+	_, err := env.ExecuteActivity(act.ReleaseStock, ReleaseStockRequest{
+		OrderUid: "order-4",
 		Items:    []StockReservationItem{{ProductID: 7, Quantity: 5}},
 	})
 	if err == nil {
