@@ -1,5 +1,6 @@
 package com.codejsha.bookstore.payment.domain.service
 
+import com.codejsha.bookstore.payment.application.port.repo.CustomerRepo
 import com.codejsha.bookstore.payment.application.port.repo.PaymentAttemptRepo
 import com.codejsha.bookstore.payment.application.port.repo.PaymentAttemptResult
 import com.codejsha.bookstore.payment.application.port.repo.PaymentRepo
@@ -30,6 +31,7 @@ import java.util.UUID
 @Service
 class PaymentService(
     private val paymentRepo: PaymentRepo,
+    private val customerRepo: CustomerRepo,
     private val paymentAttemptRepo: PaymentAttemptRepo,
     private val txRunner: TransactionRunner,
     private val distributedLock: DistributedLock,
@@ -59,6 +61,11 @@ class PaymentService(
         command: PaymentCreateCommand, context: ActorContext
     ): PaymentAggregate {
         val idempotencyKey = requireNotNull(command.idempotencyKey) { "idempotencyKey is required to create a payment" }
+
+        command.customerId?.let { customerId ->
+            txRunner.tx { customerRepo.findByCustomerId(customerId, context) }
+                ?: throw NoSuchElementException("Customer with customer_id $customerId not found")
+        }
 
         txRunner.tx { paymentRepo.findByIdempotencyKey(idempotencyKey, context) }
             ?.let { return toPaymentAggregate(it) }

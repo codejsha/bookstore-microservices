@@ -20,7 +20,7 @@ interface Mandates {
 
   @doc("Register a payment instrument and create the mandate that authorizes future charges")
   @post
-  setup(@body body: MandateSetupRequest): MandateFindResponse | BadRequestError;
+  setup(@body body: MandateSetupRequest): MandateFindResponse | BadRequestError | ConflictError;
 
   @doc("Find mandate")
   @route("{uid}")

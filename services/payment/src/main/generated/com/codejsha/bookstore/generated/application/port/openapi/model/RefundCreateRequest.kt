@@ -4,6 +4,7 @@ package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 data class RefundCreateRequest(
 
@@ -22,6 +23,7 @@ data class RefundCreateRequest(
      * Client-supplied key that makes retries of this request return the same refund
      */
     @field:NotNull
+    @field:Size(min = 1, max = 60)
     @field:JsonProperty("idempotency_key")
     val idempotencyKey: String,
 
@@ -32,9 +34,11 @@ data class RefundCreateRequest(
      * Payment ID to refund
      */
     @field:NotNull
+    @field:Size(min = 1, max = 64)
     @field:JsonProperty("payment_id")
     val paymentId: String,
 
+    @field:Size(max = 500)
     @field:JsonProperty("reason")
     val reason: String? = null,
 

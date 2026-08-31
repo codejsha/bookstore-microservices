@@ -7,7 +7,10 @@ model PaymentCreateRequest {
   amount: int64;
 
   currency: CurrencyCode;
+
+  @maxLength(64)
   customer_id?: string;
+
   payment_method?: PaymentMethodEnum;
 
   @maxLength(32)
@@ -35,7 +38,10 @@ model PaymentCreateRequest {
 model PaymentUpdateRequest {
   amount?: int64;
   currency?: CurrencyCode;
+
+  @maxLength(64)
   customer_id?: string;
+
   payment_method?: PaymentMethodEnum;
 
   @maxLength(32)

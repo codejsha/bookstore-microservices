@@ -45,6 +45,7 @@ interface MandateApi {
      * Register a payment instrument and create the mandate that authorizes future charges
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/mandates
      * @param requestBody @Valid @RequestBody

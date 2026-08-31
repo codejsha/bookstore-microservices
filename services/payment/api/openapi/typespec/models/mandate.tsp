@@ -24,6 +24,8 @@ model MandateFindResponse {
 model MandateFindAllResponse is PaginatedResponse<MandateFindResponse>;
 
 model MandateSetupRequest {
+  @minLength(1)
+  @maxLength(255)
   payment_method_token: string;
   mandate_currency: CurrencyCode;
 

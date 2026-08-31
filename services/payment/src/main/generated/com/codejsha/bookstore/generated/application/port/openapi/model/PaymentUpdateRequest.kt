@@ -3,6 +3,8 @@
 package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Size
 
 data class PaymentUpdateRequest(
 
@@ -12,15 +14,18 @@ data class PaymentUpdateRequest(
     @field:JsonProperty("authentication_type")
     val authenticationType: AuthenticationType? = null,
 
+    @field:Valid
     @field:JsonProperty("billing_address")
     val billingAddress: Address? = null,
 
     @field:JsonProperty("currency")
     val currency: String? = null,
 
+    @field:Size(max = 64)
     @field:JsonProperty("customer_id")
     val customerId: String? = null,
 
+    @field:Size(max = 500)
     @field:JsonProperty("description")
     val description: String? = null,
 
@@ -30,15 +35,18 @@ data class PaymentUpdateRequest(
     @field:JsonProperty("payment_method")
     val paymentMethod: PaymentMethodEnum? = null,
 
+    @field:Size(max = 32)
     @field:JsonProperty("payment_method_type")
     val paymentMethodType: String? = null,
 
+    @field:Size(max = 1024)
     @field:JsonProperty("return_url")
     val returnUrl: String? = null,
 
     @field:JsonProperty("setup_future_usage")
     val setupFutureUsage: FutureUsage? = null,
 
+    @field:Valid
     @field:JsonProperty("shipping_address")
     val shippingAddress: Address? = null,
 )

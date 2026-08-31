@@ -5,6 +5,10 @@ import com.codejsha.bookstore.payment.application.port.repo.MandateRepo
 import com.codejsha.bookstore.payment.domain.constant.FutureUsage
 import com.codejsha.bookstore.payment.domain.constant.MandateStatus
 import com.codejsha.bookstore.payment.domain.constant.MandateType
+import com.codejsha.bookstore.payment.domain.model.command.MandateCreateCommand
+import com.codejsha.bookstore.payment.domain.model.command.MandateSetupCommand
+import com.codejsha.bookstore.payment.domain.model.external.HyperswitchSetupMandateCommand
+import com.codejsha.bookstore.payment.domain.model.external.HyperswitchSetupMandateResult
 import com.codejsha.bookstore.payment.domain.model.option.MandateQueryOption
 import com.codejsha.bookstore.payment.support.FakeTransactionRunner
 import com.codejsha.bookstore.payment.support.PaymentTestFixtures
@@ -26,7 +30,52 @@ class MandateServiceTest {
         MandateService(repo, client, FakeTransactionRunner())
 
     @Test
-    fun `findAllMandates maps each result to aggregate with enum coercion`(): Unit = runBlocking {
+    fun `setupMandate_whenCommandGiven_keepsGatewayPaymentMethodIdOutOfLocalReference`(): Unit = runBlocking {
+        val repo = mock(MandateRepo::class.java)
+        val client = mock(HyperswitchClient::class.java)
+        val service = newService(repo, client)
+        val command = MandateSetupCommand(customerId = "cus_1", paymentMethodToken = "tok_1", currency = "KRW")
+
+        given(
+            client.setupMandate(
+                HyperswitchSetupMandateCommand(
+                    idempotencyKey = "mandate:cus_1:tok_1",
+                    customerId = "cus_1",
+                    paymentMethodToken = "tok_1",
+                    currency = "KRW",
+                    mandateAmountMinor = null,
+                )
+            )
+        ).willReturn(
+            HyperswitchSetupMandateResult(
+                gatewayMandateId = "man_1",
+                gatewayPaymentMethodId = "pm_gateway_1",
+                status = "active",
+                errorCode = null,
+                errorMessage = null,
+            )
+        )
+        val expected = MandateCreateCommand(
+            mandateId = "man_1",
+            customerId = "cus_1",
+            paymentMethodId = null,
+            mandateType = MandateType.MULTI_USE.value,
+            mandateStatus = "active",
+            mandateAmount = null,
+            mandateCurrency = "KRW",
+            setupFutureUsage = FutureUsage.OFF_SESSION.value,
+            customerAcceptanceType = "online",
+            metadata = mapOf("gateway_payment_method_id" to "pm_gateway_1"),
+        )
+        given(repo.create(expected, ctx)).willReturn(PaymentTestFixtures.mandateResult())
+
+        service.setupMandate(command, ctx)
+
+        verify(repo).create(expected, ctx)
+    }
+
+    @Test
+    fun `findAllMandates_whenRepoReturnsPage_mapsEachRowWithEnumCoercion`(): Unit = runBlocking {
         val repo = mock(MandateRepo::class.java)
         val service = newService(repo)
 
@@ -46,7 +95,7 @@ class MandateServiceTest {
     }
 
     @Test
-    fun `findMandate maps to aggregate including FutureUsage`(): Unit = runBlocking {
+    fun `findMandate_whenSetupFutureUsagePresent_mapsItToEnum`(): Unit = runBlocking {
         val repo = mock(MandateRepo::class.java)
         val service = newService(repo)
 
@@ -61,7 +110,7 @@ class MandateServiceTest {
     }
 
     @Test
-    fun `findMandate maps null setupFutureUsage to null`(): Unit = runBlocking {
+    fun `findMandate_whenSetupFutureUsageNull_returnsNull`(): Unit = runBlocking {
         val repo = mock(MandateRepo::class.java)
         val service = newService(repo)
 
@@ -74,7 +123,7 @@ class MandateServiceTest {
     }
 
     @Test
-    fun `revokeMandate delegates to repo and returns mapped result`(): Unit = runBlocking {
+    fun `revokeMandate_whenMandateExists_returnsRevokedAggregate`(): Unit = runBlocking {
         val repo = mock(MandateRepo::class.java)
         val service = newService(repo)
 

@@ -11,9 +11,19 @@ import com.codejsha.bookstore.payment.application.port.repo.RefundResult
 import com.codejsha.bookstore.payment.application.port.support.DistributedLock
 import com.codejsha.bookstore.payment.domain.constant.PaymentStatus
 import com.codejsha.bookstore.payment.domain.constant.RefundStatus
+import com.codejsha.bookstore.payment.domain.model.command.InvalidCommandException
+import com.codejsha.bookstore.payment.domain.model.command.MAX_CONNECTOR
+import com.codejsha.bookstore.payment.domain.model.command.MAX_ERROR_CODE
+import com.codejsha.bookstore.payment.domain.model.command.MAX_ERROR_MESSAGE
+import com.codejsha.bookstore.payment.domain.model.command.MAX_IDEMPOTENCY_KEY
 import com.codejsha.bookstore.payment.domain.model.command.PaymentAttemptCreateCommand
 import com.codejsha.bookstore.payment.domain.model.command.PaymentCreateCommand
 import com.codejsha.bookstore.payment.domain.model.command.RefundCreateCommand
+import com.codejsha.bookstore.payment.domain.model.command.requireCommand
+import com.codejsha.bookstore.payment.domain.model.command.requireCurrency
+import com.codejsha.bookstore.payment.domain.model.command.requireMaxLength
+import com.codejsha.bookstore.payment.domain.model.command.requireNonBlank
+import com.codejsha.bookstore.payment.domain.model.command.truncate
 import com.codejsha.bookstore.payment.domain.model.external.HyperswitchPaymentCommand
 import com.codejsha.bookstore.payment.domain.model.external.HyperswitchPaymentResult
 import com.codejsha.bookstore.payment.domain.model.external.HyperswitchRefundCommand
@@ -41,6 +51,7 @@ class PaymentActivitiesImpl(
     private val log = LoggerFactory.getLogger(PaymentActivitiesImpl::class.java)
 
     override fun processPayment(request: ProcessPaymentRequest): ProcessPaymentResult {
+        validateRequest(request)
         val context = ActorContext(actorId = 0L, ActorType.USER)
         val idempotencyKey = request.orderUid
 
@@ -55,6 +66,22 @@ class PaymentActivitiesImpl(
                 else -> chargePayment(request, idempotencyKey, context)
             }
             awaitSettled(payment).toResult()
+        }
+    }
+
+    private fun validateRequest(request: ProcessPaymentRequest) {
+        try {
+            requireNonBlank("order_uid", request.orderUid)
+            requireMaxLength("order_uid", request.orderUid, MAX_IDEMPOTENCY_KEY)
+            requireNonBlank("user_uid", request.userUid)
+            requireMaxLength("user_uid", request.userUid, 64)
+            requireCurrency("currency", request.currency)
+            requireCommand(request.amount.signum() >= 0) { "amount must not be negative, was ${request.amount}" }
+        } catch (e: InvalidCommandException) {
+            throw ApplicationFailure.newNonRetryableFailure(
+                e.message ?: "invalid payment request",
+                ERROR_INVALID_PAYMENT_REQUEST,
+            )
         }
     }
 
@@ -117,11 +144,11 @@ class PaymentActivitiesImpl(
             idempotencyKey = idempotencyKey,
             paymentId = hyperswitchResult.gatewayPaymentId,
             status = hyperswitchResult.status,
-            connector = hyperswitchResult.connector,
+            connector = truncate(hyperswitchResult.connector, MAX_CONNECTOR),
             amountCapturable = hyperswitchResult.amountCapturable,
             amountCaptured = hyperswitchResult.amountReceived,
-            errorCode = hyperswitchResult.errorCode,
-            errorMessage = hyperswitchResult.errorMessage,
+            errorCode = truncate(hyperswitchResult.errorCode, MAX_ERROR_CODE),
+            errorMessage = truncate(hyperswitchResult.errorMessage, MAX_ERROR_MESSAGE),
         )
         val result = try {
             paymentRepo.create(command, context)
@@ -134,9 +161,9 @@ class PaymentActivitiesImpl(
             amountMinor = amountMinor,
             currency = request.currency,
             status = hyperswitchResult.status,
-            connector = hyperswitchResult.connector,
-            errorCode = hyperswitchResult.errorCode,
-            errorMessage = hyperswitchResult.errorMessage,
+            connector = truncate(hyperswitchResult.connector, MAX_CONNECTOR),
+            errorCode = truncate(hyperswitchResult.errorCode, MAX_ERROR_CODE),
+            errorMessage = truncate(hyperswitchResult.errorMessage, MAX_ERROR_MESSAGE),
             context = context,
         )
 
@@ -221,11 +248,11 @@ class PaymentActivitiesImpl(
             idempotencyKey = orderUid,
             paymentId = lookup.gatewayPaymentId,
             status = lookup.status,
-            connector = lookup.connector,
+            connector = truncate(lookup.connector, MAX_CONNECTOR),
             amountCapturable = lookup.amountCapturable,
             amountCaptured = lookup.amountReceived,
-            errorCode = lookup.errorCode,
-            errorMessage = lookup.errorMessage,
+            errorCode = truncate(lookup.errorCode, MAX_ERROR_CODE),
+            errorMessage = truncate(lookup.errorMessage, MAX_ERROR_MESSAGE),
         )
         return try {
             paymentRepo.create(command, context)
@@ -263,9 +290,9 @@ class PaymentActivitiesImpl(
             idempotencyKey = idempotencyKey,
             refundId = hyperswitchResult.gatewayRefundId,
             status = hyperswitchResult.status,
-            connector = hyperswitchResult.connector,
-            errorCode = hyperswitchResult.errorCode,
-            errorMessage = hyperswitchResult.errorMessage,
+            connector = truncate(hyperswitchResult.connector, MAX_CONNECTOR),
+            errorCode = truncate(hyperswitchResult.errorCode, MAX_ERROR_CODE),
+            errorMessage = truncate(hyperswitchResult.errorMessage, MAX_ERROR_MESSAGE),
         )
         val refund = try {
             refundRepo.create(command, context)
@@ -355,8 +382,8 @@ class PaymentActivitiesImpl(
                     metadata = null,
                     idempotencyKey = null,
                     status = PaymentStatus.FAILED.value,
-                    errorCode = error.errorCode,
-                    errorMessage = error.message,
+                    errorCode = truncate(error.errorCode, MAX_ERROR_CODE),
+                    errorMessage = truncate(error.message, MAX_ERROR_MESSAGE),
                 ),
                 context,
             )
@@ -366,8 +393,8 @@ class PaymentActivitiesImpl(
                 currency = request.currency,
                 status = PaymentStatus.FAILED.value,
                 connector = null,
-                errorCode = error.errorCode,
-                errorMessage = error.message,
+                errorCode = truncate(error.errorCode, MAX_ERROR_CODE),
+                errorMessage = truncate(error.message, MAX_ERROR_MESSAGE),
                 context = context,
             )
         } catch (e: Exception) {
@@ -412,6 +439,7 @@ class PaymentActivitiesImpl(
         private const val ERROR_NO_ACTIVE_MANDATE = "NoActivePaymentMandate"
         private const val ERROR_GATEWAY_PAYMENT_PENDING = "GatewayPaymentPending"
         private const val ERROR_UNSUPPORTED_CURRENCY = "UnsupportedCurrency"
+        private const val ERROR_INVALID_PAYMENT_REQUEST = "InvalidPaymentRequest"
 
         private val REFUNDABLE_STATUSES = setOf(
             PaymentStatus.SUCCEEDED,

@@ -19,7 +19,7 @@ class MandateRepoImplUnitTest {
     private val ctx = PaymentTestFixtures.DEFAULT_CONTEXT
 
     @Test
-    fun `findOne empty throws NoSuchElementException`() {
+    fun `findOne_whenResultEmpty_throwsNoSuchElementException`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = MandateRepoImpl(dsl)
@@ -28,7 +28,7 @@ class MandateRepoImplUnitTest {
     }
 
     @Test
-    fun `findAll with mandateStatus filter binds value`() {
+    fun `findAll_whenMandateStatusFilterGiven_bindsValue`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = MandateRepoImpl(dsl)
@@ -41,7 +41,7 @@ class MandateRepoImplUnitTest {
     }
 
     @Test
-    fun `revoke updates only when status is active`() {
+    fun `revoke_whenStatusActive_updatesRow`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = MandateRepoImpl(dsl)
@@ -60,7 +60,7 @@ class MandateRepoImplUnitTest {
     }
 
     @Test
-    fun `revoke throws IllegalStateException when no active row exists`() {
+    fun `revoke_whenNoActiveRow_throwsIllegalStateException`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = MandateRepoImpl(dsl)

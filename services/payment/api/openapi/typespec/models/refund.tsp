@@ -4,6 +4,8 @@ namespace PaymentService;
 
 model RefundCreateRequest {
   @doc("Payment ID to refund")
+  @minLength(1)
+  @maxLength(64)
   payment_id: string;
 
   @doc("Refund amount in smallest currency unit")

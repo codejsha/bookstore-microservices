@@ -1,5 +1,6 @@
 package com.codejsha.bookstore.payment.domain.service
 
+import com.codejsha.bookstore.payment.application.port.repo.PaymentRepo
 import com.codejsha.bookstore.payment.application.port.repo.RefundRepo
 import com.codejsha.bookstore.payment.application.port.repo.RefundResult
 import com.codejsha.bookstore.payment.application.port.support.DistributedLock
@@ -22,6 +23,7 @@ import java.util.UUID
 @Service
 class RefundService(
     private val refundRepo: RefundRepo,
+    private val paymentRepo: PaymentRepo,
     private val txRunner: TransactionRunner,
     private val distributedLock: DistributedLock,
 ) : RefundUseCase {
@@ -43,6 +45,9 @@ class RefundService(
         command: RefundCreateCommand, context: ActorContext
     ): RefundAggregate {
         val idempotencyKey = requireNotNull(command.idempotencyKey) { "idempotencyKey is required to create a refund" }
+
+        txRunner.tx { paymentRepo.findByPaymentId(command.paymentId, context) }
+            ?: throw NoSuchElementException("Payment with payment_id ${command.paymentId} not found")
 
         txRunner.tx { refundRepo.findByIdempotencyKey(idempotencyKey, context) }
             ?.let { return toRefundAggregate(it) }

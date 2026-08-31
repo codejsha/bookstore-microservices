@@ -3,22 +3,30 @@
 package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 data class PaymentMethodCreateRequest(
 
+    @field:Min(1)
+    @field:Max(12)
     @field:JsonProperty("card_exp_month")
     val cardExpMonth: Int? = null,
 
     @field:JsonProperty("card_exp_year")
     val cardExpYear: Int? = null,
 
+    @field:Size(max = 255)
     @field:JsonProperty("card_holder_name")
     val cardHolderName: String? = null,
 
+    @field:Size(max = 4)
     @field:JsonProperty("card_last4")
     val cardLast4: String? = null,
 
+    @field:Size(max = 32)
     @field:JsonProperty("card_network")
     val cardNetwork: String? = null,
 
@@ -32,9 +40,11 @@ data class PaymentMethodCreateRequest(
     @field:JsonProperty("payment_method")
     val paymentMethod: PaymentMethodEnum,
 
+    @field:Size(max = 64)
     @field:JsonProperty("payment_method_issuer")
     val paymentMethodIssuer: String? = null,
 
+    @field:Size(max = 32)
     @field:JsonProperty("payment_method_type")
     val paymentMethodType: String? = null,
 )

@@ -18,7 +18,7 @@ class HyperswitchWebhookControllerTest {
     private val systemContext = ActorContext(actorId = 0L, ActorType.SYSTEM)
 
     @Test
-    fun `receive hands the raw body and signature header to the use case and acks with the outcome`(): Unit = runBlocking {
+    fun `receive_whenWebhookArrives_handsRawBodyAndSignatureToUsecaseAndAcksOutcome`(): Unit = runBlocking {
         val useCase = mock(WebhookUseCase::class.java)
         val payload = """{"event_id":"evt_1"}""".toByteArray()
         given(useCase.handleHyperswitchWebhook(payload, "abc", systemContext)).willReturn(WebhookOutcome.APPLIED)
@@ -30,8 +30,9 @@ class HyperswitchWebhookControllerTest {
         assertEquals("applied", assertNotNull(response.body).result)
     }
 
+    // Both rejection paths of the same handler are asserted here.
     @Test
-    fun `signature failures map to 401 and other rejections to 400`() {
+    fun `receive_whenSignatureInvalid_returns401AndOtherRejections400`() {
         val controller = HyperswitchWebhookController(mock(WebhookUseCase::class.java))
 
         val unauthorized = controller.handleWebhookRejected(HyperswitchWebhookException("Hyperswitch webhook signature is missing or invalid"))

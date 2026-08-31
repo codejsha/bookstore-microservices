@@ -46,6 +46,9 @@ interface CustomerApi {
 
     /**
      * Create customer
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/customers
      * @param requestBody @Valid @RequestBody
@@ -83,6 +86,7 @@ interface CustomerApi {
     /**
      * Update customer
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * PUT /api/v1/customers/{uid}

@@ -53,7 +53,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesGetAll maps page and forwards filters`(): Unit = runBlocking {
+    fun `mandatesGetAll_whenFiltersGiven_forwardsThemAndMapsPage`(): Unit = runBlocking {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
 
@@ -78,7 +78,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesRead returns mapped mandate`(): Unit = runBlocking {
+    fun `mandatesRead_whenMandateExists_returnsMappedMandate`(): Unit = runBlocking {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
 
@@ -97,7 +97,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesRevoke returns mapped mandate after revoke`(): Unit = runBlocking {
+    fun `mandatesRevoke_whenMandateActive_returnsRevokedMandate`(): Unit = runBlocking {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
 
@@ -141,7 +141,7 @@ class MandateControllerTest {
     // ─── Authorization ──────────────────────────────────────────────────────
 
     @Test
-    fun `mandatesGetAll pins a non-admin to their own mandates`(): Unit = runBlocking {
+    fun `mandatesGetAll_whenCallerNotAdmin_pinsFilterToCallersMandates`(): Unit = runBlocking {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
         val unpaged = Pageable.unpaged()
@@ -157,7 +157,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesRevoke on another customers mandate is rejected and never revokes`(): Unit = runBlocking {
+    fun `mandatesRevoke_whenMandateBelongsToAnotherCustomer_throwsWithoutRevoking`(): Unit = runBlocking {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
         bindPrincipal(sub = "cus_intruder", roles = null)
@@ -174,7 +174,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesRead on another customers mandate is rejected`(): Unit = runBlocking {
+    fun `mandatesRead_whenMandateBelongsToAnotherCustomer_throws`(): Unit = runBlocking {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
         bindPrincipal(sub = "cus_intruder", roles = null)
@@ -189,7 +189,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesSetup registers the instrument against the caller, not a body field`(): Unit = runBlocking {
+    fun `mandatesSetup_whenBodyNamesAnotherCustomer_registersInstrumentAgainstCaller`(): Unit = runBlocking {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
 

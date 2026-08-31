@@ -3,15 +3,19 @@
 package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
 
 data class CustomerFindAllResponse(
 
     @field:NotNull
+    @field:Valid
     @field:JsonProperty("items")
     val items: List<CustomerFindResponse>,
 
     @field:NotNull
+    @field:Min(0)
     @field:JsonProperty("total")
     val total: Long,
 )

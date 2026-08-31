@@ -6,11 +6,9 @@ package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables
 
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.PaymentDb
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.PAYMENT_ATTEMPTS_IDX_ATTEMPT_PAYMENT
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_ATTEMPT_PAYMENT
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_PAYMENT_ATTEMPTS_PRIMARY
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_PAYMENT_ATTEMPTS_UK_ATTEMPT_ID
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_PAYMENT_ATTEMPTS_UK_ATTEMPT_UID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.PaymentsTable.PaymentsPath
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.PaymentAttemptsRecord
 
 import java.time.LocalDateTime
@@ -25,7 +23,6 @@ import org.jooq.Identity
 import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
-import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -38,7 +35,6 @@ import org.jooq.TableField
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
-import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 import org.jooq.types.ULong
@@ -194,40 +190,11 @@ open class PaymentAttemptsTable(
      * Create a <code>payment_db.payment_attempts</code> table reference
      */
     constructor(): this(DSL.name("payment_attempts"), null)
-
-    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, PaymentAttemptsRecord>?, parentPath: InverseForeignKey<out Record, PaymentAttemptsRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, PAYMENT_ATTEMPTS, null, null)
-
-    /**
-     * A subtype implementing {@link Path} for simplified path-based joins.
-     */
-    open class PaymentAttemptsPath : PaymentAttemptsTable, Path<PaymentAttemptsRecord> {
-        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, PaymentAttemptsRecord>?, parentPath: InverseForeignKey<out Record, PaymentAttemptsRecord>?): super(path, childPath, parentPath)
-        private constructor(alias: Name, aliased: Table<PaymentAttemptsRecord>): super(alias, aliased)
-        override fun `as`(alias: String): PaymentAttemptsPath = PaymentAttemptsPath(DSL.name(alias), this)
-        override fun `as`(alias: Name): PaymentAttemptsPath = PaymentAttemptsPath(alias, this)
-        override fun `as`(alias: Table<*>): PaymentAttemptsPath = PaymentAttemptsPath(alias.qualifiedName, this)
-    }
     override fun getSchema(): Schema? = if (aliased()) null else PaymentDb.PAYMENT_DB
     override fun getIndexes(): List<Index> = listOf(PAYMENT_ATTEMPTS_IDX_ATTEMPT_PAYMENT)
     override fun getIdentity(): Identity<PaymentAttemptsRecord, ULong?> = super.getIdentity() as Identity<PaymentAttemptsRecord, ULong?>
     override fun getPrimaryKey(): UniqueKey<PaymentAttemptsRecord> = KEY_PAYMENT_ATTEMPTS_PRIMARY
     override fun getUniqueKeys(): List<UniqueKey<PaymentAttemptsRecord>> = listOf(KEY_PAYMENT_ATTEMPTS_UK_ATTEMPT_ID, KEY_PAYMENT_ATTEMPTS_UK_ATTEMPT_UID)
-    override fun getReferences(): List<ForeignKey<PaymentAttemptsRecord, *>> = listOf(FK_ATTEMPT_PAYMENT)
-
-    private lateinit var _payments: PaymentsPath
-
-    /**
-     * Get the implicit join path to the <code>payment_db.payments</code> table.
-     */
-    fun payments(): PaymentsPath {
-        if (!this::_payments.isInitialized)
-            _payments = PaymentsPath(this, FK_ATTEMPT_PAYMENT, null)
-
-        return _payments;
-    }
-
-    val payments: PaymentsPath
-        get(): PaymentsPath = payments()
     override fun `as`(alias: String): PaymentAttemptsTable = PaymentAttemptsTable(DSL.name(alias), this)
     override fun `as`(alias: Name): PaymentAttemptsTable = PaymentAttemptsTable(alias, this)
     override fun `as`(alias: Table<*>): PaymentAttemptsTable = PaymentAttemptsTable(alias.qualifiedName, this)

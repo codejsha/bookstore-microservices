@@ -20,7 +20,7 @@ class RefundRepoImplUnitTest {
     private val ctx = PaymentTestFixtures.DEFAULT_CONTEXT
 
     @Test
-    fun `findOne empty result throws NoSuchElementException with uid in message`() {
+    fun `findOne_whenResultEmpty_throwsNoSuchElementExceptionNamingTheUid`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = RefundRepoImpl(dsl)
@@ -36,7 +36,7 @@ class RefundRepoImplUnitTest {
     }
 
     @Test
-    fun `findAll with paymentId filter binds value`() {
+    fun `findAll_whenPaymentIdFilterGiven_bindsValue`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = RefundRepoImpl(dsl)
@@ -51,7 +51,7 @@ class RefundRepoImplUnitTest {
     }
 
     @Test
-    fun `create emits INSERT with default refund_type instant when null`() {
+    fun `create_whenRefundTypeNull_emitsInsertWithInstantDefault`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = RefundRepoImpl(dsl)
@@ -79,7 +79,7 @@ class RefundRepoImplUnitTest {
     }
 
     @Test
-    fun `create with refund_type uses given value`() {
+    fun `create_whenRefundTypeGiven_emitsInsertWithThatValue`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = RefundRepoImpl(dsl)

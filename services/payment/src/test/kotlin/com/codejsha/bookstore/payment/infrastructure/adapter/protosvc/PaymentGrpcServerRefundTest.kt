@@ -119,7 +119,7 @@ class PaymentGrpcServerRefundTest {
     // ─── actor guard ────────────────────────────────────────────────────────
 
     @Test
-    fun `findRefund without an actor identity fails UNAUTHENTICATED`() {
+    fun `findRefund_whenActorIdentityMissing_returnsUnauthenticated`() {
         val observer = CapturingObserver<FindRefundResponse>()
         server.findRefund(
             FindRefundRequest.newBuilder().setUid(PaymentTestFixtures.REFUND_UID.toString()).build(),
@@ -134,7 +134,7 @@ class PaymentGrpcServerRefundTest {
     // ─── findRefund parent-payment ownership ──────────────────────────────────
 
     @Test
-    fun `findRefund gates a non-admin on the parent payment's owner`() {
+    fun `findRefund_whenParentPaymentOwnedByAnotherCustomerAndActorNotAdmin_returnsNotFound`() {
         val uid = PaymentTestFixtures.REFUND_UID
         refundUseCase.findRefundResult = PaymentTestFixtures.refundAggregate(uid = uid, paymentId = "pay_001")
         paymentUseCase.ownerResult = PaymentTestFixtures.paymentAggregate(customerId = OTHER_UID.toString())
@@ -151,7 +151,7 @@ class PaymentGrpcServerRefundTest {
     }
 
     @Test
-    fun `findRefund returns NOT_FOUND for a non-admin when the parent payment cannot be resolved`() {
+    fun `findRefund_whenParentPaymentUnresolvableAndActorNotAdmin_returnsNotFound`() {
         refundUseCase.findRefundResult = PaymentTestFixtures.refundAggregate()
         paymentUseCase.ownerResult = null
 
@@ -164,7 +164,7 @@ class PaymentGrpcServerRefundTest {
     }
 
     @Test
-    fun `findRefund lets a non-admin read a refund on their own payment`() {
+    fun `findRefund_whenActorOwnsParentPayment_returnsRefund`() {
         refundUseCase.findRefundResult = PaymentTestFixtures.refundAggregate()
         paymentUseCase.ownerResult = PaymentTestFixtures.paymentAggregate(customerId = ACTOR_UID.toString())
 
@@ -180,7 +180,7 @@ class PaymentGrpcServerRefundTest {
     // ─── findRefund mapping (admin bypasses ownership) ────────────────────────
 
     @Test
-    fun `findRefund maps aggregate fields onto the Refund proto`() {
+    fun `findRefund_whenRefundExists_mapsAggregateFieldsOntoProto`() {
         val aggregate = PaymentTestFixtures.refundAggregate(
             amount = 5_000L,
             currency = "KRW",
@@ -212,7 +212,7 @@ class PaymentGrpcServerRefundTest {
     }
 
     @Test
-    fun `findRefund maps null errorCode and errorMessage to empty strings`() {
+    fun `findRefund_whenErrorFieldsNull_mapsThemToEmptyStrings`() {
         refundUseCase.findRefundResult = PaymentTestFixtures.refundAggregate(
             errorCode = null,
             errorMessage = null,
@@ -229,7 +229,7 @@ class PaymentGrpcServerRefundTest {
     }
 
     @Test
-    fun `findRefund surfaces usecase failure via onError without onCompleted`() {
+    fun `findRefund_whenUsecaseFails_callsOnErrorWithoutOnCompleted`() {
         refundUseCase.findRefundError = IllegalStateException("boom")
 
         val observer = CapturingObserver<FindRefundResponse>()
@@ -245,7 +245,7 @@ class PaymentGrpcServerRefundTest {
     // ─── listRefunds scoping ──────────────────────────────────────────────────
 
     @Test
-    fun `listRefunds refuses an unscoped non-admin listing with PERMISSION_DENIED`() {
+    fun `listRefunds_whenActorNotAdminAndListingUnscoped_returnsPermissionDenied`() {
         val observer = CapturingObserver<ListRefundsResponse>()
         withActor(ACTOR_UID, admin = false) {
             server.listRefunds(ListRefundsRequest.newBuilder().build(), observer)
@@ -255,7 +255,7 @@ class PaymentGrpcServerRefundTest {
     }
 
     @Test
-    fun `listRefunds lets a non-admin list refunds of their own payment`() {
+    fun `listRefunds_whenActorOwnsPayment_returnsItsRefunds`() {
         refundUseCase.findAllResult = PageImpl(emptyList())
         paymentUseCase.ownerResult = PaymentTestFixtures.paymentAggregate(customerId = ACTOR_UID.toString())
 
@@ -270,7 +270,7 @@ class PaymentGrpcServerRefundTest {
     }
 
     @Test
-    fun `listRefunds hides another customer's payment refunds from a non-admin as NOT_FOUND`() {
+    fun `listRefunds_whenPaymentOwnedByAnotherCustomerAndActorNotAdmin_returnsNotFound`() {
         paymentUseCase.ownerResult = PaymentTestFixtures.paymentAggregate(customerId = OTHER_UID.toString())
 
         val observer = CapturingObserver<ListRefundsResponse>()
@@ -284,7 +284,7 @@ class PaymentGrpcServerRefundTest {
     // ─── listRefunds mapping (admin) ──────────────────────────────────────────
 
     @Test
-    fun `listRefunds maps page content and totalSize`() {
+    fun `listRefunds_whenUsecaseReturnsPage_mapsContentAndTotalSize`() {
         refundUseCase.findAllResult = PageImpl(
             listOf(
                 PaymentTestFixtures.refundAggregate(uid = PaymentTestFixtures.REFUND_UID, amount = 1_000L, status = RefundStatus.PENDING),
@@ -310,7 +310,7 @@ class PaymentGrpcServerRefundTest {
     }
 
     @Test
-    fun `listRefunds applies paymentId filter and a concrete status filter`() {
+    fun `listRefunds_whenPaymentIdAndStatusGiven_appliesBothFilters`() {
         refundUseCase.findAllResult = PageImpl(emptyList())
 
         val observer = CapturingObserver<ListRefundsResponse>()
@@ -330,7 +330,7 @@ class PaymentGrpcServerRefundTest {
     }
 
     @Test
-    fun `listRefunds does not apply an UNSPECIFIED status filter`() {
+    fun `listRefunds_whenStatusUnspecified_omitsStatusFilter`() {
         refundUseCase.findAllResult = PageImpl(emptyList())
 
         val observer = CapturingObserver<ListRefundsResponse>()
@@ -346,7 +346,7 @@ class PaymentGrpcServerRefundTest {
     // ─── status enum round-trip ─────────────────────────────────────────────
 
     @Test
-    fun `refund status enum round-trips domain to proto and back through the server`() {
+    fun `refundStatus_whenMappedThroughServer_roundTripsDomainToProtoAndBack`() {
         val cases = listOf(
             Triple(RefundStatus.PENDING, ProtoRefundStatus.REFUND_STATUS_PENDING, "pending"),
             Triple(RefundStatus.SUCCEEDED, ProtoRefundStatus.REFUND_STATUS_SUCCEEDED, "succeeded"),

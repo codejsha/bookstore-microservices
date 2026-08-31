@@ -22,7 +22,7 @@ class PaymentRepoImplUnitTest {
     private val ctx = PaymentTestFixtures.DEFAULT_CONTEXT
 
     @Test
-    fun `findOne throws NoSuchElementException when no record matches`() {
+    fun `findOne_whenNoRecordMatches_throwsNoSuchElementException`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = PaymentRepoImpl(dsl)
@@ -39,7 +39,7 @@ class PaymentRepoImplUnitTest {
     }
 
     @Test
-    fun `findAll without filters emits SELECT with deleted_at IS NULL only`() {
+    fun `findAll_whenNoFilters_emitsSelectWithDeletedAtIsNullOnly`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = PaymentRepoImpl(dsl)
@@ -58,7 +58,7 @@ class PaymentRepoImplUnitTest {
     }
 
     @Test
-    fun `findAll with all filters adds WHERE conditions and bindings`() {
+    fun `findAll_whenEveryFilterGiven_addsWhereConditionsAndBindings`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = PaymentRepoImpl(dsl)
@@ -83,7 +83,7 @@ class PaymentRepoImplUnitTest {
     }
 
     @Test
-    fun `create emits INSERT INTO payments with command bindings and default status`() {
+    fun `create_whenCommandGiven_emitsInsertWithCommandBindingsAndDefaultStatus`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = PaymentRepoImpl(dsl)
@@ -119,7 +119,7 @@ class PaymentRepoImplUnitTest {
     }
 
     @Test
-    fun `create with a captured terminal status stamps captured_at`() {
+    fun `create_whenStatusCapturedTerminal_stampsCapturedAt`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = PaymentRepoImpl(dsl)
@@ -149,7 +149,7 @@ class PaymentRepoImplUnitTest {
     }
 
     @Test
-    fun `create with a non-captured status leaves captured_at unset`() {
+    fun `create_whenStatusNotCaptured_leavesCapturedAtUnset`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = PaymentRepoImpl(dsl)
@@ -181,7 +181,7 @@ class PaymentRepoImplUnitTest {
     }
 
     @Test
-    fun `update only sets non-null fields and always sets updated_at`() {
+    fun `update_whenFieldsPartiallySet_setsOnlyNonNullFieldsAndUpdatedAt`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = PaymentRepoImpl(dsl)

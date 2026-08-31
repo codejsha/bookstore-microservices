@@ -14,7 +14,7 @@ class PaymentWorkflowContractTest {
     private val mapper = ObjectMapper()
 
     @Test
-    fun `ProcessPaymentRequest deserializes the order workflow's canonical payload`() {
+    fun `processPaymentRequest_whenPayloadFromOrderWorkflow_deserializesEveryField`() {
         val json = """
             {
               "orderUid": "44444444-4444-4444-4444-444444444444",
@@ -37,7 +37,7 @@ class PaymentWorkflowContractTest {
     }
 
     @Test
-    fun `ProcessPaymentResult serializes with the wire field names the order workflow expects`() {
+    fun `processPaymentResult_whenSerialized_usesTheWireFieldNamesTheOrderWorkflowExpects`() {
         val payload = converter.toPayload(
             ProcessPaymentResult(
                 paymentUid = "99999999-9999-9999-9999-999999999999",

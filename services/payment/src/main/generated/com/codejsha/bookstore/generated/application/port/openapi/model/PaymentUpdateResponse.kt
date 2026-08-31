@@ -5,6 +5,7 @@ package com.codejsha.bookstore.generated.application.port.openapi.model
 import java.time.OffsetDateTime
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 
 data class PaymentUpdateResponse(
@@ -19,12 +20,14 @@ data class PaymentUpdateResponse(
     @field:JsonProperty("amount_captured")
     val amountCaptured: Long? = null,
 
+    @field:Valid
     @field:JsonProperty("attempts")
     val attempts: List<PaymentAttemptFindResponse>? = null,
 
     @field:JsonProperty("authentication_type")
     val authenticationType: AuthenticationType? = null,
 
+    @field:Valid
     @field:JsonProperty("billing_address")
     val billingAddress: Address? = null,
 
@@ -105,6 +108,7 @@ data class PaymentUpdateResponse(
     @field:JsonProperty("setup_future_usage")
     val setupFutureUsage: FutureUsage? = null,
 
+    @field:Valid
     @field:JsonProperty("shipping_address")
     val shippingAddress: Address? = null,
 

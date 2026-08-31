@@ -64,7 +64,7 @@ class HyperswitchRestClientTest {
     // ─── Webhooks ────────────────────────────────────────────────────────────
 
     @Test
-    fun `verifyWebhookSignature accepts the HMAC-SHA512 hex of the raw body under the shared secret`() {
+    fun `verifyWebhookSignature_whenSignatureIsHmacSha512OfRawBody_returnsTrue`() {
         val (client, _) = newClient()
         val payload = """{"event_id":"evt_1","event_type":"payment_succeeded"}""".toByteArray()
 
@@ -77,7 +77,7 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `verifyWebhookSignature rejects everything when no secret is configured`() {
+    fun `verifyWebhookSignature_whenNoSecretConfigured_returnsFalse`() {
         val client = HyperswitchRestClient(
             HttpServiceProxyFactory.builderFor(RestClientAdapter.create(RestClient.create())).build().createClient(PaymentsApi::class.java),
             HttpServiceProxyFactory.builderFor(RestClientAdapter.create(RestClient.create())).build().createClient(RefundsApi::class.java),
@@ -89,7 +89,7 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `parseWebhookEvent maps a payment_details event onto domain statuses`() {
+    fun `parseWebhookEvent_whenPaymentDetailsEvent_mapsOntoDomainStatuses`() {
         val (client, _) = newClient()
         val payload = """
             {"merchant_id":"bookstore","event_id":"evt_pay_1","event_type":"payment_succeeded",
@@ -112,7 +112,7 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `parseWebhookEvent maps a refund_details event and passes unknown content through as OTHER`() {
+    fun `parseWebhookEvent_whenRefundDetailsOrUnknownContent_mapsRefundAndPassesUnknownAsOther`() {
         val (client, _) = newClient()
         val refund = """{"event_id":"evt_ref_1","event_type":"refund_failed","content":{"type":"refund_details",
             "object":{"refund_id":"ref_abc","payment_id":"pay_abc","status":"failed","connector":"stripe","error_code":"x","error_message":"declined"}}}"""
@@ -133,7 +133,26 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `parseWebhookEvent rejects malformed payloads`() {
+    fun `parseWebhookEvent_whenStatusUnpublished_recordsEventWithRawStatus`() {
+        val (client, _) = newClient()
+        val payment = """{"event_id":"evt_pay_2","event_type":"payment_new_state","content":{"type":"payment_details",
+            "object":{"payment_id":"pay_abc","status":"quantum_pending","connector":"stripe"}}}"""
+            .toByteArray()
+        val refund = """{"event_id":"evt_ref_2","event_type":"refund_new_state","content":{"type":"refund_details",
+            "object":{"refund_id":"ref_abc","status":"quantum_pending","connector":"stripe"}}}"""
+            .toByteArray()
+
+        val paymentEvent = client.parseWebhookEvent(payment)
+        val refundEvent = client.parseWebhookEvent(refund)
+
+        assertEquals("pay_abc", paymentEvent.gatewayObjectId)
+        assertNull(paymentEvent.status)
+        assertEquals("ref_abc", refundEvent.gatewayObjectId)
+        assertNull(refundEvent.status)
+    }
+
+    @Test
+    fun `parseWebhookEvent_whenPayloadMalformed_throws`() {
         val (client, _) = newClient()
 
         assertFailsWith<HyperswitchWebhookException> { client.parseWebhookEvent("not json".toByteArray()) }
@@ -144,7 +163,7 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `authorizePayment sends the api-key, a deterministic payment_id, and maps succeeded`() {
+    fun `authorizePayment_whenIntentSucceeds_sendsApiKeyAndDeterministicPaymentIdAndMapsSucceeded`() {
         val (client, server) = newClient()
         server.expect(ExpectedCount.once(), requestTo("$baseUrl/payments"))
             .andExpect(method(HttpMethod.POST))
@@ -175,7 +194,7 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `authorizePayment maps a Hyperswitch partially_captured intent onto the domain status`() {
+    fun `authorizePayment_whenIntentPartiallyCaptured_mapsOntoDomainStatus`() {
         val (client, server) = newClient()
         server.expect(requestTo("$baseUrl/payments"))
             .andRespond(withSuccess(createResponseJson(status = "partially_captured"), MediaType.APPLICATION_JSON))
@@ -189,7 +208,7 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `authorizePayment wraps a processor 5xx in HyperswitchClientException`() {
+    fun `authorizePayment_whenProcessorReturns5xx_throwsHyperswitchClientException`() {
         val (client, server) = newClient()
         server.expect(requestTo("$baseUrl/payments")).andRespond(withServerError())
 
@@ -200,7 +219,7 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `refundPayment sends a deterministic refund_id and maps the refund status`() {
+    fun `refundPayment_whenRefundSucceeds_sendsDeterministicRefundIdAndMapsStatus`() {
         val (client, server) = newClient()
         server.expect(ExpectedCount.once(), requestTo("$baseUrl/refunds"))
             .andExpect(method(HttpMethod.POST))
@@ -231,7 +250,7 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `refundPayment wraps a processor 5xx in HyperswitchClientException`() {
+    fun `refundPayment_whenProcessorReturns5xx_throwsHyperswitchClientException`() {
         val (client, server) = newClient()
         server.expect(requestTo("$baseUrl/refunds")).andRespond(withServerError())
 
@@ -242,7 +261,7 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `findPaymentByIdempotencyKey derives the deterministic payment_id and maps the live status`() {
+    fun `findPaymentByIdempotencyKey_whenPaymentExists_derivesPaymentIdAndMapsLiveStatus`() {
         val (client, server) = newClient()
         server.expect(ExpectedCount.once(), requestTo("$baseUrl/payments/pay_66666666666666666666666666666666?force_sync=true"))
             .andExpect(method(HttpMethod.GET))
@@ -265,7 +284,7 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `findPaymentByIdempotencyKey returns null when the gateway has no such payment`() {
+    fun `findPaymentByIdempotencyKey_whenGatewayHasNoPayment_returnsNull`() {
         val (client, server) = newClient()
         server.expect(requestTo("$baseUrl/payments/pay_77777777777777777777777777777777?force_sync=true"))
             .andRespond(withResourceNotFound())
@@ -275,7 +294,7 @@ class HyperswitchRestClientTest {
     }
 
     @Test
-    fun `findPaymentById wraps a processor 5xx in HyperswitchClientException`() {
+    fun `findPaymentById_whenProcessorReturns5xx_throwsHyperswitchClientException`() {
         val (client, server) = newClient()
         server.expect(requestTo("$baseUrl/payments/pay_boom?force_sync=true"))
             .andRespond(withServerError())

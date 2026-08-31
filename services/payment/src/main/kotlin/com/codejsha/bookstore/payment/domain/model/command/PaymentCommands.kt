@@ -21,7 +21,20 @@ data class PaymentCreateCommand(
     val amountCaptured: Long? = null,
     val errorCode: String? = null,
     val errorMessage: String? = null,
-)
+) {
+    init {
+        requireNonNegative("amount", amount)
+        requireCurrency("currency", currency)
+        requireNonBlankIfPresent("idempotency_key", idempotencyKey)
+        requireMaxLengthIfPresent("idempotency_key", idempotencyKey, MAX_IDEMPOTENCY_KEY)
+        requireNonBlankIfPresent("payment_id", paymentId)
+        requireMaxLengthIfPresent("payment_id", paymentId, 64)
+        requireMaxLengthIfPresent("customer_id", customerId, 64)
+        requireMaxLengthIfPresent("payment_method_type", paymentMethodType, 32)
+        requireMaxLengthIfPresent("description", description, 500)
+        requireMaxLengthIfPresent("return_url", returnUrl, 1024)
+    }
+}
 
 data class PaymentUpdateCommand(
     val amount: Long?,
@@ -36,4 +49,13 @@ data class PaymentUpdateCommand(
     val billingAddress: Map<String, Any>?,
     val shippingAddress: Map<String, Any>?,
     val metadata: Map<String, Any>?,
-)
+) {
+    init {
+        requireNonNegativeIfPresent("amount", amount)
+        requireCurrencyIfPresent("currency", currency)
+        requireMaxLengthIfPresent("customer_id", customerId, 64)
+        requireMaxLengthIfPresent("payment_method_type", paymentMethodType, 32)
+        requireMaxLengthIfPresent("description", description, 500)
+        requireMaxLengthIfPresent("return_url", returnUrl, 1024)
+    }
+}
