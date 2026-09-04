@@ -8,7 +8,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/aggregate"
 )
 
-func TestToOrderAggregate(t *testing.T) {
+func TestToOrderAggregate_WhenProtoFullyPopulated_MapsEveryField(t *testing.T) {
 	got := toOrderAggregate(&orderpb.Order{
 		Uid:         "o-1",
 		UserUid:     "u-1",
@@ -31,7 +31,7 @@ func TestToOrderAggregate(t *testing.T) {
 	}
 }
 
-func TestToOrderStatus(t *testing.T) {
+func TestToOrderStatus_WhenProtoStatusGiven_ReturnsDomainStatus(t *testing.T) {
 	cases := []struct {
 		in   orderpb.OrderStatus
 		want aggregate.OrderStatus
@@ -52,7 +52,7 @@ func TestToOrderStatus(t *testing.T) {
 	}
 }
 
-func TestStringToOrderStatusProto(t *testing.T) {
+func TestStringToOrderStatusProto_WhenDomainStatusGiven_ReturnsProtoStatus(t *testing.T) {
 	cases := []struct {
 		in   *string
 		want orderpb.OrderStatus

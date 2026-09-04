@@ -7,12 +7,12 @@ import (
 )
 
 type ReviewFindResponse struct {
-	BookUid   string     `json:"book_uid" validate:"required"`
+	BookUid   string     `json:"book_uid" binding:"required"`
 	Content   *string    `json:"content,omitempty"`
-	CreatedAt time.Time  `json:"created_at" validate:"required"`
-	Rating    int32      `json:"rating" validate:"required"`
-	Title     *string    `json:"title,omitempty"`
-	Uid       string     `json:"uid" validate:"required"`
+	CreatedAt time.Time  `json:"created_at" binding:"required"`
+	Rating    int32      `json:"rating" binding:"required,gte=1,lte=5"`
+	Title     *string    `json:"title,omitempty" binding:"omitempty,max=255"`
+	Uid       string     `json:"uid" binding:"required"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-	UserUid   string     `json:"user_uid" validate:"required"`
+	UserUid   string     `json:"user_uid" binding:"required"`
 }

@@ -3,6 +3,6 @@
 package openapi
 
 type OrderItem struct {
-	BookUid  string `json:"book_uid" validate:"required"`
-	Quantity int32  `json:"quantity" validate:"required"`
+	BookUid  string `json:"book_uid" binding:"required"`
+	Quantity int32  `json:"quantity" binding:"required,gte=1"`
 }

@@ -15,10 +15,10 @@ interface Wishlists {
   @doc("Add books to customer's wishlist")
   @route("add")
   @post
-  addBooks(@path uid: uuid, @body body: WishlistAddRequest): WishlistResponse | NotFoundError;
+  addBooks(@path uid: uuid, @body body: WishlistAddRequest): WishlistResponse | BadRequestError | NotFoundError;
 
   @doc("Remove books from customer's wishlist")
   @route("remove")
   @post
-  removeBooks(@path uid: uuid, @body body: WishlistRemoveRequest): WishlistResponse | NotFoundError;
+  removeBooks(@path uid: uuid, @body body: WishlistRemoveRequest): WishlistResponse | BadRequestError | NotFoundError;
 }

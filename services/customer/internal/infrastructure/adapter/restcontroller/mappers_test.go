@@ -10,7 +10,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/constant"
 )
 
-func TestToCustomerFindResponse(t *testing.T) {
+func TestToCustomerFindResponse_WhenAggregateFullyPopulated_MapsEveryField(t *testing.T) {
 	phone := "+1-555"
 	a := &aggregate.CustomerAggregate{
 		Uid:       "u-1",
@@ -38,7 +38,7 @@ func TestToCustomerFindResponse(t *testing.T) {
 	}
 }
 
-func TestToCustomerUpdateResponse(t *testing.T) {
+func TestToCustomerUpdateResponse_WhenAggregateGiven_MapsEveryField(t *testing.T) {
 	a := &aggregate.CustomerAggregate{
 		Uid:       "u-1",
 		Email:     "a@b.com",
@@ -55,7 +55,7 @@ func TestToCustomerUpdateResponse(t *testing.T) {
 	}
 }
 
-func TestAuthRolesRoundTrip(t *testing.T) {
+func TestAuthRoles_WhenConvertedBothWays_RoundTripUnchanged(t *testing.T) {
 	in := []openapi.AuthRole{openapi.AUTHROLE_ORDER, openapi.AUTHROLE_PROFILE}
 	domain := toAuthRoles(&in)
 	if !reflect.DeepEqual(domain, []constant.AuthRole{constant.AUTHROLE_ORDER, constant.AUTHROLE_PROFILE}) {
@@ -67,13 +67,13 @@ func TestAuthRolesRoundTrip(t *testing.T) {
 	}
 }
 
-func TestToAuthRoles_Nil(t *testing.T) {
+func TestToAuthRoles_WhenRolesNil_ReturnsNil(t *testing.T) {
 	if got := toAuthRoles(nil); got != nil {
 		t.Errorf("nil -> %v, want nil", got)
 	}
 }
 
-func TestToOrderFindResponse(t *testing.T) {
+func TestToOrderFindResponse_WhenAggregateFullyPopulated_MapsEveryField(t *testing.T) {
 	a := &aggregate.OrderAggregate{
 		Uid:         "o-1",
 		UserUid:     "u-1",
@@ -98,7 +98,7 @@ func TestToOrderFindResponse(t *testing.T) {
 	}
 }
 
-func TestToOrderStatusRest(t *testing.T) {
+func TestToOrderStatusRest_WhenDomainStatusGiven_ReturnsRestStatus(t *testing.T) {
 	cases := []struct {
 		in   aggregate.OrderStatus
 		want openapi.OrderStatus
@@ -117,7 +117,7 @@ func TestToOrderStatusRest(t *testing.T) {
 	}
 }
 
-func TestToPaymentFindResponse(t *testing.T) {
+func TestToPaymentFindResponse_WhenAggregateFullyPopulated_MapsEveryField(t *testing.T) {
 	errMsg := "card declined"
 	a := &aggregate.PaymentAggregate{
 		PaymentUid:   "px-1",
@@ -139,7 +139,7 @@ func TestToPaymentFindResponse(t *testing.T) {
 	}
 }
 
-func TestToPointHistoryResponse(t *testing.T) {
+func TestToPointHistoryResponse_WhenEntryGiven_MapsEveryField(t *testing.T) {
 	now := time.Now()
 	reason := "signup bonus"
 	got := toPointHistoryResponse(&aggregate.PointHistoryEntry{
@@ -163,7 +163,7 @@ func TestToPointHistoryResponse(t *testing.T) {
 	}
 }
 
-func TestToReviewFindResponse(t *testing.T) {
+func TestToReviewFindResponse_WhenAggregateFullyPopulated_MapsEveryField(t *testing.T) {
 	now := time.Now()
 	updated := now.Add(time.Hour)
 	title := "Loved it"
@@ -189,7 +189,7 @@ func TestToReviewFindResponse(t *testing.T) {
 	}
 }
 
-func TestToWishlistResponse(t *testing.T) {
+func TestToWishlistResponse_WhenAggregateGiven_MapsBookUids(t *testing.T) {
 	got := toWishlistResponse(&aggregate.WishlistAggregate{
 		UserUid:  "u-1",
 		BookUids: []string{"b-1", "b-2"},

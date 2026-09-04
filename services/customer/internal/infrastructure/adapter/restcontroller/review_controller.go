@@ -93,7 +93,7 @@ func (c *reviewController) CustomerReviewsWrite(
 
 	review, err := c.customerUseCase.WriteReview(ctx, cmd)
 	if err != nil {
-		return httpx.MapReviewExists(ctx, err)
+		return httpx.MapBusinessError(ctx, httpx.MapReviewExists(ctx, err))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "review", review.Uid, "created", logrus.Fields{"book_uid": req.BookUid})
@@ -131,7 +131,7 @@ func (c *reviewController) CustomerReviewsEdit(
 
 	review, err := c.customerUseCase.EditReview(ctx, uid, reviewUid, cmd)
 	if err != nil {
-		return nil, httpx.MapNotFound(ctx, err)
+		return nil, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err))
 	}
 	if review == nil {
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)

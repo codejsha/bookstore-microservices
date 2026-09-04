@@ -18,7 +18,7 @@ func (p *panicPublisher) Publish(_ context.Context, _ string, _ message.EventMes
 	panic("boom in publish")
 }
 
-func TestDispatchSideEffects_RecoversPanic(t *testing.T) {
+func TestDispatchSideEffects_WhenSideEffectPanics_RecoversAndReleasesWaiter(t *testing.T) {
 	pub := &panicPublisher{}
 	SetEventPublisher(pub)
 	defer SetEventPublisher(nil)
@@ -49,7 +49,7 @@ func (s *slowPublisher) Publish(_ context.Context, _ string, _ message.EventMess
 	return nil
 }
 
-func TestWaitForSideEffects_DrainsInFlight(t *testing.T) {
+func TestWaitForSideEffects_WhenSideEffectInFlight_BlocksUntilItCompletes(t *testing.T) {
 	var ran atomic.Bool
 	SetEventPublisher(&slowPublisher{ran: &ran})
 	defer SetEventPublisher(nil)

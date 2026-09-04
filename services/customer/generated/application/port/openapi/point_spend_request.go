@@ -4,6 +4,6 @@ package openapi
 
 // Spend points for a customer
 type PointSpendRequest struct {
-	Amount int32   `json:"amount" validate:"required"`
-	Reason *string `json:"reason,omitempty"`
+	Amount int32   `json:"amount" binding:"required,gte=1,lte=1000000"`
+	Reason *string `json:"reason,omitempty" binding:"omitempty,max=255"`
 }

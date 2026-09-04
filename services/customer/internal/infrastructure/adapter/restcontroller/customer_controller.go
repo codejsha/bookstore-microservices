@@ -84,7 +84,7 @@ func (c *customerController) CustomersUpdate(
 
 	customer, err := c.customerUseCase.UpdateCustomer(ctx, cmd)
 	if err != nil {
-		return nil, httpx.MapNotImplemented(ctx, err)
+		return nil, httpx.MapBusinessError(ctx, httpx.MapNotImplemented(ctx, err))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "customer", uid, "updated", logrus.Fields{})

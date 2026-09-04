@@ -24,7 +24,7 @@ func (h *WishlistApiHandler) WishlistsGet(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.WishlistsGet(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -32,17 +32,18 @@ func (h *WishlistApiHandler) WishlistsGet(c *gin.Context) {
 
 // Add books to customer's wishlist
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *WishlistApiHandler) WishlistsAddBooks(c *gin.Context) {
 	uid := c.Param("uid")
 	var req WishlistAddRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.WishlistsAddBooks(c.Request.Context(), uid, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -50,17 +51,18 @@ func (h *WishlistApiHandler) WishlistsAddBooks(c *gin.Context) {
 
 // Remove books from customer's wishlist
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *WishlistApiHandler) WishlistsRemoveBooks(c *gin.Context) {
 	uid := c.Param("uid")
 	var req WishlistRemoveRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.WishlistsRemoveBooks(c.Request.Context(), uid, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)

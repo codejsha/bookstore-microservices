@@ -7,8 +7,8 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/aggregate"
 )
 
-func TestToShipmentAggregate(t *testing.T) {
-	t.Run("fully populated shipment maps every field", func(t *testing.T) {
+func TestToShipmentAggregate_WhenProtoFullyPopulated_MapsEveryField(t *testing.T) {
+	t.Run("whenProtoFullyPopulated_mapsEveryField", func(t *testing.T) {
 		in := &deliverypb.Shipment{
 			Uid:                    "sh-1",
 			OrderUid:               "o-1",
@@ -45,7 +45,7 @@ func TestToShipmentAggregate(t *testing.T) {
 		}
 	})
 
-	t.Run("empty optional string fields pass through as empty", func(t *testing.T) {
+	t.Run("whenOptionalStringsEmpty_passesThemThroughEmpty", func(t *testing.T) {
 		got := toShipmentAggregate(&deliverypb.Shipment{Uid: "sh-2"})
 		if got.Uid != "sh-2" {
 			t.Errorf("Uid = %q, want sh-2", got.Uid)
@@ -68,7 +68,7 @@ func TestToShipmentAggregate(t *testing.T) {
 	})
 }
 
-func TestToShipmentStatus(t *testing.T) {
+func TestToShipmentStatus_WhenProtoStatusGiven_ReturnsDomainStatus(t *testing.T) {
 	cases := []struct {
 		in   deliverypb.ShipmentStatus
 		want aggregate.ShipmentStatus
@@ -90,7 +90,7 @@ func TestToShipmentStatus(t *testing.T) {
 	}
 }
 
-func TestStringToShipmentStatusProto(t *testing.T) {
+func TestStringToShipmentStatusProto_WhenDomainStatusGiven_ReturnsProtoStatus(t *testing.T) {
 	cases := []struct {
 		in   *string
 		want deliverypb.ShipmentStatus

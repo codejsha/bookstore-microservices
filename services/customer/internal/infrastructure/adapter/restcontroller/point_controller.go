@@ -49,7 +49,7 @@ func (c *pointController) PointsEarn(
 
 	point, err := c.customerUseCase.EarnPoints(ctx, cmd)
 	if err != nil {
-		return nil, err
+		return nil, httpx.MapBusinessError(ctx, httpx.MapPointBalanceOverflow(ctx, err))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "point", uid, "earned", logrus.Fields{"amount": req.Amount})
@@ -73,7 +73,7 @@ func (c *pointController) PointsSpend(
 
 	point, err := c.customerUseCase.SpendPoints(ctx, cmd)
 	if err != nil {
-		return nil, httpx.MapInsufficientPoints(ctx, err)
+		return nil, httpx.MapBusinessError(ctx, httpx.MapInsufficientPoints(ctx, err))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "point", uid, "spent", logrus.Fields{"amount": req.Amount})

@@ -12,8 +12,8 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/internal/infrastructure/httpx"
 )
 
-func TestWithUserAuthorization(t *testing.T) {
-	t.Run("attaches authorization metadata when a bearer token is present", func(t *testing.T) {
+func TestWithUserAuthorization_WhenBearerTokenPresent_AttachesAuthorizationMetadata(t *testing.T) {
+	t.Run("whenBearerTokenPresent_attachesAuthorizationMetadata", func(t *testing.T) {
 		ctx := httpx.WithBearerToken(context.Background(), "Bearer abc.def.ghi")
 		md, ok := metadata.FromOutgoingContext(withUserAuthorization(ctx))
 		if !ok {
@@ -25,15 +25,15 @@ func TestWithUserAuthorization(t *testing.T) {
 		}
 	})
 
-	t.Run("no metadata when the request carried no token", func(t *testing.T) {
+	t.Run("whenNoToken_attachesNoMetadata", func(t *testing.T) {
 		if _, ok := metadata.FromOutgoingContext(withUserAuthorization(context.Background())); ok {
 			t.Error("outgoing metadata was set for an unauthenticated context, want none")
 		}
 	})
 }
 
-func TestToCustomerAggregate(t *testing.T) {
-	t.Run("with phone and roles", func(t *testing.T) {
+func TestToCustomerAggregate_WhenProtoHasPhoneAndRoles_MapsEveryField(t *testing.T) {
+	t.Run("whenPhoneAndRolesPresent_mapsEveryField", func(t *testing.T) {
 		got := toCustomerAggregate(&userpb.User{
 			Uid:       "u-1",
 			Email:     "a@b.com",
@@ -54,7 +54,7 @@ func TestToCustomerAggregate(t *testing.T) {
 		}
 	})
 
-	t.Run("without phone", func(t *testing.T) {
+	t.Run("whenPhoneMissing_returnsNilPhone", func(t *testing.T) {
 		got := toCustomerAggregate(&userpb.User{Uid: "u-2", Email: "x@y.com"})
 		if got.Phone != nil {
 			t.Errorf("phone = %v, want nil for empty string", got.Phone)

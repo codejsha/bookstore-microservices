@@ -83,6 +83,9 @@ func (s *customerService) FindCustomer(ctx context.Context, uid string) (*aggreg
 }
 
 func (s *customerService) UpdateCustomer(ctx context.Context, cmd command.CustomerUpdateCommand) (*aggregate.CustomerAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	return nil, fmt.Errorf("update customer: %w (UserService has no UpdateUser RPC)", usecase.ErrNotImplemented)
 }
 
@@ -221,20 +224,26 @@ func (s *customerService) GetWishlist(ctx context.Context, userUid string) (*agg
 	return s.toWishlistAggregate(userUid, results), nil
 }
 
-func (s *customerService) AddBooksToWishlist(ctx context.Context, userUid string, bookUids []string) (*aggregate.WishlistAggregate, error) {
-	if err := s.wishlistRepo.AddBooks(ctx, userUid, bookUids); err != nil {
+func (s *customerService) AddBooksToWishlist(ctx context.Context, cmd command.WishlistAddCommand) (*aggregate.WishlistAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
+	if err := s.wishlistRepo.AddBooks(ctx, cmd.UserUid, cmd.BookUids); err != nil {
 		return nil, fmt.Errorf("add books to wishlist: %w", err)
 	}
-	return s.GetWishlist(ctx, userUid)
+	return s.GetWishlist(ctx, cmd.UserUid)
 }
 
-func (s *customerService) RemoveBooksFromWishlist(ctx context.Context, userUid string, bookUids []string) (*aggregate.WishlistAggregate, error) {
-	rows, err := s.wishlistRepo.FetchByUserUid(ctx, userUid)
+func (s *customerService) RemoveBooksFromWishlist(ctx context.Context, cmd command.WishlistRemoveCommand) (*aggregate.WishlistAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
+	rows, err := s.wishlistRepo.FetchByUserUid(ctx, cmd.UserUid)
 	if err != nil {
 		return nil, err
 	}
-	wanted := make(map[string]struct{}, len(bookUids))
-	for _, b := range bookUids {
+	wanted := make(map[string]struct{}, len(cmd.BookUids))
+	for _, b := range cmd.BookUids {
 		wanted[b] = struct{}{}
 	}
 	for _, row := range rows {
@@ -245,7 +254,7 @@ func (s *customerService) RemoveBooksFromWishlist(ctx context.Context, userUid s
 			return nil, err
 		}
 	}
-	return s.GetWishlist(ctx, userUid)
+	return s.GetWishlist(ctx, cmd.UserUid)
 }
 
 // ─── Points ─────────────────────────────────────────────────────────
@@ -262,20 +271,20 @@ func (s *customerService) GetPointBalance(ctx context.Context, userUid string) (
 }
 
 func (s *customerService) EarnPoints(ctx context.Context, cmd command.PointEarnCommand) (*aggregate.PointAggregate, error) {
-	if cmd.Amount <= 0 {
-		return nil, fmt.Errorf("earn amount must be positive: got %d", cmd.Amount)
+	if err := cmd.Validate(); err != nil {
+		return nil, err
 	}
 	if err := s.pointRepo.EnsureBalance(ctx, cmd.UserUid); err != nil {
 		return nil, fmt.Errorf("ensure point balance: %w", err)
 	}
-	return s.changePoints(ctx, cmd.UserUid, cmd.Amount, "EARN", cmd.Reason)
+	return s.changePoints(ctx, cmd.UserUid, cmd.Amount, aggregate.POINTCHANGE_EARN, cmd.Reason)
 }
 
 func (s *customerService) SpendPoints(ctx context.Context, cmd command.PointSpendCommand) (*aggregate.PointAggregate, error) {
-	if cmd.Amount <= 0 {
-		return nil, fmt.Errorf("spend amount must be positive: got %d", cmd.Amount)
+	if err := cmd.Validate(); err != nil {
+		return nil, err
 	}
-	return s.changePoints(ctx, cmd.UserUid, -cmd.Amount, "SPEND", cmd.Reason)
+	return s.changePoints(ctx, cmd.UserUid, -cmd.Amount, aggregate.POINTCHANGE_SPEND, cmd.Reason)
 }
 
 func (s *customerService) GetPointHistory(ctx context.Context, userUid string, page pagination.PageOption) (int64, []*aggregate.PointHistoryEntry, error) {
@@ -353,6 +362,9 @@ func (s *customerService) GetReview(ctx context.Context, userUid string, reviewU
 }
 
 func (s *customerService) WriteReview(ctx context.Context, cmd command.ReviewWriteCommand) (*aggregate.ReviewAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	result, err := s.reviewRepo.Insert(ctx, repo.ReviewCreate{
 		UserUid: cmd.UserUid,
 		BookUid: cmd.BookUid,
@@ -367,6 +379,9 @@ func (s *customerService) WriteReview(ctx context.Context, cmd command.ReviewWri
 }
 
 func (s *customerService) EditReview(ctx context.Context, userUid string, reviewUid string, cmd command.ReviewEditCommand) (*aggregate.ReviewAggregate, error) {
+	if err := cmd.Validate(); err != nil {
+		return nil, err
+	}
 	rows, err := s.reviewRepo.FetchByUid(ctx, reviewUid)
 	if err != nil {
 		return nil, err
@@ -416,8 +431,11 @@ func (s *customerService) RemoveReview(ctx context.Context, userUid string, revi
 
 // ─── points helper ──────────────────────────────────────────────────
 
-func (s *customerService) changePoints(ctx context.Context, userUid string, delta int32, changeType string, reason *string) (*aggregate.PointAggregate, error) {
-	result, err := s.pointRepo.ApplyPointChange(ctx, userUid, delta, changeType, reason)
+func (s *customerService) changePoints(ctx context.Context, userUid string, delta int32, changeType aggregate.PointChangeType, reason *string) (*aggregate.PointAggregate, error) {
+	if !changeType.IsValid() {
+		return nil, fmt.Errorf("change_type must be a known point change type: %q: %w", changeType, command.ErrInvalidCommand)
+	}
+	result, err := s.pointRepo.ApplyPointChange(ctx, userUid, delta, string(changeType), reason)
 	if err != nil {
 		return nil, err
 	}

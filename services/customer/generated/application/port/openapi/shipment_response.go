@@ -14,6 +14,6 @@ type ShipmentResponse struct {
 	PlannedDeliveryAt      *string         `json:"planned_delivery_at,omitempty"`
 	Status                 *ShipmentStatus `json:"status,omitempty"`
 	TrackingNumber         *string         `json:"tracking_number,omitempty"`
-	Uid                    string          `json:"uid" validate:"required"`
+	Uid                    string          `json:"uid" binding:"required"`
 	UpdatedAt              *string         `json:"updated_at,omitempty"`
 }

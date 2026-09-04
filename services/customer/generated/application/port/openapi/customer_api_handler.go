@@ -40,7 +40,7 @@ func (h *CustomerApiHandler) CustomersGetAll(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -51,7 +51,7 @@ func (h *CustomerApiHandler) CustomersGetAll(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -64,7 +64,7 @@ func (h *CustomerApiHandler) CustomersGetAll(c *gin.Context) {
 	}
 	result, err := h.service.CustomersGetAll(c.Request.Context(), email, name, phone, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -77,7 +77,7 @@ func (h *CustomerApiHandler) CustomersRead(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.CustomersRead(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -90,12 +90,12 @@ func (h *CustomerApiHandler) CustomersUpdate(c *gin.Context) {
 	uid := c.Param("uid")
 	var req CustomerUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.CustomersUpdate(c.Request.Context(), uid, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -107,7 +107,7 @@ func (h *CustomerApiHandler) CustomersUpdate(c *gin.Context) {
 func (h *CustomerApiHandler) CustomersDelete(c *gin.Context) {
 	uid := c.Param("uid")
 	if err := h.service.CustomersDelete(c.Request.Context(), uid); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.Status(http.StatusNoContent)

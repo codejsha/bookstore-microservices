@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/google/uuid"
@@ -96,9 +97,9 @@ func (r *pointRepository) ApplyPointChange(
 			return err
 		}
 
-		newBalance := e.Balance + delta
-		if newBalance < 0 {
-			return fmt.Errorf("%w: have %d, requested %d", repo.ErrInsufficientPoints, e.Balance, -delta)
+		newBalance, err := nextBalance(e.Balance, delta)
+		if err != nil {
+			return err
 		}
 
 		now := time.Now()
@@ -128,6 +129,17 @@ func (r *pointRepository) ApplyPointChange(
 		return nil, err
 	}
 	return result, nil
+}
+
+func nextBalance(current, delta int32) (int32, error) {
+	next := int64(current) + int64(delta)
+	if next < 0 {
+		return 0, fmt.Errorf("%w: have %d, requested %d", repo.ErrInsufficientPoints, current, -delta)
+	}
+	if next > math.MaxInt32 {
+		return 0, fmt.Errorf("%w: have %d, adding %d", repo.ErrPointBalanceOverflow, current, delta)
+	}
+	return int32(next), nil
 }
 
 type pointHistoryRepository struct {

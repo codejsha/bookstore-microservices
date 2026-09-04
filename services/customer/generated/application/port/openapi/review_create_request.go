@@ -3,8 +3,8 @@
 package openapi
 
 type ReviewCreateRequest struct {
-	BookUid string  `json:"book_uid" validate:"required"`
+	BookUid string  `json:"book_uid" binding:"required"`
 	Content *string `json:"content,omitempty"`
-	Rating  int32   `json:"rating" validate:"required"`
-	Title   *string `json:"title,omitempty"`
+	Rating  int32   `json:"rating" binding:"required,gte=1,lte=5"`
+	Title   *string `json:"title,omitempty" binding:"omitempty,max=255"`
 }

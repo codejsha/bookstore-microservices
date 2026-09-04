@@ -18,6 +18,7 @@ type PointApi interface {
 
 	// Earn points for a customer
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	PointsEarn(
 		ctx context.Context,

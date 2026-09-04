@@ -26,7 +26,7 @@ func (h *ReviewApiHandler) BookReviewsGetAll(c *gin.Context) {
 	if ratingStr != "" {
 		v, err := strconv.ParseInt(ratingStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid rating"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid rating"))
 			return
 		}
 		val := int32(v)
@@ -37,7 +37,7 @@ func (h *ReviewApiHandler) BookReviewsGetAll(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -48,7 +48,7 @@ func (h *ReviewApiHandler) BookReviewsGetAll(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -61,7 +61,7 @@ func (h *ReviewApiHandler) BookReviewsGetAll(c *gin.Context) {
 	}
 	result, err := h.service.BookReviewsGetAll(c.Request.Context(), bookUid, rating, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -77,7 +77,7 @@ func (h *ReviewApiHandler) CustomerReviewsGetAll(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -88,7 +88,7 @@ func (h *ReviewApiHandler) CustomerReviewsGetAll(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -101,7 +101,7 @@ func (h *ReviewApiHandler) CustomerReviewsGetAll(c *gin.Context) {
 	}
 	result, err := h.service.CustomerReviewsGetAll(c.Request.Context(), uid, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -119,11 +119,11 @@ func (h *ReviewApiHandler) CustomerReviewsWrite(c *gin.Context) {
 	uid := c.Param("uid")
 	var req ReviewCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	if err := h.service.CustomerReviewsWrite(c.Request.Context(), uid, req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -137,7 +137,7 @@ func (h *ReviewApiHandler) CustomerReviewsRead(c *gin.Context) {
 	reviewUid := c.Param("review_uid")
 	result, err := h.service.CustomerReviewsRead(c.Request.Context(), uid, reviewUid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -145,18 +145,19 @@ func (h *ReviewApiHandler) CustomerReviewsRead(c *gin.Context) {
 
 // Edit a review
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *ReviewApiHandler) CustomerReviewsEdit(c *gin.Context) {
 	uid := c.Param("uid")
 	reviewUid := c.Param("review_uid")
 	var req ReviewUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.CustomerReviewsEdit(c.Request.Context(), uid, reviewUid, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -169,7 +170,7 @@ func (h *ReviewApiHandler) CustomerReviewsRemove(c *gin.Context) {
 	uid := c.Param("uid")
 	reviewUid := c.Param("review_uid")
 	if err := h.service.CustomerReviewsRemove(c.Request.Context(), uid, reviewUid); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.Status(http.StatusNoContent)

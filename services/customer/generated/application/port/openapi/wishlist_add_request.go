@@ -4,5 +4,5 @@ package openapi
 
 // Add books to wishlist
 type WishlistAddRequest struct {
-	BookUids []string `json:"book_uids" validate:"required"`
+	BookUids []string `json:"book_uids" binding:"required,dive"`
 }
