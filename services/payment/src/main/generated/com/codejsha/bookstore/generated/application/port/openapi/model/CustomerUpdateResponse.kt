@@ -5,6 +5,7 @@ package com.codejsha.bookstore.generated.application.port.openapi.model
 import java.time.OffsetDateTime
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 
 data class CustomerUpdateResponse(
@@ -17,9 +18,11 @@ data class CustomerUpdateResponse(
     @field:JsonProperty("customer_id")
     val customerId: String,
 
+    @field:Valid
     @field:JsonProperty("default_billing_address")
     val defaultBillingAddress: Address? = null,
 
+    @field:Valid
     @field:JsonProperty("default_shipping_address")
     val defaultShippingAddress: Address? = null,
 

@@ -22,7 +22,7 @@ interface Customers {
 
   @doc("Create customer")
   @post
-  create(@body body: CustomerCreateRequest): CreatedResponse;
+  create(@body body: CustomerCreateRequest): CreatedResponse | BadRequestError | ConflictError;
 
   @doc("Find customer")
   @route("{uid}")
@@ -32,7 +32,7 @@ interface Customers {
   @doc("Update customer")
   @route("{uid}")
   @put
-  update(@path uid: uuid, @body body: CustomerUpdateRequest): CustomerUpdateResponse | NotFoundError;
+  update(@path uid: uuid, @body body: CustomerUpdateRequest): CustomerUpdateResponse | BadRequestError | NotFoundError;
 
   @doc("Delete customer")
   @route("{uid}")

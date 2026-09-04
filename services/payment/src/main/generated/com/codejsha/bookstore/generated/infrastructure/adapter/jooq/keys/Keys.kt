@@ -19,7 +19,6 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.recor
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.RefundsRecord
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.WebhookEventsRecord
 
-import org.jooq.ForeignKey
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
 import org.jooq.impl.Internal
@@ -53,16 +52,3 @@ val KEY_REFUNDS_UQ_REFUNDS_IDEMPOTENCY_KEY: UniqueKey<RefundsRecord> = Internal.
 val KEY_WEBHOOK_EVENTS_PRIMARY: UniqueKey<WebhookEventsRecord> = Internal.createUniqueKey(WebhookEventsTable.WEBHOOK_EVENTS, DSL.name("KEY_webhook_events_PRIMARY"), arrayOf(WebhookEventsTable.WEBHOOK_EVENTS.ID), true)
 val KEY_WEBHOOK_EVENTS_UK_EVENT_ID: UniqueKey<WebhookEventsRecord> = Internal.createUniqueKey(WebhookEventsTable.WEBHOOK_EVENTS, DSL.name("KEY_webhook_events_uk_event_id"), arrayOf(WebhookEventsTable.WEBHOOK_EVENTS.EVENT_ID), true)
 val KEY_WEBHOOK_EVENTS_UK_WEBHOOK_UID: UniqueKey<WebhookEventsRecord> = Internal.createUniqueKey(WebhookEventsTable.WEBHOOK_EVENTS, DSL.name("KEY_webhook_events_uk_webhook_uid"), arrayOf(WebhookEventsTable.WEBHOOK_EVENTS.UID), true)
-
-// -------------------------------------------------------------------------
-// FOREIGN KEY definitions
-// -------------------------------------------------------------------------
-
-val FK_MANDATE_CUSTOMER: ForeignKey<MandatesRecord, CustomersRecord> = Internal.createForeignKey(MandatesTable.MANDATES, DSL.name("fk_mandate_customer"), arrayOf(MandatesTable.MANDATES.CUSTOMER_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CUSTOMERS_UK_CUSTOMER_ID, arrayOf(CustomersTable.CUSTOMERS.CUSTOMER_ID), true)
-val FK_MANDATE_PM: ForeignKey<MandatesRecord, PaymentMethodsRecord> = Internal.createForeignKey(MandatesTable.MANDATES, DSL.name("fk_mandate_pm"), arrayOf(MandatesTable.MANDATES.PAYMENT_METHOD_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_PAYMENT_METHODS_UK_PAYMENT_METHOD_ID, arrayOf(PaymentMethodsTable.PAYMENT_METHODS.PAYMENT_METHOD_ID), true)
-val FK_ATTEMPT_PAYMENT: ForeignKey<PaymentAttemptsRecord, PaymentsRecord> = Internal.createForeignKey(PaymentAttemptsTable.PAYMENT_ATTEMPTS, DSL.name("fk_attempt_payment"), arrayOf(PaymentAttemptsTable.PAYMENT_ATTEMPTS.PAYMENT_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_PAYMENTS_UK_PAYMENT_ID, arrayOf(PaymentsTable.PAYMENTS.PAYMENT_ID), true)
-val FK_PM_CUSTOMER: ForeignKey<PaymentMethodsRecord, CustomersRecord> = Internal.createForeignKey(PaymentMethodsTable.PAYMENT_METHODS, DSL.name("fk_pm_customer"), arrayOf(PaymentMethodsTable.PAYMENT_METHODS.CUSTOMER_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CUSTOMERS_UK_CUSTOMER_ID, arrayOf(CustomersTable.CUSTOMERS.CUSTOMER_ID), true)
-val FK_PAYMENT_CUSTOMER: ForeignKey<PaymentsRecord, CustomersRecord> = Internal.createForeignKey(PaymentsTable.PAYMENTS, DSL.name("fk_payment_customer"), arrayOf(PaymentsTable.PAYMENTS.CUSTOMER_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CUSTOMERS_UK_CUSTOMER_ID, arrayOf(CustomersTable.CUSTOMERS.CUSTOMER_ID), true)
-val FK_PAYMENT_MANDATE: ForeignKey<PaymentsRecord, MandatesRecord> = Internal.createForeignKey(PaymentsTable.PAYMENTS, DSL.name("fk_payment_mandate"), arrayOf(PaymentsTable.PAYMENTS.MANDATE_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_MANDATES_UK_MANDATE_ID, arrayOf(MandatesTable.MANDATES.MANDATE_ID), true)
-val FK_PAYMENT_PM: ForeignKey<PaymentsRecord, PaymentMethodsRecord> = Internal.createForeignKey(PaymentsTable.PAYMENTS, DSL.name("fk_payment_pm"), arrayOf(PaymentsTable.PAYMENTS.PAYMENT_METHOD_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_PAYMENT_METHODS_UK_PAYMENT_METHOD_ID, arrayOf(PaymentMethodsTable.PAYMENT_METHODS.PAYMENT_METHOD_ID), true)
-val FK_REFUND_PAYMENT: ForeignKey<RefundsRecord, PaymentsRecord> = Internal.createForeignKey(RefundsTable.REFUNDS, DSL.name("fk_refund_payment"), arrayOf(RefundsTable.REFUNDS.PAYMENT_ID), com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_PAYMENTS_UK_PAYMENT_ID, arrayOf(PaymentsTable.PAYMENTS.PAYMENT_ID), true)

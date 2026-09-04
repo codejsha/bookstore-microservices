@@ -15,7 +15,9 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import kotlin.test.assertEquals
@@ -25,13 +27,25 @@ class CustomerServiceTest {
 
     private val ctx = PaymentTestFixtures.DEFAULT_CONTEXT
 
+    private fun createCommand() = CustomerCreateCommand(
+        customerId = "cus_001",
+        name = "Bob",
+        email = "bob@example.com",
+        phone = null,
+        phoneCountryCode = null,
+        description = null,
+        metadata = null,
+        defaultBillingAddress = null,
+        defaultShippingAddress = null,
+    )
+
     private fun newService(
         repo: CustomerRepo,
         pmRepo: PaymentMethodRepo,
     ) = CustomerService(repo, pmRepo, FakeTransactionRunner())
 
     @Test
-    fun `findAllCustomers maps each result preserving page metadata`(): Unit = runBlocking {
+    fun `findAllCustomers_whenRepoReturnsPage_mapsEachRowAndKeepsPageMetadata`(): Unit = runBlocking {
         val repo = mock(CustomerRepo::class.java)
         val pmRepo = mock(PaymentMethodRepo::class.java)
         val service = newService(repo, pmRepo)
@@ -50,7 +64,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `findCustomer returns mapped aggregate`(): Unit = runBlocking {
+    fun `findCustomer_whenCustomerExists_returnsMappedAggregate`(): Unit = runBlocking {
         val repo = mock(CustomerRepo::class.java)
         val pmRepo = mock(PaymentMethodRepo::class.java)
         val service = newService(repo, pmRepo)
@@ -65,7 +79,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `createCustomer delegates command to repo`(): Unit = runBlocking {
+    fun `createCustomer_whenCustomerIdUnseen_delegatesCommandToRepo`(): Unit = runBlocking {
         val repo = mock(CustomerRepo::class.java)
         val pmRepo = mock(PaymentMethodRepo::class.java)
         val service = newService(repo, pmRepo)
@@ -89,7 +103,38 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `updateCustomer delegates with uid and command`(): Unit = runBlocking {
+    fun `createCustomer_whenCustomerIdAlreadyExists_returnsExistingCustomerWithoutCreating`(): Unit = runBlocking {
+        val repo = mock(CustomerRepo::class.java)
+        val pmRepo = mock(PaymentMethodRepo::class.java)
+        val service = newService(repo, pmRepo)
+
+        val command = createCommand()
+        given(repo.findByCustomerId("cus_001", ctx)).willReturn(PaymentTestFixtures.customerResult())
+
+        val agg = service.createCustomer(command, ctx)
+
+        assertEquals("Alice", agg.name)
+        verify(repo, never()).create(command, ctx)
+    }
+
+    @Test
+    fun `createCustomer_whenUniqueCustomerIdRaces_returnsTheWinnerRow`(): Unit = runBlocking {
+        val repo = mock(CustomerRepo::class.java)
+        val pmRepo = mock(PaymentMethodRepo::class.java)
+        val service = newService(repo, pmRepo)
+
+        val command = createCommand()
+        given(repo.findByCustomerId("cus_001", ctx))
+            .willReturn(null, PaymentTestFixtures.customerResult())
+        given(repo.create(command, ctx)).willThrow(DataIntegrityViolationException("dup"))
+
+        val agg = service.createCustomer(command, ctx)
+
+        assertEquals("cus_001", agg.customerId)
+    }
+
+    @Test
+    fun `updateCustomer_whenCommandGiven_delegatesUidAndCommandToRepo`(): Unit = runBlocking {
         val repo = mock(CustomerRepo::class.java)
         val pmRepo = mock(PaymentMethodRepo::class.java)
         val service = newService(repo, pmRepo)
@@ -109,7 +154,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `deleteCustomer forwards to repo`(): Unit = runBlocking {
+    fun `deleteCustomer_whenCalled_forwardsUidToRepo`(): Unit = runBlocking {
         val repo = mock(CustomerRepo::class.java)
         val pmRepo = mock(PaymentMethodRepo::class.java)
         val service = newService(repo, pmRepo)
@@ -120,7 +165,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `findAllPaymentMethods returns mapped entities with enum coercion`(): Unit = runBlocking {
+    fun `findAllPaymentMethods_whenRepoReturnsPage_mapsEachRowWithEnumCoercion`(): Unit = runBlocking {
         val repo = mock(CustomerRepo::class.java)
         val pmRepo = mock(PaymentMethodRepo::class.java)
         val service = newService(repo, pmRepo)
@@ -137,7 +182,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `findPaymentMethod returns mapped entity`(): Unit = runBlocking {
+    fun `findPaymentMethod_whenMethodExists_returnsMappedEntity`(): Unit = runBlocking {
         val repo = mock(CustomerRepo::class.java)
         val pmRepo = mock(PaymentMethodRepo::class.java)
         val service = newService(repo, pmRepo)
@@ -156,7 +201,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `createPaymentMethod delegates with customerUid and command`(): Unit = runBlocking {
+    fun `createPaymentMethod_whenCommandGiven_delegatesCustomerUidAndCommandToRepo`(): Unit = runBlocking {
         val repo = mock(CustomerRepo::class.java)
         val pmRepo = mock(PaymentMethodRepo::class.java)
         val service = newService(repo, pmRepo)
@@ -181,7 +226,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `updatePaymentMethod delegates with uids and command`(): Unit = runBlocking {
+    fun `updatePaymentMethod_whenCommandGiven_delegatesUidsAndCommandToRepo`(): Unit = runBlocking {
         val repo = mock(CustomerRepo::class.java)
         val pmRepo = mock(PaymentMethodRepo::class.java)
         val service = newService(repo, pmRepo)
@@ -217,7 +262,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `deletePaymentMethod forwards uid pair to repo`(): Unit = runBlocking {
+    fun `deletePaymentMethod_whenCalled_forwardsUidPairToRepo`(): Unit = runBlocking {
         val repo = mock(CustomerRepo::class.java)
         val pmRepo = mock(PaymentMethodRepo::class.java)
         val service = newService(repo, pmRepo)

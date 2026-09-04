@@ -11,7 +11,10 @@ import com.codejsha.bookstore.payment.application.port.support.TransactionRunner
 import com.codejsha.bookstore.payment.application.usecase.WebhookUseCase
 import com.codejsha.bookstore.payment.domain.constant.WebhookObjectType
 import com.codejsha.bookstore.payment.domain.constant.WebhookOutcome
+import com.codejsha.bookstore.payment.domain.model.command.MAX_ERROR_CODE
+import com.codejsha.bookstore.payment.domain.model.command.MAX_ERROR_MESSAGE
 import com.codejsha.bookstore.payment.domain.model.command.WebhookEventCreateCommand
+import com.codejsha.bookstore.payment.domain.model.command.truncate
 import com.codejsha.bookstore.payment.domain.model.external.HyperswitchWebhookEvent
 import com.codejsha.platform.shared.data.ActorContext
 import io.opentelemetry.instrumentation.annotations.WithSpan
@@ -96,7 +99,13 @@ class WebhookService(
     private fun applyRefund(event: HyperswitchWebhookEvent, context: ActorContext): Boolean {
         val status = event.status ?: return false
         val refund = refundRepo.findByRefundId(event.gatewayObjectId, context) ?: return false
-        refundRepo.syncGatewayStatus(refund.uid, status, event.errorCode, event.errorMessage, context)
+        refundRepo.syncGatewayStatus(
+            refund.uid,
+            status,
+            truncate(event.errorCode, MAX_ERROR_CODE),
+            truncate(event.errorMessage, MAX_ERROR_MESSAGE),
+            context,
+        )
         return true
     }
 

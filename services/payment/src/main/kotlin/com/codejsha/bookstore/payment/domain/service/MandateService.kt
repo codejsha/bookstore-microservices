@@ -29,6 +29,7 @@ class MandateService(
 
     private companion object {
         const val ACCEPTANCE_TYPE_ONLINE = "online"
+        const val METADATA_GATEWAY_PAYMENT_METHOD_ID = "gateway_payment_method_id"
     }
 
     @WithSpan
@@ -61,13 +62,15 @@ class MandateService(
                     MandateCreateCommand(
                         mandateId = hyperswitchResult.gatewayMandateId,
                         customerId = command.customerId,
-                        paymentMethodId = hyperswitchResult.gatewayPaymentMethodId,
+                        paymentMethodId = null,
                         mandateType = MandateType.MULTI_USE.value,
                         mandateStatus = hyperswitchResult.status,
                         mandateAmount = command.mandateAmountMinor,
                         mandateCurrency = command.currency,
                         setupFutureUsage = FutureUsage.OFF_SESSION.value,
                         customerAcceptanceType = ACCEPTANCE_TYPE_ONLINE,
+                        metadata = hyperswitchResult.gatewayPaymentMethodId
+                            ?.let { mapOf(METADATA_GATEWAY_PAYMENT_METHOD_ID to it) },
                     ),
                     context,
                 ),

@@ -2,6 +2,7 @@ package com.codejsha.bookstore.payment.infrastructure.adapter.mysql
 
 import com.codejsha.bookstore.payment.infrastructure.support.utils.bytesToUuid
 import com.codejsha.bookstore.payment.infrastructure.support.utils.parseJson
+import com.codejsha.bookstore.payment.infrastructure.support.utils.toJson
 import com.codejsha.bookstore.payment.infrastructure.support.utils.uuidToBytes
 
 import com.codejsha.bookstore.payment.application.port.repo.MandateRepo
@@ -92,6 +93,7 @@ class MandateRepoImpl(
             .set(m.MANDATE_CURRENCY, command.mandateCurrency)
             .set(m.SETUP_FUTURE_USAGE, command.setupFutureUsage)
             .set(m.CUSTOMER_ACCEPTANCE_TYPE, command.customerAcceptanceType)
+            .set(m.METADATA, toJson(command.metadata))
             .set(m.CUSTOMER_ACCEPTED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(m.CREATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .execute()

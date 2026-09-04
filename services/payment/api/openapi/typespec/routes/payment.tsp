@@ -23,7 +23,7 @@ interface Payments {
 
   @doc("Create payment")
   @post
-  create(@body body: PaymentCreateRequest): CreatedResponse;
+  create(@body body: PaymentCreateRequest): CreatedResponse | BadRequestError | ConflictError;
 
   @doc("Find payment")
   @route("{uid}")
@@ -33,7 +33,7 @@ interface Payments {
   @doc("Update payment")
   @route("{uid}")
   @put
-  update(@path uid: uuid, @body body: PaymentUpdateRequest): PaymentUpdateResponse | NotFoundError;
+  update(@path uid: uuid, @body body: PaymentUpdateRequest): PaymentUpdateResponse | BadRequestError | NotFoundError;
 }
 
 // ─── Payment attempts (Payment aggregate internal entity) ───────────────────

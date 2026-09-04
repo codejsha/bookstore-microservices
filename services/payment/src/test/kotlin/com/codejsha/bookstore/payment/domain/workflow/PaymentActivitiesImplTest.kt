@@ -49,7 +49,7 @@ class PaymentActivitiesImplTest {
     // ─── processPayment ───────────────────────────────────────────────────────
 
     @Test
-    fun `processPayment charges via gateway and persists the real status and gateway id`() {
+    fun `processPayment_whenNoPriorPayment_chargesGatewayAndPersistsStatusAndGatewayId`() {
         val client = StubHyperswitchClient(
             paymentResult = HyperswitchPaymentResult(
                 gatewayPaymentId = "pay_hyper_123",
@@ -94,7 +94,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `processPayment short-circuits a settled prior payment without re-charging`() {
+    fun `processPayment_whenPriorPaymentSettled_returnsItWithoutRecharging`() {
         val client = StubHyperswitchClient()
         val paymentRepo = FakePaymentRepo(
             existingByKey = PaymentTestFixtures.paymentResult(status = "succeeded", paymentId = "pay_prev"),
@@ -116,7 +116,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `processPayment re-attempts the gateway when a prior row is failed (non-settled)`() {
+    fun `processPayment_whenPriorPaymentFailed_retriesGateway`() {
         val client = StubHyperswitchClient(
             paymentResult = HyperswitchPaymentResult("pay_retry", "succeeded", "stripe", 0, 1_000, null, null),
         )
@@ -134,7 +134,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `processPayment on gateway error records a failed attempt and rethrows`() {
+    fun `processPayment_whenGatewayFails_recordsFailedAttemptAndRethrows`() {
         val client = StubHyperswitchClient(authorizeError = HyperswitchClientException("boom", errorCode = "CE_00"))
         val paymentRepo = FakePaymentRepo()
         val attemptRepo = FakePaymentAttemptRepo()
@@ -154,7 +154,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `processPayment retries while the gateway still reports the fresh charge pending`() {
+    fun `processPayment_whenFreshChargeStillPending_throwsRetryableGatewayPaymentPending`() {
         val client = StubHyperswitchClient(
             paymentResult = HyperswitchPaymentResult("pay_pending", "processing", "stripe", 1_000, 0, null, null),
         )
@@ -171,7 +171,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `processPayment resolves a pending prior row from the gateway instead of re-charging`() {
+    fun `processPayment_whenPriorPaymentPending_resolvesItFromGatewayWithoutRecharging`() {
         val client = StubHyperswitchClient(
             lookupById = HyperswitchPaymentLookup("pay_pending", "succeeded", "USD", 1_000, 0, 1_000, "stripe", null, null),
         )
@@ -191,7 +191,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `processPayment recovers a gateway-held payment when authorization errors`() {
+    fun `processPayment_whenAuthorizationErrorsButGatewayHoldsPayment_recoversIt`() {
         val client = StubHyperswitchClient(
             authorizeError = HyperswitchClientException("duplicate payment", errorCode = "HE_01"),
             lookupByKey = HyperswitchPaymentLookup("pay_held", "succeeded", "USD", 1_000, 0, 1_000, "stripe", null, null),
@@ -212,7 +212,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `processPayment converts the amount using the currency's ISO 4217 minor unit`() {
+    fun `processPayment_whenCurrencyHasNoMinorUnit_sendsUnscaledAmount`() {
         val client = StubHyperswitchClient()
         val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
 
@@ -224,7 +224,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `processPayment fails non-retryably for an unknown currency code`() {
+    fun `processPayment_whenCurrencyUnknown_throwsNonRetryableUnsupportedCurrency`() {
         val client = StubHyperswitchClient()
         val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
 
@@ -240,7 +240,39 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPayment treats an unrecognized payment status as non-refundable instead of crashing`() {
+    fun `processPayment_whenInputMalformed_throwsNonRetryableInvalidPaymentRequestBeforeGateway`() {
+        val client = StubHyperswitchClient()
+        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+
+        val failure = assertFailsWith<ApplicationFailure> {
+            activities.processPayment(
+                ProcessPaymentRequest(orderUid = orderUid, userUid = "00000000-0000-0000-0000-000000000007", amount = BigDecimal("10.00"), currency = "usd"),
+            )
+        }
+
+        assertTrue(failure.isNonRetryable)
+        assertEquals("InvalidPaymentRequest", failure.type)
+        assertNull(client.authorizeCommand)
+    }
+
+    @Test
+    fun `processPayment_whenUserUidBlank_throwsNonRetryableInvalidPaymentRequestBeforeGateway`() {
+        val client = StubHyperswitchClient()
+        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+
+        val failure = assertFailsWith<ApplicationFailure> {
+            activities.processPayment(
+                ProcessPaymentRequest(orderUid = orderUid, userUid = "  ", amount = BigDecimal("10.00"), currency = "USD"),
+            )
+        }
+
+        assertTrue(failure.isNonRetryable)
+        assertEquals("InvalidPaymentRequest", failure.type)
+        assertNull(client.authorizeCommand)
+    }
+
+    @Test
+    fun `refundPayment_whenPaymentStatusUnrecognized_returnsFalseWithoutGateway`() {
         val paymentUid = UUID.randomUUID()
         val client = StubHyperswitchClient()
         val paymentRepo = FakePaymentRepo(findOne = PaymentTestFixtures.paymentResult(status = "partially_captured_and_capturable"))
@@ -253,7 +285,7 @@ class PaymentActivitiesImplTest {
     // ─── refundPayment ─────────────────────────────────────────────────────────
 
     @Test
-    fun `refundPayment refunds via gateway and persists the real refund status and id`() {
+    fun `refundPayment_whenPaymentRefundable_refundsViaGatewayAndPersistsStatusAndId`() {
         val paymentUid = UUID.randomUUID()
         val client = StubHyperswitchClient(
             refundResult = HyperswitchRefundResult("ref_hyper_1", "succeeded", "stripe", null, null),
@@ -281,7 +313,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPayment is idempotent when a refund already exists for the key`() {
+    fun `refundPayment_whenRefundAlreadyExists_returnsTrueWithoutLockingOrGateway`() {
         val paymentUid = UUID.randomUUID()
         val client = StubHyperswitchClient()
         val refundRepo = FakeRefundRepo(existingByKey = PaymentTestFixtures.refundResult())
@@ -297,7 +329,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPayment reports false when the gateway refund fails`() {
+    fun `refundPayment_whenGatewayRefundFails_returnsFalseAndPersistsFailedRefund`() {
         val paymentUid = UUID.randomUUID()
         val client = StubHyperswitchClient(
             refundResult = HyperswitchRefundResult("ref_failed", "failed", "stripe", "RE_01", "insufficient funds"),
@@ -313,7 +345,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPayment reports false when the existing refund for the key had failed`() {
+    fun `refundPayment_whenExistingRefundFailed_returnsFalseWithoutGateway`() {
         val paymentUid = UUID.randomUUID()
         val client = StubHyperswitchClient()
         val refundRepo = FakeRefundRepo(existingByKey = PaymentTestFixtures.refundResult(status = "failed"))
@@ -324,7 +356,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPayment refunds the captured amount, not the authorized amount, for a partial capture`() {
+    fun `refundPayment_whenCapturePartial_refundsCapturedAmount`() {
         val paymentUid = UUID.randomUUID()
         val client = StubHyperswitchClient(
             refundResult = HyperswitchRefundResult("ref_hyper_2", "succeeded", "stripe", null, null),
@@ -343,7 +375,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPayment skips a non-refundable payment without calling the gateway`() {
+    fun `refundPayment_whenPaymentNotRefundable_returnsFalseWithoutGateway`() {
         val paymentUid = UUID.randomUUID()
         val client = StubHyperswitchClient()
         val paymentRepo = FakePaymentRepo(findOne = PaymentTestFixtures.paymentResult(status = "requires_payment_method"))
@@ -360,7 +392,7 @@ class PaymentActivitiesImplTest {
     // ─── refundPaymentByOrder ──────────────────────────────────────────────────
 
     @Test
-    fun `refundPaymentByOrder refunds the payment recorded under the order's idempotency key`() {
+    fun `refundPaymentByOrder_whenPaymentRecordedForOrder_refundsIt`() {
         val client = StubHyperswitchClient(
             refundResult = HyperswitchRefundResult("ref_hyper_3", "succeeded", "stripe", null, null),
         )
@@ -379,7 +411,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPaymentByOrder returns false when no payment exists for the order`() {
+    fun `refundPaymentByOrder_whenNoPaymentForOrder_returnsFalse`() {
         val client = StubHyperswitchClient()
         val refundRepo = FakeRefundRepo()
         val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
@@ -392,7 +424,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPaymentByOrder is idempotent when the payment's refund already exists`() {
+    fun `refundPaymentByOrder_whenRefundAlreadyExists_returnsTrueWithoutGateway`() {
         val client = StubHyperswitchClient()
         val payment = PaymentTestFixtures.paymentResult(status = "succeeded")
         val paymentRepo = FakePaymentRepo(existingByKey = payment)
@@ -407,7 +439,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPaymentByOrder restores a gateway-only payment locally and refunds it`() {
+    fun `refundPaymentByOrder_whenPaymentExistsOnlyAtGateway_restoresItLocallyAndRefunds`() {
         val client = StubHyperswitchClient(
             lookupByKey = HyperswitchPaymentLookup(
                 gatewayPaymentId = "pay_gw_only",
@@ -440,7 +472,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPayment retries while the gateway still reports the payment pending`() {
+    fun `refundPayment_whenGatewayPaymentStillPending_throwsRetryableGatewayPaymentPending`() {
         val paymentUid = UUID.randomUUID()
         val client = StubHyperswitchClient(
             lookupById = HyperswitchPaymentLookup(
@@ -465,7 +497,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPayment refunds once the gateway reports a pending payment settled`() {
+    fun `refundPayment_whenPendingPaymentSettledAtGateway_syncsStatusAndRefunds`() {
         val paymentUid = UUID.randomUUID()
         val client = StubHyperswitchClient(
             lookupById = HyperswitchPaymentLookup(
@@ -487,7 +519,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `refundPaymentByOrder returns false for a non-refundable payment`() {
+    fun `refundPaymentByOrder_whenPaymentNotRefundable_returnsFalse`() {
         val client = StubHyperswitchClient()
         val payment = PaymentTestFixtures.paymentResult(status = "requires_payment_method")
         val paymentRepo = FakePaymentRepo(existingByKey = payment)
@@ -504,7 +536,7 @@ class PaymentActivitiesImplTest {
     // ─── processPayment: the mandate is the instrument ────────────────────────
 
     @Test
-    fun `processPayment charges against the customer's active mandate off-session`() {
+    fun `processPayment_whenCustomerHasActiveMandate_chargesOffSessionAgainstIt`() {
         val client = StubHyperswitchClient()
         val userUid = "00000000-0000-0000-0000-000000000007"
         val activities = PaymentActivitiesImpl(
@@ -526,7 +558,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `processPayment persists the customer id so the payment is visible to its owner`() {
+    fun `processPayment_whenChargeSucceeds_persistsCustomerId`() {
         val userUid = "00000000-0000-0000-0000-000000000007"
         val paymentRepo = FakePaymentRepo()
         val activities = PaymentActivitiesImpl(
@@ -546,7 +578,7 @@ class PaymentActivitiesImplTest {
     }
 
     @Test
-    fun `processPayment fails non-retryably when the customer has no active mandate`() {
+    fun `processPayment_whenCustomerHasNoActiveMandate_throwsNonRetryableNoActivePaymentMandate`() {
         val client = StubHyperswitchClient()
         val paymentRepo = FakePaymentRepo()
         val activities = PaymentActivitiesImpl(

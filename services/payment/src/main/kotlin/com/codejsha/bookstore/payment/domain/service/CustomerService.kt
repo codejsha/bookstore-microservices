@@ -17,6 +17,7 @@ import com.codejsha.bookstore.payment.domain.model.option.CustomerQueryOption
 import com.codejsha.bookstore.payment.domain.model.option.PaymentMethodQueryOption
 import com.codejsha.platform.shared.data.ActorContext
 import io.opentelemetry.instrumentation.annotations.WithSpan
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -45,7 +46,15 @@ class CustomerService(
     override suspend fun createCustomer(
         command: CustomerCreateCommand, context: ActorContext
     ): CustomerAggregate = txRunner.tx {
-        toCustomerAggregate(customerRepo.create(command, context))
+        customerRepo.findByCustomerId(command.customerId, context)
+            ?.let { return@tx toCustomerAggregate(it) }
+
+        val result = try {
+            customerRepo.create(command, context)
+        } catch (e: DataIntegrityViolationException) {
+            customerRepo.findByCustomerId(command.customerId, context) ?: throw e
+        }
+        toCustomerAggregate(result)
     }
 
     @WithSpan

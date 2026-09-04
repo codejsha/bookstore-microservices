@@ -56,8 +56,9 @@ class RefundControllerTest {
         RequestContextHolder.resetRequestAttributes()
     }
 
+    // Every refund endpoint is driven through the same admin guard.
     @Test
-    fun `refund endpoints reject a caller without the ADMIN role`() {
+    fun `refundEndpoints_whenCallerLacksAdminRole_throw`() {
         bindPrincipal(roles = "ORDER,VIEW")
         val useCase = mock(RefundUseCase::class.java)
         val controller = RefundController(useCase, resolver)
@@ -71,7 +72,7 @@ class RefundControllerTest {
     }
 
     @Test
-    fun `refundsGetAll maps page to response`(): Unit = runBlocking {
+    fun `refundsGetAll_whenUsecaseReturnsPage_mapsPageToResponse`(): Unit = runBlocking {
         val useCase = mock(RefundUseCase::class.java)
         val controller = RefundController(useCase, resolver)
 
@@ -92,7 +93,7 @@ class RefundControllerTest {
     }
 
     @Test
-    fun `refundsCreate maps body to command and returns Created`(): Unit = runBlocking {
+    fun `refundsCreate_whenRequestValid_mapsBodyToCommandAndReturnsCreated`(): Unit = runBlocking {
         val useCase = mock(RefundUseCase::class.java)
         val controller = RefundController(useCase, resolver)
 
@@ -126,7 +127,7 @@ class RefundControllerTest {
     }
 
     @Test
-    fun `refundsCreate scopes the idempotency key to the payment`(): Unit = runBlocking {
+    fun `refundsCreate_whenIdempotencyKeyGiven_scopesItToPayment`(): Unit = runBlocking {
         val useCase = mock(RefundUseCase::class.java)
         val controller = RefundController(useCase, resolver)
 
@@ -148,7 +149,7 @@ class RefundControllerTest {
     }
 
     @Test
-    fun `refundsRead returns OK with mapped aggregate`(): Unit = runBlocking {
+    fun `refundsRead_whenRefundExists_returnsOkWithMappedAggregate`(): Unit = runBlocking {
         val useCase = mock(RefundUseCase::class.java)
         val controller = RefundController(useCase, resolver)
 

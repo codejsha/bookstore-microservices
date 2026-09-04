@@ -64,6 +64,14 @@ class CustomerRepoImpl(
             ?: throw NoSuchElementException("Customer with uid $uid not found")
     }
 
+    override fun findByCustomerId(customerId: String, context: ActorContext): CustomerResult? {
+        return dslContext
+            .select(c.asterisk())
+            .from(c)
+            .where(c.CUSTOMER_ID.eq(customerId).and(c.DELETED_AT.isNull))
+            .fetchOne { toCustomerResult(it) }
+    }
+
     override fun create(command: CustomerCreateCommand, context: ActorContext): CustomerResult {
         val now = LocalDateTime.now()
         val uid = Uuid.generateV7().toJavaUuid()

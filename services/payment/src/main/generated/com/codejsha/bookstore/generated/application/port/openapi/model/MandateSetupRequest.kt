@@ -4,6 +4,7 @@ package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 data class MandateSetupRequest(
 
@@ -18,6 +19,7 @@ data class MandateSetupRequest(
     val mandateCurrency: String,
 
     @field:NotNull
+    @field:Size(min = 1, max = 255)
     @field:JsonProperty("payment_method_token")
     val paymentMethodToken: String,
 )

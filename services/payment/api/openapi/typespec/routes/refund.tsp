@@ -20,7 +20,7 @@ interface Refunds {
 
   @doc("Create refund")
   @post
-  create(@body body: RefundCreateRequest): CreatedResponse;
+  create(@body body: RefundCreateRequest): CreatedResponse | BadRequestError | ConflictError;
 
   @doc("Find refund")
   @route("{uid}")

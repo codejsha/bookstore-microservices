@@ -89,7 +89,7 @@ class PaymentGrpcServerPaymentTest {
     // ─── actor guard ──────────────────────────────────────────────────────────
 
     @Test
-    fun `findPayment without an actor identity fails UNAUTHENTICATED`() {
+    fun `findPayment_whenActorIdentityMissing_returnsUnauthenticated`() {
         val server = PaymentGrpcServer(FakePaymentUseCase(findResult = PaymentTestFixtures.paymentAggregate()), UnusedRefundUseCase())
 
         val observer = CapturingObserver<FindPaymentResponse>()
@@ -103,7 +103,7 @@ class PaymentGrpcServerPaymentTest {
     // ─── findPayment ownership ──────────────────────────────────────────────────
 
     @Test
-    fun `findPayment hides another customer's payment from a non-admin as NOT_FOUND`() {
+    fun `findPayment_whenPaymentOwnedByAnotherCustomerAndActorNotAdmin_returnsNotFound`() {
         val uid = PaymentTestFixtures.PAYMENT_UID
         val useCase = FakePaymentUseCase(findResult = PaymentTestFixtures.paymentAggregate(uid = uid, customerId = OTHER_UID.toString()))
         val server = PaymentGrpcServer(useCase, UnusedRefundUseCase())
@@ -119,7 +119,7 @@ class PaymentGrpcServerPaymentTest {
     }
 
     @Test
-    fun `findPayment lets the owner read their own payment`() {
+    fun `findPayment_whenActorOwnsPayment_returnsPayment`() {
         val useCase = FakePaymentUseCase(findResult = PaymentTestFixtures.paymentAggregate(customerId = ACTOR_UID.toString()))
         val server = PaymentGrpcServer(useCase, UnusedRefundUseCase())
 
@@ -132,7 +132,7 @@ class PaymentGrpcServerPaymentTest {
     }
 
     @Test
-    fun `findPayment lets an admin read another customer's payment`() {
+    fun `findPayment_whenActorIsAdmin_returnsAnotherCustomersPayment`() {
         val useCase = FakePaymentUseCase(findResult = PaymentTestFixtures.paymentAggregate(customerId = OTHER_UID.toString()))
         val server = PaymentGrpcServer(useCase, UnusedRefundUseCase())
 
@@ -148,7 +148,7 @@ class PaymentGrpcServerPaymentTest {
     // ─── findPayment error mapping ──────────────────────────────────────────────
 
     @Test
-    fun `findPayment maps NoSuchElementException to NOT_FOUND`() {
+    fun `findPayment_whenUsecaseThrowsNoSuchElement_returnsNotFound`() {
         val useCase = FakePaymentUseCase(findError = NoSuchElementException("Payment with uid x not found"))
         val server = PaymentGrpcServer(useCase, UnusedRefundUseCase())
 
@@ -161,7 +161,7 @@ class PaymentGrpcServerPaymentTest {
     }
 
     @Test
-    fun `findPayment maps a malformed uid to INVALID_ARGUMENT`() {
+    fun `findPayment_whenUidMalformed_returnsInvalidArgument`() {
         val server = PaymentGrpcServer(FakePaymentUseCase(), UnusedRefundUseCase())
 
         val observer = CapturingObserver<FindPaymentResponse>()
@@ -177,7 +177,7 @@ class PaymentGrpcServerPaymentTest {
     // ─── listPayments scoping ───────────────────────────────────────────────────
 
     @Test
-    fun `listPayments pins a non-admin to their own uid ignoring the request field`() {
+    fun `listPayments_whenActorNotAdmin_pinsFilterToActorIgnoringRequestField`() {
         val useCase = FakePaymentUseCase()
         val server = PaymentGrpcServer(useCase, UnusedRefundUseCase())
 
@@ -193,7 +193,7 @@ class PaymentGrpcServerPaymentTest {
     }
 
     @Test
-    fun `listPayments lets an admin target a specific customer`() {
+    fun `listPayments_whenActorIsAdmin_honorsRequestedCustomerUid`() {
         val useCase = FakePaymentUseCase()
         val server = PaymentGrpcServer(useCase, UnusedRefundUseCase())
 
@@ -209,7 +209,7 @@ class PaymentGrpcServerPaymentTest {
     }
 
     @Test
-    fun `listPayments lets an admin list all customers with an empty customer_uid`() {
+    fun `listPayments_whenActorIsAdminAndCustomerUidEmpty_returnsEveryCustomersPayments`() {
         val useCase = FakePaymentUseCase()
         val server = PaymentGrpcServer(useCase, UnusedRefundUseCase())
 
@@ -222,7 +222,7 @@ class PaymentGrpcServerPaymentTest {
     }
 
     @Test
-    fun `listPayments maps an unexpected error to a generic INTERNAL`() {
+    fun `listPayments_whenUsecaseFailsUnexpectedly_returnsGenericInternal`() {
         val useCase = FakePaymentUseCase(listError = IllegalStateException("db down: secret host"))
         val server = PaymentGrpcServer(useCase, UnusedRefundUseCase())
 
@@ -242,7 +242,7 @@ class PaymentGrpcServerPaymentTest {
     // ─── enum bridge ────────────────────────────────────────────────────────────
 
     @Test
-    fun `findPayment maps PARTIALLY_CAPTURED onto its dedicated proto status`() {
+    fun `findPayment_whenStatusPartiallyCaptured_mapsOntoDedicatedProtoStatus`() {
         val useCase = FakePaymentUseCase(
             findResult = PaymentTestFixtures.paymentAggregate(status = PaymentStatus.PARTIALLY_CAPTURED),
         )

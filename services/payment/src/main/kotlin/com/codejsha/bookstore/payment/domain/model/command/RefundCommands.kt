@@ -14,7 +14,19 @@ data class RefundCreateCommand(
     val connectorRefundId: String? = null,
     val errorCode: String? = null,
     val errorMessage: String? = null,
-)
+) {
+    init {
+        requireNonBlank("payment_id", paymentId)
+        requireMaxLength("payment_id", paymentId, 64)
+        requirePositive("amount", amount)
+        requireCurrency("currency", currency)
+        requireMaxLengthIfPresent("reason", reason, 500)
+        requireNonBlankIfPresent("idempotency_key", idempotencyKey)
+        requireMaxLengthIfPresent("idempotency_key", idempotencyKey, MAX_IDEMPOTENCY_KEY)
+        requireNonBlankIfPresent("refund_id", refundId)
+        requireMaxLengthIfPresent("refund_id", refundId, 64)
+    }
+}
 
 data class PaymentAttemptCreateCommand(
     val paymentId: String,
@@ -28,4 +40,12 @@ data class PaymentAttemptCreateCommand(
     val paymentMethodType: String? = null,
     val errorCode: String? = null,
     val errorMessage: String? = null,
-)
+) {
+    init {
+        requireNonBlank("payment_id", paymentId)
+        requireMaxLength("payment_id", paymentId, 64)
+        requireNonNegative("amount", amount)
+        requireCurrency("currency", currency)
+        requireNonBlank("status", status)
+    }
+}

@@ -240,7 +240,7 @@ class HyperswitchRestClient(
                 eventType = eventType,
                 objectType = WebhookObjectType.PAYMENT,
                 gatewayObjectId = obj.requireText("payment_id"),
-                status = obj.text("status")?.let { toDomainPaymentStatus(IntentStatus.fromValue(it)).value },
+                status = obj.text("status")?.let { toDomainPaymentStatusOrNull(it) },
                 amountCapturable = obj.long("amount_capturable"),
                 amountReceived = obj.long("amount_received"),
                 connector = obj.text("connector"),
@@ -252,7 +252,7 @@ class HyperswitchRestClient(
                 eventType = eventType,
                 objectType = WebhookObjectType.REFUND,
                 gatewayObjectId = obj.requireText("refund_id"),
-                status = obj.text("status")?.let { toDomainRefundStatus(HyperswitchRefundStatus.fromValue(it)).value },
+                status = obj.text("status")?.let { toDomainRefundStatusOrNull(it) },
                 amountCapturable = null,
                 amountReceived = null,
                 connector = obj.text("connector"),
@@ -351,6 +351,24 @@ class HyperswitchRestClient(
                 PaymentStatus.PROCESSING
             }
         }
+
+    private fun toDomainPaymentStatusOrNull(status: String): String? {
+        val intentStatus = IntentStatus.entries.firstOrNull { it.value == status }
+        if (intentStatus == null) {
+            log.warn("Hyperswitch webhook carries unknown payment status {}; recording the event without applying it", status)
+            return null
+        }
+        return toDomainPaymentStatus(intentStatus).value
+    }
+
+    private fun toDomainRefundStatusOrNull(status: String): String? {
+        val refundStatus = HyperswitchRefundStatus.entries.firstOrNull { it.value == status }
+        if (refundStatus == null) {
+            log.warn("Hyperswitch webhook carries unknown refund status {}; recording the event without applying it", status)
+            return null
+        }
+        return toDomainRefundStatus(refundStatus).value
+    }
 
     private fun toDomainMandateStatus(status: IntentStatus): MandateStatus =
         when (status) {

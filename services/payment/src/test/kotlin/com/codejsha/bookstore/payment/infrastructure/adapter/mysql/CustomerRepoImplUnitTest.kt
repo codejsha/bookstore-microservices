@@ -20,7 +20,7 @@ class CustomerRepoImplUnitTest {
     private val ctx = PaymentTestFixtures.DEFAULT_CONTEXT
 
     @Test
-    fun `findOne empty throws NoSuchElementException`() {
+    fun `findOne_whenResultEmpty_throwsNoSuchElementException`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = CustomerRepoImpl(dsl)
@@ -31,7 +31,7 @@ class CustomerRepoImplUnitTest {
     }
 
     @Test
-    fun `findAll with email filter adds WHERE email and binding`() {
+    fun `findAll_whenEmailFilterGiven_addsWhereEmailAndBinding`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = CustomerRepoImpl(dsl)
@@ -45,7 +45,7 @@ class CustomerRepoImplUnitTest {
     }
 
     @Test
-    fun `create emits INSERT INTO customers with command bindings`() {
+    fun `create_whenCommandGiven_emitsInsertWithCommandBindings`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = CustomerRepoImpl(dsl)
@@ -74,7 +74,7 @@ class CustomerRepoImplUnitTest {
     }
 
     @Test
-    fun `delete soft-deletes by setting deleted_at when row matches`() {
+    fun `delete_whenRowMatches_softDeletesBySettingDeletedAt`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = CustomerRepoImpl(dsl)

@@ -16,6 +16,7 @@ import java.util.UUID
 interface CustomerRepo {
     fun findAll(option: CustomerQueryOption, pageable: Pageable, context: ActorContext): Page<CustomerResult>
     fun findOne(uid: UUID, context: ActorContext): CustomerResult
+    fun findByCustomerId(customerId: String, context: ActorContext): CustomerResult?
     fun create(command: CustomerCreateCommand, context: ActorContext): CustomerResult
     fun update(uid: UUID, command: CustomerUpdateCommand, context: ActorContext): CustomerResult
     fun delete(uid: UUID, context: ActorContext)

@@ -1,5 +1,6 @@
 package com.codejsha.bookstore.payment.domain.service
 
+import com.codejsha.bookstore.payment.application.port.repo.PaymentRepo
 import com.codejsha.bookstore.payment.application.port.repo.RefundRepo
 import com.codejsha.bookstore.payment.domain.constant.RefundStatus
 import com.codejsha.bookstore.payment.domain.constant.RefundType
@@ -24,11 +25,18 @@ class RefundServiceTest {
 
     private val ctx = PaymentTestFixtures.DEFAULT_CONTEXT
 
-    private fun newService(repo: RefundRepo, lock: FakeDistributedLock = FakeDistributedLock()) =
-        RefundService(repo, FakeTransactionRunner(), lock)
+    private fun newService(
+        repo: RefundRepo,
+        lock: FakeDistributedLock = FakeDistributedLock(),
+        paymentRepo: PaymentRepo = knownPaymentRepo(),
+    ) = RefundService(repo, paymentRepo, FakeTransactionRunner(), lock)
+
+    private fun knownPaymentRepo(): PaymentRepo = mock(PaymentRepo::class.java).also {
+        given(it.findByPaymentId("pay_001", ctx)).willReturn(PaymentTestFixtures.paymentResult())
+    }
 
     @Test
-    fun `findAllRefunds maps to aggregate with status enum and Money`(): Unit = runBlocking {
+    fun `findAllRefunds_whenRepoReturnsPage_mapsStatusEnumAndMoney`(): Unit = runBlocking {
         val repo = mock(RefundRepo::class.java)
         val service = newService(repo)
 
@@ -52,7 +60,7 @@ class RefundServiceTest {
     }
 
     @Test
-    fun `findRefund returns mapped aggregate`(): Unit = runBlocking {
+    fun `findRefund_whenRefundExists_returnsMappedAggregate`(): Unit = runBlocking {
         val repo = mock(RefundRepo::class.java)
         val service = newService(repo)
 
@@ -69,7 +77,7 @@ class RefundServiceTest {
     }
 
     @Test
-    fun `createRefund refuses a command without an idempotency key`(): Unit = runBlocking {
+    fun `createRefund_whenIdempotencyKeyMissing_throwsIllegalArgumentExceptionWithoutLockingOrWriting`(): Unit = runBlocking {
         val repo = mock(RefundRepo::class.java)
         val lock = FakeDistributedLock()
         val service = newService(repo, lock)
@@ -90,7 +98,7 @@ class RefundServiceTest {
     }
 
     @Test
-    fun `createRefund with idempotency key creates under lock when no prior refund exists`(): Unit = runBlocking {
+    fun `createRefund_whenNoPriorRefund_createsUnderLock`(): Unit = runBlocking {
         val repo = mock(RefundRepo::class.java)
         val lock = FakeDistributedLock()
         val service = newService(repo, lock)
@@ -114,7 +122,28 @@ class RefundServiceTest {
     }
 
     @Test
-    fun `createRefund with idempotency key returns the existing refund without creating`(): Unit = runBlocking {
+    fun `createRefund_whenPaymentHasNoLocalRecord_throwsNoSuchElementException`(): Unit = runBlocking {
+        val repo = mock(RefundRepo::class.java)
+        val lock = FakeDistributedLock()
+        val service = newService(repo, lock, mock(PaymentRepo::class.java))
+        val command = RefundCreateCommand(
+            paymentId = "pay_001",
+            amount = 3_000L,
+            currency = "KRW",
+            reason = "duplicate",
+            refundType = "instant",
+            metadata = null,
+            idempotencyKey = "pay_001:idem_1",
+        )
+
+        assertFailsWith<NoSuchElementException> { service.createRefund(command, ctx) }
+
+        assertEquals(0, lock.invocationCount)
+        verifyNoInteractions(repo)
+    }
+
+    @Test
+    fun `createRefund_whenRefundAlreadyExists_returnsItWithoutLockingOrCreating`(): Unit = runBlocking {
         val repo = mock(RefundRepo::class.java)
         val lock = FakeDistributedLock()
         val service = newService(repo, lock)

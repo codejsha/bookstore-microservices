@@ -8,12 +8,10 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.PaymentDb
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.REFUNDS_IDX_REFUND_CREATED
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.REFUNDS_IDX_REFUND_PAYMENT
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.REFUNDS_IDX_REFUND_STATUS
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_REFUND_PAYMENT
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_REFUNDS_PRIMARY
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_REFUNDS_UK_REFUND_ID
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_REFUNDS_UK_REFUND_UID
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_REFUNDS_UQ_REFUNDS_IDEMPOTENCY_KEY
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.PaymentsTable.PaymentsPath
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.RefundsRecord
 
 import java.time.LocalDateTime
@@ -29,7 +27,6 @@ import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.JSON
 import org.jooq.Name
-import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -42,7 +39,6 @@ import org.jooq.TableField
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
-import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 import org.jooq.types.ULong
@@ -201,40 +197,11 @@ open class RefundsTable(
      * Create a <code>payment_db.refunds</code> table reference
      */
     constructor(): this(DSL.name("refunds"), null)
-
-    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, RefundsRecord>?, parentPath: InverseForeignKey<out Record, RefundsRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, REFUNDS, null, null)
-
-    /**
-     * A subtype implementing {@link Path} for simplified path-based joins.
-     */
-    open class RefundsPath : RefundsTable, Path<RefundsRecord> {
-        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, RefundsRecord>?, parentPath: InverseForeignKey<out Record, RefundsRecord>?): super(path, childPath, parentPath)
-        private constructor(alias: Name, aliased: Table<RefundsRecord>): super(alias, aliased)
-        override fun `as`(alias: String): RefundsPath = RefundsPath(DSL.name(alias), this)
-        override fun `as`(alias: Name): RefundsPath = RefundsPath(alias, this)
-        override fun `as`(alias: Table<*>): RefundsPath = RefundsPath(alias.qualifiedName, this)
-    }
     override fun getSchema(): Schema? = if (aliased()) null else PaymentDb.PAYMENT_DB
     override fun getIndexes(): List<Index> = listOf(REFUNDS_IDX_REFUND_CREATED, REFUNDS_IDX_REFUND_PAYMENT, REFUNDS_IDX_REFUND_STATUS)
     override fun getIdentity(): Identity<RefundsRecord, ULong?> = super.getIdentity() as Identity<RefundsRecord, ULong?>
     override fun getPrimaryKey(): UniqueKey<RefundsRecord> = KEY_REFUNDS_PRIMARY
     override fun getUniqueKeys(): List<UniqueKey<RefundsRecord>> = listOf(KEY_REFUNDS_UK_REFUND_ID, KEY_REFUNDS_UK_REFUND_UID, KEY_REFUNDS_UQ_REFUNDS_IDEMPOTENCY_KEY)
-    override fun getReferences(): List<ForeignKey<RefundsRecord, *>> = listOf(FK_REFUND_PAYMENT)
-
-    private lateinit var _payments: PaymentsPath
-
-    /**
-     * Get the implicit join path to the <code>payment_db.payments</code> table.
-     */
-    fun payments(): PaymentsPath {
-        if (!this::_payments.isInitialized)
-            _payments = PaymentsPath(this, FK_REFUND_PAYMENT, null)
-
-        return _payments;
-    }
-
-    val payments: PaymentsPath
-        get(): PaymentsPath = payments()
     override fun `as`(alias: String): RefundsTable = RefundsTable(DSL.name(alias), this)
     override fun `as`(alias: Name): RefundsTable = RefundsTable(alias, this)
     override fun `as`(alias: Table<*>): RefundsTable = RefundsTable(alias.qualifiedName, this)

@@ -85,7 +85,7 @@ class WebhookServiceTest {
     ) = WebhookService(eventRepo, paymentRepo, refundRepo, client, lock, FakeTransactionRunner())
 
     @Test
-    fun `rejects a webhook whose signature does not verify before touching storage`(): Unit = runBlocking {
+    fun `handle_whenSignatureInvalid_throwsWithoutTouchingStorage`(): Unit = runBlocking {
         val client = mock(HyperswitchClient::class.java)
         given(client.verifyWebhookSignature(payload, "bad")).willReturn(false)
         val eventRepo = FakeWebhookEventRepo()
@@ -101,7 +101,7 @@ class WebhookServiceTest {
     }
 
     @Test
-    fun `applies a payment event under an event-scoped lock and marks it processed`(): Unit = runBlocking {
+    fun `handle_whenPaymentEventNew_appliesItUnderEventLockAndMarksProcessed`(): Unit = runBlocking {
         val client = mock(HyperswitchClient::class.java)
         given(client.verifyWebhookSignature(payload, "sig")).willReturn(true)
         given(client.parseWebhookEvent(payload)).willReturn(paymentEvent())
@@ -132,7 +132,7 @@ class WebhookServiceTest {
     }
 
     @Test
-    fun `treats a replayed event_id as a duplicate without re-applying`(): Unit = runBlocking {
+    fun `handle_whenEventIdReplayed_returnsDuplicateWithoutReapplying`(): Unit = runBlocking {
         val client = mock(HyperswitchClient::class.java)
         given(client.verifyWebhookSignature(payload, "sig")).willReturn(true)
         given(client.parseWebhookEvent(payload)).willReturn(paymentEvent())
@@ -150,7 +150,7 @@ class WebhookServiceTest {
     }
 
     @Test
-    fun `records but ignores an event for a payment this service does not know`(): Unit = runBlocking {
+    fun `handle_whenPaymentUnknown_recordsEventAndReturnsIgnored`(): Unit = runBlocking {
         val client = mock(HyperswitchClient::class.java)
         given(client.verifyWebhookSignature(payload, "sig")).willReturn(true)
         given(client.parseWebhookEvent(payload)).willReturn(paymentEvent())
@@ -167,7 +167,7 @@ class WebhookServiceTest {
     }
 
     @Test
-    fun `applies a refund event to the matching refund row`(): Unit = runBlocking {
+    fun `handle_whenRefundEventNew_syncsMatchingRefundRow`(): Unit = runBlocking {
         val client = mock(HyperswitchClient::class.java)
         val event = HyperswitchWebhookEvent(
             eventId = "evt_2",

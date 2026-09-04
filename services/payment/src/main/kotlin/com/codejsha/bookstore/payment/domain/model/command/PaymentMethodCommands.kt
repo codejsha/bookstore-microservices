@@ -11,7 +11,19 @@ data class PaymentMethodCreateCommand(
     val cardHolderName: String?,
     val isDefault: Boolean?,
     val metadata: Map<String, Any>?,
-)
+) {
+    init {
+        requireNonBlank("payment_method", paymentMethod)
+        requireMaxLength("payment_method", paymentMethod, 32)
+        requireMaxLengthIfPresent("payment_method_type", paymentMethodType, 32)
+        requireMaxLengthIfPresent("payment_method_issuer", paymentMethodIssuer, 64)
+        requireMaxLengthIfPresent("card_network", cardNetwork, 32)
+        requireMaxLengthIfPresent("card_holder_name", cardHolderName, 255)
+        requireCardLast4IfPresent("card_last4", cardLast4)
+        requireRangeIfPresent("card_exp_month", cardExpMonth, 1, 12)
+        requireRangeIfPresent("card_exp_year", cardExpYear, 2000, 2100)
+    }
+}
 
 data class PaymentMethodUpdateCommand(
     val paymentMethod: String?,
@@ -24,4 +36,16 @@ data class PaymentMethodUpdateCommand(
     val cardHolderName: String?,
     val isDefault: Boolean?,
     val metadata: Map<String, Any>?,
-)
+) {
+    init {
+        requireNonBlankIfPresent("payment_method", paymentMethod)
+        requireMaxLengthIfPresent("payment_method", paymentMethod, 32)
+        requireMaxLengthIfPresent("payment_method_type", paymentMethodType, 32)
+        requireMaxLengthIfPresent("payment_method_issuer", paymentMethodIssuer, 64)
+        requireMaxLengthIfPresent("card_network", cardNetwork, 32)
+        requireMaxLengthIfPresent("card_holder_name", cardHolderName, 255)
+        requireCardLast4IfPresent("card_last4", cardLast4)
+        requireRangeIfPresent("card_exp_month", cardExpMonth, 1, 12)
+        requireRangeIfPresent("card_exp_year", cardExpYear, 2000, 2100)
+    }
+}

@@ -6,16 +6,11 @@ package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables
 
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.PaymentDb
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.MANDATES_IDX_MANDATE_CUSTOMER
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.MANDATES_IDX_MANDATE_PM
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.MANDATES_IDX_MANDATE_STATUS
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_MANDATE_CUSTOMER
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_MANDATE_PM
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_PAYMENT_MANDATE
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_MANDATES_PRIMARY
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_MANDATES_UK_MANDATE_ID
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_MANDATES_UK_MANDATE_UID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.CustomersTable.CustomersPath
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.PaymentMethodsTable.PaymentMethodsPath
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.PaymentsTable.PaymentsPath
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.MandatesRecord
 
 import java.time.LocalDateTime
@@ -31,7 +26,6 @@ import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.JSON
 import org.jooq.Name
-import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -44,7 +38,6 @@ import org.jooq.TableField
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
-import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 import org.jooq.types.ULong
@@ -206,73 +199,11 @@ open class MandatesTable(
      * Create a <code>payment_db.mandates</code> table reference
      */
     constructor(): this(DSL.name("mandates"), null)
-
-    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, MandatesRecord>?, parentPath: InverseForeignKey<out Record, MandatesRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, MANDATES, null, null)
-
-    /**
-     * A subtype implementing {@link Path} for simplified path-based joins.
-     */
-    open class MandatesPath : MandatesTable, Path<MandatesRecord> {
-        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, MandatesRecord>?, parentPath: InverseForeignKey<out Record, MandatesRecord>?): super(path, childPath, parentPath)
-        private constructor(alias: Name, aliased: Table<MandatesRecord>): super(alias, aliased)
-        override fun `as`(alias: String): MandatesPath = MandatesPath(DSL.name(alias), this)
-        override fun `as`(alias: Name): MandatesPath = MandatesPath(alias, this)
-        override fun `as`(alias: Table<*>): MandatesPath = MandatesPath(alias.qualifiedName, this)
-    }
     override fun getSchema(): Schema? = if (aliased()) null else PaymentDb.PAYMENT_DB
-    override fun getIndexes(): List<Index> = listOf(MANDATES_IDX_MANDATE_CUSTOMER, MANDATES_IDX_MANDATE_STATUS)
+    override fun getIndexes(): List<Index> = listOf(MANDATES_IDX_MANDATE_CUSTOMER, MANDATES_IDX_MANDATE_PM, MANDATES_IDX_MANDATE_STATUS)
     override fun getIdentity(): Identity<MandatesRecord, ULong?> = super.getIdentity() as Identity<MandatesRecord, ULong?>
     override fun getPrimaryKey(): UniqueKey<MandatesRecord> = KEY_MANDATES_PRIMARY
     override fun getUniqueKeys(): List<UniqueKey<MandatesRecord>> = listOf(KEY_MANDATES_UK_MANDATE_ID, KEY_MANDATES_UK_MANDATE_UID)
-    override fun getReferences(): List<ForeignKey<MandatesRecord, *>> = listOf(FK_MANDATE_CUSTOMER, FK_MANDATE_PM)
-
-    private lateinit var _customers: CustomersPath
-
-    /**
-     * Get the implicit join path to the <code>payment_db.customers</code>
-     * table.
-     */
-    fun customers(): CustomersPath {
-        if (!this::_customers.isInitialized)
-            _customers = CustomersPath(this, FK_MANDATE_CUSTOMER, null)
-
-        return _customers;
-    }
-
-    val customers: CustomersPath
-        get(): CustomersPath = customers()
-
-    private lateinit var _paymentMethods: PaymentMethodsPath
-
-    /**
-     * Get the implicit join path to the <code>payment_db.payment_methods</code>
-     * table.
-     */
-    fun paymentMethods(): PaymentMethodsPath {
-        if (!this::_paymentMethods.isInitialized)
-            _paymentMethods = PaymentMethodsPath(this, FK_MANDATE_PM, null)
-
-        return _paymentMethods;
-    }
-
-    val paymentMethods: PaymentMethodsPath
-        get(): PaymentMethodsPath = paymentMethods()
-
-    private lateinit var _payments: PaymentsPath
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>payment_db.payments</code> table
-     */
-    fun payments(): PaymentsPath {
-        if (!this::_payments.isInitialized)
-            _payments = PaymentsPath(this, null, FK_PAYMENT_MANDATE.inverseKey)
-
-        return _payments;
-    }
-
-    val payments: PaymentsPath
-        get(): PaymentsPath = payments()
     override fun `as`(alias: String): MandatesTable = MandatesTable(DSL.name(alias), this)
     override fun `as`(alias: Name): MandatesTable = MandatesTable(alias, this)
     override fun `as`(alias: Table<*>): MandatesTable = MandatesTable(alias.qualifiedName, this)

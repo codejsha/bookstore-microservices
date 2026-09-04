@@ -7,7 +7,7 @@ import kotlin.test.assertNotEquals
 class MoneyTest {
 
     @Test
-    fun `Money equality is value-based`() {
+    fun `moneyEquals_whenAmountAndCurrencyMatch_returnsTrueWithSameHashCode`() {
         val a = Money(amount = 1_000L, currency = "KRW")
         val b = Money(amount = 1_000L, currency = "KRW")
         assertEquals(a, b)
@@ -15,17 +15,17 @@ class MoneyTest {
     }
 
     @Test
-    fun `Money differs when amount differs`() {
+    fun `moneyEquals_whenAmountDiffers_returnsFalse`() {
         assertNotEquals(Money(1_000L, "KRW"), Money(2_000L, "KRW"))
     }
 
     @Test
-    fun `Money differs when currency differs`() {
+    fun `moneyEquals_whenCurrencyDiffers_returnsFalse`() {
         assertNotEquals(Money(1_000L, "KRW"), Money(1_000L, "USD"))
     }
 
     @Test
-    fun `Money copy mutates only requested fields`() {
+    fun `moneyCopy_whenOneFieldGiven_changesOnlyThatField`() {
         val original = Money(1_000L, "KRW")
         val withDifferentCurrency = original.copy(currency = "USD")
         assertEquals(1_000L, withDifferentCurrency.amount)
@@ -36,20 +36,20 @@ class MoneyTest {
 class ConnectorInfoTest {
 
     @Test
-    fun `ConnectorInfo holds connector and optional transaction id`() {
+    fun `connectorInfo_whenTransactionIdGiven_holdsBothFields`() {
         val info = ConnectorInfo(connector = "stripe", transactionId = "tx_001")
         assertEquals("stripe", info.connector)
         assertEquals("tx_001", info.transactionId)
     }
 
     @Test
-    fun `ConnectorInfo allows null transaction id`() {
+    fun `connectorInfo_whenTransactionIdNull_holdsNull`() {
         val info = ConnectorInfo(connector = "stripe", transactionId = null)
         assertEquals(null, info.transactionId)
     }
 
     @Test
-    fun `ConnectorInfo equality is value-based`() {
+    fun `connectorInfoEquals_whenFieldsMatch_returnsTrue`() {
         assertEquals(
             ConnectorInfo("stripe", "tx_1"),
             ConnectorInfo("stripe", "tx_1"),
