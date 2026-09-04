@@ -5,6 +5,7 @@ import com.codejsha.bookstore.order.application.port.support.TransactionRunner
 import com.codejsha.bookstore.order.application.usecase.OrderUseCase
 import com.codejsha.bookstore.order.domain.aggregate.*
 import com.codejsha.bookstore.order.domain.constant.OrderStatus
+import com.codejsha.bookstore.order.domain.model.OrderStateConflictException
 import com.codejsha.bookstore.order.domain.model.command.*
 import com.codejsha.bookstore.order.domain.model.option.OrderQueryOption
 import com.codejsha.platform.shared.data.ActorContext
@@ -53,6 +54,13 @@ class OrderService(
         shipping: OrderShippingCreateCommand?,
         context: ActorContext,
     ): OrderAggregate = txRunner.tx {
+        val computedTotal = command.itemsAmount - command.discountAmount + command.shippingAmount + command.taxAmount
+        if (command.totalAmount.compareTo(computedTotal) != 0) {
+            throw InvalidCommandException(
+                "total_amount must equal items - discount + shipping + tax, was ${command.totalAmount}, expected $computedTotal",
+            )
+        }
+
         orderRepo.findByIdempotencyKey(command.idempotencyKey, context)?.let { existing ->
             val existingItems = orderItemRepo.findAllByOrder(existing.uid, Pageable.unpaged(), context)
                 .content.map { it.toEntity() }
@@ -184,8 +192,10 @@ class OrderService(
     // ─── Business rules ─────────────────────────────────────────────────────
 
     private fun requirePending(status: String) {
-        check(OrderStatus.fromValue(status) == OrderStatus.PENDING) {
-            "Operation allowed only when order status is PENDING, current: $status"
+        if (OrderStatus.fromValue(status) != OrderStatus.PENDING) {
+            throw OrderStateConflictException(
+                "Operation allowed only when order status is PENDING, current: $status",
+            )
         }
     }
 }

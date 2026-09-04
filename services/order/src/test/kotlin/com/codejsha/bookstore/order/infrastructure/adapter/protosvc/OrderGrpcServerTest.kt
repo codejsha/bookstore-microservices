@@ -78,7 +78,7 @@ class OrderGrpcServerTest {
     // ─── findOrder ─────────────────────────────────────────────────────────────
 
     @Test
-    fun `findOrder returns the actor's own order`(): Unit = runBlocking {
+    fun `findOrder_whenOrderOwnedByActor_returnsOrder`(): Unit = runBlocking {
         given(useCase.findOrder(OrderTestFixtures.ORDER_UID, auditContext))
             .willReturn(orderAggregate(userUid = ownerUid))
 
@@ -89,7 +89,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `findOrder as admin reads another user's order`(): Unit = runBlocking {
+    fun `findOrder_whenActorIsAdmin_returnsAnotherUsersOrder`(): Unit = runBlocking {
         given(useCase.findOrder(OrderTestFixtures.ORDER_UID, auditContext))
             .willReturn(orderAggregate(userUid = ownerUid))
 
@@ -99,7 +99,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `findOrder of a foreign order is NOT_FOUND indistinguishable from missing`(): Unit = runBlocking {
+    fun `findOrder_whenOrderOwnedByAnotherUser_returnsNotFound`(): Unit = runBlocking {
         given(useCase.findOrder(OrderTestFixtures.ORDER_UID, auditContext))
             .willReturn(orderAggregate(userUid = ownerUid))
         val foreign = assertFailsWith<StatusRuntimeException> {
@@ -117,7 +117,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `findOrder without actor metadata is UNAUTHENTICATED`(): Unit = runBlocking {
+    fun `findOrder_whenActorMetadataMissing_returnsUnauthenticated`(): Unit = runBlocking {
         val ex = assertFailsWith<StatusRuntimeException> {
             stub(actorUid = null).findOrder(findRequest())
         }
@@ -126,7 +126,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `findOrder with a non-UUID actor uid is UNAUTHENTICATED`(): Unit = runBlocking {
+    fun `findOrder_whenActorUidNotUuid_returnsUnauthenticated`(): Unit = runBlocking {
         val ex = assertFailsWith<StatusRuntimeException> {
             stub("not-a-uuid").findOrder(findRequest())
         }
@@ -137,7 +137,7 @@ class OrderGrpcServerTest {
     // ─── listOrders ─────────────────────────────────────────────────────────────
 
     @Test
-    fun `listOrders pins the filter to the actor for a non-admin`(): Unit = runBlocking {
+    fun `listOrders_whenActorIsNotAdmin_pinsFilterToActor`(): Unit = runBlocking {
         given(useCase.findAllOrders(OrderQueryOption(userUid = ownerUid), expectedPageable, auditContext))
             .willReturn(PageImpl(listOf(orderAggregate(userUid = ownerUid)), expectedPageable, 1L))
 
@@ -148,7 +148,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `listOrders honors the request filter for an admin`(): Unit = runBlocking {
+    fun `listOrders_whenActorIsAdmin_honorsRequestFilter`(): Unit = runBlocking {
         given(useCase.findAllOrders(OrderQueryOption(userUid = otherUid), expectedPageable, auditContext))
             .willReturn(PageImpl(listOf(orderAggregate(userUid = otherUid)), expectedPageable, 1L))
 
@@ -160,7 +160,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `listOrders as admin with no user_uid means all owners`(): Unit = runBlocking {
+    fun `listOrders_whenActorIsAdminAndUserUidOmitted_returnsEveryOwnersOrders`(): Unit = runBlocking {
         given(useCase.findAllOrders(OrderQueryOption(userUid = null), expectedPageable, auditContext))
             .willReturn(PageImpl(emptyList(), expectedPageable, 0L))
 
@@ -170,7 +170,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `listOrders without actor metadata is UNAUTHENTICATED`(): Unit = runBlocking {
+    fun `listOrders_whenActorMetadataMissing_returnsUnauthenticated`(): Unit = runBlocking {
         val ex = assertFailsWith<StatusRuntimeException> {
             stub(actorUid = null).listOrders(listRequest(userUid = ""))
         }

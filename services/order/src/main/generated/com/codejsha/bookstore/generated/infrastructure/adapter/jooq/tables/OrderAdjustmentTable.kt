@@ -6,10 +6,8 @@ package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables
 
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.OrderDb
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.ORDER_ADJUSTMENT_IDX_ORDER_ADJUSTMENT_ORDER_ID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_ORDER_ADJUSTMENT__ORDER
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDER_ADJUSTMENT_PRIMARY
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDER_ADJUSTMENT_UK_ORDER_ADJUSTMENT_UID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.OrdersTable.OrdersPath
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.OrderAdjustmentRecord
 
 import java.math.BigDecimal
@@ -18,7 +16,6 @@ import java.time.LocalDateTime
 import kotlin.collections.Collection
 import kotlin.collections.List
 
-import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -27,7 +24,6 @@ import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.JSON
 import org.jooq.Name
-import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -40,7 +36,6 @@ import org.jooq.TableField
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
-import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 
@@ -161,43 +156,11 @@ open class OrderAdjustmentTable(
      * Create a <code>order_db.order_adjustment</code> table reference
      */
     constructor(): this(DSL.name("order_adjustment"), null)
-
-    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, OrderAdjustmentRecord>?, parentPath: InverseForeignKey<out Record, OrderAdjustmentRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, ORDER_ADJUSTMENT, null, null)
-
-    /**
-     * A subtype implementing {@link Path} for simplified path-based joins.
-     */
-    open class OrderAdjustmentPath : OrderAdjustmentTable, Path<OrderAdjustmentRecord> {
-        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, OrderAdjustmentRecord>?, parentPath: InverseForeignKey<out Record, OrderAdjustmentRecord>?): super(path, childPath, parentPath)
-        private constructor(alias: Name, aliased: Table<OrderAdjustmentRecord>): super(alias, aliased)
-        override fun `as`(alias: String): OrderAdjustmentPath = OrderAdjustmentPath(DSL.name(alias), this)
-        override fun `as`(alias: Name): OrderAdjustmentPath = OrderAdjustmentPath(alias, this)
-        override fun `as`(alias: Table<*>): OrderAdjustmentPath = OrderAdjustmentPath(alias.qualifiedName, this)
-    }
     override fun getSchema(): Schema? = if (aliased()) null else OrderDb.ORDER_DB
     override fun getIndexes(): List<Index> = listOf(ORDER_ADJUSTMENT_IDX_ORDER_ADJUSTMENT_ORDER_ID)
     override fun getIdentity(): Identity<OrderAdjustmentRecord, Long?> = super.getIdentity() as Identity<OrderAdjustmentRecord, Long?>
     override fun getPrimaryKey(): UniqueKey<OrderAdjustmentRecord> = KEY_ORDER_ADJUSTMENT_PRIMARY
     override fun getUniqueKeys(): List<UniqueKey<OrderAdjustmentRecord>> = listOf(KEY_ORDER_ADJUSTMENT_UK_ORDER_ADJUSTMENT_UID)
-    override fun getReferences(): List<ForeignKey<OrderAdjustmentRecord, *>> = listOf(FK_ORDER_ADJUSTMENT__ORDER)
-
-    private lateinit var _orders: OrdersPath
-
-    /**
-     * Get the implicit join path to the <code>order_db.orders</code> table.
-     */
-    fun orders(): OrdersPath {
-        if (!this::_orders.isInitialized)
-            _orders = OrdersPath(this, FK_ORDER_ADJUSTMENT__ORDER, null)
-
-        return _orders;
-    }
-
-    val orders: OrdersPath
-        get(): OrdersPath = orders()
-    override fun getChecks(): List<Check<OrderAdjustmentRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("chk_order_adjustment_type"), "(`type` in (_utf8mb4\\'COUPON\\',_utf8mb4\\'POINT\\',_utf8mb4\\'MANUAL\\',_utf8mb4\\'SHIPPING\\',_utf8mb4\\'TAX\\'))", true)
-    )
     override fun `as`(alias: String): OrderAdjustmentTable = OrderAdjustmentTable(DSL.name(alias), this)
     override fun `as`(alias: Name): OrderAdjustmentTable = OrderAdjustmentTable(alias, this)
     override fun `as`(alias: Table<*>): OrderAdjustmentTable = OrderAdjustmentTable(alias.qualifiedName, this)

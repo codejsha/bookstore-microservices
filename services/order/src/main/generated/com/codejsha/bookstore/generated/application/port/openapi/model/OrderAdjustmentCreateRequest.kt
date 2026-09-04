@@ -4,6 +4,7 @@ package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 data class OrderAdjustmentCreateRequest(
 
@@ -11,6 +12,7 @@ data class OrderAdjustmentCreateRequest(
     @field:JsonProperty("amount")
     val amount: Double,
 
+    @field:Size(max = 100)
     @field:JsonProperty("label")
     val label: String? = null,
 

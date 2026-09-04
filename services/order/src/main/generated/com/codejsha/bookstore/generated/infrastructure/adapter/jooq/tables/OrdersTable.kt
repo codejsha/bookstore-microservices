@@ -8,16 +8,10 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.OrderDb
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.ORDERS_IDX_ORDERS_CREATED
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.ORDERS_IDX_ORDERS_STATUS
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.ORDERS_IDX_ORDERS_USER_UID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_ORDER_ADJUSTMENT__ORDER
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_ORDER_ITEM__ORDER
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_ORDER_SHIPPING__ORDER
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDERS_PRIMARY
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDERS_UK_UID
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDERS_UQ_ORDERS_IDEMPOTENCY_KEY
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDERS_UQ_ORDERS_ORDER_NUMBER
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.OrderAdjustmentTable.OrderAdjustmentPath
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.OrderItemTable.OrderItemPath
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.OrderShippingTable.OrderShippingPath
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.OrdersRecord
 
 import java.math.BigDecimal
@@ -26,7 +20,6 @@ import java.time.LocalDateTime
 import kotlin.collections.Collection
 import kotlin.collections.List
 
-import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -34,7 +27,6 @@ import org.jooq.Identity
 import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
-import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -47,7 +39,6 @@ import org.jooq.TableField
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
-import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 
@@ -198,77 +189,11 @@ open class OrdersTable(
      * Create a <code>order_db.orders</code> table reference
      */
     constructor(): this(DSL.name("orders"), null)
-
-    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, OrdersRecord>?, parentPath: InverseForeignKey<out Record, OrdersRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, ORDERS, null, null)
-
-    /**
-     * A subtype implementing {@link Path} for simplified path-based joins.
-     */
-    open class OrdersPath : OrdersTable, Path<OrdersRecord> {
-        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, OrdersRecord>?, parentPath: InverseForeignKey<out Record, OrdersRecord>?): super(path, childPath, parentPath)
-        private constructor(alias: Name, aliased: Table<OrdersRecord>): super(alias, aliased)
-        override fun `as`(alias: String): OrdersPath = OrdersPath(DSL.name(alias), this)
-        override fun `as`(alias: Name): OrdersPath = OrdersPath(alias, this)
-        override fun `as`(alias: Table<*>): OrdersPath = OrdersPath(alias.qualifiedName, this)
-    }
     override fun getSchema(): Schema? = if (aliased()) null else OrderDb.ORDER_DB
     override fun getIndexes(): List<Index> = listOf(ORDERS_IDX_ORDERS_CREATED, ORDERS_IDX_ORDERS_STATUS, ORDERS_IDX_ORDERS_USER_UID)
     override fun getIdentity(): Identity<OrdersRecord, Long?> = super.getIdentity() as Identity<OrdersRecord, Long?>
     override fun getPrimaryKey(): UniqueKey<OrdersRecord> = KEY_ORDERS_PRIMARY
     override fun getUniqueKeys(): List<UniqueKey<OrdersRecord>> = listOf(KEY_ORDERS_UK_UID, KEY_ORDERS_UQ_ORDERS_IDEMPOTENCY_KEY, KEY_ORDERS_UQ_ORDERS_ORDER_NUMBER)
-
-    private lateinit var _orderAdjustment: OrderAdjustmentPath
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>order_db.order_adjustment</code> table
-     */
-    fun orderAdjustment(): OrderAdjustmentPath {
-        if (!this::_orderAdjustment.isInitialized)
-            _orderAdjustment = OrderAdjustmentPath(this, null, FK_ORDER_ADJUSTMENT__ORDER.inverseKey)
-
-        return _orderAdjustment;
-    }
-
-    val orderAdjustment: OrderAdjustmentPath
-        get(): OrderAdjustmentPath = orderAdjustment()
-
-    private lateinit var _orderItem: OrderItemPath
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>order_db.order_item</code> table
-     */
-    fun orderItem(): OrderItemPath {
-        if (!this::_orderItem.isInitialized)
-            _orderItem = OrderItemPath(this, null, FK_ORDER_ITEM__ORDER.inverseKey)
-
-        return _orderItem;
-    }
-
-    val orderItem: OrderItemPath
-        get(): OrderItemPath = orderItem()
-
-    private lateinit var _orderShipping: OrderShippingPath
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>order_db.order_shipping</code> table
-     */
-    fun orderShipping(): OrderShippingPath {
-        if (!this::_orderShipping.isInitialized)
-            _orderShipping = OrderShippingPath(this, null, FK_ORDER_SHIPPING__ORDER.inverseKey)
-
-        return _orderShipping;
-    }
-
-    val orderShipping: OrderShippingPath
-        get(): OrderShippingPath = orderShipping()
-    override fun getChecks(): List<Check<OrdersRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("chk_orders_amounts"), "((`items_amount` >= 0) and (`discount_amount` >= 0) and (`shipping_amount` >= 0) and (`tax_amount` >= 0) and (`total_amount` >= 0))", true),
-        Internal.createCheck(this, DSL.name("chk_orders_currency"), "(`currency` = upper(`currency`))", true),
-        Internal.createCheck(this, DSL.name("chk_orders_status"), "(`status` in (_utf8mb4\\'PENDING\\',_utf8mb4\\'PAID\\',_utf8mb4\\'SHIPPED\\',_utf8mb4\\'DELIVERED\\',_utf8mb4\\'CANCELLED\\',_utf8mb4\\'REFUNDED\\'))", true)
-    )
     override fun `as`(alias: String): OrdersTable = OrdersTable(DSL.name(alias), this)
     override fun `as`(alias: Name): OrdersTable = OrdersTable(alias, this)
     override fun `as`(alias: Table<*>): OrdersTable = OrdersTable(alias.qualifiedName, this)

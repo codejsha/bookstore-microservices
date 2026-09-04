@@ -5,6 +5,7 @@ import com.codejsha.bookstore.order.application.port.repo.OrderItemRepo
 import com.codejsha.bookstore.order.application.port.repo.OrderRepo
 import com.codejsha.bookstore.order.application.port.repo.OrderShippingRepo
 import com.codejsha.bookstore.order.domain.constant.OrderStatus
+import com.codejsha.bookstore.order.domain.model.OrderStateConflictException
 import com.codejsha.bookstore.order.domain.model.command.OrderAdjustmentCreateCommand
 import com.codejsha.bookstore.order.domain.model.command.OrderCreateCommand
 import com.codejsha.bookstore.order.domain.model.command.OrderItemCreateCommand
@@ -41,7 +42,7 @@ class OrderServiceTest {
     ) = OrderService(orderRepo, itemRepo, adjRepo, shipRepo, FakeTransactionRunner())
 
     @Test
-    fun `findAllOrders maps each result to aggregate with status enum`() {
+    fun `findAllOrders_whenRepoReturnsRows_mapsEachRowToAggregate`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -65,7 +66,7 @@ class OrderServiceTest {
     }
 
     @Test
-    fun `findOrder composes order with items, adjustments, and shipping from each repo`() {
+    fun `findOrder_whenOrderExists_composesItemsAdjustmentsAndShipping`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -90,7 +91,7 @@ class OrderServiceTest {
     }
 
     @Test
-    fun `findOrder allows shipping to be absent`() {
+    fun `findOrder_whenShippingMissing_returnsOrderWithoutShipping`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -111,7 +112,7 @@ class OrderServiceTest {
     }
 
     @Test
-    fun `placeOrder creates order, items, and shipping in one flow`() {
+    fun `placeOrder_whenCommandValid_createsOrderItemsAndShipping`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -159,7 +160,7 @@ class OrderServiceTest {
     }
 
     @Test
-    fun `placeOrder skips shipping when null`() {
+    fun `placeOrder_whenShippingNull_skipsShipping`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -181,7 +182,7 @@ class OrderServiceTest {
     }
 
     @Test
-    fun `cancelOrder marks order CANCELLED when current status is PENDING`() {
+    fun `cancelOrder_whenStatusPending_marksOrderCancelled`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -208,7 +209,7 @@ class OrderServiceTest {
     }
 
     @Test
-    fun `cancelOrder rejects when status is not PENDING`() {
+    fun `cancelOrder_whenStatusNotPending_throws`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -218,14 +219,14 @@ class OrderServiceTest {
         given(orderRepo.findOne(OrderTestFixtures.ORDER_UID, ctx))
             .willReturn(OrderTestFixtures.orderResult(status = OrderStatus.PAID.value))
 
-        val ex = assertFailsWith<IllegalStateException> {
+        val ex = assertFailsWith<OrderStateConflictException> {
             runBlocking { service.cancelOrder(OrderTestFixtures.ORDER_UID, ctx) }
         }
         assertEquals(true, ex.message?.contains("PENDING"))
     }
 
     @Test
-    fun `addItem rejects when order is not PENDING`() {
+    fun `addItem_whenOrderNotPending_throws`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -239,13 +240,13 @@ class OrderServiceTest {
             productId = 1L, sku = null, productName = null, options = null,
             quantity = 1, currency = "KRW", price = BigDecimal.ONE, taxRate = BigDecimal.ZERO,
         )
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<OrderStateConflictException> {
             runBlocking { service.addItem(OrderTestFixtures.ORDER_UID, cmd, ctx) }
         }
     }
 
     @Test
-    fun `addItem creates item when order is PENDING`() {
+    fun `addItem_whenOrderPending_createsItem`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -267,8 +268,9 @@ class OrderServiceTest {
         assertEquals(OrderTestFixtures.ORDER_ITEM_UID, item.uid)
     }
 
+    // Both item mutations share the PENDING guard, so they are asserted together.
     @Test
-    fun `updateItem and removeItem also enforce PENDING status`() {
+    fun `updateItemAndRemoveItem_whenOrderNotPending_throw`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -283,16 +285,16 @@ class OrderServiceTest {
             quantity = 5, currency = null, price = null, taxRate = null,
         )
 
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<OrderStateConflictException> {
             runBlocking { service.updateItem(OrderTestFixtures.ORDER_UID, OrderTestFixtures.ORDER_ITEM_UID, updateCmd, ctx) }
         }
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<OrderStateConflictException> {
             runBlocking { service.removeItem(OrderTestFixtures.ORDER_UID, OrderTestFixtures.ORDER_ITEM_UID, ctx) }
         }
     }
 
     @Test
-    fun `setShipping creates new shipping when none exists`() {
+    fun `setShipping_whenShippingMissing_createsShipping`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -318,7 +320,7 @@ class OrderServiceTest {
     }
 
     @Test
-    fun `setShipping updates existing shipping when one exists`() {
+    fun `setShipping_whenShippingExists_updatesShipping`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)
@@ -355,8 +357,9 @@ class OrderServiceTest {
         verify(shipRepo).update(OrderTestFixtures.ORDER_UID, expectedUpdate, ctx)
     }
 
+    // removeAdjustment is asserted in the same pass: it delegates straight to the repo.
     @Test
-    fun `applyAdjustment creates adjustment and removeAdjustment delegates to repo`() {
+    fun `applyAdjustment_whenCommandValid_createsAdjustment`() {
         val orderRepo = mock(OrderRepo::class.java)
         val itemRepo = mock(OrderItemRepo::class.java)
         val adjRepo = mock(OrderAdjustmentRepo::class.java)

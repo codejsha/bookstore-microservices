@@ -5,6 +5,7 @@ import com.codejsha.bookstore.order.application.port.repo.OrderRepo
 import com.codejsha.bookstore.order.application.port.repo.OrderShippingRepo
 import com.codejsha.bookstore.order.application.port.support.TransactionRunner
 import com.codejsha.bookstore.order.domain.constant.OrderStatus
+import com.codejsha.bookstore.order.domain.model.command.InvalidCommandException
 import com.codejsha.bookstore.order.domain.model.command.OrderCreateCommand
 import com.codejsha.bookstore.order.domain.model.command.OrderItemCreateCommand
 import com.codejsha.bookstore.order.domain.model.command.OrderShippingCreateCommand
@@ -26,8 +27,18 @@ class OrderActivitiesImpl(
 ) : OrderActivities {
 
     override fun createOrder(request: CreateOrderRequest): CreateOrderResult = runBlocking {
+        try {
+            createOrderInternal(request)
+        } catch (e: InvalidCommandException) {
+            throw ApplicationFailure.newNonRetryableFailure(e.message, "InvalidCommand")
+        } catch (e: IllegalArgumentException) {
+            throw ApplicationFailure.newNonRetryableFailure(e.message, "InvalidCommand")
+        }
+    }
+
+    private suspend fun createOrderInternal(request: CreateOrderRequest): CreateOrderResult {
         val context = ActorContext(actorId = 0L, ActorType.USER)
-        txRunner.tx {
+        return txRunner.tx {
             orderRepo.findByIdempotencyKey(request.idempotencyKey, context)?.let { existing ->
                 return@tx CreateOrderResult(
                     orderUid = existing.uid.toString(),

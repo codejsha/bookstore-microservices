@@ -81,7 +81,6 @@ class OrderItemRepoImpl(
     ): OrderItemResult {
         val orderId = resolveOrderId(orderUid)
         val uid = Uuid.generateV7().toJavaUuid()
-        val subtotal = command.price.multiply(command.quantity.toBigDecimal())
 
         dslContext
             .insertInto(oi)
@@ -95,7 +94,6 @@ class OrderItemRepoImpl(
             .set(oi.CURRENCY, command.currency)
             .set(oi.PRICE, command.price)
             .set(oi.TAX_RATE, command.taxRate)
-            .set(oi.SUBTOTAL, subtotal)
             .set(oi.CREATED_AT, LocalDateTime.now())
             .set(oi.ACTOR_ID, context.actorId)
             .execute()

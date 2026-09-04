@@ -23,6 +23,8 @@ interface OrderApi {
 
     /**
      * Find all orders
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      *
      * GET /api/v1/orders
      * @param userUid @RequestParam(value = "user_uid", required = false)
@@ -43,6 +45,9 @@ interface OrderApi {
 
     /**
      * Place a new order with items and optional shipping
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/orders
      * @param requestBody @Valid @RequestBody
@@ -62,6 +67,8 @@ interface OrderApi {
     /**
      * Find order with full details
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * GET /api/v1/orders/{uid}
@@ -81,7 +88,9 @@ interface OrderApi {
      * Cancel a pending order
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/orders/{uid}/cancel
      * @param uid @PathVariable("uid")

@@ -5,11 +5,9 @@ package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables
 
 
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.OrderDb
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.FK_CART_ITEM__CART
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CART_PRIMARY
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CART_UK_CART_UID
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CART_UQ_CART_USER
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.CartItemTable.CartItemPath
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.CartRecord
 
 import java.time.LocalDateTime
@@ -23,7 +21,6 @@ import org.jooq.ForeignKey
 import org.jooq.Identity
 import org.jooq.InverseForeignKey
 import org.jooq.Name
-import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -36,7 +33,6 @@ import org.jooq.TableField
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
-import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 
@@ -121,39 +117,10 @@ open class CartTable(
      * Create a <code>order_db.cart</code> table reference
      */
     constructor(): this(DSL.name("cart"), null)
-
-    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, CartRecord>?, parentPath: InverseForeignKey<out Record, CartRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, CART, null, null)
-
-    /**
-     * A subtype implementing {@link Path} for simplified path-based joins.
-     */
-    open class CartPath : CartTable, Path<CartRecord> {
-        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, CartRecord>?, parentPath: InverseForeignKey<out Record, CartRecord>?): super(path, childPath, parentPath)
-        private constructor(alias: Name, aliased: Table<CartRecord>): super(alias, aliased)
-        override fun `as`(alias: String): CartPath = CartPath(DSL.name(alias), this)
-        override fun `as`(alias: Name): CartPath = CartPath(alias, this)
-        override fun `as`(alias: Table<*>): CartPath = CartPath(alias.qualifiedName, this)
-    }
     override fun getSchema(): Schema? = if (aliased()) null else OrderDb.ORDER_DB
     override fun getIdentity(): Identity<CartRecord, Long?> = super.getIdentity() as Identity<CartRecord, Long?>
     override fun getPrimaryKey(): UniqueKey<CartRecord> = KEY_CART_PRIMARY
     override fun getUniqueKeys(): List<UniqueKey<CartRecord>> = listOf(KEY_CART_UK_CART_UID, KEY_CART_UQ_CART_USER)
-
-    private lateinit var _cartItem: CartItemPath
-
-    /**
-     * Get the implicit to-many join path to the <code>order_db.cart_item</code>
-     * table
-     */
-    fun cartItem(): CartItemPath {
-        if (!this::_cartItem.isInitialized)
-            _cartItem = CartItemPath(this, null, FK_CART_ITEM__CART.inverseKey)
-
-        return _cartItem;
-    }
-
-    val cartItem: CartItemPath
-        get(): CartItemPath = cartItem()
     override fun `as`(alias: String): CartTable = CartTable(DSL.name(alias), this)
     override fun `as`(alias: Name): CartTable = CartTable(alias, this)
     override fun `as`(alias: Table<*>): CartTable = CartTable(alias.qualifiedName, this)

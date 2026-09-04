@@ -4,35 +4,53 @@ namespace OrderService;
 
 model OrderItemCreateRequest {
   product_id: int64;
+
+  @maxLength(64)
   sku?: string;
+
+  @maxLength(255)
   product_name?: string;
+
+  @maxLength(255)
   options?: string;
 
   @minValue(1)
   quantity: int32;
 
+  @maxLength(3)
   currency: string;
 
   @minValue(0)
   price: decimal;
 
+  @minValue(0)
+  @maxValue(1)
   tax_rate?: decimal;
 }
 
 model OrderItemUpdateRequest {
   product_id?: int64;
+
+  @maxLength(64)
   sku?: string;
+
+  @maxLength(255)
   product_name?: string;
+
+  @maxLength(255)
   options?: string;
 
   @minValue(1)
   quantity?: int32;
 
+  @maxLength(3)
   currency?: string;
 
   @minValue(0)
   price?: decimal;
 
+  @minValue(0)
+  @maxValue(1)
   tax_rate?: decimal;
 }
 

@@ -66,7 +66,7 @@ class OrderFulfillmentWorkflowImplTest {
     }
 
     @Test
-    fun `creates shipment, notifies customer with tracking number, marks shipped`() {
+    fun `fulfillOrder_whenOrderPaid_createsShipmentNotifiesCustomerAndMarksShipped`() {
         orderActivities.cancellationState = OrderCancellationState(status = "PAID", paymentUid = null)
         deliveryActivities.createShipmentReturn = CreateShipmentResult(
             shipmentUid = shipmentUid,
@@ -111,7 +111,7 @@ class OrderFulfillmentWorkflowImplTest {
     }
 
     @Test
-    fun `refuses to fulfill an order that is not PAID — no shipment, notification, or status change`() {
+    fun `fulfillOrder_whenOrderNotPaid_writesNothing`() {
         orderActivities.cancellationState = OrderCancellationState(status = "PENDING", paymentUid = null)
 
         assertFailsWith<WorkflowFailedException> {

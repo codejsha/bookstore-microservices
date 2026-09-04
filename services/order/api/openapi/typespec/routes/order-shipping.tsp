@@ -13,12 +13,12 @@ interface OrderShipping {
   set(
     @path order_uid: uuid,
     @body body: OrderShippingCreateRequest,
-  ): OrderShippingFindResponse | NotFoundError;
+  ): OrderShippingFindResponse | BadRequestError | NotFoundError;
 
   @doc("Update shipping details of an order")
   @patch
   update(
     @path order_uid: uuid,
     @body body: OrderShippingUpdateRequest,
-  ): OrderShippingFindResponse | NotFoundError;
+  ): OrderShippingFindResponse | BadRequestError | NotFoundError;
 }

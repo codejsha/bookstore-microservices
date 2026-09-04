@@ -49,6 +49,7 @@ interface CartApi {
      * Checkout cart to create order
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/cart/checkout
      * @param requestBody @Valid @RequestBody
@@ -66,6 +67,9 @@ interface CartApi {
 
     /**
      * Add item to cart
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/cart/items
      * @param requestBody @Valid @RequestBody
@@ -85,7 +89,9 @@ interface CartApi {
     /**
      * Update item quantity
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * PUT /api/v1/cart/items/{uid}
      * @param uid @PathVariable("uid")
@@ -106,6 +112,7 @@ interface CartApi {
     /**
      * Remove item from cart
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * DELETE /api/v1/cart/items/{uid}

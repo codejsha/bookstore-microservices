@@ -3,11 +3,13 @@
 package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 
 data class CartFindResponse(
 
     @field:NotNull
+    @field:Valid
     @field:JsonProperty("items")
     val items: List<CartItemFindResponse>,
 

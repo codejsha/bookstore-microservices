@@ -3,15 +3,20 @@
 package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.constraints.DecimalMin
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 data class CartAddItemRequest(
 
     @field:NotNull
+    @field:Size(max = 3)
     @field:JsonProperty("currency")
     val currency: String,
 
     @field:NotNull
+    @field:DecimalMin("0")
     @field:JsonProperty("price")
     val price: Double,
 
@@ -19,10 +24,12 @@ data class CartAddItemRequest(
     @field:JsonProperty("product_id")
     val productId: Long,
 
+    @field:Size(max = 255)
     @field:JsonProperty("product_name")
     val productName: String? = null,
 
     @field:NotNull
+    @field:Min(1)
     @field:JsonProperty("quantity")
     val quantity: Int,
 )

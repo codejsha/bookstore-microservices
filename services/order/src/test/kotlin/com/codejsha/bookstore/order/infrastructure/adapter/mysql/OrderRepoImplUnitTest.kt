@@ -23,7 +23,7 @@ class OrderRepoImplUnitTest {
     private val ctx = OrderTestFixtures.DEFAULT_CONTEXT
 
     @Test
-    fun `findOne empty result throws NoSuchElementException`() {
+    fun `findOne_whenResultEmpty_throwsNoSuchElementException`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderRepoImpl(dsl)
@@ -35,7 +35,7 @@ class OrderRepoImplUnitTest {
     }
 
     @Test
-    fun `findAll without filters emits SELECT with deleted_at is null only`() {
+    fun `findAll_whenNoFilters_emitsSelectWithDeletedAtIsNullOnly`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderRepoImpl(dsl)
@@ -53,7 +53,7 @@ class OrderRepoImplUnitTest {
     }
 
     @Test
-    fun `findAll with userUid and status binds both`() {
+    fun `findAll_whenUserUidAndStatusGiven_bindsBoth`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderRepoImpl(dsl)
@@ -69,7 +69,7 @@ class OrderRepoImplUnitTest {
     }
 
     @Test
-    fun `create emits INSERT INTO orders with default status PENDING and actor id`() {
+    fun `create_whenCommandGiven_emitsInsertWithPendingStatusAndActorId`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = OrderRepoImpl(dsl)
@@ -98,7 +98,7 @@ class OrderRepoImplUnitTest {
     }
 
     @Test
-    fun `update only sets non-null fields and updates updated_at`() {
+    fun `update_whenFieldsPartiallySet_setsOnlyNonNullFieldsAndUpdatedAt`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = OrderRepoImpl(dsl)
@@ -130,7 +130,7 @@ class OrderRepoImplUnitTest {
     }
 
     @Test
-    fun `delete soft-deletes via UPDATE with deleted_at`() {
+    fun `delete_whenCalled_softDeletesViaUpdateWithDeletedAt`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = OrderRepoImpl(dsl)

@@ -3,11 +3,14 @@
 package com.codejsha.bookstore.generated.application.port.openapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 data class PlaceOrderRequest(
 
     @field:NotNull
+    @field:Size(max = 3)
     @field:JsonProperty("currency")
     val currency: String,
 
@@ -15,10 +18,12 @@ data class PlaceOrderRequest(
     val discountAmount: Double? = null,
 
     @field:NotNull
+    @field:Size(max = 100)
     @field:JsonProperty("idempotency_key")
     val idempotencyKey: String,
 
     @field:NotNull
+    @field:Valid
     @field:JsonProperty("items")
     val items: List<OrderItemCreateRequest>,
 
@@ -26,6 +31,7 @@ data class PlaceOrderRequest(
     @field:JsonProperty("items_amount")
     val itemsAmount: Double,
 
+    @field:Valid
     @field:JsonProperty("shipping")
     val shipping: OrderShippingCreateRequest? = null,
 

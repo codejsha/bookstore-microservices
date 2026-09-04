@@ -15,12 +15,17 @@ enum OrderStatus {
 
 model PlaceOrderRequest {
   user_uid: uuid;
+
+  @maxLength(3)
   currency: string;
+
   items_amount: decimal;
   discount_amount?: decimal;
   shipping_amount?: decimal;
   tax_amount?: decimal;
   total_amount: decimal;
+
+  @maxLength(100)
   idempotency_key: string;
 
   @minItems(1)

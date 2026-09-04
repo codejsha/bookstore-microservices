@@ -5,10 +5,12 @@ package com.codejsha.bookstore.generated.application.port.openapi.model
 import java.time.OffsetDateTime
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 
 data class OrderFindResponse(
 
+    @field:Valid
     @field:JsonProperty("adjustments")
     val adjustments: List<OrderAdjustmentFindResponse>? = null,
 
@@ -28,6 +30,7 @@ data class OrderFindResponse(
     @field:JsonProperty("idempotency_key")
     val idempotencyKey: String,
 
+    @field:Valid
     @field:JsonProperty("items")
     val items: List<OrderItemFindResponse>? = null,
 
@@ -39,6 +42,7 @@ data class OrderFindResponse(
     @field:JsonProperty("order_number")
     val orderNumber: String,
 
+    @field:Valid
     @field:JsonProperty("shipping")
     val shipping: OrderShippingFindResponse? = null,
 

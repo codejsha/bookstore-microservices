@@ -15,6 +15,7 @@ import java.math.BigDecimal
 import java.util.UUID
 import kotlin.test.assertContains
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 
 class OrderChildRepoImplUnitTest {
 
@@ -22,7 +23,7 @@ class OrderChildRepoImplUnitTest {
     private val orderUid: UUID = UUID.randomUUID()
 
     @Test
-    fun `OrderItemRepoImpl findAllByOrder throws when order not found`() {
+    fun `orderItemFindAllByOrder_whenOrderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderItemRepoImpl(dsl)
@@ -34,7 +35,7 @@ class OrderChildRepoImplUnitTest {
     }
 
     @Test
-    fun `OrderItemRepoImpl create throws when order not found`() {
+    fun `orderItemCreate_whenOrderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderItemRepoImpl(dsl)
@@ -47,7 +48,29 @@ class OrderChildRepoImplUnitTest {
     }
 
     @Test
-    fun `OrderShippingRepoImpl findByOrder throws when order not found`() {
+    fun `orderItemCreate_whenInserting_omitsTheGeneratedSubtotalColumn`() {
+        val capture = QueryCapture()
+        var call = 0
+        val dsl = TestPersistenceUtils.dslWithProvider(
+            capture.provider {
+                call += 1
+                if (call == 1) arrayOf(MockResult(1, orderIdResult())) else arrayOf(MockResult(1, EMPTY_RESULT))
+            }
+        )
+        val repo = OrderItemRepoImpl(dsl)
+
+        val cmd = OrderItemCreateCommand(
+            productId = 1L, sku = null, productName = null, options = null,
+            quantity = 2, currency = "KRW", price = BigDecimal("100.00"), taxRate = BigDecimal.ZERO,
+        )
+        assertFailsWith<NoSuchElementException> { repo.create(orderUid, cmd, ctx) }
+
+        val insert = capture.queries.first { it.lowercase().startsWith("insert") }
+        assertFalse(insert.lowercase().contains("subtotal"))
+    }
+
+    @Test
+    fun `orderShippingFindByOrder_whenOrderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderShippingRepoImpl(dsl)
@@ -57,7 +80,7 @@ class OrderChildRepoImplUnitTest {
     }
 
     @Test
-    fun `OrderShippingRepoImpl create throws when order not found`() {
+    fun `orderShippingCreate_whenOrderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderShippingRepoImpl(dsl)
@@ -72,7 +95,7 @@ class OrderChildRepoImplUnitTest {
     }
 
     @Test
-    fun `OrderAdjustmentRepoImpl findAllByOrder throws when order not found`() {
+    fun `orderAdjustmentFindAllByOrder_whenOrderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderAdjustmentRepoImpl(dsl)
@@ -84,7 +107,7 @@ class OrderChildRepoImplUnitTest {
     }
 
     @Test
-    fun `OrderAdjustmentRepoImpl create throws when order not found`() {
+    fun `orderAdjustmentCreate_whenOrderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderAdjustmentRepoImpl(dsl)
@@ -111,5 +134,13 @@ class OrderChildRepoImplUnitTest {
     companion object {
         private val EMPTY_RESULT: org.jooq.Result<*> =
             DSL.using(SQLDialect.MYSQL).newResult(DSL.field("x", Int::class.javaObjectType))
+
+        private fun orderIdResult(): org.jooq.Result<*> {
+            val idField = DSL.field("id", Long::class.javaObjectType)
+            val dsl = DSL.using(SQLDialect.MYSQL)
+            val result = dsl.newResult(idField)
+            result.add(dsl.newRecord(idField).also { it.setValue(idField, 42L) })
+            return result
+        }
     }
 }

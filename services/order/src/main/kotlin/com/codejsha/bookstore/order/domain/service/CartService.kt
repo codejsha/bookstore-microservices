@@ -6,8 +6,11 @@ import com.codejsha.bookstore.order.application.port.support.IdempotencyService
 import com.codejsha.bookstore.order.application.port.support.TransactionRunner
 import com.codejsha.bookstore.order.application.usecase.CartUseCase
 import com.codejsha.bookstore.order.domain.aggregate.*
+import com.codejsha.bookstore.order.domain.model.CartStateConflictException
+import com.codejsha.bookstore.order.domain.model.OrderOwnershipException
 import com.codejsha.bookstore.order.domain.model.command.CartAddItemCommand
 import com.codejsha.bookstore.order.domain.model.command.CartCheckoutCommand
+import com.codejsha.bookstore.order.domain.model.command.InvalidCommandException
 import com.codejsha.bookstore.order.domain.model.command.OrderCreateCommand
 import com.codejsha.bookstore.order.domain.model.command.OrderItemCreateCommand
 import com.codejsha.platform.shared.data.ActorContext
@@ -62,7 +65,9 @@ class CartService(
     override suspend fun updateItemQuantity(
         userUid: UUID, itemUid: UUID, quantity: Int, context: ActorContext
     ): CartItemEntity {
-        require(quantity >= 0) { "cart item quantity must be zero or positive, was $quantity" }
+        if (quantity < 0) {
+            throw InvalidCommandException("cart item quantity must be zero or positive, was $quantity")
+        }
         val cart = getOrCreateCart(userUid, context)
         return txRunner.tx {
             if (quantity == 0) {
@@ -107,7 +112,7 @@ class CartService(
 
         val lockKey = "checkout:$idempotencyKey"
         val lockToken = distributedLock.tryLock(lockKey)
-            ?: throw IllegalStateException("Failed to acquire lock for key: $lockKey")
+            ?: throw CartStateConflictException("Another checkout is already in progress for this cart")
         try {
             idempotencyService.getResult(idempotencyKey)?.let { existingOrderUid ->
                 return txRunner.tx {
@@ -117,9 +122,9 @@ class CartService(
 
             val created = txRunner.tx {
                 val cart = cartRepo.findByUser(userUid, context)
-                    ?: throw IllegalStateException("Cart not found")
+                    ?: throw CartStateConflictException("Cart is empty")
                 val items = cartItemRepo.findAllByCart(cart.id, context)
-                check(items.isNotEmpty()) { "Cart is empty" }
+                if (items.isEmpty()) throw CartStateConflictException("Cart is empty")
 
                 val itemsAmount = items.fold(BigDecimal.ZERO) { acc, item ->
                     acc + (item.price * BigDecimal(item.quantity))
@@ -156,6 +161,7 @@ class CartService(
                     orderShippingRepo.create(orderResult.uid, it, context).toEntity()
                 }
 
+                cartItemRepo.deleteAllByCart(cart.id, context)
                 cartRepo.delete(userUid, context)
 
                 orderResult.toAggregate().copy(
@@ -181,7 +187,9 @@ class CartService(
 
     private fun loadOwnedOrder(orderUid: UUID, userUid: UUID, context: ActorContext): OrderAggregate {
         val order = orderRepo.findOne(orderUid, context)
-        check(order.userUid == userUid) { "order does not belong to the requesting user" }
+        if (order.userUid != userUid) {
+            throw OrderOwnershipException("order does not belong to the requesting user")
+        }
         return order.toAggregate()
     }
 
