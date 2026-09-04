@@ -22,7 +22,7 @@ router = APIRouter(
 
 @router.get(
     "/api/v1/shipments",
-    summary="List shipments",
+    summary="List shipments  Errors:   422 (UnprocessableEntityError) — Client error",
     response_model=ShipmentFindAllResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -42,7 +42,7 @@ async def shipments_get_all(
 
 @router.post(
     "/api/v1/shipments",
-    summary="Create shipment",
+    summary="Create shipment  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   409 (ConflictError) — The request conflicts with the current state of the server.   422 (UnprocessableEntityError) — Client error",
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},
     },
@@ -62,7 +62,7 @@ async def shipments_create(
 
 @router.get(
     "/api/v1/shipments/{shipment_uid}/tracking",
-    summary="Get tracking history",
+    summary="Get tracking history  Errors:   422 (UnprocessableEntityError) — Client error",
     response_model=TrackingFindAllResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -77,7 +77,7 @@ async def shipments_get_tracking_history(
 
 @router.post(
     "/api/v1/shipments/{shipment_uid}/tracking",
-    summary="Add tracking event  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Add tracking event  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},
     },
@@ -98,7 +98,7 @@ async def shipments_add_tracking(
 
 @router.get(
     "/api/v1/shipments/{uid}",
-    summary="Find shipment  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Find shipment  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=ShipmentFindResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -113,7 +113,7 @@ async def shipments_read(
 
 @router.patch(
     "/api/v1/shipments/{uid}/cancel",
-    summary="Cancel shipment  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Cancel shipment  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=ShipmentUpdateResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -128,7 +128,7 @@ async def shipments_cancel(
 
 @router.patch(
     "/api/v1/shipments/{uid}/carrier",
-    summary="Assign carrier to shipment  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Assign carrier to shipment  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=ShipmentUpdateResponse,
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},
@@ -145,7 +145,7 @@ async def shipments_assign_carrier(
 
 @router.patch(
     "/api/v1/shipments/{uid}/deliver",
-    summary="Mark shipment as delivered  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Mark shipment as delivered  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=ShipmentUpdateResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -160,7 +160,7 @@ async def shipments_deliver(
 
 @router.patch(
     "/api/v1/shipments/{uid}/dispatch",
-    summary="Dispatch shipment  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Dispatch shipment  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=ShipmentUpdateResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -175,7 +175,7 @@ async def shipments_dispatch(
 
 @router.patch(
     "/api/v1/shipments/{uid}/pickup",
-    summary="Mark shipment as picked up  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Mark shipment as picked up  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=ShipmentUpdateResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},

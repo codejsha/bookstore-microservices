@@ -25,6 +25,7 @@ from internal.domain.model.command.delivery_command import (
     UpdateCarrierCommand,
     UpdateFreightStatusCommand,
 )
+from internal.domain.model.error import ConflictError
 from internal.domain.model.option.delivery_option import (
     CarrierFilterOption,
     FreightFilterOption,
@@ -43,6 +44,9 @@ class ShipmentService:
         self._tracking_repo = tracking_repo
 
     async def create_shipment(self, command: CreateShipmentCommand) -> ShipmentAggregate:
+        existing = await self._shipment_repo.find_by_order_uid(command.order_uid)
+        if existing is not None:
+            raise ConflictError(f"Shipment for order {command.order_uid} already exists")
         now = datetime.now(UTC)
         shipment = ShipmentAggregate(
             uid=uuid7(),
@@ -93,7 +97,8 @@ class ShipmentService:
 
         def _mutate(s: ShipmentAggregate) -> ShipmentAggregate:
             s.carrier_uid = command.carrier_uid
-            s.tracking_number = command.tracking_number
+            if command.tracking_number is not None:
+                s.tracking_number = command.tracking_number
             s.updated_at = now
             return s
 
@@ -181,6 +186,9 @@ class CarrierService:
         self._carrier_repo = carrier_repo
 
     async def create_carrier(self, command: CreateCarrierCommand) -> CarrierAggregate:
+        existing = await self._carrier_repo.find_by_code(command.code)
+        if existing is not None:
+            raise ConflictError(f"Carrier code {command.code} is already in use")
         now = datetime.now(UTC)
         carrier = CarrierAggregate(
             uid=uuid7(),

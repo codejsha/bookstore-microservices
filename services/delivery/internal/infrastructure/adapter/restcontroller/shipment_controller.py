@@ -1,6 +1,8 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import ValidationError
+from sqlalchemy.exc import IntegrityError
 
 from generated.application.port.model.shipment_assign_carrier_request import ShipmentAssignCarrierRequest
 from generated.application.port.model.shipment_create_request import ShipmentCreateRequest
@@ -17,8 +19,14 @@ from internal.domain.model.command.delivery_command import (
     AssignCarrierCommand,
     CreateShipmentCommand,
 )
+from internal.domain.model.error import ConflictError
 from internal.domain.model.option.delivery_option import ShipmentFilterOption
 from internal.domain.service.delivery_service import ShipmentService
+from internal.infrastructure.adapter.restcontroller.error_mapping import (
+    conflict_error,
+    duplicate_key_error,
+    invalid_command_error,
+)
 from internal.infrastructure.support.auth import require_principal, require_staff
 
 
@@ -31,8 +39,17 @@ def create_shipment_router(service: ShipmentService) -> APIRouter:
 
     @router.post("", status_code=201, response_model=ShipmentItem, dependencies=[Depends(require_staff)])
     async def create_shipment(request: ShipmentCreateRequest) -> ShipmentItem:
-        command = CreateShipmentCommand(**request.model_dump())
-        return _to_shipment_item(await service.create_shipment(command))
+        try:
+            command = CreateShipmentCommand(**request.model_dump())
+        except ValidationError as e:
+            raise invalid_command_error(e) from e
+        try:
+            shipment = await service.create_shipment(command)
+        except ConflictError as e:
+            raise conflict_error(e) from e
+        except IntegrityError as e:
+            raise duplicate_key_error(f"Shipment for order {command.order_uid} already exists") from e
+        return _to_shipment_item(shipment)
 
     @router.get("/{uid}", response_model=ShipmentFindResponse)
     async def get_shipment(uid: UUID) -> ShipmentFindResponse:
@@ -66,7 +83,10 @@ def create_shipment_router(service: ShipmentService) -> APIRouter:
 
     @router.patch("/{uid}/carrier", response_model=ShipmentUpdateResponse, dependencies=[Depends(require_staff)])
     async def assign_carrier(uid: UUID, request: ShipmentAssignCarrierRequest) -> ShipmentUpdateResponse:
-        command = AssignCarrierCommand(carrier_uid=request.carrier_uid, tracking_number=request.tracking_number)
+        try:
+            command = AssignCarrierCommand(carrier_uid=request.carrier_uid, tracking_number=request.tracking_number)
+        except ValidationError as e:
+            raise invalid_command_error(e) from e
         agg = await service.assign_carrier(uid, command)
         if agg is None:
             raise HTTPException(status_code=404, detail="Shipment not found")
@@ -119,12 +139,15 @@ def create_shipment_router(service: ShipmentService) -> APIRouter:
         dependencies=[Depends(require_staff)],
     )
     async def add_tracking(shipment_uid: UUID, request: TrackingCreateRequest) -> TrackingItem:
-        command = AddTrackingCommand(
-            shipment_uid=shipment_uid,
-            status=request.status,
-            location=request.location,
-            description=request.description,
-        )
+        try:
+            command = AddTrackingCommand(
+                shipment_uid=shipment_uid,
+                status=request.status,
+                location=request.location,
+                description=request.description,
+            )
+        except ValidationError as e:
+            raise invalid_command_error(e) from e
         try:
             agg = await service.add_tracking(command)
         except ValueError as e:

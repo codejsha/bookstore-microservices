@@ -35,13 +35,13 @@ def _app() -> FastAPI:
         _b64(b"\xff\xfe\xff"),
     ],
 )
-def test_malformed_jwt_payload_returns_401_not_500(payload: str) -> None:
+def test_current_user_malformed_jwt_payload_unauthorized(payload: str) -> None:
     client = TestClient(_app())
     resp = client.get("/whoami", headers={"x-user-id": str(uuid4()), "x-jwt-payload": payload})
     assert resp.status_code == 401
 
 
-def test_valid_jwt_payload_is_decoded() -> None:
+def test_current_user_valid_jwt_payload_decodes_claims() -> None:
     sub = str(uuid4())
     payload = _b64(json.dumps({"sub": sub, "email": "a@b.com"}).encode())
     client = TestClient(_app())
@@ -50,7 +50,7 @@ def test_valid_jwt_payload_is_decoded() -> None:
     assert resp.json()["raw"]["email"] == "a@b.com"
 
 
-def test_absent_jwt_payload_yields_empty_raw() -> None:
+def test_current_user_absent_jwt_payload_has_empty_raw() -> None:
     sub = str(uuid4())
     client = TestClient(_app())
     resp = client.get("/whoami", headers={"x-user-id": sub})
@@ -69,16 +69,16 @@ def test_absent_jwt_payload_yields_empty_raw() -> None:
         _b64(b"\xff\xfe\xff"),
     ],
 )
-def test_grpc_malformed_jwt_payload_returns_none(payload: str) -> None:
+def test_caller_user_uid_malformed_jwt_payload_is_none(payload: str) -> None:
     assert caller_user_uid((("x-jwt-payload", payload),)) is None
 
 
-def test_grpc_sub_from_valid_payload() -> None:
+def test_caller_user_uid_valid_jwt_payload_resolves_sub() -> None:
     uid = uuid4()
     payload = _b64(json.dumps({"sub": str(uid)}).encode())
     assert caller_user_uid((("x-jwt-payload", payload),)) == uid
 
 
-def test_grpc_prefers_x_user_id() -> None:
+def test_caller_user_uid_with_x_user_id_prefers_it() -> None:
     uid = uuid4()
     assert caller_user_uid((("x-user-id", str(uid)),)) == uid

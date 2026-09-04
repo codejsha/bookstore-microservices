@@ -14,10 +14,15 @@ enum FreightStatus {
 model FreightCreateRequest {
   shipment_uid: uuid;
   carrier_uid: uuid;
+  @minValue(0)
   base_cost: float64;
+  @minValue(0)
   weight_surcharge?: float64;
+  @minValue(0)
   distance_surcharge?: float64;
+  @minValue(0)
   discount?: float64;
+  @pattern("^[A-Z]{3}$")
   currency?: string;
 }
 

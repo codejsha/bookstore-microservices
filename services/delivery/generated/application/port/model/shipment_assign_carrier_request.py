@@ -7,4 +7,4 @@ from typing import Optional
 
 class ShipmentAssignCarrierRequest(BaseModel):
     carrier_uid: str
-    tracking_number: Optional[str] = Field(default=None)
+    tracking_number: Optional[str] = Field(default=None, min_length=1, max_length=100, pattern="[\s\S]*\S[\s\S]*")

@@ -13,6 +13,7 @@ from internal.infrastructure.adapter.restcontroller.shipment_controller import c
 from internal.infrastructure.adapter.restcontroller.stats_controller import create_stats_router
 from internal.infrastructure.support.grpc_server import GrpcServerRunner
 from internal.infrastructure.support.logging import access_log_middleware, configure_logging
+from internal.infrastructure.support.problem import register_problem_handlers
 from internal.infrastructure.support.telemetry import instrument_fastapi, setup_telemetry
 from internal.infrastructure.support.temporal_worker import TemporalWorkerRunner
 
@@ -66,6 +67,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    register_problem_handlers(app)
     app.include_router(create_shipment_router(container.shipment_service))
     app.include_router(create_carrier_router(container.carrier_service))
     app.include_router(create_freight_router(container.freight_service))

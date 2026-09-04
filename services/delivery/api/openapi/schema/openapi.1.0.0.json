@@ -87,6 +87,16 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -111,6 +121,36 @@
                 "description": "Location of the created resource",
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The server could not understand the request due to invalid syntax.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the server.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -164,9 +204,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -205,12 +255,32 @@
               }
             }
           },
+          "400": {
+            "description": "The server could not understand the request due to invalid syntax.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -308,6 +378,16 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -332,6 +412,26 @@
                 "description": "Location of the created resource",
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The server could not understand the request due to invalid syntax.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -385,9 +485,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -431,9 +541,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -477,9 +597,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -577,6 +707,16 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -601,6 +741,36 @@
                 "description": "Location of the created resource",
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The server could not understand the request due to invalid syntax.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the server.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -653,12 +823,32 @@
               }
             }
           },
+          "400": {
+            "description": "The server could not understand the request due to invalid syntax.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -706,6 +896,16 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -746,9 +946,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -792,7 +1002,7 @@
           "400": {
             "description": "The server could not understand the request due to invalid syntax.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/BadRequestError"
                 }
@@ -802,9 +1012,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -848,7 +1068,7 @@
           "400": {
             "description": "The server could not understand the request due to invalid syntax.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/BadRequestError"
                 }
@@ -858,9 +1078,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -914,7 +1144,7 @@
           "400": {
             "description": "The server could not understand the request due to invalid syntax.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/BadRequestError"
                 }
@@ -924,9 +1154,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -970,7 +1210,7 @@
           "400": {
             "description": "The server could not understand the request due to invalid syntax.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/BadRequestError"
                 }
@@ -980,9 +1220,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -1026,7 +1276,7 @@
           "400": {
             "description": "The server could not understand the request due to invalid syntax.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/BadRequestError"
                 }
@@ -1036,9 +1286,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -1097,6 +1357,16 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1115,18 +1385,24 @@
       "BadRequestError": {
         "type": "object",
         "required": [
-          "code",
-          "message"
+          "title",
+          "status"
         ],
         "properties": {
-          "code": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
             "type": "integer",
             "format": "int32"
           },
-          "message": {
+          "detail": {
             "type": "string"
           },
-          "details": {
+          "errors": {
             "type": "array",
             "items": {
               "type": "string"
@@ -1144,27 +1420,43 @@
         ],
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "code": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "contact_name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "contact_phone": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "contact_email": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
           },
           "base_rate": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "minimum": 0
           },
           "rate_per_kg": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "minimum": 0
           }
         }
       },
@@ -1343,24 +1635,37 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "contact_name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "contact_phone": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "contact_email": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
           },
           "base_rate": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "minimum": 0
           },
           "rate_per_kg": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "minimum": 0
           },
           "status": {
             "$ref": "#/components/schemas/CarrierStatus"
@@ -1419,6 +1724,28 @@
           }
         }
       },
+      "ConflictError": {
+        "type": "object",
+        "required": [
+          "title",
+          "status"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
       "DashboardResponse": {
         "type": "object",
         "required": [
@@ -1463,15 +1790,21 @@
       "ForbiddenError": {
         "type": "object",
         "required": [
-          "code",
-          "message"
+          "title",
+          "status"
         ],
         "properties": {
-          "code": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
             "type": "integer",
             "format": "int32"
           },
-          "message": {
+          "detail": {
             "type": "string"
           }
         }
@@ -1492,22 +1825,27 @@
           },
           "base_cost": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "minimum": 0
           },
           "weight_surcharge": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "minimum": 0
           },
           "distance_surcharge": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "minimum": 0
           },
           "discount": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "minimum": 0
           },
           "currency": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
           }
         }
       },
@@ -1768,15 +2106,21 @@
       "NotFoundError": {
         "type": "object",
         "required": [
-          "code",
-          "message"
+          "title",
+          "status"
         ],
         "properties": {
-          "code": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
             "type": "integer",
             "format": "int32"
           },
-          "message": {
+          "detail": {
             "type": "string"
           }
         }
@@ -1791,7 +2135,10 @@
             "$ref": "#/components/schemas/uuid"
           },
           "tracking_number": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           }
         }
       },
@@ -1814,26 +2161,43 @@
             "$ref": "#/components/schemas/uuid"
           },
           "origin_address": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "destination_address": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "destination_city": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "destination_state": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 100
           },
           "destination_country_code": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 3,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "destination_postal_code": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "weight_kg": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "exclusiveMinimum": 0
           },
           "planned_pickup_at": {
             "type": "string",
@@ -2144,10 +2508,15 @@
             "$ref": "#/components/schemas/ShipmentStatus"
           },
           "location": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           }
         }
       },
@@ -2200,6 +2569,34 @@
           "created_at": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "UnprocessableEntityError": {
+        "type": "object",
+        "required": [
+          "title",
+          "status"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

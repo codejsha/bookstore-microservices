@@ -17,16 +17,16 @@ interface Shipments {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): ShipmentFindAllResponse;
+  ): ShipmentFindAllResponse | UnprocessableEntityError;
 
   @doc("Create shipment")
   @post
-  create(@body body: ShipmentCreateRequest): CreatedResponse;
+  create(@body body: ShipmentCreateRequest): CreatedResponse | BadRequestError | ConflictError | UnprocessableEntityError;
 
   @doc("Find shipment")
   @route("{uid}")
   @get
-  read(@path uid: uuid): ShipmentFindResponse | NotFoundError;
+  read(@path uid: uuid): ShipmentFindResponse | NotFoundError | UnprocessableEntityError;
 
   @doc("Assign carrier to shipment")
   @route("{uid}/carrier")
@@ -34,27 +34,27 @@ interface Shipments {
   assignCarrier(
     @path uid: uuid,
     @body body: ShipmentAssignCarrierRequest,
-  ): ShipmentUpdateResponse | NotFoundError | BadRequestError;
+  ): ShipmentUpdateResponse | NotFoundError | BadRequestError | UnprocessableEntityError;
 
   @doc("Dispatch shipment")
   @route("{uid}/dispatch")
   @patch(#{ implicitOptionality: false })
-  dispatch(@path uid: uuid): ShipmentUpdateResponse | NotFoundError | BadRequestError;
+  dispatch(@path uid: uuid): ShipmentUpdateResponse | NotFoundError | BadRequestError | UnprocessableEntityError;
 
   @doc("Mark shipment as picked up")
   @route("{uid}/pickup")
   @patch(#{ implicitOptionality: false })
-  pickUp(@path uid: uuid): ShipmentUpdateResponse | NotFoundError | BadRequestError;
+  pickUp(@path uid: uuid): ShipmentUpdateResponse | NotFoundError | BadRequestError | UnprocessableEntityError;
 
   @doc("Mark shipment as delivered")
   @route("{uid}/deliver")
   @patch(#{ implicitOptionality: false })
-  deliver(@path uid: uuid): ShipmentUpdateResponse | NotFoundError | BadRequestError;
+  deliver(@path uid: uuid): ShipmentUpdateResponse | NotFoundError | BadRequestError | UnprocessableEntityError;
 
   @doc("Cancel shipment")
   @route("{uid}/cancel")
   @patch(#{ implicitOptionality: false })
-  cancel(@path uid: uuid): ShipmentUpdateResponse | NotFoundError | BadRequestError;
+  cancel(@path uid: uuid): ShipmentUpdateResponse | NotFoundError | BadRequestError | UnprocessableEntityError;
 
   @doc("Add tracking event")
   @route("{shipment_uid}/tracking")
@@ -62,10 +62,10 @@ interface Shipments {
   addTracking(
     @path shipment_uid: uuid,
     @body body: TrackingCreateRequest,
-  ): CreatedResponse | NotFoundError;
+  ): CreatedResponse | NotFoundError | BadRequestError | UnprocessableEntityError;
 
   @doc("Get tracking history")
   @route("{shipment_uid}/tracking")
   @get
-  getTrackingHistory(@path shipment_uid: uuid): TrackingFindAllResponse;
+  getTrackingHistory(@path shipment_uid: uuid): TrackingFindAllResponse | UnprocessableEntityError;
 }

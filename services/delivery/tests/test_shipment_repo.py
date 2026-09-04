@@ -22,7 +22,7 @@ def tracking_reader(session_factory: async_sessionmaker[AsyncSession]) -> MySQLT
     return MySQLTrackingRepository(session_factory)
 
 
-async def test_fetched_datetimes_are_timezone_aware_utc(repo: MySQLShipmentRepository) -> None:
+async def test_find_by_uid_has_timezone_aware_utc_datetimes(repo: MySQLShipmentRepository) -> None:
     shipment = make_shipment(now=datetime.now(UTC))
     await repo.save(shipment)
     found = await repo.find_by_uid(shipment.uid)
@@ -33,7 +33,7 @@ async def test_fetched_datetimes_are_timezone_aware_utc(repo: MySQLShipmentRepos
     assert found.updated_at.isoformat().endswith("+00:00")
 
 
-async def test_create_with_initial_tracking_persists_both_atomically(
+async def test_create_with_initial_tracking_both_valid_persists_both(
     repo: MySQLShipmentRepository, tracking_reader: MySQLTrackingRepository
 ) -> None:
     shipment = make_shipment()
@@ -48,7 +48,7 @@ async def test_create_with_initial_tracking_persists_both_atomically(
     assert history[0].status == ShipmentStatus.PLANNED
 
 
-async def test_create_with_initial_tracking_rolls_back_both_on_duplicate(
+async def test_create_with_initial_tracking_duplicate_order_rolls_back_both(
     repo: MySQLShipmentRepository, tracking_reader: MySQLTrackingRepository
 ) -> None:
     order_uid = uuid4()
@@ -62,14 +62,14 @@ async def test_create_with_initial_tracking_rolls_back_both_on_duplicate(
     assert await tracking_reader.find_by_shipment_uid(dup.uid) == []
 
 
-async def test_save_inserts_new_shipment(repo: MySQLShipmentRepository) -> None:
+async def test_save_new_inserts_row(repo: MySQLShipmentRepository) -> None:
     shipment = make_shipment()
     saved = await repo.save(shipment)
     assert saved.uid == shipment.uid
     assert saved.status == ShipmentStatus.PLANNED
 
 
-async def test_find_by_uid_returns_saved_shipment(repo: MySQLShipmentRepository) -> None:
+async def test_find_by_uid_roundtrips(repo: MySQLShipmentRepository) -> None:
     shipment = make_shipment()
     await repo.save(shipment)
     found = await repo.find_by_uid(shipment.uid)
@@ -78,11 +78,11 @@ async def test_find_by_uid_returns_saved_shipment(repo: MySQLShipmentRepository)
     assert found.order_uid == shipment.order_uid
 
 
-async def test_find_by_uid_returns_none_when_missing(repo: MySQLShipmentRepository) -> None:
+async def test_find_by_uid_missing_is_none(repo: MySQLShipmentRepository) -> None:
     assert await repo.find_by_uid(uuid4()) is None
 
 
-async def test_save_updates_existing_shipment(repo: MySQLShipmentRepository) -> None:
+async def test_save_found_updates_row(repo: MySQLShipmentRepository) -> None:
     shipment = make_shipment()
     await repo.save(shipment)
     carrier_uid = uuid4()
@@ -96,7 +96,7 @@ async def test_save_updates_existing_shipment(repo: MySQLShipmentRepository) -> 
     assert updated.tracking_number == "TRK-1"
 
 
-async def test_find_by_order_uid_returns_saved_shipment(repo: MySQLShipmentRepository) -> None:
+async def test_find_by_order_uid_roundtrips(repo: MySQLShipmentRepository) -> None:
     order_uid = uuid4()
     shipment = make_shipment(order_uid=order_uid)
     await repo.save(shipment)
@@ -106,18 +106,18 @@ async def test_find_by_order_uid_returns_saved_shipment(repo: MySQLShipmentRepos
     assert found.order_uid == order_uid
 
 
-async def test_find_by_order_uid_returns_none_when_missing(repo: MySQLShipmentRepository) -> None:
+async def test_find_by_order_uid_missing_is_none(repo: MySQLShipmentRepository) -> None:
     assert await repo.find_by_order_uid(uuid4()) is None
 
 
-async def test_order_uid_unique_constraint_rejects_duplicate(repo: MySQLShipmentRepository) -> None:
+async def test_save_duplicate_order_uid_raises_integrity_error(repo: MySQLShipmentRepository) -> None:
     order_uid = uuid4()
     await repo.save(make_shipment(order_uid=order_uid))
     with pytest.raises(IntegrityError):
         await repo.save(make_shipment(order_uid=order_uid))
 
 
-async def test_find_all_filters_by_status(repo: MySQLShipmentRepository) -> None:
+async def test_find_all_by_status_matches_shipments(repo: MySQLShipmentRepository) -> None:
     await repo.save(make_shipment(status=ShipmentStatus.PLANNED))
     await repo.save(make_shipment(status=ShipmentStatus.DELIVERED))
     await repo.save(make_shipment(status=ShipmentStatus.PLANNED))
@@ -128,7 +128,7 @@ async def test_find_all_filters_by_status(repo: MySQLShipmentRepository) -> None
     assert all(item.status == ShipmentStatus.PLANNED for item in items)
 
 
-async def test_find_all_filters_by_order_uid(repo: MySQLShipmentRepository) -> None:
+async def test_find_all_by_order_uid_matches_shipments(repo: MySQLShipmentRepository) -> None:
     target_order = uuid4()
     await repo.save(make_shipment(order_uid=target_order))
     await repo.save(make_shipment())
@@ -138,7 +138,7 @@ async def test_find_all_filters_by_order_uid(repo: MySQLShipmentRepository) -> N
     assert items[0].order_uid == target_order
 
 
-async def test_find_all_paginates(repo: MySQLShipmentRepository) -> None:
+async def test_find_all_with_page_size_pages_with_total(repo: MySQLShipmentRepository) -> None:
     base = datetime.now(UTC)
     for i in range(5):
         await repo.save(make_shipment(now=base + timedelta(seconds=i)))
@@ -147,7 +147,7 @@ async def test_find_all_paginates(repo: MySQLShipmentRepository) -> None:
     assert len(items) == 2
 
 
-async def test_find_all_orders_by_created_at_desc(repo: MySQLShipmentRepository) -> None:
+async def test_find_all_sorted_by_created_at_desc_is_newest_first(repo: MySQLShipmentRepository) -> None:
     base = datetime.now(UTC)
     older = make_shipment(now=base - timedelta(days=1))
     newer = make_shipment(now=base)
@@ -159,7 +159,7 @@ async def test_find_all_orders_by_created_at_desc(repo: MySQLShipmentRepository)
     assert items[1].uid == older.uid
 
 
-async def test_find_all_unknown_sort_field_falls_back_to_default(repo: MySQLShipmentRepository) -> None:
+async def test_find_all_unknown_sort_field_falls_back_to_default_order(repo: MySQLShipmentRepository) -> None:
     base = datetime.now(UTC)
     older = make_shipment(now=base - timedelta(days=1))
     newer = make_shipment(now=base)
@@ -172,7 +172,7 @@ async def test_find_all_unknown_sort_field_falls_back_to_default(repo: MySQLShip
     assert items[1].uid == older.uid
 
 
-async def test_update_applies_mutator_atomically(repo: MySQLShipmentRepository) -> None:
+async def test_update_found_applies_mutator(repo: MySQLShipmentRepository) -> None:
     shipment = make_shipment()
     await repo.save(shipment)
     carrier_uid = uuid4()
@@ -192,5 +192,5 @@ async def test_update_applies_mutator_atomically(repo: MySQLShipmentRepository) 
     assert reloaded.tracking_number == "TRK-9"
 
 
-async def test_update_returns_none_when_missing(repo: MySQLShipmentRepository) -> None:
+async def test_update_missing_is_none(repo: MySQLShipmentRepository) -> None:
     assert await repo.update(uuid4(), lambda s: s) is None

@@ -2,12 +2,14 @@ from dataclasses import dataclass
 from uuid import UUID, uuid4
 
 import structlog
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DataError, IntegrityError
 from temporalio import activity
+from temporalio.exceptions import ApplicationError
 
 from internal.domain.aggregate.shipment_aggregate import ShipmentAggregate
 from internal.domain.constant.shipment_status import ShipmentStatus
 from internal.domain.model.command.delivery_command import CreateShipmentCommand
+from internal.domain.model.error import ConflictError
 from internal.domain.service.delivery_service import ShipmentService
 
 logger = structlog.get_logger()
@@ -41,20 +43,26 @@ class ShipmentActivities:
 
     @activity.defn(name="CreateShipment")
     async def create_shipment(self, payload: CreateShipmentInput) -> CreateShipmentOutput:
-        order_uid = UUID(payload.orderUid)
         logger.info("CreateShipment activity invoked", order_uid=payload.orderUid)
 
-        command = CreateShipmentCommand(
-            order_uid=order_uid,
-            origin_address=payload.originAddress,
-            destination_address=payload.destinationAddress,
-            destination_city=payload.destinationCity,
-            destination_state=payload.destinationState,
-            destination_country_code=payload.destinationCountryCode,
-            destination_postal_code=payload.destinationPostalCode,
-        )
+        try:
+            order_uid = UUID(payload.orderUid)
+            command = CreateShipmentCommand(
+                order_uid=order_uid,
+                origin_address=payload.originAddress,
+                destination_address=payload.destinationAddress,
+                destination_city=payload.destinationCity,
+                destination_state=payload.destinationState,
+                destination_country_code=payload.destinationCountryCode,
+                destination_postal_code=payload.destinationPostalCode,
+            )
+        except ValueError as e:
+            raise ApplicationError(str(e), non_retryable=True, type="InvalidCommand") from e
 
-        shipment = await self._get_or_create_shipment(order_uid, command)
+        try:
+            shipment = await self._get_or_create_shipment(order_uid, command)
+        except DataError as e:
+            raise ApplicationError(str(e), non_retryable=True, type="InvalidCommand") from e
 
         if shipment.status == ShipmentStatus.PLANNED:
             dispatched = await self._shipment_service.dispatch_shipment(shipment.uid)
@@ -90,7 +98,7 @@ class ShipmentActivities:
             return existing
         try:
             return await self._shipment_service.create_shipment(command)
-        except IntegrityError:
+        except IntegrityError, ConflictError:
             existing = await self._shipment_service.get_shipment_by_order_uid(order_uid)
             if existing is None:
                 raise

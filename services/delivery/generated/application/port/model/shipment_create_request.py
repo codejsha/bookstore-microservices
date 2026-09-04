@@ -8,13 +8,13 @@ from datetime import date, datetime
 
 class ShipmentCreateRequest(BaseModel):
     carrier_uid: Optional[str] = Field(default=None)
-    destination_address: str
-    destination_city: str
-    destination_country_code: str
-    destination_postal_code: str
-    destination_state: str
+    destination_address: str = Field(min_length=1, max_length=500, pattern="[\s\S]*\S[\s\S]*")
+    destination_city: str = Field(min_length=1, max_length=100, pattern="[\s\S]*\S[\s\S]*")
+    destination_country_code: str = Field(min_length=1, max_length=3, pattern="[\s\S]*\S[\s\S]*")
+    destination_postal_code: str = Field(min_length=1, max_length=20, pattern="[\s\S]*\S[\s\S]*")
+    destination_state: str = Field(max_length=100)
     order_uid: str
-    origin_address: str
+    origin_address: str = Field(min_length=1, max_length=500, pattern="[\s\S]*\S[\s\S]*")
     planned_delivery_at: Optional[datetime] = Field(default=None)
     planned_pickup_at: Optional[datetime] = Field(default=None)
     weight_kg: Optional[float] = Field(default=None)

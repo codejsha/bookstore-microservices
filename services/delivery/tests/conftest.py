@@ -41,6 +41,7 @@ def now() -> datetime:
 def shipment_repo() -> MagicMock:
     repo = MagicMock(spec=ShipmentRepository)
     repo.save.side_effect = lambda s: s
+    repo.find_by_order_uid.return_value = None
 
     async def _create_with_initial_tracking(shipment, tracking):
         return shipment
@@ -78,6 +79,7 @@ def tracking_repo() -> MagicMock:
 def carrier_repo() -> MagicMock:
     repo = MagicMock(spec=CarrierRepository)
     repo.save.side_effect = lambda c: c
+    repo.find_by_code.return_value = None
 
     async def _update(uid, mutator):
         carrier = repo.find_by_uid.return_value

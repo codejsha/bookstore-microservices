@@ -6,10 +6,10 @@ from typing import Optional
 
 
 class FreightCreateRequest(BaseModel):
-    base_cost: float
+    base_cost: float = Field(ge=0)
     carrier_uid: str
-    currency: Optional[str] = Field(default=None)
-    discount: Optional[float] = Field(default=None)
-    distance_surcharge: Optional[float] = Field(default=None)
+    currency: Optional[str] = Field(default=None, pattern="^[A-Z]{3}$")
+    discount: Optional[float] = Field(default=None, ge=0)
+    distance_surcharge: Optional[float] = Field(default=None, ge=0)
     shipment_uid: str
-    weight_surcharge: Optional[float] = Field(default=None)
+    weight_surcharge: Optional[float] = Field(default=None, ge=0)

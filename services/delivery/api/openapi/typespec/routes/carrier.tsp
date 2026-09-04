@@ -16,16 +16,16 @@ interface Carriers {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): CarrierFindAllResponse;
+  ): CarrierFindAllResponse | UnprocessableEntityError;
 
   @doc("Register new carrier")
   @post
-  create(@body body: CarrierCreateRequest): CreatedResponse;
+  create(@body body: CarrierCreateRequest): CreatedResponse | BadRequestError | ConflictError | UnprocessableEntityError;
 
   @doc("Find carrier")
   @route("{uid}")
   @get
-  read(@path uid: uuid): CarrierFindResponse | NotFoundError;
+  read(@path uid: uuid): CarrierFindResponse | NotFoundError | UnprocessableEntityError;
 
   @doc("Update carrier")
   @route("{uid}")
@@ -33,5 +33,5 @@ interface Carriers {
   update(
     @path uid: uuid,
     @body body: CarrierUpdateRequest,
-  ): CarrierUpdateResponse | NotFoundError;
+  ): CarrierUpdateResponse | NotFoundError | BadRequestError | UnprocessableEntityError;
 }

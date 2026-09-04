@@ -15,5 +15,5 @@ interface Stats {
     @query carrier_uid?: uuid,
     @query date_from?: string,
     @query date_to?: string,
-  ): DashboardResponse;
+  ): DashboardResponse | UnprocessableEntityError;
 }

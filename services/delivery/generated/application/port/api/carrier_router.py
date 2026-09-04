@@ -20,7 +20,7 @@ router = APIRouter(
 
 @router.get(
     "/api/v1/carriers",
-    summary="List carriers",
+    summary="List carriers  Errors:   422 (UnprocessableEntityError) — Client error",
     response_model=CarrierFindAllResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -39,7 +39,7 @@ async def carriers_get_all(
 
 @router.post(
     "/api/v1/carriers",
-    summary="Register new carrier",
+    summary="Register new carrier  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   409 (ConflictError) — The request conflicts with the current state of the server.   422 (UnprocessableEntityError) — Client error",
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},
     },
@@ -59,7 +59,7 @@ async def carriers_create(
 
 @router.get(
     "/api/v1/carriers/{uid}",
-    summary="Find carrier  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Find carrier  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=CarrierFindResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -74,7 +74,7 @@ async def carriers_read(
 
 @router.put(
     "/api/v1/carriers/{uid}",
-    summary="Update carrier  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Update carrier  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=CarrierUpdateResponse,
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},

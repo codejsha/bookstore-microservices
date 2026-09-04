@@ -13,7 +13,7 @@ router = APIRouter(
 
 @router.get(
     "/api/v1/stats/dashboard",
-    summary="Get delivery dashboard",
+    summary="Get delivery dashboard  Errors:   422 (UnprocessableEntityError) — Client error",
     response_model=DashboardResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},

@@ -14,7 +14,7 @@ from tests.conftest import make_shipment
         (ShipmentStatus.CANCELLED, False),
     ],
 )
-def test_can_dispatch(status: ShipmentStatus, expected: bool) -> None:
+def test_can_dispatch_per_status_matches_expected_flag(status: ShipmentStatus, expected: bool) -> None:
     shipment = make_shipment(status=status)
     assert shipment.can_dispatch() is expected
 
@@ -27,7 +27,7 @@ def test_can_dispatch(status: ShipmentStatus, expected: bool) -> None:
         (ShipmentStatus.PICKED_UP, False),
     ],
 )
-def test_can_pick_up(status: ShipmentStatus, expected: bool) -> None:
+def test_can_pick_up_per_status_matches_expected_flag(status: ShipmentStatus, expected: bool) -> None:
     shipment = make_shipment(status=status)
     assert shipment.can_pick_up() is expected
 
@@ -42,7 +42,7 @@ def test_can_pick_up(status: ShipmentStatus, expected: bool) -> None:
         (ShipmentStatus.PLANNED, False),
     ],
 )
-def test_can_deliver(status: ShipmentStatus, expected: bool) -> None:
+def test_can_deliver_per_status_matches_expected_flag(status: ShipmentStatus, expected: bool) -> None:
     shipment = make_shipment(status=status)
     assert shipment.can_deliver() is expected
 
@@ -57,6 +57,6 @@ def test_can_deliver(status: ShipmentStatus, expected: bool) -> None:
         (ShipmentStatus.CANCELLED, False),
     ],
 )
-def test_can_cancel(status: ShipmentStatus, expected: bool) -> None:
+def test_can_cancel_per_status_matches_expected_flag(status: ShipmentStatus, expected: bool) -> None:
     shipment = make_shipment(status=status)
     assert shipment.can_cancel() is expected
