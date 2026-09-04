@@ -35,6 +35,16 @@ func (c *transferController) TransfersGetAll(
 	page *int32,
 	sort *string,
 ) (*openapi.TransferFindAllResponse, error) {
+	if err := optionalUidParam(ctx, "edition_uid", editionUid); err != nil {
+		return nil, err
+	}
+	if err := optionalUidParam(ctx, "source_warehouse_uid", sourceWarehouseUid); err != nil {
+		return nil, err
+	}
+	if err := optionalUidParam(ctx, "target_warehouse_uid", targetWarehouseUid); err != nil {
+		return nil, err
+	}
+
 	opt := option.NewTransferQueryOption(
 		option.TransferQueryOption{}.WithEditionUid(editionUid),
 		option.TransferQueryOption{}.WithSourceWarehouseUid(sourceWarehouseUid),
@@ -80,6 +90,10 @@ func (c *transferController) TransfersCreate(ctx context.Context, req openapi.Tr
 }
 
 func (c *transferController) TransfersRead(ctx context.Context, uid string) (*openapi.TransferFindResponse, error) {
+	if err := requireUidParam(ctx, "uid", uid); err != nil {
+		return nil, err
+	}
+
 	transfer, err := c.inventoryUseCase.FindTransfer(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapNotFound(ctx, err)
@@ -92,9 +106,13 @@ func (c *transferController) TransfersRead(ctx context.Context, uid string) (*op
 }
 
 func (c *transferController) TransfersComplete(ctx context.Context, uid string) (*openapi.TransferFindResponse, error) {
+	if err := requireUidParam(ctx, "uid", uid); err != nil {
+		return nil, err
+	}
+
 	transfer, err := c.inventoryUseCase.CompleteTransfer(ctx, uid)
 	if err != nil {
-		return nil, err
+		return nil, httpx.MapBusinessError(ctx, err)
 	}
 	if transfer == nil {
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
@@ -105,9 +123,13 @@ func (c *transferController) TransfersComplete(ctx context.Context, uid string) 
 }
 
 func (c *transferController) TransfersCancel(ctx context.Context, uid string) (*openapi.TransferFindResponse, error) {
+	if err := requireUidParam(ctx, "uid", uid); err != nil {
+		return nil, err
+	}
+
 	transfer, err := c.inventoryUseCase.CancelTransfer(ctx, uid)
 	if err != nil {
-		return nil, err
+		return nil, httpx.MapBusinessError(ctx, err)
 	}
 	if transfer == nil {
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)

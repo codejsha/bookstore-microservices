@@ -8,12 +8,12 @@ import (
 
 type ClosingFindResponse struct {
 	ClosedAt     *time.Time            `json:"closed_at,omitempty"`
-	CreatedAt    time.Time             `json:"created_at" validate:"required"`
-	Items        []ClosingItemResponse `json:"items" validate:"required"`
-	Month        int32                 `json:"month" validate:"required"`
-	Status       ClosingStatus         `json:"status" validate:"required"`
-	Uid          string                `json:"uid" validate:"required"`
+	CreatedAt    time.Time             `json:"created_at" binding:"required"`
+	Items        []ClosingItemResponse `json:"items" binding:"required,dive"`
+	Month        int32                 `json:"month"`
+	Status       ClosingStatus         `json:"status" binding:"required"`
+	Uid          string                `json:"uid" binding:"required"`
 	UpdatedAt    *time.Time            `json:"updated_at,omitempty"`
-	WarehouseUid string                `json:"warehouse_uid" validate:"required"`
-	Year         int32                 `json:"year" validate:"required"`
+	WarehouseUid string                `json:"warehouse_uid" binding:"required"`
+	Year         int32                 `json:"year"`
 }

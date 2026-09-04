@@ -33,6 +33,13 @@ func (c *stockController) StocksGetAll(
 	page *int32,
 	sort *string,
 ) (*openapi.StockFindAllResponse, error) {
+	if err := optionalUidParam(ctx, "edition_uid", editionUid); err != nil {
+		return nil, err
+	}
+	if err := optionalUidParam(ctx, "warehouse_uid", warehouseUid); err != nil {
+		return nil, err
+	}
+
 	opt := option.NewStockQueryOption(
 		option.StockQueryOption{}.WithEditionUid(editionUid),
 		option.StockQueryOption{}.WithWarehouseUid(warehouseUid),
@@ -141,6 +148,10 @@ func (c *stockController) StocksReserve(ctx context.Context, req openapi.StockRe
 }
 
 func (c *stockController) StocksRead(ctx context.Context, editionUid string) (*openapi.StockFindResponse, error) {
+	if err := requireUidParam(ctx, "edition_uid", editionUid); err != nil {
+		return nil, err
+	}
+
 	stock, err := c.inventoryUseCase.FindStock(ctx, editionUid)
 	if err != nil {
 		return nil, httpx.MapNotFound(ctx, err)
@@ -160,6 +171,13 @@ func (c *stockController) StocksHistory(
 	page *int32,
 	sort *string,
 ) (*openapi.StockHistoryFindAllResponse, error) {
+	if err := requireUidParam(ctx, "edition_uid", editionUid); err != nil {
+		return nil, err
+	}
+	if err := optionalUidParam(ctx, "warehouse_uid", warehouseUid); err != nil {
+		return nil, err
+	}
+
 	total, entries, err := c.inventoryUseCase.FindStockHistory(
 		ctx,
 		editionUid,

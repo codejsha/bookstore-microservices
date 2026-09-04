@@ -30,6 +30,13 @@ func (c *balanceController) BalanceGetAll(
 	page *int32,
 	sort *string,
 ) (*openapi.BalanceFindAllResponse, error) {
+	if err := optionalUidParam(ctx, "edition_uid", editionUid); err != nil {
+		return nil, err
+	}
+	if err := optionalUidParam(ctx, "warehouse_uid", warehouseUid); err != nil {
+		return nil, err
+	}
+
 	opt := option.NewBalanceQueryOption(
 		option.BalanceQueryOption{}.WithEditionUid(editionUid),
 		option.BalanceQueryOption{}.WithWarehouseUid(warehouseUid),

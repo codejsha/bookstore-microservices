@@ -17,6 +17,8 @@ model AuditItemRequest {
 model AuditCreateRequest {
   warehouse_uid: uuid;
   items: AuditItemRequest[];
+
+  @maxLength(500)
   notes?: string;
 }
 

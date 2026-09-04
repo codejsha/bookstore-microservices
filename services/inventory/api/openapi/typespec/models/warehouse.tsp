@@ -3,7 +3,10 @@ namespace InventoryService;
 // ─── Warehouse models ───────────────────────────────────────────────────────
 
 model WarehouseCreateRequest {
+  @maxLength(255)
   name: string;
+
+  @maxLength(255)
   address?: string;
 
   @minValue(0)
@@ -11,7 +14,10 @@ model WarehouseCreateRequest {
 }
 
 model WarehouseUpdateRequest {
+  @maxLength(255)
   name?: string;
+
+  @maxLength(255)
   address?: string;
 
   @minValue(0)

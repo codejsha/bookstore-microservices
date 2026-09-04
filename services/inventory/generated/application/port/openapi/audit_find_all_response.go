@@ -3,6 +3,6 @@
 package openapi
 
 type AuditFindAllResponse struct {
-	Items []AuditFindResponse `json:"items" validate:"required"`
-	Total int64               `json:"total" validate:"required"`
+	Items []AuditFindResponse `json:"items" binding:"required,dive"`
+	Total int64               `json:"total" binding:"gte=0"`
 }

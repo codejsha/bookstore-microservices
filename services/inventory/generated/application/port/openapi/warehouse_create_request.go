@@ -3,7 +3,7 @@
 package openapi
 
 type WarehouseCreateRequest struct {
-	Address  *string `json:"address,omitempty"`
-	Capacity int32   `json:"capacity" validate:"required"`
-	Name     string  `json:"name" validate:"required"`
+	Address  *string `json:"address,omitempty" binding:"omitempty,max=255"`
+	Capacity int32   `json:"capacity" binding:"gte=0"`
+	Name     string  `json:"name" binding:"required,max=255"`
 }

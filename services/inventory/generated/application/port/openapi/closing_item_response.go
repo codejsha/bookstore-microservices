@@ -3,10 +3,10 @@
 package openapi
 
 type ClosingItemResponse struct {
-	AdjustQuantity   int32  `json:"adjust_quantity" validate:"required"`
-	ClosingQuantity  int32  `json:"closing_quantity" validate:"required"`
-	EditionUid       string `json:"edition_uid" validate:"required"`
-	InboundQuantity  int32  `json:"inbound_quantity" validate:"required"`
-	OpeningQuantity  int32  `json:"opening_quantity" validate:"required"`
-	OutboundQuantity int32  `json:"outbound_quantity" validate:"required"`
+	AdjustQuantity   int32  `json:"adjust_quantity"`
+	ClosingQuantity  int32  `json:"closing_quantity"`
+	EditionUid       string `json:"edition_uid" binding:"required"`
+	InboundQuantity  int32  `json:"inbound_quantity"`
+	OpeningQuantity  int32  `json:"opening_quantity"`
+	OutboundQuantity int32  `json:"outbound_quantity"`
 }

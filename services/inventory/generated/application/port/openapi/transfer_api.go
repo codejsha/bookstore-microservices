@@ -21,6 +21,9 @@ type TransferApi interface {
 	) (*TransferFindAllResponse, error)
 
 	// Create stock transfer between warehouses
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 404 (NotFoundError) — The server cannot find the requested resource.
 	TransfersCreate(
 		ctx context.Context,
 		req TransferCreateRequest,

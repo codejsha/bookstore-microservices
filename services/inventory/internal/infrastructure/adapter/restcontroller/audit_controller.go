@@ -33,6 +33,10 @@ func (c *auditController) AuditsGetAll(
 	page *int32,
 	sort *string,
 ) (*openapi.AuditFindAllResponse, error) {
+	if err := optionalUidParam(ctx, "warehouse_uid", warehouseUid); err != nil {
+		return nil, err
+	}
+
 	opt := option.NewAuditQueryOption(
 		option.AuditQueryOption{}.WithWarehouseUid(warehouseUid),
 		option.AuditQueryOption{}.WithStatus(statusString(status)),
@@ -67,7 +71,7 @@ func (c *auditController) AuditsCreate(ctx context.Context, req openapi.AuditCre
 
 	audit, err := c.inventoryUseCase.CreateAudit(ctx, cmd)
 	if err != nil {
-		return nil, err
+		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
 	go runSideEffects(context.WithoutCancel(ctx), "audit", audit.Uid, "created", logrus.Fields{
@@ -79,6 +83,10 @@ func (c *auditController) AuditsCreate(ctx context.Context, req openapi.AuditCre
 }
 
 func (c *auditController) AuditsRead(ctx context.Context, uid string) (*openapi.AuditFindResponse, error) {
+	if err := requireUidParam(ctx, "uid", uid); err != nil {
+		return nil, err
+	}
+
 	audit, err := c.inventoryUseCase.FindAudit(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapNotFound(ctx, err)
@@ -91,9 +99,13 @@ func (c *auditController) AuditsRead(ctx context.Context, uid string) (*openapi.
 }
 
 func (c *auditController) AuditsComplete(ctx context.Context, uid string) (*openapi.AuditFindResponse, error) {
+	if err := requireUidParam(ctx, "uid", uid); err != nil {
+		return nil, err
+	}
+
 	audit, err := c.inventoryUseCase.CompleteAudit(ctx, uid)
 	if err != nil {
-		return nil, err
+		return nil, httpx.MapBusinessError(ctx, err)
 	}
 	if audit == nil {
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)

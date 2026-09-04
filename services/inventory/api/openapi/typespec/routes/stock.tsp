@@ -26,22 +26,22 @@ interface Stocks {
   @doc("Receive stock into warehouse (inbound)")
   @route("receive")
   @post
-  receive(@body body: StockReceiveRequest): StockFindResponse;
+  receive(@body body: StockReceiveRequest): StockFindResponse | BadRequestError | NotFoundError;
 
   @doc("Release stock from warehouse (outbound)")
   @route("release")
   @post
-  release(@body body: StockReleaseRequest): StockFindResponse | BadRequestError;
+  release(@body body: StockReleaseRequest): StockFindResponse | BadRequestError | NotFoundError;
 
   @doc("Adjust stock quantity (correction)")
   @route("adjust")
   @post
-  adjust(@body body: StockAdjustRequest): StockFindResponse;
+  adjust(@body body: StockAdjustRequest): StockFindResponse | BadRequestError | NotFoundError;
 
   @doc("Reserve stock for an order")
   @route("reserve")
   @post
-  reserve(@body body: StockReserveRequest): StockFindResponse | BadRequestError;
+  reserve(@body body: StockReserveRequest): StockFindResponse | BadRequestError | NotFoundError;
 
   @doc("Find stock change history")
   @route("{edition_uid}/history")

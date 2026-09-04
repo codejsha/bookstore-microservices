@@ -30,7 +30,7 @@ func (h *WarehouseApiHandler) WarehousesGetAll(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -41,7 +41,7 @@ func (h *WarehouseApiHandler) WarehousesGetAll(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -54,13 +54,15 @@ func (h *WarehouseApiHandler) WarehousesGetAll(c *gin.Context) {
 	}
 	result, err := h.service.WarehousesGetAll(c.Request.Context(), name, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
 }
 
 // Register new warehouse
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 //
 // Response headers (WarehousesCreateResponseHeaders):
 //
@@ -68,11 +70,11 @@ func (h *WarehouseApiHandler) WarehousesGetAll(c *gin.Context) {
 func (h *WarehouseApiHandler) WarehousesCreate(c *gin.Context) {
 	var req WarehouseCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	if err := h.service.WarehousesCreate(c.Request.Context(), req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -85,7 +87,7 @@ func (h *WarehouseApiHandler) WarehousesRead(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.WarehousesRead(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -93,17 +95,18 @@ func (h *WarehouseApiHandler) WarehousesRead(c *gin.Context) {
 
 // Update warehouse
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *WarehouseApiHandler) WarehousesUpdate(c *gin.Context) {
 	uid := c.Param("uid")
 	var req WarehouseUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.WarehousesUpdate(c.Request.Context(), uid, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)

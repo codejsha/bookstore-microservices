@@ -8,9 +8,9 @@ import (
 
 type WarehouseUpdateResponse struct {
 	Address   *string    `json:"address,omitempty"`
-	Capacity  int32      `json:"capacity" validate:"required"`
-	CreatedAt time.Time  `json:"created_at" validate:"required"`
-	Name      string     `json:"name" validate:"required"`
-	Uid       string     `json:"uid" validate:"required"`
+	Capacity  int32      `json:"capacity"`
+	CreatedAt time.Time  `json:"created_at" binding:"required"`
+	Name      string     `json:"name" binding:"required"`
+	Uid       string     `json:"uid" binding:"required"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 }

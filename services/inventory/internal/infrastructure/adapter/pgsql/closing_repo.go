@@ -125,7 +125,7 @@ func (r *monthlyClosingRepository) Create(ctx context.Context, p repo.ClosingCre
 		var warehouse entity.WarehouseEntity
 		e := tx.Where("uid = ?", p.WarehouseUid).First(&warehouse).Error
 		if errors.Is(e, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("warehouse %s not found", p.WarehouseUid)
+			return fmt.Errorf("warehouse %s not found: %w", p.WarehouseUid, repo.ErrWarehouseNotFound)
 		}
 		if e != nil {
 			return e

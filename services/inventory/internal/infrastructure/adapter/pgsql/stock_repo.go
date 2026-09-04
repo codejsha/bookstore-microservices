@@ -132,7 +132,7 @@ func (r stockRepository) ApplyChange(ctx context.Context, p repo.ApplyChangePara
 			e := tx.Where("edition_uid = ? AND warehouse_uid = ?", p.EditionUid, p.WarehouseUid).
 				First(&target).Error
 			if errors.Is(e, gorm.ErrRecordNotFound) {
-				return fmt.Errorf("stock not found for edition %s in warehouse %s", p.EditionUid, p.WarehouseUid)
+				return fmt.Errorf("stock not found for edition %s in warehouse %s: %w", p.EditionUid, p.WarehouseUid, repo.ErrStockNotFound)
 			}
 			if e != nil {
 				return e

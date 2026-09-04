@@ -30,7 +30,7 @@ func (h *AuditApiHandler) AuditsGetAll(c *gin.Context) {
 	if statusStr != "" {
 		v, err := ParseAuditStatus(statusStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid status"))
 			return
 		}
 		status = &v
@@ -40,7 +40,7 @@ func (h *AuditApiHandler) AuditsGetAll(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -51,7 +51,7 @@ func (h *AuditApiHandler) AuditsGetAll(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -64,22 +64,25 @@ func (h *AuditApiHandler) AuditsGetAll(c *gin.Context) {
 	}
 	result, err := h.service.AuditsGetAll(c.Request.Context(), warehouseUid, status, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
 }
 
 // Create stock audit (실사)
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *AuditApiHandler) AuditsCreate(c *gin.Context) {
 	var req AuditCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.AuditsCreate(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -92,7 +95,7 @@ func (h *AuditApiHandler) AuditsRead(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.AuditsRead(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -106,7 +109,7 @@ func (h *AuditApiHandler) AuditsComplete(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.AuditsComplete(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)

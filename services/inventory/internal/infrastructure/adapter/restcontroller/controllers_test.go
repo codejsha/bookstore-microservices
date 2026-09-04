@@ -15,6 +15,26 @@ import (
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
 )
 
+const (
+	uidEdition1         = "aaaaaaa1-0000-4000-8000-000000000001"
+	uidEdition2         = "aaaaaaa1-0000-4000-8000-000000000002"
+	uidEdition3         = "aaaaaaa1-0000-4000-8000-000000000003"
+	uidEdition4         = "aaaaaaa1-0000-4000-8000-000000000004"
+	uidEdition5         = "aaaaaaa1-0000-4000-8000-000000000005"
+	uidWarehouse1       = "bbbbbbb1-0000-4000-8000-000000000001"
+	uidWarehouse2       = "bbbbbbb1-0000-4000-8000-000000000002"
+	uidWarehouse3       = "bbbbbbb1-0000-4000-8000-000000000003"
+	uidWarehouse4       = "bbbbbbb1-0000-4000-8000-000000000004"
+	uidWarehouse5       = "bbbbbbb1-0000-4000-8000-000000000005"
+	uidWarehouse6       = "bbbbbbb1-0000-4000-8000-000000000006"
+	uidWarehouse7       = "bbbbbbb1-0000-4000-8000-000000000007"
+	uidWarehouseMissing = "bbbbbbb1-0000-4000-8000-0000000000ff"
+	uidTransfer1        = "ccccccc1-0000-4000-8000-000000000001"
+	uidAudit1           = "ddddddd1-0000-4000-8000-000000000001"
+	uidClosing1         = "eeeeeee1-0000-4000-8000-000000000001"
+	uidMissing          = "ffffffff-0000-4000-8000-0000000000ff"
+)
+
 type stubUseCase struct {
 	findAllStocks     func(context.Context, option.StockQueryOption) (int64, []*aggregate.StockAggregate, error)
 	findStock         func(context.Context, string) (*aggregate.StockAggregate, error)
@@ -129,24 +149,24 @@ func ptrStr(s string) *string { return &s }
 
 // ─── Stock controller ─────────────────────────────────────────────────────
 
-func TestStockController_StocksGetAll(t *testing.T) {
+func TestStockController_WhenFiltersGiven_ReturnsPagedStocks(t *testing.T) {
 	use := &stubUseCase{
 		findAllStocks: func(_ context.Context, opt option.StockQueryOption) (int64, []*aggregate.StockAggregate, error) {
-			if opt.EditionUid() == nil || *opt.EditionUid() != "ed-1" {
+			if opt.EditionUid() == nil || *opt.EditionUid() != uidEdition1 {
 				t.Errorf("EditionUid = %v", opt.EditionUid())
 			}
 			return 1, []*aggregate.StockAggregate{
 				{
-					Uid: "stk-1", EditionUid: "ed-1", TotalQuantity: 9,
+					Uid: "stk-1", EditionUid: uidEdition1, TotalQuantity: 9,
 					Warehouses: []*aggregate.StockWarehouse{
-						{WarehouseUid: "wh-1", WarehouseName: "Main", Quantity: 9},
+						{WarehouseUid: uidWarehouse1, WarehouseName: "Main", Quantity: 9},
 					},
 				},
 			}, nil
 		},
 	}
 	ctrl := NewStockController(use)
-	editionUid := "ed-1"
+	editionUid := uidEdition1
 	resp, err := ctrl.StocksGetAll(context.Background(), &editionUid, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -159,26 +179,26 @@ func TestStockController_StocksGetAll(t *testing.T) {
 	}
 }
 
-func TestStockController_StocksRead(t *testing.T) {
+func TestStockController_WhenStockExists_ReturnsStockResponse(t *testing.T) {
 	use := &stubUseCase{
 		findStock: func(_ context.Context, editionUid string) (*aggregate.StockAggregate, error) {
-			if editionUid != "ed-1" {
+			if editionUid != uidEdition1 {
 				t.Errorf("editionUid = %q", editionUid)
 			}
 			return &aggregate.StockAggregate{Uid: "stk-1", EditionUid: editionUid, TotalQuantity: 5}, nil
 		},
 	}
 	ctrl := NewStockController(use)
-	resp, err := ctrl.StocksRead(context.Background(), "ed-1")
+	resp, err := ctrl.StocksRead(context.Background(), uidEdition1)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.EditionUid != "ed-1" || resp.TotalQuantity != 5 {
+	if resp.EditionUid != uidEdition1 || resp.TotalQuantity != 5 {
 		t.Errorf("resp = %+v", resp)
 	}
 }
 
-func TestStockController_StocksReceive(t *testing.T) {
+func TestStockController_WhenReceiveRequestValid_PassesCommandToUsecase(t *testing.T) {
 	captured := command.StockReceiveCommand{}
 	use := &stubUseCase{
 		receiveStock: func(_ context.Context, cmd command.StockReceiveCommand) (*aggregate.StockAggregate, error) {
@@ -189,15 +209,15 @@ func TestStockController_StocksReceive(t *testing.T) {
 	ctrl := NewStockController(use)
 	reason := "restock"
 	resp, err := ctrl.StocksReceive(context.Background(), openapi.StockReceiveRequest{
-		EditionUid:   "ed-1",
-		WarehouseUid: "wh-1",
+		EditionUid:   uidEdition1,
+		WarehouseUid: uidWarehouse1,
 		Quantity:     10,
 		Reason:       &reason,
 	})
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if captured.EditionUid != "ed-1" || captured.WarehouseUid != "wh-1" || captured.Quantity != 10 {
+	if captured.EditionUid != uidEdition1 || captured.WarehouseUid != uidWarehouse1 || captured.Quantity != 10 {
 		t.Errorf("captured = %+v", captured)
 	}
 	if captured.Reason == nil || *captured.Reason != reason {
@@ -208,7 +228,7 @@ func TestStockController_StocksReceive(t *testing.T) {
 	}
 }
 
-func TestStockController_StocksReceive_PropagatesError(t *testing.T) {
+func TestStockController_WhenReceiveUsecaseFails_PropagatesError(t *testing.T) {
 	wantErr := errors.New("oversold")
 	use := &stubUseCase{
 		receiveStock: func(context.Context, command.StockReceiveCommand) (*aggregate.StockAggregate, error) {
@@ -222,7 +242,7 @@ func TestStockController_StocksReceive_PropagatesError(t *testing.T) {
 	}
 }
 
-func TestStockController_StocksAdjust_RequiredReason(t *testing.T) {
+func TestStockController_WhenAdjustRequestValid_ForwardsRequiredReason(t *testing.T) {
 	captured := command.StockAdjustCommand{}
 	use := &stubUseCase{
 		adjustStock: func(_ context.Context, cmd command.StockAdjustCommand) (*aggregate.StockAggregate, error) {
@@ -232,7 +252,7 @@ func TestStockController_StocksAdjust_RequiredReason(t *testing.T) {
 	}
 	ctrl := NewStockController(use)
 	_, err := ctrl.StocksAdjust(context.Background(), openapi.StockAdjustRequest{
-		EditionUid: "ed", WarehouseUid: "wh", Quantity: -5, Reason: "damaged",
+		EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: -5, Reason: "damaged",
 	})
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -242,7 +262,7 @@ func TestStockController_StocksAdjust_RequiredReason(t *testing.T) {
 	}
 }
 
-func TestStockController_StocksReserveAndRelease(t *testing.T) {
+func TestStockController_WhenReserveAndReleaseRequested_PassCommandsToUsecase(t *testing.T) {
 	use := &stubUseCase{
 		reserveStock: func(_ context.Context, cmd command.StockReserveCommand) (*aggregate.StockAggregate, error) {
 			if cmd.Quantity != 3 {
@@ -258,21 +278,21 @@ func TestStockController_StocksReserveAndRelease(t *testing.T) {
 		},
 	}
 	ctrl := NewStockController(use)
-	if _, err := ctrl.StocksReserve(context.Background(), openapi.StockReserveRequest{EditionUid: "ed", WarehouseUid: "wh", Quantity: 3}); err != nil {
+	if _, err := ctrl.StocksReserve(context.Background(), openapi.StockReserveRequest{EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: 3}); err != nil {
 		t.Errorf("reserve err: %v", err)
 	}
-	if _, err := ctrl.StocksRelease(context.Background(), openapi.StockReleaseRequest{EditionUid: "ed", WarehouseUid: "wh", Quantity: 2}); err != nil {
+	if _, err := ctrl.StocksRelease(context.Background(), openapi.StockReleaseRequest{EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: 2}); err != nil {
 		t.Errorf("release err: %v", err)
 	}
 }
 
-func TestStockController_StocksHistory(t *testing.T) {
+func TestStockController_WhenHistoryRequested_ReturnsPagedHistory(t *testing.T) {
 	use := &stubUseCase{
 		findStockHistory: func(_ context.Context, editionUid string, warehouseUid *string, _ pagination.PageOption) (int64, []*aggregate.StockHistoryEntry, error) {
-			if editionUid != "ed-1" {
+			if editionUid != uidEdition1 {
 				t.Errorf("editionUid = %q", editionUid)
 			}
-			if warehouseUid == nil || *warehouseUid != "wh-1" {
+			if warehouseUid == nil || *warehouseUid != uidWarehouse1 {
 				t.Errorf("warehouseUid = %v", warehouseUid)
 			}
 			reason := "restock"
@@ -282,8 +302,8 @@ func TestStockController_StocksHistory(t *testing.T) {
 		},
 	}
 	ctrl := NewStockController(use)
-	wh := "wh-1"
-	resp, err := ctrl.StocksHistory(context.Background(), "ed-1", &wh, nil, nil, nil)
+	wh := uidWarehouse1
+	resp, err := ctrl.StocksHistory(context.Background(), uidEdition1, &wh, nil, nil, nil)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -297,13 +317,13 @@ func TestStockController_StocksHistory(t *testing.T) {
 
 // ─── Warehouse controller ─────────────────────────────────────────────────
 
-func TestWarehouseController_GetAll(t *testing.T) {
+func TestWarehouseController_WhenFiltersGiven_ReturnsPagedWarehouses(t *testing.T) {
 	use := &stubUseCase{
 		findAllWarehouses: func(_ context.Context, opt option.WarehouseQueryOption) (int64, []*aggregate.WarehouseAggregate, error) {
 			if opt.Name() == nil || *opt.Name() != "Main" {
 				t.Errorf("Name = %v", opt.Name())
 			}
-			return 1, []*aggregate.WarehouseAggregate{{Uid: "wh-1", Name: "Main", Capacity: 1000}}, nil
+			return 1, []*aggregate.WarehouseAggregate{{Uid: uidWarehouse1, Name: "Main", Capacity: 1000}}, nil
 		},
 	}
 	ctrl := NewWarehouseController(use)
@@ -317,12 +337,12 @@ func TestWarehouseController_GetAll(t *testing.T) {
 	}
 }
 
-func TestWarehouseController_Create(t *testing.T) {
+func TestWarehouseController_WhenRequestValid_PassesCommandToUsecase(t *testing.T) {
 	captured := command.WarehouseCreateCommand{}
 	use := &stubUseCase{
 		registerWarehouse: func(_ context.Context, cmd command.WarehouseCreateCommand) (*aggregate.WarehouseAggregate, error) {
 			captured = cmd
-			return &aggregate.WarehouseAggregate{Uid: "wh-new", Name: cmd.Name}, nil
+			return &aggregate.WarehouseAggregate{Uid: uidWarehouse4, Name: cmd.Name}, nil
 		},
 	}
 	ctrl := NewWarehouseController(use)
@@ -340,10 +360,10 @@ func TestWarehouseController_Create(t *testing.T) {
 	}
 }
 
-func TestWarehouseController_Update(t *testing.T) {
+func TestWarehouseController_WhenRequestValid_ReturnsUpdatedWarehouse(t *testing.T) {
 	use := &stubUseCase{
 		updateWarehouse: func(_ context.Context, uid string, cmd command.WarehouseUpdateCommand) (*aggregate.WarehouseAggregate, error) {
-			if uid != "wh-1" {
+			if uid != uidWarehouse1 {
 				t.Errorf("uid = %q", uid)
 			}
 			if cmd.Name == nil || *cmd.Name != "Renamed" {
@@ -354,7 +374,7 @@ func TestWarehouseController_Update(t *testing.T) {
 	}
 	ctrl := NewWarehouseController(use)
 	name := "Renamed"
-	resp, err := ctrl.WarehousesUpdate(context.Background(), "wh-1", openapi.WarehouseUpdateRequest{Name: &name})
+	resp, err := ctrl.WarehousesUpdate(context.Background(), uidWarehouse1, openapi.WarehouseUpdateRequest{Name: &name})
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -365,12 +385,12 @@ func TestWarehouseController_Update(t *testing.T) {
 
 // ─── mapping helpers ───────────────────────────────────────────────────────
 
-func TestToStockFindResponse(t *testing.T) {
+func TestToStockFindResponse_WhenAggregateGiven_MapsEveryField(t *testing.T) {
 	got := toStockFindResponse(&aggregate.StockAggregate{
-		Uid: "stk-1", EditionUid: "ed-1", TotalQuantity: 7,
+		Uid: "stk-1", EditionUid: uidEdition1, TotalQuantity: 7,
 		Warehouses: []*aggregate.StockWarehouse{
-			{WarehouseUid: "wh-1", WarehouseName: "Main", Quantity: 4},
-			{WarehouseUid: "wh-2", WarehouseName: "Backup", Quantity: 3},
+			{WarehouseUid: uidWarehouse1, WarehouseName: "Main", Quantity: 4},
+			{WarehouseUid: uidWarehouse2, WarehouseName: "Backup", Quantity: 3},
 		},
 	})
 	if len(got.Warehouses) != 2 || got.Warehouses[1].WarehouseName != "Backup" {
@@ -378,7 +398,7 @@ func TestToStockFindResponse(t *testing.T) {
 	}
 }
 
-func TestToStockHistoryItem(t *testing.T) {
+func TestToStockHistoryItem_WhenEntryGiven_MapsEveryField(t *testing.T) {
 	now := time.Now()
 	reason := "x"
 	got := toStockHistoryItem(&aggregate.StockHistoryEntry{
@@ -395,13 +415,13 @@ func TestToStockHistoryItem(t *testing.T) {
 	}
 }
 
-func TestToWarehouseFindResponse(t *testing.T) {
+func TestToWarehouseFindResponse_WhenAggregateGiven_MapsEveryField(t *testing.T) {
 	addr := "Earth"
 	now := time.Now()
 	got := toWarehouseFindResponse(&aggregate.WarehouseAggregate{
-		Uid: "wh-1", Name: "Main", Address: &addr, Capacity: 100, CreatedAt: now,
+		Uid: uidWarehouse1, Name: "Main", Address: &addr, Capacity: 100, CreatedAt: now,
 	})
-	if got.Uid != "wh-1" || got.Capacity != 100 {
+	if got.Uid != uidWarehouse1 || got.Capacity != 100 {
 		t.Errorf("got = %+v", got)
 	}
 	if got.Address == nil || *got.Address != addr {

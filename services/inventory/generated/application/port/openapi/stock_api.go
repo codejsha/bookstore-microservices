@@ -19,12 +19,18 @@ type StockApi interface {
 	) (*StockFindAllResponse, error)
 
 	// Adjust stock quantity (correction)
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 404 (NotFoundError) — The server cannot find the requested resource.
 	StocksAdjust(
 		ctx context.Context,
 		req StockAdjustRequest,
 	) (*StockFindResponse, error)
 
 	// Receive stock into warehouse (inbound)
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 404 (NotFoundError) — The server cannot find the requested resource.
 	StocksReceive(
 		ctx context.Context,
 		req StockReceiveRequest,
@@ -33,6 +39,7 @@ type StockApi interface {
 	// Release stock from warehouse (outbound)
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 404 (NotFoundError) — The server cannot find the requested resource.
 	StocksRelease(
 		ctx context.Context,
 		req StockReleaseRequest,
@@ -41,6 +48,7 @@ type StockApi interface {
 	// Reserve stock for an order
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 404 (NotFoundError) — The server cannot find the requested resource.
 	StocksReserve(
 		ctx context.Context,
 		req StockReserveRequest,

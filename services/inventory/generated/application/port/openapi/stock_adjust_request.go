@@ -4,9 +4,9 @@ package openapi
 
 // Adjust stock quantity (correction)
 type StockAdjustRequest struct {
-	EditionUid string `json:"edition_uid" validate:"required"`
+	EditionUid string `json:"edition_uid" binding:"required"`
 	// Positive or negative quantity adjustment
-	Quantity     int32  `json:"quantity" validate:"required"`
-	Reason       string `json:"reason" validate:"required"`
-	WarehouseUid string `json:"warehouse_uid" validate:"required"`
+	Quantity     int32  `json:"quantity"`
+	Reason       string `json:"reason" binding:"required,max=255"`
+	WarehouseUid string `json:"warehouse_uid" binding:"required"`
 }

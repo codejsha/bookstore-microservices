@@ -7,9 +7,9 @@ import (
 )
 
 type StockHistoryFindResponse struct {
-	ChangeQty  int32           `json:"change_qty" validate:"required"`
-	ChangeType StockChangeType `json:"change_type" validate:"required"`
-	CreatedAt  time.Time       `json:"created_at" validate:"required"`
+	ChangeQty  int32           `json:"change_qty"`
+	ChangeType StockChangeType `json:"change_type" binding:"required"`
+	CreatedAt  time.Time       `json:"created_at" binding:"required"`
 	Reason     *string         `json:"reason,omitempty"`
-	Uid        string          `json:"uid" validate:"required"`
+	Uid        string          `json:"uid" binding:"required"`
 }

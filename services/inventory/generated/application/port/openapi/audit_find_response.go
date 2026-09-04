@@ -8,11 +8,11 @@ import (
 
 type AuditFindResponse struct {
 	CompletedAt  *time.Time          `json:"completed_at,omitempty"`
-	CreatedAt    time.Time           `json:"created_at" validate:"required"`
-	Items        []AuditItemResponse `json:"items" validate:"required"`
+	CreatedAt    time.Time           `json:"created_at" binding:"required"`
+	Items        []AuditItemResponse `json:"items" binding:"required,dive"`
 	Notes        *string             `json:"notes,omitempty"`
-	Status       AuditStatus         `json:"status" validate:"required"`
-	Uid          string              `json:"uid" validate:"required"`
+	Status       AuditStatus         `json:"status" binding:"required"`
+	Uid          string              `json:"uid" binding:"required"`
 	UpdatedAt    *time.Time          `json:"updated_at,omitempty"`
-	WarehouseUid string              `json:"warehouse_uid" validate:"required"`
+	WarehouseUid string              `json:"warehouse_uid" binding:"required"`
 }

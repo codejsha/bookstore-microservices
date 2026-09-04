@@ -20,7 +20,7 @@ interface Audits {
 
   @doc("Create stock audit (실사)")
   @post
-  create(@body body: AuditCreateRequest): AuditFindResponse;
+  create(@body body: AuditCreateRequest): AuditFindResponse | BadRequestError | NotFoundError;
 
   @doc("Find stock audit")
   @route("{uid}")

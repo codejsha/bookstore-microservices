@@ -3,9 +3,9 @@
 package openapi
 
 type TransferCreateRequest struct {
-	EditionUid         string  `json:"edition_uid" validate:"required"`
-	Quantity           int32   `json:"quantity" validate:"required"`
-	Reason             *string `json:"reason,omitempty"`
-	SourceWarehouseUid string  `json:"source_warehouse_uid" validate:"required"`
-	TargetWarehouseUid string  `json:"target_warehouse_uid" validate:"required"`
+	EditionUid         string  `json:"edition_uid" binding:"required"`
+	Quantity           int32   `json:"quantity" binding:"required,gte=1"`
+	Reason             *string `json:"reason,omitempty" binding:"omitempty,max=255"`
+	SourceWarehouseUid string  `json:"source_warehouse_uid" binding:"required"`
+	TargetWarehouseUid string  `json:"target_warehouse_uid" binding:"required"`
 }

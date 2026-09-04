@@ -10,6 +10,11 @@ const maxOptimisticRetries = 5
 
 var errVersionConflict = errors.New("pgsql: optimistic version conflict")
 var errReservationConflict = errors.New("pgsql: concurrent reservation conflict")
+var errStockCreateConflict = errors.New("pgsql: concurrent stock row creation")
+
+func isRetryableConflict(err error) bool {
+	return errors.Is(err, errVersionConflict) || errors.Is(err, errStockCreateConflict)
+}
 
 const pgUniqueViolationCode = "23505"
 

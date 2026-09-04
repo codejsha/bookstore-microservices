@@ -3,6 +3,6 @@
 package openapi
 
 type AuditItemRequest struct {
-	ActualQuantity int32  `json:"actual_quantity" validate:"required"`
-	EditionUid     string `json:"edition_uid" validate:"required"`
+	ActualQuantity int32  `json:"actual_quantity"`
+	EditionUid     string `json:"edition_uid" binding:"required"`
 }

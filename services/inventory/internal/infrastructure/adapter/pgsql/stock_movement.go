@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/codejsha/bookstore-microservices/inventory/generated/infrastructure/port/entity"
+	"github.com/codejsha/bookstore-microservices/inventory/internal/application/port/repo"
 )
 
 const (
@@ -29,6 +30,8 @@ const (
 )
 
 const closingStatusClosed = "CLOSED"
+
+const stockEditionWarehouseConstraint = "uq_stock_edition_warehouse"
 
 const historyBucketSelect = `
 	COALESCE(SUM(CASE WHEN change_type IN ('INBOUND','RELEASE') THEN change_qty ELSE 0 END), 0) AS inbound,
@@ -55,7 +58,7 @@ func applyStockDeltaTx(tx *gorm.DB, d stockDelta) error {
 	switch {
 	case errors.Is(e, gorm.ErrRecordNotFound):
 		if !d.allowCreate || d.delta < 0 {
-			return fmt.Errorf("stock not found for edition %s in warehouse %s", d.editionUID, d.warehouseUID)
+			return fmt.Errorf("stock not found for edition %s in warehouse %s: %w", d.editionUID, d.warehouseUID, repo.ErrStockNotFound)
 		}
 		st = entity.StockEntity{
 			Uid:          uuid.Must(uuid.NewV7()).String(),
@@ -68,6 +71,9 @@ func applyStockDeltaTx(tx *gorm.DB, d stockDelta) error {
 			Version:      1,
 		}
 		if err := tx.Create(&st).Error; err != nil {
+			if isUniqueViolation(err, stockEditionWarehouseConstraint) {
+				return fmt.Errorf("%w: edition %s in warehouse %s", errStockCreateConflict, d.editionUID, d.warehouseUID)
+			}
 			return err
 		}
 	case e != nil:
@@ -76,8 +82,8 @@ func applyStockDeltaTx(tx *gorm.DB, d stockDelta) error {
 
 	newQty := st.Quantity + d.delta
 	if newQty < 0 {
-		return fmt.Errorf("insufficient stock for edition %s in warehouse %s: have %d, requested %d",
-			d.editionUID, d.warehouseUID, st.Quantity, -d.delta)
+		return fmt.Errorf("insufficient stock for edition %s in warehouse %s: have %d, requested %d: %w",
+			d.editionUID, d.warehouseUID, st.Quantity, -d.delta, repo.ErrInsufficientStock)
 	}
 
 	res := tx.Model(&entity.StockEntity{}).

@@ -37,6 +37,7 @@ model StockReceiveRequest {
   @minValue(1)
   quantity: int32;
 
+  @maxLength(255)
   reason?: string;
 }
 
@@ -48,6 +49,7 @@ model StockReleaseRequest {
   @minValue(1)
   quantity: int32;
 
+  @maxLength(255)
   reason?: string;
 }
 
@@ -59,6 +61,7 @@ model StockAdjustRequest {
   @doc("Positive or negative quantity adjustment")
   quantity: int32;
 
+  @maxLength(255)
   reason: string;
 }
 
@@ -71,6 +74,7 @@ model StockReserveRequest {
   quantity: int32;
 
   @doc("Order reference")
+  @maxLength(255)
   reason?: string;
 }
 

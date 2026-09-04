@@ -19,6 +19,7 @@ model TransferCreateRequest {
   @minValue(1)
   quantity: int32;
 
+  @maxLength(255)
   reason?: string;
 }
 

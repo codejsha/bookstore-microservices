@@ -18,6 +18,8 @@ type WarehouseApi interface {
 	) (*WarehouseFindAllResponse, error)
 
 	// Register new warehouse
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	//
 	// Response headers (WarehousesCreateResponseHeaders):
 	//   location (string) — Location of the created resource
@@ -36,6 +38,7 @@ type WarehouseApi interface {
 
 	// Update warehouse
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	WarehousesUpdate(
 		ctx context.Context,

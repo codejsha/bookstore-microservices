@@ -11,7 +11,13 @@ enum ClosingStatus {
 
 model ClosingCreateRequest {
   warehouse_uid: uuid;
+
+  @minValue(2000)
+  @maxValue(2100)
   year: int32;
+
+  @minValue(1)
+  @maxValue(12)
   month: int32;
 }
 
