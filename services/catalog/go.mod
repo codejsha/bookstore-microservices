@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	github.com/codejsha/shared-library-go v0.0.0-20251016141700-296676ce7039
 	github.com/gin-gonic/gin v1.12.0
+	github.com/jackc/pgx/v5 v5.9.2
 	github.com/opensearch-project/opensearch-go/v4 v4.6.0
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
@@ -40,7 +41,6 @@ require (
 	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.9.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -76,7 +76,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.30.2 // indirect
+	github.com/go-playground/validator/v10 v10.30.2
 	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-json v0.10.6 // indirect

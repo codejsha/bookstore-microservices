@@ -3,6 +3,6 @@
 package openapi
 
 type PublisherFindAllResponse struct {
-	Items []PublisherItem `json:"items" validate:"required"`
-	Total int64           `json:"total" validate:"required"`
+	Items []PublisherItem `json:"items" binding:"required,dive"`
+	Total int64           `json:"total" binding:"gte=0"`
 }

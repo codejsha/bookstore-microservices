@@ -7,8 +7,8 @@ type AuthorItem struct {
 	Bio            *string   `json:"bio,omitempty"`
 	BirthDate      *string   `json:"birth_date,omitempty"`
 	DeathDate      *string   `json:"death_date,omitempty"`
-	Name           string    `json:"name" validate:"required"`
+	Name           string    `json:"name" binding:"required"`
 	OlKey          *string   `json:"ol_key,omitempty"`
 	PhotoUids      *[]string `json:"photo_uids,omitempty"`
-	Uid            string    `json:"uid" validate:"required"`
+	Uid            string    `json:"uid" binding:"required"`
 }

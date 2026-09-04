@@ -3,14 +3,24 @@ namespace CatalogService;
 // ─── Publisher models ───────────────────────────────────────────────────────
 
 model PublisherCreateRequest {
+  @maxLength(255)
   name: string;
+
+  @maxLength(255)
   address?: string;
+
+  @maxLength(64)
   ol_key?: string;
 }
 
 model PublisherUpdateRequest {
+  @maxLength(255)
   name?: string;
+
+  @maxLength(255)
   address?: string;
+
+  @maxLength(64)
   ol_key?: string;
 }
 

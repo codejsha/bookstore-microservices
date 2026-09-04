@@ -3,6 +3,6 @@
 package openapi
 
 type SubjectFindAllResponse struct {
-	Items []SubjectItem `json:"items" validate:"required"`
-	Total int64         `json:"total" validate:"required"`
+	Items []SubjectItem `json:"items" binding:"required,dive"`
+	Total int64         `json:"total" binding:"gte=0"`
 }

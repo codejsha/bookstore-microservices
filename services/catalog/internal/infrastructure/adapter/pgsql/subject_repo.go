@@ -75,6 +75,18 @@ func (r *subjectRepository) FindByUid(ctx context.Context, uid string) (*repo.Su
 	return toSubjectResult(e), nil
 }
 
+func (r *subjectRepository) FindByName(ctx context.Context, name string) (*repo.SubjectResult, error) {
+	s := r.q.SubjectEntity
+	e, err := s.WithContext(ctx).Where(s.Name.Eq(name)).First()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return toSubjectResult(e), nil
+}
+
 func (r *subjectRepository) FindOrCreateByName(ctx context.Context, name string) (int64, error) {
 	s := r.q.SubjectEntity
 	e, err := s.WithContext(ctx).Where(s.Name.Eq(name)).First()

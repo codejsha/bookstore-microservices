@@ -19,7 +19,7 @@ interface Publishers {
 
   @doc("Register new publisher")
   @post
-  create(@body body: PublisherCreateRequest): CreatedResponse;
+  create(@body body: PublisherCreateRequest): CreatedResponse | BadRequestError | ConflictError;
 
   @doc("Find publisher")
   @route("{uid}")
@@ -29,5 +29,5 @@ interface Publishers {
   @doc("Update publisher")
   @route("{uid}")
   @put
-  update(@path uid: uuid, @body body: PublisherUpdateRequest): PublisherUpdateResponse | NotFoundError;
+  update(@path uid: uuid, @body body: PublisherUpdateRequest): PublisherUpdateResponse | BadRequestError | NotFoundError | ConflictError;
 }

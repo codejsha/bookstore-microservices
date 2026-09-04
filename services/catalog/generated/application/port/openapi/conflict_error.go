@@ -2,7 +2,7 @@
 
 package openapi
 
-type ForbiddenError struct {
+type ConflictError struct {
 	Detail *string `json:"detail,omitempty"`
 	Status int32   `json:"status"`
 	Title  string  `json:"title" binding:"required"`

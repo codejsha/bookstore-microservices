@@ -70,7 +70,8 @@ func workOpt(title string, page int32) option.WorkQueryOption {
 
 // ─── epoch-key construction ────────────────────────────────────────────────
 
-func TestHashWorkQuery_StableAndSensitive(t *testing.T) {
+// Identical queries must hash equal; page and title filter changes must not collide.
+func TestHashWorkQuery_WhenQueryFieldsDiffer_ReturnsDifferentHash(t *testing.T) {
 	a := hashWorkQuery(workOpt("hobbit", 1))
 	if a != hashWorkQuery(workOpt("hobbit", 1)) {
 		t.Error("hash not stable for identical queries")
@@ -83,7 +84,7 @@ func TestHashWorkQuery_StableAndSensitive(t *testing.T) {
 	}
 }
 
-func TestListKey_EmbedsEpochAndPrefix(t *testing.T) {
+func TestListKey_WhenEpochBumped_ReturnsKeyWithNewEpochPrefix(t *testing.T) {
 	store := newFakeStore()
 	c := NewWorkListCache(store)
 	opt := workOpt("hobbit", 1)
@@ -107,7 +108,7 @@ func TestListKey_EmbedsEpochAndPrefix(t *testing.T) {
 
 // ─── round-trip + invalidation ─────────────────────────────────────────────
 
-func TestWorkListCache_SaveThenLookup(t *testing.T) {
+func TestWorkListCache_WhenEntrySavedThenInvalidated_LookupHitsThenMisses(t *testing.T) {
 	c := NewWorkListCache(newFakeStore())
 	opt := workOpt("hobbit", 1)
 	want := []*repo.WorkResult{{Uid: "w-1", Title: "Hobbit"}}
@@ -128,7 +129,7 @@ func TestWorkListCache_SaveThenLookup(t *testing.T) {
 
 // ─── graceful degradation ──────────────────────────────────────────────────
 
-func TestWorkListCache_DisabledIsNoOp(t *testing.T) {
+func TestWorkListCache_WhenDisabled_LookupMissesAndInvalidateReturnsNil(t *testing.T) {
 	c := NewWorkListCache(nil)
 	opt := workOpt("hobbit", 1)
 
@@ -141,7 +142,7 @@ func TestWorkListCache_DisabledIsNoOp(t *testing.T) {
 	}
 }
 
-func TestWorkListCache_TransportFailuresDegrade(t *testing.T) {
+func TestWorkListCache_WhenStoreFails_LookupMissesAndInvalidateSurfacesError(t *testing.T) {
 	c := NewWorkListCache(&fakeStore{data: map[string]string{}, errOn: true})
 	opt := workOpt("hobbit", 1)
 
@@ -176,14 +177,14 @@ func (s *stubWorkRepo) Create(context.Context, command.WorkCreateCommand) (int64
 }
 func (s *stubWorkRepo) Update(context.Context, int64, command.WorkUpdateCommand) error { return nil }
 
-func TestNewCachingWorkRepo_DisabledReturnsInner(t *testing.T) {
+func TestNewCachingWorkRepo_WhenCacheDisabled_ReturnsInnerRepo(t *testing.T) {
 	inner := &stubWorkRepo{}
 	if got := NewCachingWorkRepo(inner, NewWorkListCache(nil)); got != repo.WorkRepo(inner) {
 		t.Error("disabled cache should return the inner repo unwrapped")
 	}
 }
 
-func TestCachingWorkRepo_CachesAndDegrades(t *testing.T) {
+func TestCachingWorkRepo_WhenQueryRepeats_ServesSecondCallFromCache(t *testing.T) {
 	inner := &stubWorkRepo{total: 2, rows: []*repo.WorkResult{{Uid: "w-1"}, {Uid: "w-2"}}}
 	dec := NewCachingWorkRepo(inner, NewWorkListCache(newFakeStore()))
 	opt := workOpt("hobbit", 1)
@@ -199,7 +200,7 @@ func TestCachingWorkRepo_CachesAndDegrades(t *testing.T) {
 	}
 }
 
-func TestCachingWorkRepo_StoreErrorFallsThroughToDB(t *testing.T) {
+func TestCachingWorkRepo_WhenStoreFails_FallsThroughToDb(t *testing.T) {
 	inner := &stubWorkRepo{total: 1, rows: []*repo.WorkResult{{Uid: "w-1"}}}
 	dec := NewCachingWorkRepo(inner, NewWorkListCache(&fakeStore{data: map[string]string{}, errOn: true}))
 

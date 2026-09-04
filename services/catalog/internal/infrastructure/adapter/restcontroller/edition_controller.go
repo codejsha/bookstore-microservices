@@ -76,7 +76,7 @@ func (c *editionController) EditionsCreate(ctx context.Context, req openapi.Edit
 
 	edition, err := c.catalogUseCase.CreateEdition(ctx, cmd)
 	if err != nil {
-		return httpx.MapNotFound(ctx, err)
+		return httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err)))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "edition", edition.Uid, "created", logrus.Fields{"title": req.Title})
@@ -136,7 +136,7 @@ func (c *editionController) EditionsUpdate(
 
 	edition, err := c.catalogUseCase.UpdateEdition(ctx, uid, cmd)
 	if err != nil {
-		return nil, httpx.MapNotFound(ctx, err)
+		return nil, httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err)))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "edition", uid, "updated", logrus.Fields{})

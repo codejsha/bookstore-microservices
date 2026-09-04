@@ -3,11 +3,11 @@
 package openapi
 
 type WorkUpdateRequest struct {
-	AuthorUids       *[]string `json:"author_uids,omitempty"`
+	AuthorUids       *[]string `json:"author_uids,omitempty" binding:"omitempty,dive"`
 	CoverUids        *[]string `json:"cover_uids,omitempty"`
 	Description      *string   `json:"description,omitempty"`
-	FirstPublishDate *string   `json:"first_publish_date,omitempty"`
-	OlKey            *string   `json:"ol_key,omitempty"`
+	FirstPublishDate *string   `json:"first_publish_date,omitempty" binding:"omitempty,max=32"`
+	OlKey            *string   `json:"ol_key,omitempty" binding:"omitempty,max=64"`
 	SubjectNames     *[]string `json:"subject_names,omitempty"`
-	Title            *string   `json:"title,omitempty"`
+	Title            *string   `json:"title,omitempty" binding:"omitempty,max=512"`
 }

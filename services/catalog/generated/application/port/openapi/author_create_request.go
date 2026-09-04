@@ -5,9 +5,9 @@ package openapi
 type AuthorCreateRequest struct {
 	AlternateNames *[]string `json:"alternate_names,omitempty"`
 	Bio            *string   `json:"bio,omitempty"`
-	BirthDate      *string   `json:"birth_date,omitempty"`
-	DeathDate      *string   `json:"death_date,omitempty"`
-	Name           string    `json:"name" validate:"required"`
-	OlKey          *string   `json:"ol_key,omitempty"`
+	BirthDate      *string   `json:"birth_date,omitempty" binding:"omitempty,max=32"`
+	DeathDate      *string   `json:"death_date,omitempty" binding:"omitempty,max=32"`
+	Name           string    `json:"name" binding:"required,max=255"`
+	OlKey          *string   `json:"ol_key,omitempty" binding:"omitempty,max=64"`
 	PhotoUids      *[]string `json:"photo_uids,omitempty"`
 }

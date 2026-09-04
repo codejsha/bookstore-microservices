@@ -5,14 +5,14 @@ package openapi
 type EditionCreateRequest struct {
 	CoverUids      *[]string `json:"cover_uids,omitempty"`
 	Description    *string   `json:"description,omitempty"`
-	Isbn10         *string   `json:"isbn10,omitempty"`
-	Isbn13         *string   `json:"isbn13,omitempty"`
+	Isbn10         *string   `json:"isbn10,omitempty" binding:"omitempty,max=10"`
+	Isbn13         *string   `json:"isbn13,omitempty" binding:"omitempty,max=13"`
 	Languages      *[]string `json:"languages,omitempty"`
 	NumberOfPages  *int32    `json:"number_of_pages,omitempty"`
-	OlKey          *string   `json:"ol_key,omitempty"`
-	PhysicalFormat *string   `json:"physical_format,omitempty"`
-	PublishDate    *string   `json:"publish_date,omitempty"`
+	OlKey          *string   `json:"ol_key,omitempty" binding:"omitempty,max=64"`
+	PhysicalFormat *string   `json:"physical_format,omitempty" binding:"omitempty,max=64"`
+	PublishDate    *string   `json:"publish_date,omitempty" binding:"omitempty,max=32"`
 	PublisherUid   *string   `json:"publisher_uid,omitempty"`
-	Title          string    `json:"title" validate:"required"`
-	WorkUid        string    `json:"work_uid" validate:"required"`
+	Title          string    `json:"title" binding:"required,max=512"`
+	WorkUid        string    `json:"work_uid" binding:"required"`
 }

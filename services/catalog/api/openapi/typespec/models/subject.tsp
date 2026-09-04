@@ -3,10 +3,12 @@ namespace CatalogService;
 // ─── Subject models ────────────────────────────────────────────────────────
 
 model SubjectCreateRequest {
+  @maxLength(255)
   name: string;
 }
 
 model SubjectUpdateRequest {
+  @maxLength(255)
   name?: string;
 }
 

@@ -44,7 +44,7 @@ var (
 	curator   = map[string]string{HeaderUserID: "u-2", HeaderUserRoles: "admin"}
 )
 
-func TestGinAuthorizationMiddleware_WritesRequireAdmin(t *testing.T) {
+func TestGinAuthorizationMiddleware_WhenWriteRequested_AllowsOnlyAdmin(t *testing.T) {
 	writes := []struct{ method, path string }{
 		{http.MethodPost, "/api/v1/works"},
 		{http.MethodPut, "/api/v1/works/w-1"},
@@ -70,7 +70,7 @@ func TestGinAuthorizationMiddleware_WritesRequireAdmin(t *testing.T) {
 	}
 }
 
-func TestGinAuthorizationMiddleware_ReadsStayAnonymous(t *testing.T) {
+func TestGinAuthorizationMiddleware_WhenReadRequested_AllowsAnonymous(t *testing.T) {
 	e := newAuthedEngine()
 
 	for _, path := range []string{"/api/v1/works", "/api/v1/works/w-1"} {
@@ -85,7 +85,7 @@ func TestGinAuthorizationMiddleware_ReadsStayAnonymous(t *testing.T) {
 	}
 }
 
-func TestGinAuthorizationMiddleware_HealthStaysAnonymous(t *testing.T) {
+func TestGinAuthorizationMiddleware_WhenHealthRequested_AllowsAnonymous(t *testing.T) {
 	if got := do(t, newAuthedEngine(), http.MethodGet, "/health", anonymous); got != http.StatusOK {
 		t.Errorf("GET /health = %d, want 200", got)
 	}

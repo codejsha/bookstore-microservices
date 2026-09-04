@@ -11,6 +11,12 @@ import (
 	"github.com/codejsha/bookstore-microservices/catalog/internal/domain/model/option"
 )
 
+const (
+	cmdAuthorUid    = "0197f7c0-1c1a-7000-8000-000000000001"
+	cmdWorkUid      = "0197f7c0-1c1a-7000-8000-0000000000a1"
+	cmdPublisherUid = "0197f7c0-1c1a-7000-8000-0000000000b1"
+)
+
 // ─── stub repositories ──────────────────────────────────────────────────────
 
 type stubWorkRepo struct {
@@ -126,6 +132,7 @@ type stubSubjectRepo struct {
 	findAllFn            func(ctx context.Context, opt option.SubjectQueryOption) (int64, []*repo.SubjectResult, error)
 	findOneFn            func(ctx context.Context, id int64) (*repo.SubjectResult, error)
 	findByUidFn          func(ctx context.Context, uid string) (*repo.SubjectResult, error)
+	findByNameFn         func(ctx context.Context, name string) (*repo.SubjectResult, error)
 	findOrCreateByNameFn func(ctx context.Context, name string) (int64, error)
 	createFn             func(ctx context.Context, cmd command.SubjectCreateCommand) (int64, error)
 	updateFn             func(ctx context.Context, id int64, cmd command.SubjectUpdateCommand) error
@@ -139,6 +146,12 @@ func (s *stubSubjectRepo) FindOne(ctx context.Context, id int64) (*repo.SubjectR
 }
 func (s *stubSubjectRepo) FindByUid(ctx context.Context, uid string) (*repo.SubjectResult, error) {
 	return s.findByUidFn(ctx, uid)
+}
+func (s *stubSubjectRepo) FindByName(ctx context.Context, name string) (*repo.SubjectResult, error) {
+	if s.findByNameFn == nil {
+		return nil, nil
+	}
+	return s.findByNameFn(ctx, name)
 }
 func (s *stubSubjectRepo) FindOrCreateByName(ctx context.Context, name string) (int64, error) {
 	return s.findOrCreateByNameFn(ctx, name)
@@ -191,7 +204,7 @@ func newService(
 
 // ─── Work lifecycle ─────────────────────────────────────────────────────────
 
-func TestSearchWorks(t *testing.T) {
+func TestSearchWorks_WhenRepoReturnsHits_ReturnsAggregates(t *testing.T) {
 	desc := "desc"
 	first := "1990-01-01"
 	work := &repo.WorkSearchResult{
@@ -235,7 +248,7 @@ func TestSearchWorks(t *testing.T) {
 	}
 }
 
-func TestSearchWorksRepoError(t *testing.T) {
+func TestSearchWorks_WhenRepoFails_ReturnsRepoError(t *testing.T) {
 	wantErr := errors.New("boom")
 	searchStub := &stubWorkSearchRepo{
 		findAllFn: func(context.Context, option.WorkQueryOption) (int64, []*repo.WorkSearchResult, error) {
@@ -252,7 +265,7 @@ func TestSearchWorksRepoError(t *testing.T) {
 	}
 }
 
-func TestFindWork(t *testing.T) {
+func TestFindWork_WhenWorkExists_ReturnsAggregate(t *testing.T) {
 	repoStub := &stubWorkRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.WorkResult, error) {
 			if uid != "u-42" {
@@ -271,7 +284,7 @@ func TestFindWork(t *testing.T) {
 	}
 }
 
-func TestCreateWork(t *testing.T) {
+func TestCreateWork_WhenCommandValid_ReturnsCreatedAggregate(t *testing.T) {
 	createCalled := false
 	repoStub := &stubWorkRepo{
 		createFn: func(_ context.Context, cmd command.WorkCreateCommand) (int64, error) {
@@ -289,7 +302,7 @@ func TestCreateWork(t *testing.T) {
 		},
 	}
 	svc := newService(repoStub, nil, nil, nil, nil, nil)
-	agg, err := svc.CreateWork(context.Background(), command.WorkCreateCommand{Title: "New Book"})
+	agg, err := svc.CreateWork(context.Background(), command.WorkCreateCommand{Title: "New Book", AuthorUids: []string{cmdAuthorUid}})
 	if err != nil {
 		t.Fatalf("CreateWork err: %v", err)
 	}
@@ -301,7 +314,7 @@ func TestCreateWork(t *testing.T) {
 	}
 }
 
-func TestCreateWorkCreateError(t *testing.T) {
+func TestCreateWork_WhenRepoCreateFails_ReturnsRepoError(t *testing.T) {
 	wantErr := errors.New("create fail")
 	repoStub := &stubWorkRepo{
 		createFn: func(context.Context, command.WorkCreateCommand) (int64, error) { return 0, wantErr },
@@ -311,13 +324,27 @@ func TestCreateWorkCreateError(t *testing.T) {
 		},
 	}
 	svc := newService(repoStub, nil, nil, nil, nil, nil)
-	_, err := svc.CreateWork(context.Background(), command.WorkCreateCommand{Title: "x"})
+	_, err := svc.CreateWork(context.Background(), command.WorkCreateCommand{Title: "x", AuthorUids: []string{cmdAuthorUid}})
 	if !errors.Is(err, wantErr) {
 		t.Errorf("err = %v, want %v", err, wantErr)
 	}
 }
 
-func TestUpdateWork(t *testing.T) {
+func TestCreateWork_WhenCommandInvalid_ReturnsErrInvalidCommand(t *testing.T) {
+	repoStub := &stubWorkRepo{
+		createFn: func(context.Context, command.WorkCreateCommand) (int64, error) {
+			t.Error("create should not be called for an invalid command")
+			return 0, nil
+		},
+	}
+	svc := newService(repoStub, nil, nil, nil, nil, nil)
+	_, err := svc.CreateWork(context.Background(), command.WorkCreateCommand{Title: " "})
+	if !errors.Is(err, command.ErrInvalidCommand) {
+		t.Errorf("err = %v, want ErrInvalidCommand", err)
+	}
+}
+
+func TestUpdateWork_WhenWorkExists_ReturnsUpdatedAggregate(t *testing.T) {
 	updateCalled := false
 	repoStub := &stubWorkRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.WorkResult, error) {
@@ -351,7 +378,7 @@ func TestUpdateWork(t *testing.T) {
 	}
 }
 
-func TestUpdateWorkNotFound(t *testing.T) {
+func TestUpdateWork_WhenWorkMissing_ReturnsLookupError(t *testing.T) {
 	wantErr := errors.New("missing")
 	repoStub := &stubWorkRepo{
 		findByUidFn: func(context.Context, string) (*repo.WorkResult, error) { return nil, wantErr },
@@ -367,7 +394,7 @@ func TestUpdateWorkNotFound(t *testing.T) {
 	}
 }
 
-func TestFindWorkWithRelated(t *testing.T) {
+func TestFindWorkWithRelated_WhenWorkHasAuthors_ReturnsRelatedWorks(t *testing.T) {
 	workStub := &stubWorkRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.WorkResult, error) {
 			if uid != "w-1" {
@@ -418,7 +445,7 @@ func TestFindWorkWithRelated(t *testing.T) {
 	}
 }
 
-func TestFindWorkWithRelatedNoAuthorSkipsSearch(t *testing.T) {
+func TestFindWorkWithRelated_WhenWorkHasNoAuthors_ReturnsEmptyRelatedWithoutSearch(t *testing.T) {
 	workStub := &stubWorkRepo{
 		findByUidFn: func(context.Context, string) (*repo.WorkResult, error) {
 			return &repo.WorkResult{Id: 1, Uid: "w-1", Title: "Solo"}, nil
@@ -448,7 +475,7 @@ func TestFindWorkWithRelatedNoAuthorSkipsSearch(t *testing.T) {
 	}
 }
 
-func TestFindWorkWithRelatedWorkNotFound(t *testing.T) {
+func TestFindWorkWithRelated_WhenWorkMissing_ReturnsLookupError(t *testing.T) {
 	wantErr := errors.New("missing work")
 	workStub := &stubWorkRepo{
 		findByUidFn: func(context.Context, string) (*repo.WorkResult, error) { return nil, wantErr },
@@ -465,7 +492,7 @@ func TestFindWorkWithRelatedWorkNotFound(t *testing.T) {
 	}
 }
 
-func TestFindWorkWithRelatedSearchError(t *testing.T) {
+func TestFindWorkWithRelated_WhenSearchFails_ReturnsSearchError(t *testing.T) {
 	wantErr := errors.New("opensearch down")
 	workStub := &stubWorkRepo{
 		findByUidFn: func(context.Context, string) (*repo.WorkResult, error) {
@@ -494,7 +521,7 @@ func TestFindWorkWithRelatedSearchError(t *testing.T) {
 
 // ─── FullText search ────────────────────────────────────────────────────────
 
-func TestFullTextSearchWorks(t *testing.T) {
+func TestFullTextSearchWorks_WhenSearchReturnsHits_ReturnsResults(t *testing.T) {
 	want := []*repo.WorkSearchResult{{Uid: "u-1", Title: "Hit", Score: 1.5}}
 	searchStub := &stubWorkSearchRepo{
 		searchFn: func(context.Context, option.WorkSearchOption) (int64, []*repo.WorkSearchResult, error) {
@@ -513,7 +540,7 @@ func TestFullTextSearchWorks(t *testing.T) {
 
 // ─── Edition lifecycle ──────────────────────────────────────────────────────
 
-func TestSearchEditions(t *testing.T) {
+func TestSearchEditions_WhenPublishersMixed_ReturnsAggregates(t *testing.T) {
 	pubUid := "p-1"
 	pubName := "Acme"
 	editions := []*repo.EditionResult{
@@ -544,7 +571,7 @@ func TestSearchEditions(t *testing.T) {
 	}
 }
 
-func TestFindEdition(t *testing.T) {
+func TestFindEdition_WhenEditionExists_ReturnsAggregateWithWork(t *testing.T) {
 	editionStub := &stubEditionRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.EditionResult, error) {
 			if uid != "e-7" {
@@ -566,7 +593,7 @@ func TestFindEdition(t *testing.T) {
 	}
 }
 
-func TestFindEditionRepoError(t *testing.T) {
+func TestFindEdition_WhenRepoFails_ReturnsRepoError(t *testing.T) {
 	wantErr := errors.New("edition gone")
 	editionStub := &stubEditionRepo{
 		findByUidFn: func(context.Context, string) (*repo.EditionResult, error) { return nil, wantErr },
@@ -577,11 +604,11 @@ func TestFindEditionRepoError(t *testing.T) {
 	}
 }
 
-func TestCreateEditionWithoutPublisher(t *testing.T) {
+func TestCreateEdition_WhenPublisherUidOmitted_CreatesWithNilPublisherId(t *testing.T) {
 	workStub := &stubWorkRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.WorkResult, error) {
-			if uid != "w-1" {
-				t.Errorf("workUid = %q, want w-1", uid)
+			if uid != cmdWorkUid {
+				t.Errorf("workUid = %q, want %q", uid, cmdWorkUid)
 			}
 			return &repo.WorkResult{Id: 50, Uid: uid}, nil
 		},
@@ -604,7 +631,7 @@ func TestCreateEditionWithoutPublisher(t *testing.T) {
 		},
 	}
 	svc := newService(workStub, nil, editionStub, nil, nil, nil)
-	agg, err := svc.CreateEdition(context.Background(), command.EditionCreateCommand{Title: "1st", WorkUid: "w-1"})
+	agg, err := svc.CreateEdition(context.Background(), command.EditionCreateCommand{Title: "1st", WorkUid: cmdWorkUid})
 	if err != nil {
 		t.Fatalf("CreateEdition err: %v", err)
 	}
@@ -613,7 +640,7 @@ func TestCreateEditionWithoutPublisher(t *testing.T) {
 	}
 }
 
-func TestCreateEditionWithPublisher(t *testing.T) {
+func TestCreateEdition_WhenPublisherUidGiven_CreatesWithResolvedPublisherId(t *testing.T) {
 	workStub := &stubWorkRepo{
 		findByUidFn: func(context.Context, string) (*repo.WorkResult, error) {
 			return &repo.WorkResult{Id: 1, Uid: "w-1"}, nil
@@ -635,8 +662,8 @@ func TestCreateEditionWithPublisher(t *testing.T) {
 		},
 	}
 	svc := newService(workStub, nil, editionStub, nil, publisherStub, nil)
-	pubUid := "p-1"
-	_, err := svc.CreateEdition(context.Background(), command.EditionCreateCommand{Title: "x", WorkUid: "w-1", PublisherUid: &pubUid})
+	pubUid := cmdPublisherUid
+	_, err := svc.CreateEdition(context.Background(), command.EditionCreateCommand{Title: "x", WorkUid: cmdWorkUid, PublisherUid: &pubUid})
 	if err != nil {
 		t.Fatalf("CreateEdition err: %v", err)
 	}
@@ -645,7 +672,7 @@ func TestCreateEditionWithPublisher(t *testing.T) {
 	}
 }
 
-func TestCreateEditionPublisherLookupFails(t *testing.T) {
+func TestCreateEdition_WhenPublisherLookupFails_ReturnsLookupError(t *testing.T) {
 	wantErr := errors.New("no pub")
 	workStub := &stubWorkRepo{
 		findByUidFn: func(context.Context, string) (*repo.WorkResult, error) {
@@ -662,14 +689,14 @@ func TestCreateEditionPublisherLookupFails(t *testing.T) {
 		},
 	}
 	svc := newService(workStub, nil, editionStub, nil, publisherStub, nil)
-	pub := "p-x"
-	_, err := svc.CreateEdition(context.Background(), command.EditionCreateCommand{Title: "x", WorkUid: "w-1", PublisherUid: &pub})
+	pub := cmdPublisherUid
+	_, err := svc.CreateEdition(context.Background(), command.EditionCreateCommand{Title: "x", WorkUid: cmdWorkUid, PublisherUid: &pub})
 	if !errors.Is(err, wantErr) {
 		t.Errorf("err = %v, want %v", err, wantErr)
 	}
 }
 
-func TestUpdateEditionWithBothLinks(t *testing.T) {
+func TestUpdateEdition_WhenWorkAndPublisherGiven_UpdatesWithResolvedIds(t *testing.T) {
 	editionStub := &stubEditionRepo{
 		findByUidFn: func(context.Context, string) (*repo.EditionResult, error) {
 			return &repo.EditionResult{Id: 5, Uid: "e-5", WorkUid: "w-old", WorkTitle: "Old"}, nil
@@ -701,15 +728,15 @@ func TestUpdateEditionWithBothLinks(t *testing.T) {
 		},
 	}
 	svc := newService(workStub, nil, editionStub, nil, publisherStub, nil)
-	w := "w-new"
-	p := "p-new"
+	w := cmdWorkUid
+	p := cmdPublisherUid
 	_, err := svc.UpdateEdition(context.Background(), "e-5", command.EditionUpdateCommand{WorkUid: &w, PublisherUid: &p})
 	if err != nil {
 		t.Fatalf("UpdateEdition err: %v", err)
 	}
 }
 
-func TestUpdateEditionWorkLookupFails(t *testing.T) {
+func TestUpdateEdition_WhenWorkLookupFails_ReturnsLookupError(t *testing.T) {
 	wantErr := errors.New("no such work")
 	editionStub := &stubEditionRepo{
 		findByUidFn: func(context.Context, string) (*repo.EditionResult, error) {
@@ -724,7 +751,7 @@ func TestUpdateEditionWorkLookupFails(t *testing.T) {
 		findByUidFn: func(context.Context, string) (*repo.WorkResult, error) { return nil, wantErr },
 	}
 	svc := newService(workStub, nil, editionStub, nil, nil, nil)
-	w := "w-missing"
+	w := cmdWorkUid
 	if _, err := svc.UpdateEdition(
 		context.Background(), "e-5", command.EditionUpdateCommand{WorkUid: &w},
 	); !errors.Is(err, wantErr) {
@@ -734,7 +761,7 @@ func TestUpdateEditionWorkLookupFails(t *testing.T) {
 
 // ─── Author management ─────────────────────────────────────────────────────
 
-func TestFindAllAuthors(t *testing.T) {
+func TestFindAllAuthors_WhenRepoReturnsRows_ReturnsAggregates(t *testing.T) {
 	authorStub := &stubAuthorRepo{
 		findAllFn: func(context.Context, option.AuthorQueryOption) (int64, []*repo.AuthorResult, error) {
 			return 1, []*repo.AuthorResult{{Id: 1, Uid: "a-1", Name: "Asimov"}}, nil
@@ -750,7 +777,7 @@ func TestFindAllAuthors(t *testing.T) {
 	}
 }
 
-func TestFindAuthor(t *testing.T) {
+func TestFindAuthor_WhenAuthorExists_ReturnsAggregate(t *testing.T) {
 	authorStub := &stubAuthorRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.AuthorResult, error) {
 			if uid != "a-5" {
@@ -772,7 +799,7 @@ func TestFindAuthor(t *testing.T) {
 	}
 }
 
-func TestFindAuthorRepoError(t *testing.T) {
+func TestFindAuthor_WhenRepoFails_ReturnsRepoError(t *testing.T) {
 	wantErr := errors.New("author gone")
 	authorStub := &stubAuthorRepo{
 		findByUidFn: func(context.Context, string) (*repo.AuthorResult, error) { return nil, wantErr },
@@ -783,7 +810,7 @@ func TestFindAuthorRepoError(t *testing.T) {
 	}
 }
 
-func TestCreateAuthor(t *testing.T) {
+func TestCreateAuthor_WhenCommandValid_ReturnsCreatedAggregate(t *testing.T) {
 	authorStub := &stubAuthorRepo{
 		createFn: func(_ context.Context, cmd command.AuthorCreateCommand) (int64, error) {
 			if cmd.Name != "Le Guin" {
@@ -805,7 +832,7 @@ func TestCreateAuthor(t *testing.T) {
 	}
 }
 
-func TestUpdateAuthor(t *testing.T) {
+func TestUpdateAuthor_WhenAuthorExists_ReturnsUpdatedAggregate(t *testing.T) {
 	authorStub := &stubAuthorRepo{
 		findByUidFn: func(context.Context, string) (*repo.AuthorResult, error) {
 			return &repo.AuthorResult{Id: 9, Uid: "a-9", Name: "Old"}, nil
@@ -836,7 +863,9 @@ func TestUpdateAuthor(t *testing.T) {
 
 // ─── Publisher management ──────────────────────────────────────────────────
 
-func TestPublisherCRUD(t *testing.T) {
+// One pass over the publisher read and write paths: FindAllPublishers, FindPublisher,
+// CreatePublisher and UpdatePublisher share the same repo stub and mapping.
+func TestPublisherCommands_WhenRepoSucceeds_ReturnAggregates(t *testing.T) {
 	store := map[string]*repo.PublisherResult{
 		"p-1": {Id: 1, Uid: "p-1", Name: "Acme", Address: ptrStr("Mars")},
 	}
@@ -902,7 +931,9 @@ func TestPublisherCRUD(t *testing.T) {
 
 // ─── Subject management ────────────────────────────────────────────────────
 
-func TestSubjectCRUD(t *testing.T) {
+// One pass over the subject read and write paths: FindAllSubjects, FindSubject,
+// CreateSubject and UpdateSubject share the same repo stub and mapping.
+func TestSubjectCommands_WhenRepoSucceeds_ReturnAggregates(t *testing.T) {
 	subjectStub := &stubSubjectRepo{
 		findAllFn: func(context.Context, option.SubjectQueryOption) (int64, []*repo.SubjectResult, error) {
 			return 1, []*repo.SubjectResult{{Id: 1, Uid: "s-1", Name: "Sci-Fi"}}, nil
@@ -950,5 +981,70 @@ func TestSubjectCRUD(t *testing.T) {
 	upd, err := svc.UpdateSubject(context.Background(), "s-1", command.SubjectUpdateCommand{Name: &newName})
 	if err != nil || upd == nil {
 		t.Fatalf("UpdateSubject got=%+v err=%v", upd, err)
+	}
+}
+
+func TestCreateSubject_WhenNameTaken_ReturnsErrAlreadyExists(t *testing.T) {
+	subjectStub := &stubSubjectRepo{
+		findByNameFn: func(_ context.Context, name string) (*repo.SubjectResult, error) {
+			return &repo.SubjectResult{Id: 3, Uid: "s-3", Name: name}, nil
+		},
+		createFn: func(context.Context, command.SubjectCreateCommand) (int64, error) {
+			t.Error("Create must not run when the name is taken")
+			return 0, nil
+		},
+	}
+	svc := newService(nil, nil, nil, nil, nil, subjectStub)
+	_, err := svc.CreateSubject(context.Background(), command.SubjectCreateCommand{Name: "Sci-Fi"})
+	if !errors.Is(err, repo.ErrAlreadyExists) {
+		t.Errorf("err = %v, want ErrAlreadyExists", err)
+	}
+}
+
+func TestUpdateSubject_WhenNameTakenByAnother_ReturnsErrAlreadyExists(t *testing.T) {
+	subjectStub := &stubSubjectRepo{
+		findByUidFn: func(_ context.Context, uid string) (*repo.SubjectResult, error) {
+			return &repo.SubjectResult{Id: 1, Uid: uid, Name: "Sci-Fi"}, nil
+		},
+		findByNameFn: func(_ context.Context, name string) (*repo.SubjectResult, error) {
+			return &repo.SubjectResult{Id: 9, Uid: "s-9", Name: name}, nil
+		},
+		updateFn: func(context.Context, int64, command.SubjectUpdateCommand) error {
+			t.Error("Update must not run when the name is taken by another subject")
+			return nil
+		},
+	}
+	svc := newService(nil, nil, nil, nil, nil, subjectStub)
+	name := "Drama"
+	_, err := svc.UpdateSubject(context.Background(), "s-1", command.SubjectUpdateCommand{Name: &name})
+	if !errors.Is(err, repo.ErrAlreadyExists) {
+		t.Errorf("err = %v, want ErrAlreadyExists", err)
+	}
+}
+
+func TestUpdateSubject_WhenNameBelongsToSameSubject_CallsUpdate(t *testing.T) {
+	updated := false
+	subjectStub := &stubSubjectRepo{
+		findByUidFn: func(_ context.Context, uid string) (*repo.SubjectResult, error) {
+			return &repo.SubjectResult{Id: 1, Uid: uid, Name: "Sci-Fi"}, nil
+		},
+		findByNameFn: func(_ context.Context, name string) (*repo.SubjectResult, error) {
+			return &repo.SubjectResult{Id: 1, Uid: "s-1", Name: name}, nil
+		},
+		updateFn: func(context.Context, int64, command.SubjectUpdateCommand) error {
+			updated = true
+			return nil
+		},
+		findOneFn: func(_ context.Context, id int64) (*repo.SubjectResult, error) {
+			return &repo.SubjectResult{Id: id, Uid: "s-1", Name: "Sci-Fi"}, nil
+		},
+	}
+	svc := newService(nil, nil, nil, nil, nil, subjectStub)
+	name := "Sci-Fi"
+	if _, err := svc.UpdateSubject(context.Background(), "s-1", command.SubjectUpdateCommand{Name: &name}); err != nil {
+		t.Fatalf("UpdateSubject err: %v", err)
+	}
+	if !updated {
+		t.Error("Update must run when the name belongs to the same subject")
 	}
 }

@@ -3,5 +3,5 @@
 package openapi
 
 type SubjectUpdateRequest struct {
-	Name *string `json:"name,omitempty"`
+	Name *string `json:"name,omitempty" binding:"omitempty,max=255"`
 }

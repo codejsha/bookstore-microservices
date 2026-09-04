@@ -18,6 +18,9 @@ type PublisherApi interface {
 	) (*PublisherFindAllResponse, error)
 
 	// Register new publisher
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	//
 	// Response headers (PublishersCreateResponseHeaders):
 	//   location (string) — Location of the created resource
@@ -36,7 +39,9 @@ type PublisherApi interface {
 
 	// Update publisher
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	PublishersUpdate(
 		ctx context.Context,
 		uid string,

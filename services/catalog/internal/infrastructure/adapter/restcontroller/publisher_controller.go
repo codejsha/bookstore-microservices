@@ -57,7 +57,7 @@ func (c *publisherController) PublishersCreate(ctx context.Context, req openapi.
 
 	publisher, err := c.catalogUseCase.CreatePublisher(ctx, cmd)
 	if err != nil {
-		return err
+		return httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, err))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "publisher", publisher.Uid, "created", logrus.Fields{"name": req.Name})
@@ -91,7 +91,7 @@ func (c *publisherController) PublishersUpdate(
 
 	publisher, err := c.catalogUseCase.UpdatePublisher(ctx, uid, cmd)
 	if err != nil {
-		return nil, httpx.MapNotFound(ctx, err)
+		return nil, httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err)))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "publisher", uid, "updated", logrus.Fields{})

@@ -8,7 +8,7 @@ import (
 
 type EditionUpdateResponse struct {
 	CoverUids      *[]string      `json:"cover_uids,omitempty"`
-	CreatedAt      time.Time      `json:"created_at" validate:"required"`
+	CreatedAt      time.Time      `json:"created_at" binding:"required"`
 	Description    *string        `json:"description,omitempty"`
 	Isbn10         *string        `json:"isbn10,omitempty"`
 	Isbn13         *string        `json:"isbn13,omitempty"`
@@ -18,8 +18,8 @@ type EditionUpdateResponse struct {
 	PhysicalFormat *string        `json:"physical_format,omitempty"`
 	PublishDate    *string        `json:"publish_date,omitempty"`
 	Publisher      *PublisherItem `json:"publisher,omitempty"`
-	Title          string         `json:"title" validate:"required"`
-	Uid            string         `json:"uid" validate:"required"`
+	Title          string         `json:"title" binding:"required"`
+	Uid            string         `json:"uid" binding:"required"`
 	UpdatedAt      *time.Time     `json:"updated_at,omitempty"`
-	Work           WorkItem       `json:"work" validate:"required"`
+	Work           WorkItem       `json:"work" binding:"required"`
 }

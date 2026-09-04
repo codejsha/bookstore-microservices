@@ -3,7 +3,7 @@
 package openapi
 
 type PublisherUpdateRequest struct {
-	Address *string `json:"address,omitempty"`
-	Name    *string `json:"name,omitempty"`
-	OlKey   *string `json:"ol_key,omitempty"`
+	Address *string `json:"address,omitempty" binding:"omitempty,max=255"`
+	Name    *string `json:"name,omitempty" binding:"omitempty,max=255"`
+	OlKey   *string `json:"ol_key,omitempty" binding:"omitempty,max=64"`
 }

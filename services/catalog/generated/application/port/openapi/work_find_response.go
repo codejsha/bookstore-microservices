@@ -7,14 +7,14 @@ import (
 )
 
 type WorkFindResponse struct {
-	Authors          []AuthorItem  `json:"authors" validate:"required"`
+	Authors          []AuthorItem  `json:"authors" binding:"required,dive"`
 	CoverUids        *[]string     `json:"cover_uids,omitempty"`
-	CreatedAt        time.Time     `json:"created_at" validate:"required"`
+	CreatedAt        time.Time     `json:"created_at" binding:"required"`
 	Description      *string       `json:"description,omitempty"`
 	FirstPublishDate *string       `json:"first_publish_date,omitempty"`
 	OlKey            *string       `json:"ol_key,omitempty"`
-	Subjects         []SubjectItem `json:"subjects" validate:"required"`
-	Title            string        `json:"title" validate:"required"`
-	Uid              string        `json:"uid" validate:"required"`
+	Subjects         []SubjectItem `json:"subjects" binding:"required,dive"`
+	Title            string        `json:"title" binding:"required"`
+	Uid              string        `json:"uid" binding:"required"`
 	UpdatedAt        *time.Time    `json:"updated_at,omitempty"`
 }

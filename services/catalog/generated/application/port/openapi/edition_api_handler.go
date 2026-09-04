@@ -55,7 +55,7 @@ func (h *EditionApiHandler) EditionsSearch(c *gin.Context) {
 	if sizeStr != "" {
 		v, err := strconv.ParseInt(sizeStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid size"))
 			return
 		}
 		val := int32(v)
@@ -66,7 +66,7 @@ func (h *EditionApiHandler) EditionsSearch(c *gin.Context) {
 	if pageStr != "" {
 		v, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+			writeProblem(c, http.StatusBadRequest, apiError(http.StatusBadRequest, "invalid page"))
 			return
 		}
 		val := int32(v)
@@ -79,13 +79,17 @@ func (h *EditionApiHandler) EditionsSearch(c *gin.Context) {
 	}
 	result, err := h.service.EditionsSearch(c.Request.Context(), title, isbn, workUid, publisherUid, language, olKey, size, page, sort)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
 }
 
 // Create new edition
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 404 (NotFoundError) — The server cannot find the requested resource.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 //
 // Response headers (EditionsCreateResponseHeaders):
 //
@@ -93,11 +97,11 @@ func (h *EditionApiHandler) EditionsSearch(c *gin.Context) {
 func (h *EditionApiHandler) EditionsCreate(c *gin.Context) {
 	var req EditionCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	if err := h.service.EditionsCreate(c.Request.Context(), req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -110,7 +114,7 @@ func (h *EditionApiHandler) EditionsRead(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.EditionsRead(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -118,17 +122,19 @@ func (h *EditionApiHandler) EditionsRead(c *gin.Context) {
 
 // Update edition
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *EditionApiHandler) EditionsUpdate(c *gin.Context) {
 	uid := c.Param("uid")
 	var req EditionUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusBadRequest, bindingError(err))
 		return
 	}
 	result, err := h.service.EditionsUpdate(c.Request.Context(), uid, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, result)
