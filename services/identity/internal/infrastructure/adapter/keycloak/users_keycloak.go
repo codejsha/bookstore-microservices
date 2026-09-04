@@ -206,6 +206,21 @@ func (c *usersClient) DeleteUser(ctx context.Context, realm, userId string) erro
 
 // ─── Realm role mappings ────────────────────────────────────────────────────
 
+func (c *usersClient) GetUserRealmRoles(ctx context.Context, realm, userId string) ([]string, error) {
+	assigned, err := c.getUserRealmRoles(ctx, realm, userId)
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, 0, len(assigned))
+	for _, role := range assigned {
+		if role.Name == nil || strings.HasPrefix(*role.Name, defaultRolesPrefix) {
+			continue
+		}
+		names = append(names, *role.Name)
+	}
+	return names, nil
+}
+
 func (c *usersClient) SetUserRealmRoles(ctx context.Context, realm, userId string, roles []string) error {
 	available, err := c.listRealmRoles(ctx, realm)
 	if err != nil {

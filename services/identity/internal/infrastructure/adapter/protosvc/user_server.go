@@ -14,6 +14,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/generated/application/port/pb/userpb"
 	"github.com/codejsha/bookstore-microservices/identity/internal/application/usecase"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/aggregate"
+	"github.com/codejsha/bookstore-microservices/identity/internal/domain/constant"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/option"
 )
 
@@ -107,12 +108,12 @@ func toUserProto(a *aggregate.UserAggregate) *userpb.User {
 }
 
 func toUserStatusProto(s string) userpb.UserStatus {
-	switch s {
-	case "ACTIVE":
+	switch constant.UserStatusValue(s) {
+	case constant.USERSTATUS_ACTIVE_VALUE:
 		return userpb.UserStatus_USER_STATUS_ACTIVE
-	case "SUSPENDED":
+	case constant.USERSTATUS_SUSPENDED_VALUE:
 		return userpb.UserStatus_USER_STATUS_SUSPENDED
-	case "DEACTIVATED":
+	case constant.USERSTATUS_DEACTIVATED_VALUE:
 		return userpb.UserStatus_USER_STATUS_INACTIVE
 	default:
 		return userpb.UserStatus_USER_STATUS_UNSPECIFIED

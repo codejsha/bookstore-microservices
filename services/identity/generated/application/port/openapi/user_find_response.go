@@ -7,14 +7,14 @@ import (
 )
 
 type UserFindResponse struct {
-	CreatedAt   time.Time  `json:"created_at" validate:"required"`
-	Email       string     `json:"email" validate:"required"`
-	FirstName   string     `json:"first_name" validate:"required"`
+	CreatedAt   time.Time  `json:"created_at" binding:"required"`
+	Email       string     `json:"email" binding:"required,max=100"`
+	FirstName   string     `json:"first_name" binding:"required,max=50"`
 	LastLoginAt *time.Time `json:"last_login_at,omitempty"`
-	LastName    string     `json:"last_name" validate:"required"`
-	Phone       *string    `json:"phone,omitempty"`
-	Roles       []AuthRole `json:"roles" validate:"required"`
-	Status      UserStatus `json:"status" validate:"required"`
-	Uid         string     `json:"uid" validate:"required"`
+	LastName    string     `json:"last_name" binding:"required,max=50"`
+	Phone       *string    `json:"phone,omitempty" binding:"omitempty,max=30"`
+	Roles       []AuthRole `json:"roles" binding:"required"`
+	Status      UserStatus `json:"status" binding:"required"`
+	Uid         string     `json:"uid" binding:"required"`
 	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }

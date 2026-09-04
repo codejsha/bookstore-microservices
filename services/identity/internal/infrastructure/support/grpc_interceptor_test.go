@@ -71,7 +71,7 @@ func bearerMD(token string) metadata.MD {
 	return metadata.Pairs("authorization", "Bearer "+token)
 }
 
-func TestInterceptor_ActiveTokenReachesHandler(t *testing.T) {
+func TestInterceptor_WhenTokenActive_CallsHandler(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: true, Sub: "user-1", Iat: 1700}}
 	rev := &fakeRevocationChecker{}
 
@@ -84,7 +84,7 @@ func TestInterceptor_ActiveTokenReachesHandler(t *testing.T) {
 	}
 }
 
-func TestInterceptor_MissingMetadataUnauthenticated(t *testing.T) {
+func TestInterceptor_WhenMetadataMissing_ReturnsUnauthenticatedWithoutIntrospecting(t *testing.T) {
 	in := &fakeIntrospector{}
 	code, ran := invoke(in, &fakeRevocationChecker{}, nil)
 	if code != codes.Unauthenticated || ran {
@@ -95,7 +95,7 @@ func TestInterceptor_MissingMetadataUnauthenticated(t *testing.T) {
 	}
 }
 
-func TestInterceptor_MissingOrMalformedTokenUnauthenticated(t *testing.T) {
+func TestInterceptor_WhenTokenMissingOrMalformed_ReturnsUnauthenticatedWithoutIntrospecting(t *testing.T) {
 	for name, md := range map[string]metadata.MD{
 		"no authorization key": metadata.Pairs("other", "x"),
 		"wrong scheme":         metadata.Pairs("authorization", "Basic dXNlcjpwYXNz"),
@@ -114,7 +114,7 @@ func TestInterceptor_MissingOrMalformedTokenUnauthenticated(t *testing.T) {
 	}
 }
 
-func TestInterceptor_InactiveTokenUnauthenticated(t *testing.T) {
+func TestInterceptor_WhenTokenInactive_ReturnsUnauthenticated(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: false}}
 	code, ran := invoke(in, &fakeRevocationChecker{}, bearerMD("dead"))
 	if code != codes.Unauthenticated || ran {
@@ -122,7 +122,7 @@ func TestInterceptor_InactiveTokenUnauthenticated(t *testing.T) {
 	}
 }
 
-func TestInterceptor_RevokedSubjectPermissionDenied(t *testing.T) {
+func TestInterceptor_WhenSubjectRevoked_ReturnsPermissionDenied(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: true, Sub: "user-1"}}
 	rev := &fakeRevocationChecker{revoked: true}
 	code, ran := invoke(in, rev, bearerMD("good"))
@@ -131,7 +131,7 @@ func TestInterceptor_RevokedSubjectPermissionDenied(t *testing.T) {
 	}
 }
 
-func TestInterceptor_IntrospectionUnavailableFailsClosed(t *testing.T) {
+func TestInterceptor_WhenIntrospectionUnavailable_ReturnsPermissionDenied(t *testing.T) {
 	in := &fakeIntrospector{err: errors.New("keycloak unreachable")}
 	code, ran := invoke(in, &fakeRevocationChecker{}, bearerMD("any"))
 	if code != codes.PermissionDenied || ran {
@@ -139,7 +139,7 @@ func TestInterceptor_IntrospectionUnavailableFailsClosed(t *testing.T) {
 	}
 }
 
-func TestInterceptor_DenylistUnavailableFailsClosed(t *testing.T) {
+func TestInterceptor_WhenDenylistUnavailable_ReturnsPermissionDenied(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: true, Sub: "user-1"}}
 	rev := &fakeRevocationChecker{err: errors.New("valkey unreachable")}
 	code, ran := invoke(in, rev, bearerMD("good"))
@@ -148,7 +148,7 @@ func TestInterceptor_DenylistUnavailableFailsClosed(t *testing.T) {
 	}
 }
 
-func TestGrpcAuth_BlockedPrincipalDenied(t *testing.T) {
+func TestGrpcAuth_WhenPrincipalBlocked_ReturnsPermissionDeniedWithoutHandler(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: true, Sub: "user-1", Iat: 1700}}
 	risk := &fakeRiskChecker{entry: &security.RiskEntry{Sub: "user-1", Level: security.RiskLevelBlock}}
 
@@ -158,7 +158,7 @@ func TestGrpcAuth_BlockedPrincipalDenied(t *testing.T) {
 	}
 }
 
-func TestGrpcAuth_RestrictedPrincipalStillReads(t *testing.T) {
+func TestGrpcAuth_WhenPrincipalRestricted_StillCallsReadHandler(t *testing.T) {
 	in := &fakeIntrospector{result: keycloak.Introspection{Active: true, Sub: "user-1", Iat: 1700}}
 	risk := &fakeRiskChecker{entry: &security.RiskEntry{Sub: "user-1", Level: security.RiskLevelRestrict}}
 

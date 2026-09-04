@@ -3,5 +3,5 @@
 package openapi
 
 type UserRolesRequest struct {
-	Roles []AuthRole `json:"roles" validate:"required"`
+	Roles []AuthRole `json:"roles" binding:"required"`
 }

@@ -3,5 +3,5 @@
 package openapi
 
 type RiskEntryListResponse struct {
-	Entries []RiskEntryResponse `json:"entries" validate:"required"`
+	Entries []RiskEntryResponse `json:"entries" binding:"required,dive"`
 }

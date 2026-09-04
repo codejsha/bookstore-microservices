@@ -1,6 +1,7 @@
 package pgsql
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 	"time"
@@ -8,7 +9,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/generated/infrastructure/port/entity"
 )
 
-func TestToUserResult(t *testing.T) {
+func TestToUserResult_WhenRowFullyPopulated_MapsEveryField(t *testing.T) {
 	now := time.Now()
 	updated := now.Add(time.Hour)
 	phone := "+1-555"
@@ -31,7 +32,7 @@ func TestToUserResult(t *testing.T) {
 	}
 }
 
-func TestToUserResult_EmptyIdpUid_NilsIdpId(t *testing.T) {
+func TestToUserResult_WhenIdpUidEmpty_ReturnsNilIdpId(t *testing.T) {
 	got := toUserResult(&entity.UsersEntity{IdpUid: ""})
 	if got.IdpId != nil {
 		t.Errorf("IdpId = %v, want nil for empty IdpUid", got.IdpId)
@@ -44,16 +45,39 @@ func TestParseRoles(t *testing.T) {
 		in   string
 		want []string
 	}{
-		{"empty input -> nil", "", nil},
-		{"malformed JSON -> nil", "not json", nil},
-		{"valid roles", `{"values":["ORDER","MANAGE"]}`, []string{"ORDER", "MANAGE"}},
-		{"empty values -> empty slice", `{"values":[]}`, []string{}},
+		{"whenInputEmpty_returnsNil", "", nil},
+		{"whenJsonMalformed_returnsNil", "not json", nil},
+		{"whenRolesPresent_returnsRoles", `{"values":["ORDER","MANAGE"]}`, []string{"ORDER", "MANAGE"}},
+		{"whenValuesEmpty_returnsEmptySlice", `{"values":[]}`, []string{}},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			got := parseRoles(c.in)
 			if !reflect.DeepEqual(got, c.want) {
 				t.Errorf("got = %v, want %v", got, c.want)
+			}
+		})
+	}
+}
+
+func TestEncodeRoles(t *testing.T) {
+	cases := []struct {
+		name string
+		in   []string
+		want string
+	}{
+		{"whenRolesNil_returnsEmptyJsonArray", nil, `{"values":[]}`},
+		{"whenRolesEmpty_returnsEmptyJsonArray", []string{}, `{"values":[]}`},
+		{"whenRolesPresent_returnsJsonValues", []string{"PROFILE", "VIEW"}, `{"values":["PROFILE","VIEW"]}`},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got := encodeRoles(c.in)
+			if got != c.want {
+				t.Errorf("got = %q, want %q", got, c.want)
+			}
+			if !json.Valid([]byte(got)) {
+				t.Errorf("got = %q, want valid JSON for a JSONB NOT NULL column", got)
 			}
 		})
 	}

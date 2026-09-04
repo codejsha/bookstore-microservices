@@ -3,7 +3,7 @@
 package openapi
 
 type UserUpdateRequest struct {
-	FirstName *string `json:"first_name,omitempty"`
-	LastName  *string `json:"last_name,omitempty"`
-	Phone     *string `json:"phone,omitempty"`
+	FirstName *string `json:"first_name,omitempty" binding:"omitempty,max=50"`
+	LastName  *string `json:"last_name,omitempty" binding:"omitempty,max=50"`
+	Phone     *string `json:"phone,omitempty" binding:"omitempty,max=30"`
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/constant"
 )
 
-func TestTokenRevoked(t *testing.T) {
+func TestTokenRevoked_WhenSubjectDenylisted_ReturnsTrue(t *testing.T) {
 	const cutoff int64 = 1_000_000
 	skew := int64(constant.RevocationSkew.Seconds())
 

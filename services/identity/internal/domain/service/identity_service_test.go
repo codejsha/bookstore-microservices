@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -76,6 +77,7 @@ type stubUsersClient struct {
 	deleteUserFn        func(ctx context.Context, realm, userId string) error
 	logoutUserFn        func(ctx context.Context, realm, userId string) error
 	setUserRealmRolesFn func(ctx context.Context, realm, userId string, roles []string) error
+	getUserRealmRolesFn func(ctx context.Context, realm, userId string) ([]string, error)
 	logouts             []string
 	realmRoles          map[string][]string
 }
@@ -101,6 +103,12 @@ func (s *stubUsersClient) LogoutUser(ctx context.Context, realm, userId string) 
 		return s.logoutUserFn(ctx, realm, userId)
 	}
 	return nil
+}
+func (s *stubUsersClient) GetUserRealmRoles(ctx context.Context, realm, userId string) ([]string, error) {
+	if s.getUserRealmRolesFn != nil {
+		return s.getUserRealmRolesFn(ctx, realm, userId)
+	}
+	return s.realmRoles[userId], nil
 }
 func (s *stubUsersClient) SetUserRealmRoles(ctx context.Context, realm, userId string, roles []string) error {
 	if s.setUserRealmRolesFn != nil {
@@ -155,7 +163,7 @@ func ptrStr(s string) *string { return &s }
 
 // ─── RegisterUser ───────────────────────────────────────────────────────────
 
-func TestRegisterUser_Success(t *testing.T) {
+func TestRegisterUser_WhenEmailFree_CreatesIdpUser(t *testing.T) {
 	createCalled := false
 	listCount := 0
 	users := &stubUsersClient{
@@ -209,7 +217,7 @@ func TestRegisterUser_Success(t *testing.T) {
 	}
 }
 
-func TestRegisterUser_AlreadyExists(t *testing.T) {
+func TestRegisterUser_WhenEmailTaken_ReturnsAlreadyExistsWithoutCreating(t *testing.T) {
 	users := &stubUsersClient{
 		listUsersFn: func(context.Context, string, string) ([]idp.UserRepresentation, error) {
 			return []idp.UserRepresentation{{Id: ptrStr("existing")}}, nil
@@ -220,13 +228,13 @@ func TestRegisterUser_AlreadyExists(t *testing.T) {
 		},
 	}
 	svc := newSvc(nil, users)
-	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{Email: "dup@x.com"})
+	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{Email: "dup@x.com", Password: "secret", FirstName: "F", LastName: "L"})
 	if err == nil || !strings.Contains(err.Error(), "already exists") {
 		t.Errorf("err = %v, want already-exists message", err)
 	}
 }
 
-func TestRegisterUser_CreateFails(t *testing.T) {
+func TestRegisterUser_WhenIdpCreateFails_ReturnsWrappedError(t *testing.T) {
 	users := &stubUsersClient{
 		listUsersFn: func(context.Context, string, string) ([]idp.UserRepresentation, error) { return nil, nil },
 		createUserFn: func(context.Context, string, idp.UserRepresentation) error {
@@ -234,13 +242,13 @@ func TestRegisterUser_CreateFails(t *testing.T) {
 		},
 	}
 	svc := newSvc(nil, users)
-	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{Email: "x@x.com"})
+	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{Email: "x@x.com", Password: "secret", FirstName: "F", LastName: "L"})
 	if err == nil || !strings.Contains(err.Error(), "failed to create user in IdP") {
 		t.Errorf("err = %v, want create wrap", err)
 	}
 }
 
-func TestRegisterUser_NotFoundAfterCreate(t *testing.T) {
+func TestRegisterUser_WhenUserMissingAfterCreate_ReturnsNotFoundError(t *testing.T) {
 	calls := 0
 	users := &stubUsersClient{
 		listUsersFn: func(context.Context, string, string) ([]idp.UserRepresentation, error) {
@@ -250,7 +258,7 @@ func TestRegisterUser_NotFoundAfterCreate(t *testing.T) {
 		createUserFn: func(context.Context, string, idp.UserRepresentation) error { return nil },
 	}
 	svc := newSvc(nil, users)
-	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{Email: "ghost@x.com"})
+	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{Email: "ghost@x.com", Password: "secret", FirstName: "F", LastName: "L"})
 	if err == nil || !strings.Contains(err.Error(), "not found after creation") {
 		t.Errorf("err = %v, want post-create not-found", err)
 	}
@@ -259,7 +267,7 @@ func TestRegisterUser_NotFoundAfterCreate(t *testing.T) {
 	}
 }
 
-func TestRegisterUser_NotFoundAfterCreateCompensatesLocatedOrphan(t *testing.T) {
+func TestRegisterUser_WhenOrphanFoundAfterCreate_DeletesIdpUser(t *testing.T) {
 	id := "orphan-id"
 	em := "ghost@x.com"
 	calls := 0
@@ -281,7 +289,7 @@ func TestRegisterUser_NotFoundAfterCreateCompensatesLocatedOrphan(t *testing.T) 
 		},
 	}
 	svc := newSvc(nil, users)
-	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{Email: em})
+	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{Email: em, Password: "secret", FirstName: "F", LastName: "L"})
 	if err == nil || !strings.Contains(err.Error(), "not found after creation") {
 		t.Errorf("err = %v, want post-create not-found", err)
 	}
@@ -290,7 +298,7 @@ func TestRegisterUser_NotFoundAfterCreateCompensatesLocatedOrphan(t *testing.T) 
 	}
 }
 
-func TestRegisterUser_RespectsExplicitRoles(t *testing.T) {
+func TestRegisterUser_WhenRolesRequested_BindsThemAfterCreate(t *testing.T) {
 	var captured idp.UserRepresentation
 	id := "idp-1"
 	fn, ln := "F", "L"
@@ -331,7 +339,7 @@ func TestRegisterUser_RespectsExplicitRoles(t *testing.T) {
 	}
 }
 
-func TestRegisterUser_RejectsElevatedRoles(t *testing.T) {
+func TestRegisterUser_WhenRoleElevated_ReturnsErrElevatedRoleOnRegister(t *testing.T) {
 	for _, role := range []string{"MANAGE", "SYSTEM", "ADMIN", "manage"} {
 		t.Run(role, func(t *testing.T) {
 			created := false
@@ -361,7 +369,7 @@ func TestRegisterUser_RejectsElevatedRoles(t *testing.T) {
 	}
 }
 
-func TestRegisterUser_RejectsElevatedRoleMixedWithBaseline(t *testing.T) {
+func TestRegisterUser_WhenElevatedRoleMixedWithBaseline_ReturnsErrElevatedRoleOnRegister(t *testing.T) {
 	users := &stubUsersClient{
 		listUsersFn: func(context.Context, string, string) ([]idp.UserRepresentation, error) {
 			return nil, nil
@@ -379,7 +387,7 @@ func TestRegisterUser_RejectsElevatedRoleMixedWithBaseline(t *testing.T) {
 	}
 }
 
-func TestRegisterUser_RoleBindingFailureDeletesIdpUser(t *testing.T) {
+func TestRegisterUser_WhenRoleBindingFails_DeletesIdpUser(t *testing.T) {
 	id := "idp-1"
 	em := "u@x.com"
 	calls := 0
@@ -414,7 +422,7 @@ func TestRegisterUser_RoleBindingFailureDeletesIdpUser(t *testing.T) {
 	}
 }
 
-func TestRegisterUser_ResponseCarriesRolesAndTimestamps(t *testing.T) {
+func TestRegisterUser_WhenRegistrationSucceeds_ReturnsRolesAndTimestamps(t *testing.T) {
 	id := "idp-id-1"
 	em := "u@example.com"
 	listCount := 0
@@ -447,7 +455,7 @@ func TestRegisterUser_ResponseCarriesRolesAndTimestamps(t *testing.T) {
 
 // ─── Query ──────────────────────────────────────────────────────────────────
 
-func TestFindAllUsers(t *testing.T) {
+func TestFindAllUsers_WhenRepoReturnsRows_ReturnsAggregates(t *testing.T) {
 	results := []*repo.UserResult{
 		{Id: 1, Email: "a@x.com", FirstName: "A", LastName: "B", Roles: []string{"VIEW"}},
 		{Id: 2, Email: "b@x.com", FirstName: "C", LastName: "D", Roles: []string{}},
@@ -470,7 +478,7 @@ func TestFindAllUsers(t *testing.T) {
 	}
 }
 
-func TestFindAllUsers_RepoError(t *testing.T) {
+func TestFindAllUsers_WhenRepoFails_ReturnsRepoError(t *testing.T) {
 	want := errors.New("db error")
 	svc := newSvc(&stubUserRepo{
 		findAllFn: func(context.Context, option.UserQueryOption) (int64, []*repo.UserResult, error) {
@@ -483,7 +491,7 @@ func TestFindAllUsers_RepoError(t *testing.T) {
 	}
 }
 
-func TestFindUserByEmail(t *testing.T) {
+func TestFindUserByEmail_WhenUserExists_ReturnsAggregate(t *testing.T) {
 	userRepo := &stubUserRepo{
 		fetchByEmailFn: func(_ context.Context, email string) ([]*repo.UserResult, error) {
 			if email != "x@x.com" {
@@ -502,7 +510,7 @@ func TestFindUserByEmail(t *testing.T) {
 	}
 }
 
-func TestFindUserByEmail_NotFound(t *testing.T) {
+func TestFindUserByEmail_WhenUserMissing_ReturnsNotFoundError(t *testing.T) {
 	userRepo := &stubUserRepo{
 		fetchByEmailFn: func(context.Context, string) ([]*repo.UserResult, error) { return nil, nil },
 	}
@@ -515,7 +523,7 @@ func TestFindUserByEmail_NotFound(t *testing.T) {
 
 // ─── User management ────────────────────────────────────────────────────────
 
-func TestUpdateUser_AppliesNameChanges(t *testing.T) {
+func TestUpdateUser_WhenNamesChanged_SendsThemToKeycloak(t *testing.T) {
 	idpId := "idp-1"
 	captured := ""
 	user := &repo.UserResult{Id: 1, IdpId: &idpId, Email: "u@x.com", FirstName: "Old", LastName: "Name"}
@@ -552,7 +560,7 @@ func TestUpdateUser_AppliesNameChanges(t *testing.T) {
 	}
 }
 
-func TestUpdateUser_NoIdpIdSkipsKeycloak(t *testing.T) {
+func TestUpdateUser_WhenIdpIdNil_SkipsKeycloak(t *testing.T) {
 	user := &repo.UserResult{Id: 1, IdpId: nil, Email: "x@x.com"}
 	usersClient := &stubUsersClient{
 		getUserFn: func(context.Context, string, string) (idp.UserRepresentation, error) {
@@ -571,7 +579,7 @@ func TestUpdateUser_NoIdpIdSkipsKeycloak(t *testing.T) {
 	}
 }
 
-func TestSuspendUser(t *testing.T) {
+func TestSuspendUser_WhenUserActive_DisablesIdpUser(t *testing.T) {
 	idpId := "idp-1"
 	user := &repo.UserResult{Id: 1, IdpId: &idpId}
 	called := false
@@ -597,7 +605,7 @@ func TestSuspendUser(t *testing.T) {
 	}
 }
 
-func TestReactivateUser(t *testing.T) {
+func TestReactivateUser_WhenUserSuspended_EnablesIdpUser(t *testing.T) {
 	idpId := "idp-1"
 	user := &repo.UserResult{Id: 1, IdpId: &idpId}
 	var enabled *bool
@@ -620,7 +628,7 @@ func TestReactivateUser(t *testing.T) {
 	}
 }
 
-func TestDeactivateUser(t *testing.T) {
+func TestDeactivateUser_WhenUserExists_DeletesIdpUser(t *testing.T) {
 	idpId := "idp-1"
 	user := &repo.UserResult{Id: 1, IdpId: &idpId}
 	deletedId := ""
@@ -643,7 +651,7 @@ func TestDeactivateUser(t *testing.T) {
 	}
 }
 
-func TestDeactivateUser_KeycloakError(t *testing.T) {
+func TestDeactivateUser_WhenKeycloakFails_ReturnsWrappedError(t *testing.T) {
 	idpId := "idp-1"
 	user := &repo.UserResult{Id: 1, IdpId: &idpId}
 	usersClient := &stubUsersClient{
@@ -659,7 +667,7 @@ func TestDeactivateUser_KeycloakError(t *testing.T) {
 	}
 }
 
-func TestSyncUserFromIdp(t *testing.T) {
+func TestSyncUserFromIdp_WhenIdpReturnsUser_ReturnsAggregate(t *testing.T) {
 	id := "idp-1"
 	em := "u@x.com"
 	fn, ln := "Alice", "Lee"
@@ -682,7 +690,7 @@ func TestSyncUserFromIdp(t *testing.T) {
 	}
 }
 
-func TestSyncUserFromIdp_KeycloakError(t *testing.T) {
+func TestSyncUserFromIdp_WhenKeycloakFails_ReturnsWrappedError(t *testing.T) {
 	usersClient := &stubUsersClient{
 		getUserFn: func(context.Context, string, string) (idp.UserRepresentation, error) {
 			return idp.UserRepresentation{}, errors.New("kc dead")
@@ -697,7 +705,7 @@ func TestSyncUserFromIdp_KeycloakError(t *testing.T) {
 
 // ─── Local DB sync ─────────────────────────────────────────────────────────
 
-func TestRegisterUser_SyncsToLocalDB(t *testing.T) {
+func TestRegisterUser_WhenRegistrationSucceeds_UpsertsLocalRow(t *testing.T) {
 	id := "idp-1"
 	em := "u@x.com"
 	fn, ln := "Alice", "Smith"
@@ -731,7 +739,7 @@ func TestRegisterUser_SyncsToLocalDB(t *testing.T) {
 	}
 }
 
-func TestRegisterUser_LocalSyncFailsBubblesUp(t *testing.T) {
+func TestRegisterUser_WhenLocalUpsertFails_ReturnsErrorAndDeletesIdpUser(t *testing.T) {
 	id := "idp-1"
 	em := "u@x.com"
 	calls := 0
@@ -756,7 +764,7 @@ func TestRegisterUser_LocalSyncFailsBubblesUp(t *testing.T) {
 		},
 	}
 	svc := newSvc(userRepo, users)
-	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{Email: em})
+	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{Email: em, Password: "secret", FirstName: "F", LastName: "L"})
 	if err == nil || !strings.Contains(err.Error(), "failed to sync user to local DB") {
 		t.Errorf("err = %v, want local-sync wrap", err)
 	}
@@ -765,7 +773,7 @@ func TestRegisterUser_LocalSyncFailsBubblesUp(t *testing.T) {
 	}
 }
 
-func TestUpdateUser_PropagatesToLocalDB(t *testing.T) {
+func TestUpdateUser_WhenNamesChanged_PropagatesPatchToLocalRow(t *testing.T) {
 	idpId := "idp-1"
 	user := &repo.UserResult{Id: 1, IdpId: &idpId, Email: "u@x.com"}
 	usersClient := &stubUsersClient{
@@ -797,7 +805,7 @@ func TestUpdateUser_PropagatesToLocalDB(t *testing.T) {
 	}
 }
 
-func TestUpdateUserRoles_UpdatesKeycloakAndLocalDB(t *testing.T) {
+func TestUpdateUserRoles_WhenRolesChanged_BindsInKeycloakAndUpdatesLocalRow(t *testing.T) {
 	idpId := "idp-1"
 	user := &repo.UserResult{Id: 1, IdpId: &idpId, Email: "u@x.com"}
 	var capturedDbRoles []string
@@ -830,7 +838,7 @@ func TestUpdateUserRoles_UpdatesKeycloakAndLocalDB(t *testing.T) {
 	}
 }
 
-func TestSuspendUser_UpdatesStatusInLocalDB(t *testing.T) {
+func TestSuspendUser_WhenUserActive_WritesSuspendedStatusLocally(t *testing.T) {
 	idpId := "idp-1"
 	user := &repo.UserResult{Id: 1, IdpId: &idpId}
 	var capturedStatus string
@@ -853,7 +861,7 @@ func TestSuspendUser_UpdatesStatusInLocalDB(t *testing.T) {
 	}
 }
 
-func TestReactivateUser_UpdatesStatusInLocalDB(t *testing.T) {
+func TestReactivateUser_WhenUserSuspended_WritesActiveStatusLocally(t *testing.T) {
 	idpId := "idp-1"
 	user := &repo.UserResult{Id: 1, IdpId: &idpId}
 	var capturedStatus string
@@ -876,7 +884,7 @@ func TestReactivateUser_UpdatesStatusInLocalDB(t *testing.T) {
 	}
 }
 
-func TestDeactivateUser_SoftDeletesLocalRow(t *testing.T) {
+func TestDeactivateUser_WhenUserExists_SoftDeletesLocalRow(t *testing.T) {
 	idpId := "idp-1"
 	user := &repo.UserResult{Id: 1, IdpId: &idpId, Status: "ACTIVE"}
 	deleted := ""
@@ -900,7 +908,7 @@ func TestDeactivateUser_SoftDeletesLocalRow(t *testing.T) {
 	}
 }
 
-func TestSyncUserFromIdp_UpsertsLocalDB(t *testing.T) {
+func TestSyncUserFromIdp_WhenIdpUserDisabled_UpsertsLocalRowAsSuspended(t *testing.T) {
 	id := "idp-1"
 	em := "u@x.com"
 	enabled := false
@@ -927,9 +935,110 @@ func TestSyncUserFromIdp_UpsertsLocalDB(t *testing.T) {
 	}
 }
 
+func TestRegisterUser_WhenIdpOmitsRealmRoles_UpsertsRequestedRoles(t *testing.T) {
+	id := "idp-1"
+	em := "u@x.com"
+	fn, ln := "Alice", "Smith"
+	calls := 0
+	users := &stubUsersClient{
+		listUsersFn: func(context.Context, string, string) ([]idp.UserRepresentation, error) {
+			calls++
+			if calls == 1 {
+				return nil, nil
+			}
+			return []idp.UserRepresentation{{Id: &id, Email: &em, FirstName: &fn, LastName: &ln}}, nil
+		},
+		createUserFn: func(context.Context, string, idp.UserRepresentation) error { return nil },
+	}
+	var captured repo.UserUpsert
+	userRepo := &stubUserRepo{
+		upsertFn: func(_ context.Context, p repo.UserUpsert) (*repo.UserResult, error) {
+			captured = p
+			return &repo.UserResult{Id: 99, IdpId: &p.IdpUid, Email: p.Email}, nil
+		},
+	}
+	svc := newSvc(userRepo, users)
+	if _, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{
+		Email: em, Password: "secret", FirstName: fn, LastName: ln,
+	}); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	want := []string{"PROFILE", "ORDER", "VIEW"}
+	if !reflect.DeepEqual(captured.Roles, want) {
+		t.Errorf("captured.Roles = %v, want %v (Keycloak GET /users never returns realmRoles)", captured.Roles, want)
+	}
+}
+
+func TestSyncUserFromIdp_WhenIdpOmitsRealmRoles_FetchesRoleMappings(t *testing.T) {
+	id := "idp-1"
+	em := "u@x.com"
+	fn, ln := "A", "B"
+	mappingCalls := 0
+	usersClient := &stubUsersClient{
+		getUserFn: func(_ context.Context, _ string, userId string) (idp.UserRepresentation, error) {
+			return idp.UserRepresentation{Id: &userId, Email: &em, FirstName: &fn, LastName: &ln}, nil
+		},
+		getUserRealmRolesFn: func(_ context.Context, _ string, userId string) ([]string, error) {
+			mappingCalls++
+			if userId != id {
+				t.Errorf("userId = %q, want %q", userId, id)
+			}
+			return []string{"PROFILE", "VIEW"}, nil
+		},
+	}
+	var captured repo.UserUpsert
+	userRepo := &stubUserRepo{
+		upsertFn: func(_ context.Context, p repo.UserUpsert) (*repo.UserResult, error) {
+			captured = p
+			return nil, nil
+		},
+	}
+	svc := newSvc(userRepo, usersClient)
+	got, err := svc.SyncUserFromIdp(context.Background(), id)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if mappingCalls != 1 {
+		t.Errorf("role-mapping calls = %d, want 1", mappingCalls)
+	}
+	if !reflect.DeepEqual(captured.Roles, []string{"PROFILE", "VIEW"}) {
+		t.Errorf("captured.Roles = %v, want [PROFILE VIEW]", captured.Roles)
+	}
+	if len(got.Roles()) != 2 {
+		t.Errorf("aggregate roles = %v, want 2 resolved roles", got.Roles())
+	}
+}
+
+func TestSyncUserFromIdp_WhenRoleMappingFails_ReturnsErrorWithoutUpsert(t *testing.T) {
+	em := "u@x.com"
+	usersClient := &stubUsersClient{
+		getUserFn: func(_ context.Context, _ string, userId string) (idp.UserRepresentation, error) {
+			return idp.UserRepresentation{Id: &userId, Email: &em}, nil
+		},
+		getUserRealmRolesFn: func(context.Context, string, string) ([]string, error) {
+			return nil, errors.New("kc dead")
+		},
+	}
+	upserted := false
+	userRepo := &stubUserRepo{
+		upsertFn: func(context.Context, repo.UserUpsert) (*repo.UserResult, error) {
+			upserted = true
+			return nil, nil
+		},
+	}
+	svc := newSvc(userRepo, usersClient)
+	_, err := svc.SyncUserFromIdp(context.Background(), "idp-1")
+	if err == nil || !strings.Contains(err.Error(), "failed to get realm roles from IdP") {
+		t.Errorf("err = %v, want realm-roles wrap", err)
+	}
+	if upserted {
+		t.Error("upsert must not run when realm roles cannot be resolved")
+	}
+}
+
 // ─── session revocation ─────────────────────────────────────────────────────
 
-func TestSuspendUser_RevokesSessions(t *testing.T) {
+func TestSuspendUser_WhenUserSuspended_LogsOutAndRevokesSessions(t *testing.T) {
 	idpId := "idp-1"
 	usersClient := &stubUsersClient{
 		updateUserFn: func(context.Context, string, string, idp.UserRepresentation) error { return nil },
@@ -952,7 +1061,7 @@ func TestSuspendUser_RevokesSessions(t *testing.T) {
 	}
 }
 
-func TestUpdateUserRoles_RevokesSessions(t *testing.T) {
+func TestUpdateUserRoles_WhenRolesChanged_LogsOutAndRevokesSessions(t *testing.T) {
 	idpId := "idp-1"
 	usersClient := &stubUsersClient{
 		getUserFn: func(context.Context, string, string) (idp.UserRepresentation, error) {
@@ -968,7 +1077,7 @@ func TestUpdateUserRoles_RevokesSessions(t *testing.T) {
 
 	revoker := &stubRevoker{}
 	_, err := newSvcWithRevoker(userRepo, usersClient, revoker).
-		UpdateUserRoles(context.Background(), "uid", command.UserRolesCommand{Roles: []string{"USER"}})
+		UpdateUserRoles(context.Background(), "uid", command.UserRolesCommand{Roles: []string{"VIEW"}})
 	if err != nil {
 		t.Fatalf("UpdateUserRoles: %v", err)
 	}
@@ -980,7 +1089,7 @@ func TestUpdateUserRoles_RevokesSessions(t *testing.T) {
 	}
 }
 
-func TestSuspendUser_DenylistFailureAbortsBeforeLocalWrite(t *testing.T) {
+func TestSuspendUser_WhenDenylistFails_AbortsBeforeLocalWrite(t *testing.T) {
 	idpId := "idp-1"
 	usersClient := &stubUsersClient{
 		updateUserFn: func(context.Context, string, string, idp.UserRepresentation) error { return nil },
@@ -1008,7 +1117,7 @@ func TestSuspendUser_DenylistFailureAbortsBeforeLocalWrite(t *testing.T) {
 	}
 }
 
-func TestSuspendUser_LogoutFailureAbortsBeforeLocalWrite(t *testing.T) {
+func TestSuspendUser_WhenLogoutFails_AbortsBeforeLocalWrite(t *testing.T) {
 	idpId := "idp-1"
 	usersClient := &stubUsersClient{
 		updateUserFn: func(context.Context, string, string, idp.UserRepresentation) error { return nil },
@@ -1033,7 +1142,7 @@ func TestSuspendUser_LogoutFailureAbortsBeforeLocalWrite(t *testing.T) {
 	}
 }
 
-func TestDeactivateUser_DoesNotLogoutSeparately(t *testing.T) {
+func TestDeactivateUser_WhenUserDeleted_SkipsSeparateLogout(t *testing.T) {
 	idpId := "idp-1"
 	usersClient := &stubUsersClient{
 		deleteUserFn: func(context.Context, string, string) error { return nil },
@@ -1054,7 +1163,7 @@ func TestDeactivateUser_DoesNotLogoutSeparately(t *testing.T) {
 
 // ─── write-order divergence (L2) ─────────────────────────────────────────────
 
-func TestSuspendUser_LocalWriteRetriedOnceThenSucceeds(t *testing.T) {
+func TestSuspendUser_WhenLocalWriteFailsOnce_RetriesAndSucceeds(t *testing.T) {
 	idpId := "idp-1"
 	disableCalls := 0
 	usersClient := &stubUsersClient{
@@ -1090,7 +1199,7 @@ func TestSuspendUser_LocalWriteRetriedOnceThenSucceeds(t *testing.T) {
 	}
 }
 
-func TestSuspendUser_LocalWriteFailsTwiceLeavesKeycloakDisabled(t *testing.T) {
+func TestSuspendUser_WhenLocalWriteFailsTwice_LeavesIdpUserDisabled(t *testing.T) {
 	idpId := "idp-1"
 	disableCalls := 0
 	reEnabled := false
@@ -1124,7 +1233,7 @@ func TestSuspendUser_LocalWriteFailsTwiceLeavesKeycloakDisabled(t *testing.T) {
 	}
 }
 
-func TestUpdateUserRoles_LocalWriteFailureCompensatesKeycloak(t *testing.T) {
+func TestUpdateUserRoles_WhenLocalWriteFails_CompensatesKeycloak(t *testing.T) {
 	idpId := "idp-1"
 	setCalls := 0
 	usersClient := &stubUsersClient{
@@ -1154,7 +1263,7 @@ func TestUpdateUserRoles_LocalWriteFailureCompensatesKeycloak(t *testing.T) {
 	}
 }
 
-func TestUpdateUser_LocalWriteFailureCompensatesKeycloak(t *testing.T) {
+func TestUpdateUser_WhenLocalWriteFails_CompensatesKeycloak(t *testing.T) {
 	idpId := "idp-1"
 	oldFirst, oldLast := "Old", "Name"
 	var updates [][2]string

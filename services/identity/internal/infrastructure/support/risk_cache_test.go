@@ -7,7 +7,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/security"
 )
 
-func TestRiskEntry_UnmarshalsFlinkAutoFlagPayload(t *testing.T) {
+func TestRiskEntry_WhenPayloadFromFlinkAutoFlag_UnmarshalsEveryField(t *testing.T) {
 	payload := `{"sub":"7c9e6679-7425-40de-944b-e07fc1f90ae7",` +
 		`"level":"restrict",` +
 		`"reason":"auto: score 3421 (2801 req, 120 errors, 70 paths in 5m)",` +

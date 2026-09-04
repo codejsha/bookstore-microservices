@@ -3,10 +3,10 @@
 package openapi
 
 type UserRegisterRequest struct {
-	Email     string      `json:"email" validate:"required"`
-	FirstName string      `json:"first_name" validate:"required"`
-	LastName  string      `json:"last_name" validate:"required"`
-	Password  string      `json:"password" validate:"required"`
-	Phone     *string     `json:"phone,omitempty"`
+	Email     string      `json:"email" binding:"required,max=100"`
+	FirstName string      `json:"first_name" binding:"required,max=50"`
+	LastName  string      `json:"last_name" binding:"required,max=50"`
+	Password  string      `json:"password" binding:"required"`
+	Phone     *string     `json:"phone,omitempty" binding:"omitempty,max=30"`
 	Roles     *[]AuthRole `json:"roles,omitempty"`
 }

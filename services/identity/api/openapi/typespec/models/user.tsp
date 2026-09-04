@@ -22,14 +22,21 @@ enum UserStatus {
 
 model UserRegisterRequest {
   @format("email")
+  @maxLength(100)
   email: string;
 
   @secret
   password: string;
 
+  @maxLength(50)
   first_name: string;
+
+  @maxLength(50)
   last_name: string;
+
+  @maxLength(30)
   phone?: string;
+
   roles?: AuthRole[];
 }
 
@@ -37,10 +44,16 @@ model UserFindResponse {
   uid: uuid;
 
   @format("email")
+  @maxLength(100)
   email: string;
 
+  @maxLength(50)
   first_name: string;
+
+  @maxLength(50)
   last_name: string;
+
+  @maxLength(30)
   phone?: string;
 
   @minItems(1)
@@ -53,8 +66,13 @@ model UserFindResponse {
 }
 
 model UserUpdateRequest {
+  @maxLength(50)
   first_name?: string;
+
+  @maxLength(50)
   last_name?: string;
+
+  @maxLength(30)
   phone?: string;
 }
 
