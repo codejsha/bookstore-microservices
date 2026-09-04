@@ -6,15 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bookstore Web</title>
     <link rel="preload" href="/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <style>
-        html:not(.ready) body { visibility: hidden; }
-    </style>
-    <script>
-        document.fonts.load('16px "Geist Variable"')
-                    .then(() => document.documentElement.classList.add('ready'))
-                    .catch(() => document.documentElement.classList.add('ready'));
-                setTimeout(() => document.documentElement.classList.add('ready'), 500);
-    </script>
+    <script src="/font-ready.js"></script>
 </head>
 <body>
 <div id="root"></div>
