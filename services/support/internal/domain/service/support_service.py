@@ -14,6 +14,7 @@ from internal.domain.aggregate.ticket_aggregate import TicketAggregate
 from internal.domain.aggregate.ticket_category_aggregate import TicketCategoryAggregate
 from internal.domain.aggregate.ticket_comment_aggregate import TicketCommentAggregate
 from internal.domain.constant.ticket_status import TicketStatus
+from internal.domain.error import ConflictError, UnknownReferenceError
 from internal.domain.model.command.category_command import (
     CreateCategoryCommand,
     UpdateCategoryCommand,
@@ -44,13 +45,19 @@ class SupportService:
         self._category_repo = category_repo
         self._faq_repo = faq_repo
 
+    async def _resolve_category_id(self, category_uid: UUID | None) -> int | None:
+        if category_uid is None:
+            return None
+        category_id = await self._category_repo.find_id_by_uid(category_uid)
+        if category_id is None:
+            raise UnknownReferenceError("Category not found")
+        return category_id
+
     # ─── Tickets ──────────────────────────────────────────────────────
 
     async def create_ticket(self, command: CreateTicketCommand) -> TicketAggregate:
         now = datetime.now(UTC)
-        category_id = (
-            await self._category_repo.find_id_by_uid(command.category_uid) if command.category_uid is not None else None
-        )
+        category_id = await self._resolve_category_id(command.category_uid)
         ticket = TicketAggregate(
             uid=uuid7(),
             customer_uid=command.customer_uid,
@@ -72,7 +79,7 @@ class SupportService:
 
     async def update_ticket(self, uid: UUID, command: UpdateTicketCommand) -> TicketAggregate | None:
         category_provided = command.category_uid is not None
-        category_id = await self._category_repo.find_id_by_uid(command.category_uid) if category_provided else None
+        category_id = await self._resolve_category_id(command.category_uid)
         now = datetime.now(UTC)
 
         def _mutate(ticket: TicketAggregate) -> TicketAggregate:
@@ -134,9 +141,9 @@ class SupportService:
 
     async def create_category(self, command: CreateCategoryCommand) -> TicketCategoryAggregate:
         now = datetime.now(UTC)
-        parent_id = (
-            await self._category_repo.find_id_by_uid(command.parent_uid) if command.parent_uid is not None else None
-        )
+        if await self._category_repo.find_by_name(command.name) is not None:
+            raise ConflictError("Category name already exists")
+        parent_id = await self._resolve_category_id(command.parent_uid)
         category = TicketCategoryAggregate(
             uid=uuid7(),
             name=command.name,
@@ -158,12 +165,16 @@ class SupportService:
         if category is None:
             return None
         now = datetime.now(UTC)
+        if command.name is not None and command.name != category.name:
+            existing = await self._category_repo.find_by_name(command.name)
+            if existing is not None and existing.uid != category.uid:
+                raise ConflictError("Category name already exists")
         if command.name is not None:
             category.name = command.name
         if command.description is not None:
             category.description = command.description
         if command.parent_uid is not None:
-            category.parent_id = await self._category_repo.find_id_by_uid(command.parent_uid)
+            category.parent_id = await self._resolve_category_id(command.parent_uid)
         category.updated_at = now
         return await self._category_repo.save(category)
 
@@ -174,9 +185,7 @@ class SupportService:
 
     async def create_faq(self, command: CreateFaqCommand) -> FaqAggregate:
         now = datetime.now(UTC)
-        category_id = (
-            await self._category_repo.find_id_by_uid(command.category_uid) if command.category_uid is not None else None
-        )
+        category_id = await self._resolve_category_id(command.category_uid)
         faq = FaqAggregate(
             uid=uuid7(),
             category_id=category_id,
@@ -206,7 +215,7 @@ class SupportService:
 
     async def update_faq(self, uid: UUID, command: UpdateFaqCommand) -> FaqAggregate | None:
         category_provided = command.category_uid is not None
-        category_id = await self._category_repo.find_id_by_uid(command.category_uid) if category_provided else None
+        category_id = await self._resolve_category_id(command.category_uid)
         now = datetime.now(UTC)
 
         def _mutate(faq: FaqAggregate) -> FaqAggregate:

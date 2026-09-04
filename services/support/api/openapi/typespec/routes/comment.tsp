@@ -13,12 +13,12 @@ interface Comments {
   getAll(
     @path ticket_uid: uuid,
     @query include_internal?: boolean,
-  ): CommentFindAllResponse | NotFoundError;
+  ): CommentFindAllResponse | NotFoundError | UnprocessableEntityError;
 
   @doc("Add comment to ticket")
   @post
   create(
     @path ticket_uid: uuid,
     @body body: CommentCreateRequest,
-  ): CreatedResponse | NotFoundError;
+  ): CreatedResponse | NotFoundError | UnprocessableEntityError;
 }

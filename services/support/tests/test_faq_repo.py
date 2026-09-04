@@ -22,13 +22,13 @@ def category_repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLTic
     return MySQLTicketCategoryRepository(session_factory)
 
 
-async def test_save_inserts_faq(repo: MySQLFaqRepository) -> None:
+async def test_save_new_inserts_row(repo: MySQLFaqRepository) -> None:
     faq = make_faq()
     saved = await repo.save(faq)
     assert saved.uid == faq.uid
 
 
-async def test_find_by_uid_returns_saved(repo: MySQLFaqRepository) -> None:
+async def test_find_by_uid_roundtrips(repo: MySQLFaqRepository) -> None:
     faq = make_faq()
     await repo.save(faq)
     found = await repo.find_by_uid(faq.uid)
@@ -36,11 +36,11 @@ async def test_find_by_uid_returns_saved(repo: MySQLFaqRepository) -> None:
     assert found.question == faq.question
 
 
-async def test_find_by_uid_returns_none(repo: MySQLFaqRepository) -> None:
+async def test_find_by_uid_missing_is_none(repo: MySQLFaqRepository) -> None:
     assert await repo.find_by_uid(uuid4()) is None
 
 
-async def test_datetime_round_trips_as_tz_aware_utc(repo: MySQLFaqRepository) -> None:
+async def test_find_by_uid_has_timezone_aware_utc_datetimes(repo: MySQLFaqRepository) -> None:
     faq = make_faq()
     await repo.save(faq)
 
@@ -51,7 +51,7 @@ async def test_datetime_round_trips_as_tz_aware_utc(repo: MySQLFaqRepository) ->
     assert found.created_at.isoformat().endswith("+00:00")
 
 
-async def test_save_updates_existing(repo: MySQLFaqRepository) -> None:
+async def test_save_found_updates_row(repo: MySQLFaqRepository) -> None:
     faq = make_faq(published=False)
     await repo.save(faq)
     faq.question = "Updated?"
@@ -62,7 +62,7 @@ async def test_save_updates_existing(repo: MySQLFaqRepository) -> None:
     assert updated.published is True
 
 
-async def test_search_published_only_excludes_unpublished(repo: MySQLFaqRepository) -> None:
+async def test_search_published_only_true_excludes_unpublished_faqs(repo: MySQLFaqRepository) -> None:
     await repo.save(make_faq(published=True))
     await repo.save(make_faq(published=False))
     items, total = await repo.search(FaqSearchOption(published_only=True))
@@ -70,14 +70,14 @@ async def test_search_published_only_excludes_unpublished(repo: MySQLFaqReposito
     assert items[0].published is True
 
 
-async def test_search_published_only_false_includes_all(repo: MySQLFaqRepository) -> None:
+async def test_search_published_only_false_includes_unpublished(repo: MySQLFaqRepository) -> None:
     await repo.save(make_faq(published=True))
     await repo.save(make_faq(published=False))
     items, total = await repo.search(FaqSearchOption(published_only=False))
     assert total == 2
 
 
-async def test_search_query_matches_question_and_answer(repo: MySQLFaqRepository) -> None:
+async def test_search_with_query_matches_question_and_answer(repo: MySQLFaqRepository) -> None:
     a = make_faq(published=True)
     a.question = "How do I reset my password?"
     b = make_faq(published=True)
@@ -93,7 +93,7 @@ async def test_search_query_matches_question_and_answer(repo: MySQLFaqRepository
     assert total == 1
 
 
-async def test_search_filters_by_category(
+async def test_search_by_category_matches_faqs(
     repo: MySQLFaqRepository, category_repo: MySQLTicketCategoryRepository
 ) -> None:
     category = make_category()
@@ -105,14 +105,16 @@ async def test_search_filters_by_category(
     assert total == 1
 
 
-async def test_search_unknown_category_returns_empty(repo: MySQLFaqRepository) -> None:
+async def test_search_unknown_category_is_empty(repo: MySQLFaqRepository) -> None:
     await repo.save(make_faq(published=True))
     items, total = await repo.search(FaqSearchOption(category_uid=uuid4()))
     assert total == 0
     assert items == []
 
 
-async def test_resolves_category_uid(repo: MySQLFaqRepository, category_repo: MySQLTicketCategoryRepository) -> None:
+async def test_find_by_uid_existing_category_resolves_category_uid(
+    repo: MySQLFaqRepository, category_repo: MySQLTicketCategoryRepository
+) -> None:
     category = make_category()
     await category_repo.save(category)
     cat_id = await category_repo.find_id_by_uid(category.uid)
@@ -127,7 +129,7 @@ async def test_resolves_category_uid(repo: MySQLFaqRepository, category_repo: My
     assert items[0].category_uid == category.uid
 
 
-async def test_update_applies_mutator_atomically(repo: MySQLFaqRepository) -> None:
+async def test_update_found_applies_mutator(repo: MySQLFaqRepository) -> None:
     faq = make_faq(published=False)
     await repo.save(faq)
 
@@ -146,11 +148,11 @@ async def test_update_applies_mutator_atomically(repo: MySQLFaqRepository) -> No
     assert reloaded.published is True
 
 
-async def test_update_returns_none_when_missing(repo: MySQLFaqRepository) -> None:
+async def test_update_missing_is_none(repo: MySQLFaqRepository) -> None:
     assert await repo.update(uuid4(), lambda f: f) is None
 
 
-async def test_search_unknown_sort_field_falls_back_to_default(repo: MySQLFaqRepository) -> None:
+async def test_search_unknown_sort_field_falls_back_to_default_order(repo: MySQLFaqRepository) -> None:
     await repo.save(make_faq(published=True, view_count=1))
     await repo.save(make_faq(published=True, view_count=9))
     items, total = await repo.search(FaqSearchOption(sort="metadata:desc"))
@@ -158,7 +160,7 @@ async def test_search_unknown_sort_field_falls_back_to_default(repo: MySQLFaqRep
     assert items[0].view_count == 9
 
 
-async def test_increment_view_count(repo: MySQLFaqRepository) -> None:
+async def test_increment_view_count_found_adds_one(repo: MySQLFaqRepository) -> None:
     faq = make_faq(view_count=5)
     await repo.save(faq)
     await repo.increment_view_count(faq.uid)
@@ -167,12 +169,12 @@ async def test_increment_view_count(repo: MySQLFaqRepository) -> None:
     assert found.view_count == 6
 
 
-async def test_delete_returns_true_when_exists(repo: MySQLFaqRepository) -> None:
+async def test_delete_by_uid_found_reports_true_and_hides_it(repo: MySQLFaqRepository) -> None:
     faq = make_faq()
     await repo.save(faq)
     assert await repo.delete_by_uid(faq.uid) is True
     assert await repo.find_by_uid(faq.uid) is None
 
 
-async def test_delete_returns_false_when_missing(repo: MySQLFaqRepository) -> None:
+async def test_delete_by_uid_missing_reports_false(repo: MySQLFaqRepository) -> None:
     assert await repo.delete_by_uid(uuid4()) is False

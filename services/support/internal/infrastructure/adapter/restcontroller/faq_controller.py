@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from internal.domain.aggregate.faq_aggregate import FaqAggregate
+from internal.domain.error import UnknownReferenceError
 from internal.domain.model.command.faq_command import CreateFaqCommand, UpdateFaqCommand
 from internal.domain.model.option.faq_option import FaqSearchOption
 from internal.domain.service.support_service import SupportService
@@ -30,7 +31,10 @@ def create_faq_router(service: SupportService) -> APIRouter:
             category_uid=request.category_uid,
             published=request.published,
         )
-        return _to_response(await service.create_faq(command))
+        try:
+            return _to_response(await service.create_faq(command))
+        except UnknownReferenceError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @router.get("/{uid}", response_model=FaqResponse)
     async def get_faq(
@@ -80,7 +84,10 @@ def create_faq_router(service: SupportService) -> APIRouter:
             category_uid=request.category_uid,
             published=request.published,
         )
-        faq = await service.update_faq(uid, command)
+        try:
+            faq = await service.update_faq(uid, command)
+        except UnknownReferenceError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         if faq is None:
             raise HTTPException(status_code=404, detail="FAQ not found")
         return _to_response(faq)

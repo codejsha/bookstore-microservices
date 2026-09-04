@@ -6,6 +6,6 @@ from typing import Optional
 
 
 class CategoryUpdateRequest(BaseModel):
-    description: Optional[str] = Field(default=None)
-    name: Optional[str] = Field(default=None)
+    description: Optional[str] = Field(default=None, max_length=500)
+    name: Optional[str] = Field(default=None, min_length=1, max_length=100, pattern="[\s\S]*\S[\s\S]*")
     parent_uid: Optional[str] = Field(default=None)

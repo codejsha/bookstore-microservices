@@ -22,7 +22,7 @@ router = APIRouter(
 
 @router.get(
     "/api/v1/tickets",
-    summary="List tickets",
+    summary="List tickets  Errors:   422 (UnprocessableEntityError) — Client error",
     response_model=TicketFindAllResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -44,7 +44,7 @@ async def tickets_get_all(
 
 @router.post(
     "/api/v1/tickets",
-    summary="Open new ticket",
+    summary="Open new ticket  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   422 (UnprocessableEntityError) — Client error",
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},
     },
@@ -64,7 +64,7 @@ async def tickets_create(
 
 @router.get(
     "/api/v1/tickets/{uid}",
-    summary="Find ticket  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Find ticket  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=TicketFindResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -79,7 +79,7 @@ async def tickets_read(
 
 @router.patch(
     "/api/v1/tickets/{uid}",
-    summary="Update ticket  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Update ticket  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=TicketUpdateResponse,
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},
@@ -96,7 +96,7 @@ async def tickets_update(
 
 @router.patch(
     "/api/v1/tickets/{uid}/status",
-    summary="Update ticket status  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Update ticket status  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=TicketUpdateResponse,
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},

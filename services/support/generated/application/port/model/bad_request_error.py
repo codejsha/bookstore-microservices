@@ -6,6 +6,10 @@ from typing import List, Optional
 
 
 class BadRequestError(BaseModel):
-    code: int
-    details: Optional[list[str]] = Field(default=None)
-    message: str
+    detail: Optional[str] = Field(default=None)
+    errors: Optional[list[str]] = Field(default=None)
+    status: int
+    title: str
+    type_: Optional[str] = Field(alias="type", default=None)
+
+    model_config = {"populate_by_name": True}

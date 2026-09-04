@@ -10,6 +10,6 @@ from ..constant.ticket_priority import TicketPriority
 class TicketUpdateRequest(BaseModel):
     assignee_uid: Optional[str] = Field(default=None)
     category_uid: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
+    description: Optional[str] = Field(default=None, min_length=1, max_length=16000, pattern="[\s\S]*\S[\s\S]*")
     priority: Optional[TicketPriority] = Field(default=None)
-    subject: Optional[str] = Field(default=None)
+    subject: Optional[str] = Field(default=None, min_length=1, max_length=255, pattern="[\s\S]*\S[\s\S]*")

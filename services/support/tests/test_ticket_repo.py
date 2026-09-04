@@ -24,14 +24,14 @@ def category_repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLTic
     return MySQLTicketCategoryRepository(session_factory)
 
 
-async def test_save_inserts_ticket(repo: MySQLTicketRepository) -> None:
+async def test_save_new_inserts_row(repo: MySQLTicketRepository) -> None:
     ticket = make_ticket()
     saved = await repo.save(ticket)
     assert saved.uid == ticket.uid
     assert saved.status == TicketStatus.OPEN
 
 
-async def test_find_by_uid_returns_saved(repo: MySQLTicketRepository) -> None:
+async def test_find_by_uid_roundtrips(repo: MySQLTicketRepository) -> None:
     ticket = make_ticket()
     await repo.save(ticket)
     found = await repo.find_by_uid(ticket.uid)
@@ -39,11 +39,11 @@ async def test_find_by_uid_returns_saved(repo: MySQLTicketRepository) -> None:
     assert found.subject == ticket.subject
 
 
-async def test_find_by_uid_returns_none(repo: MySQLTicketRepository) -> None:
+async def test_find_by_uid_missing_is_none(repo: MySQLTicketRepository) -> None:
     assert await repo.find_by_uid(uuid4()) is None
 
 
-async def test_find_id_by_uid_returns_id(repo: MySQLTicketRepository) -> None:
+async def test_find_id_by_uid_found_resolves_internal_id(repo: MySQLTicketRepository) -> None:
     ticket = make_ticket()
     await repo.save(ticket)
     ticket_id = await repo.find_id_by_uid(ticket.uid)
@@ -51,11 +51,11 @@ async def test_find_id_by_uid_returns_id(repo: MySQLTicketRepository) -> None:
     assert ticket_id > 0
 
 
-async def test_find_id_by_uid_returns_none_when_missing(repo: MySQLTicketRepository) -> None:
+async def test_find_id_by_uid_missing_is_none(repo: MySQLTicketRepository) -> None:
     assert await repo.find_id_by_uid(uuid4()) is None
 
 
-async def test_save_updates_existing(repo: MySQLTicketRepository) -> None:
+async def test_save_found_updates_row(repo: MySQLTicketRepository) -> None:
     ticket = make_ticket()
     await repo.save(ticket)
     ticket.subject = "Updated"
@@ -68,7 +68,7 @@ async def test_save_updates_existing(repo: MySQLTicketRepository) -> None:
     assert updated.status == TicketStatus.IN_PROGRESS
 
 
-async def test_find_all_filters_by_customer_uid(repo: MySQLTicketRepository) -> None:
+async def test_find_all_by_customer_uid_matches_tickets(repo: MySQLTicketRepository) -> None:
     mine, theirs = uuid4(), uuid4()
     await repo.save(make_ticket(customer_uid=mine))
     await repo.save(make_ticket(customer_uid=theirs))
@@ -77,7 +77,7 @@ async def test_find_all_filters_by_customer_uid(repo: MySQLTicketRepository) -> 
     assert items[0].customer_uid == mine
 
 
-async def test_find_all_filters_by_status_and_priority(repo: MySQLTicketRepository) -> None:
+async def test_find_all_by_status_and_priority_matches_tickets(repo: MySQLTicketRepository) -> None:
     await repo.save(make_ticket(status=TicketStatus.OPEN, priority=TicketPriority.HIGH))
     await repo.save(make_ticket(status=TicketStatus.OPEN, priority=TicketPriority.LOW))
     await repo.save(make_ticket(status=TicketStatus.RESOLVED, priority=TicketPriority.HIGH))
@@ -86,7 +86,7 @@ async def test_find_all_filters_by_status_and_priority(repo: MySQLTicketReposito
     assert total == 1
 
 
-async def test_find_all_filters_by_category_uid(
+async def test_find_all_by_category_uid_matches_tickets(
     repo: MySQLTicketRepository, category_repo: MySQLTicketCategoryRepository
 ) -> None:
     category = make_category()
@@ -99,7 +99,7 @@ async def test_find_all_filters_by_category_uid(
     assert items[0].category_id == cat_id
 
 
-async def test_find_all_filters_by_unknown_category_uid_returns_empty(
+async def test_find_all_unknown_category_uid_is_empty(
     repo: MySQLTicketRepository,
 ) -> None:
     await repo.save(make_ticket())
@@ -108,7 +108,7 @@ async def test_find_all_filters_by_unknown_category_uid_returns_empty(
     assert items == []
 
 
-async def test_find_all_paginates_descending(repo: MySQLTicketRepository) -> None:
+async def test_find_all_with_page_size_pages_newest_first_with_total(repo: MySQLTicketRepository) -> None:
     base = datetime.now(UTC)
     tickets = []
     for i in range(3):
@@ -122,7 +122,7 @@ async def test_find_all_paginates_descending(repo: MySQLTicketRepository) -> Non
     assert items[0].uid == tickets[2].uid
 
 
-async def test_find_all_unknown_sort_field_falls_back_to_default(repo: MySQLTicketRepository) -> None:
+async def test_find_all_unknown_sort_field_falls_back_to_default_order(repo: MySQLTicketRepository) -> None:
     base = datetime.now(UTC)
     tickets = []
     for i in range(2):
@@ -136,7 +136,7 @@ async def test_find_all_unknown_sort_field_falls_back_to_default(repo: MySQLTick
     assert items[0].uid == tickets[1].uid
 
 
-async def test_find_by_uid_resolves_category_uid(
+async def test_find_by_uid_existing_category_resolves_category_uid(
     repo: MySQLTicketRepository, category_repo: MySQLTicketCategoryRepository
 ) -> None:
     category = make_category()
@@ -153,7 +153,7 @@ async def test_find_by_uid_resolves_category_uid(
     assert items[0].category_uid == category.uid
 
 
-async def test_update_applies_mutator_atomically(repo: MySQLTicketRepository) -> None:
+async def test_update_found_applies_mutator(repo: MySQLTicketRepository) -> None:
     ticket = make_ticket()
     await repo.save(ticket)
 
@@ -172,5 +172,5 @@ async def test_update_applies_mutator_atomically(repo: MySQLTicketRepository) ->
     assert reloaded.subject == "Locked-update subject"
 
 
-async def test_update_returns_none_when_missing(repo: MySQLTicketRepository) -> None:
+async def test_update_missing_is_none(repo: MySQLTicketRepository) -> None:
     assert await repo.update(uuid4(), lambda t: t) is None

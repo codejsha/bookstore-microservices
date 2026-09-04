@@ -17,7 +17,7 @@ router = APIRouter(
 
 @router.get(
     "/api/v1/categories",
-    summary="List categories",
+    summary="List categories  Errors:   422 (UnprocessableEntityError) — Client error",
     response_model=CategoryFindAllResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -31,7 +31,7 @@ async def categories_get_all(
 
 @router.post(
     "/api/v1/categories",
-    summary="Create category",
+    summary="Create category  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   409 (ConflictError) — The request conflicts with the current state of the server.   422 (UnprocessableEntityError) — Client error",
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},
     },
@@ -51,7 +51,7 @@ async def categories_create(
 
 @router.get(
     "/api/v1/categories/{uid}",
-    summary="Find category  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Find category  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=CategoryFindResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -66,7 +66,7 @@ async def categories_read(
 
 @router.delete(
     "/api/v1/categories/{uid}",
-    summary="Delete category  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Delete category  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
 )
 async def categories_remove(
     uid: str = Path(...),
@@ -77,7 +77,7 @@ async def categories_remove(
 
 @router.patch(
     "/api/v1/categories/{uid}",
-    summary="Update category  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Update category  Errors:   400 (BadRequestError) — The server could not understand the request due to invalid syntax.   404 (NotFoundError) — The server cannot find the requested resource.   409 (ConflictError) — The request conflicts with the current state of the server.   422 (UnprocessableEntityError) — Client error",
     response_model=CategoryUpdateResponse,
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},

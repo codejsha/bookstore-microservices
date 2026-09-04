@@ -10,6 +10,6 @@ from ..constant.ticket_priority import TicketPriority
 class TicketCreateRequest(BaseModel):
     category_uid: Optional[str] = Field(default=None)
     customer_uid: str
-    description: str
+    description: str = Field(min_length=1, max_length=16000, pattern="[\s\S]*\S[\s\S]*")
     priority: Optional[TicketPriority] = Field(default=None)
-    subject: str
+    subject: str = Field(min_length=1, max_length=255, pattern="[\s\S]*\S[\s\S]*")

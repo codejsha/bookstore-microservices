@@ -2,11 +2,12 @@
 
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import List, Optional
 
 
-class NotFoundError(BaseModel):
+class UnprocessableEntityError(BaseModel):
     detail: Optional[str] = Field(default=None)
+    errors: Optional[list[str]] = Field(default=None)
     status: int
     title: str
     type_: Optional[str] = Field(alias="type", default=None)

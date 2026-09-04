@@ -6,7 +6,7 @@ from typing import Optional
 
 
 class FaqCreateRequest(BaseModel):
-    answer: str
+    answer: str = Field(min_length=1, max_length=16000, pattern="[\s\S]*\S[\s\S]*")
     category_uid: Optional[str] = Field(default=None)
     published: Optional[bool] = Field(default=None)
-    question: str
+    question: str = Field(min_length=1, max_length=500, pattern="[\s\S]*\S[\s\S]*")

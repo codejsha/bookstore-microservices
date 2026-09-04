@@ -12,6 +12,7 @@ from internal.infrastructure.adapter.restcontroller.comment_controller import cr
 from internal.infrastructure.adapter.restcontroller.faq_controller import create_faq_router
 from internal.infrastructure.adapter.restcontroller.ticket_controller import create_ticket_router
 from internal.infrastructure.support.logging import access_log_middleware, configure_logging
+from internal.infrastructure.support.problem import register_problem_handlers
 from internal.infrastructure.support.telemetry import instrument_fastapi, setup_telemetry
 
 logger = structlog.get_logger()
@@ -36,6 +37,7 @@ def create_app() -> FastAPI:
             await container.engine.dispose()
 
     app = FastAPI(title="Support Service", version="1.0.0", lifespan=lifespan)
+    register_problem_handlers(app)
     app.include_router(create_ticket_router(container.support_service))
     app.include_router(create_comment_router(container.support_service))
     app.include_router(create_category_router(container.support_service))

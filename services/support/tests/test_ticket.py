@@ -6,6 +6,7 @@ import pytest
 from internal.domain.constant.author_role import AuthorRole
 from internal.domain.constant.ticket_priority import TicketPriority
 from internal.domain.constant.ticket_status import TicketStatus
+from internal.domain.error import UnknownReferenceError
 from internal.domain.model.command.ticket_command import (
     AddCommentCommand,
     CreateTicketCommand,
@@ -33,7 +34,7 @@ def service(
 
 
 class TestCreateTicket:
-    async def test_persists_open_ticket_without_category(
+    async def test_create_ticket_without_category_persists_open_ticket(
         self,
         service: SupportService,
         ticket_repo: MagicMock,
@@ -54,7 +55,7 @@ class TestCreateTicket:
         category_repo.find_id_by_uid.assert_not_called()
         ticket_repo.save.assert_called_once()
 
-    async def test_resolves_category_id_when_uid_provided(
+    async def test_create_ticket_with_category_uid_resolves_category_id(
         self,
         service: SupportService,
         ticket_repo: MagicMock,
@@ -67,16 +68,30 @@ class TestCreateTicket:
         assert result.category_id == 7
         category_repo.find_id_by_uid.assert_called_once_with(category_uid)
 
+    async def test_create_ticket_unknown_category_uid_raises_unknown_reference_error(
+        self,
+        service: SupportService,
+        ticket_repo: MagicMock,
+        category_repo: MagicMock,
+    ) -> None:
+        category_repo.find_id_by_uid.return_value = None
+        command = CreateTicketCommand(customer_uid=uuid4(), subject="s", description="d", category_uid=uuid4())
+        with pytest.raises(UnknownReferenceError):
+            await service.create_ticket(command)
+        ticket_repo.save.assert_not_called()
+
 
 class TestGetTicket:
-    async def test_delegates_to_repository(self, service: SupportService, ticket_repo: MagicMock) -> None:
+    async def test_get_ticket_delegates_to_repository(self, service: SupportService, ticket_repo: MagicMock) -> None:
         ticket = make_ticket()
         ticket_repo.find_by_uid.return_value = ticket
         assert await service.get_ticket(ticket.uid) is ticket
 
 
 class TestListTickets:
-    async def test_delegates_to_repository(self, service: SupportService, ticket_repo: MagicMock) -> None:
+    async def test_list_tickets_with_option_delegates_to_repository(
+        self, service: SupportService, ticket_repo: MagicMock
+    ) -> None:
         option = TicketFilterOption()
         ticket_repo.find_all.return_value = ([make_ticket()], 1)
         result, total = await service.list_tickets(option)
@@ -84,12 +99,14 @@ class TestListTickets:
 
 
 class TestUpdateTicket:
-    async def test_returns_none_when_missing(self, service: SupportService, ticket_repo: MagicMock) -> None:
+    async def test_update_ticket_missing_is_none(self, service: SupportService, ticket_repo: MagicMock) -> None:
         ticket_repo.find_by_uid.return_value = None
         assert await service.update_ticket(uuid4(), UpdateTicketCommand(subject="s")) is None
         ticket_repo.save.assert_not_called()
 
-    async def test_updates_only_provided_fields(self, service: SupportService, ticket_repo: MagicMock) -> None:
+    async def test_update_ticket_partial_fields_updates_only_those(
+        self, service: SupportService, ticket_repo: MagicMock
+    ) -> None:
         ticket = make_ticket()
         original_description = ticket.description
         ticket_repo.find_by_uid.return_value = ticket
@@ -102,7 +119,7 @@ class TestUpdateTicket:
         assert result.priority == TicketPriority.URGENT
         assert result.description == original_description
 
-    async def test_resolves_category_uid(
+    async def test_update_ticket_with_category_uid_resolves_category_id(
         self,
         service: SupportService,
         ticket_repo: MagicMock,
@@ -116,15 +133,28 @@ class TestUpdateTicket:
         assert result is not None
         assert result.category_id == 9
 
+    async def test_update_ticket_unknown_category_uid_raises_unknown_reference_error(
+        self,
+        service: SupportService,
+        ticket_repo: MagicMock,
+        category_repo: MagicMock,
+    ) -> None:
+        ticket_repo.find_by_uid.return_value = make_ticket()
+        category_repo.find_id_by_uid.return_value = None
+        with pytest.raises(UnknownReferenceError):
+            await service.update_ticket(uuid4(), UpdateTicketCommand(category_uid=uuid4()))
+
 
 class TestUpdateTicketStatus:
-    async def test_returns_none_when_missing(self, service: SupportService, ticket_repo: MagicMock) -> None:
+    async def test_update_ticket_status_missing_is_none(self, service: SupportService, ticket_repo: MagicMock) -> None:
         ticket_repo.find_by_uid.return_value = None
         assert (
             await service.update_ticket_status(uuid4(), UpdateTicketStatusCommand(status=TicketStatus.RESOLVED)) is None
         )
 
-    async def test_resolved_sets_resolved_at(self, service: SupportService, ticket_repo: MagicMock) -> None:
+    async def test_update_ticket_status_resolved_sets_resolved_at(
+        self, service: SupportService, ticket_repo: MagicMock
+    ) -> None:
         ticket = make_ticket(status=TicketStatus.OPEN, resolved_at=None)
         ticket_repo.find_by_uid.return_value = ticket
         result = await service.update_ticket_status(ticket.uid, UpdateTicketStatusCommand(status=TicketStatus.RESOLVED))
@@ -132,7 +162,7 @@ class TestUpdateTicketStatus:
         assert result.status == TicketStatus.RESOLVED
         assert result.resolved_at is not None
 
-    async def test_resolved_does_not_overwrite_existing_resolved_at(
+    async def test_update_ticket_status_already_resolved_keeps_original_resolved_at(
         self, service: SupportService, ticket_repo: MagicMock
     ) -> None:
         from datetime import UTC, datetime, timedelta
@@ -144,7 +174,7 @@ class TestUpdateTicketStatus:
         assert result is not None
         assert result.resolved_at == original_resolved
 
-    async def test_non_resolved_status_does_not_set_resolved_at(
+    async def test_update_ticket_status_not_resolved_leaves_resolved_at_unset(
         self, service: SupportService, ticket_repo: MagicMock
     ) -> None:
         ticket = make_ticket(status=TicketStatus.OPEN, resolved_at=None)
@@ -158,7 +188,7 @@ class TestUpdateTicketStatus:
 
 
 class TestAddComment:
-    async def test_returns_none_when_ticket_missing(
+    async def test_add_comment_missing_is_none(
         self,
         service: SupportService,
         ticket_repo: MagicMock,
@@ -176,7 +206,7 @@ class TestAddComment:
         assert result is None
         comment_repo.save.assert_not_called()
 
-    async def test_creates_comment_with_resolved_ticket_id(
+    async def test_add_comment_found_creates_comment_with_its_id(
         self,
         service: SupportService,
         ticket_repo: MagicMock,
@@ -202,11 +232,11 @@ class TestAddComment:
 
 
 class TestListComments:
-    async def test_returns_none_when_ticket_missing(self, service: SupportService, ticket_repo: MagicMock) -> None:
+    async def test_list_comments_missing_is_none(self, service: SupportService, ticket_repo: MagicMock) -> None:
         ticket_repo.find_id_by_uid.return_value = None
         assert await service.list_comments(uuid4()) is None
 
-    async def test_delegates_with_include_internal_flag(
+    async def test_list_comments_with_include_internal_passes_it_to_repository(
         self,
         service: SupportService,
         ticket_repo: MagicMock,

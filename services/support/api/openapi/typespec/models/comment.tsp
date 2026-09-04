@@ -13,6 +13,9 @@ enum AuthorRole {
 // authenticated principal — never client-supplied — so it is intentionally
 // absent from the create request.
 model CommentCreateRequest {
+  @minLength(1)
+  @maxLength(16000)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   body: string;
   internal?: boolean;
 }

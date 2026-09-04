@@ -68,6 +68,7 @@ def comment_repo() -> MagicMock:
 def category_repo() -> MagicMock:
     repo = MagicMock(spec=TicketCategoryRepository)
     repo.save.side_effect = lambda c: c
+    repo.find_by_name.return_value = None
     return repo
 
 

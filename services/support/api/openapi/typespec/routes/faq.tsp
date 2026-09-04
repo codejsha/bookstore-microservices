@@ -17,11 +17,11 @@ interface Faqs {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): FaqFindAllResponse;
+  ): FaqFindAllResponse | UnprocessableEntityError;
 
   @doc("Create FAQ")
   @post
-  create(@body body: FaqCreateRequest): CreatedResponse;
+  create(@body body: FaqCreateRequest): CreatedResponse | BadRequestError | UnprocessableEntityError;
 
   @doc("Find FAQ")
   @route("{uid}")
@@ -29,7 +29,7 @@ interface Faqs {
   read(
     @path uid: uuid,
     @query increment_view?: boolean,
-  ): FaqFindResponse | NotFoundError;
+  ): FaqFindResponse | NotFoundError | UnprocessableEntityError;
 
   @doc("Update FAQ")
   @route("{uid}")
@@ -37,10 +37,10 @@ interface Faqs {
   update(
     @path uid: uuid,
     @body body: FaqUpdateRequest,
-  ): FaqUpdateResponse | NotFoundError;
+  ): FaqUpdateResponse | BadRequestError | NotFoundError | UnprocessableEntityError;
 
   @doc("Delete FAQ")
   @route("{uid}")
   @delete
-  remove(@path uid: uuid): NoContentResponse | NotFoundError;
+  remove(@path uid: uuid): NoContentResponse | NotFoundError | UnprocessableEntityError;
 }

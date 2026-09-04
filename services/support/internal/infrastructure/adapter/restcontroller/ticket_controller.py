@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from internal.domain.aggregate.ticket_aggregate import TicketAggregate
 from internal.domain.constant.ticket_priority import TicketPriority
 from internal.domain.constant.ticket_status import TicketStatus
+from internal.domain.error import UnknownReferenceError
 from internal.domain.model.command.ticket_command import (
     CreateTicketCommand,
     UpdateTicketCommand,
@@ -56,7 +57,10 @@ def create_ticket_router(service: SupportService) -> APIRouter:
             priority=request.priority,
             category_uid=request.category_uid,
         )
-        return _to_response(await service.create_ticket(command))
+        try:
+            return _to_response(await service.create_ticket(command))
+        except UnknownReferenceError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @router.get("/{uid}", response_model=TicketResponse)
     async def get_ticket(
@@ -123,7 +127,10 @@ def create_ticket_router(service: SupportService) -> APIRouter:
             category_uid=request.category_uid,
             assignee_uid=request.assignee_uid,
         )
-        ticket = await service.update_ticket(uid, command)
+        try:
+            ticket = await service.update_ticket(uid, command)
+        except UnknownReferenceError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         if ticket is None:
             raise HTTPException(status_code=404, detail="Ticket not found")
         return _to_response(ticket)

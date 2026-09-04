@@ -20,14 +20,26 @@ enum TicketPriority {
 
 model TicketCreateRequest {
   customer_uid: uuid;
+  @minLength(1)
+  @maxLength(255)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   subject: string;
+  @minLength(1)
+  @maxLength(16000)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   description: string;
   priority?: TicketPriority;
   category_uid?: uuid;
 }
 
 model TicketUpdateRequest {
+  @minLength(1)
+  @maxLength(255)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   subject?: string;
+  @minLength(1)
+  @maxLength(16000)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   description?: string;
   priority?: TicketPriority;
   category_uid?: uuid;

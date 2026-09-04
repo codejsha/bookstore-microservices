@@ -14,7 +14,7 @@ router = APIRouter(
 
 @router.get(
     "/api/v1/tickets/{ticket_uid}/comments",
-    summary="List ticket comments  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="List ticket comments  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     response_model=CommentFindAllResponse,
     openapi_extra={
         "responses": {"200": {"content": { "application/json": {} }}},
@@ -30,7 +30,7 @@ async def comments_get_all(
 
 @router.post(
     "/api/v1/tickets/{ticket_uid}/comments",
-    summary="Add comment to ticket  Errors:   404 (NotFoundError) — The server cannot find the requested resource.",
+    summary="Add comment to ticket  Errors:   404 (NotFoundError) — The server cannot find the requested resource.   422 (UnprocessableEntityError) — Client error",
     openapi_extra={
         "requestBody": {"content": { "application/json": {} }},
     },

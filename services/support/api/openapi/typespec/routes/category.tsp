@@ -10,16 +10,16 @@ namespace SupportService;
 interface Categories {
   @doc("List categories")
   @get
-  getAll(): CategoryFindAllResponse;
+  getAll(): CategoryFindAllResponse | UnprocessableEntityError;
 
   @doc("Create category")
   @post
-  create(@body body: CategoryCreateRequest): CreatedResponse;
+  create(@body body: CategoryCreateRequest): CreatedResponse | BadRequestError | ConflictError | UnprocessableEntityError;
 
   @doc("Find category")
   @route("{uid}")
   @get
-  read(@path uid: uuid): CategoryFindResponse | NotFoundError;
+  read(@path uid: uuid): CategoryFindResponse | NotFoundError | UnprocessableEntityError;
 
   @doc("Update category")
   @route("{uid}")
@@ -27,10 +27,10 @@ interface Categories {
   update(
     @path uid: uuid,
     @body body: CategoryUpdateRequest,
-  ): CategoryUpdateResponse | NotFoundError;
+  ): CategoryUpdateResponse | BadRequestError | NotFoundError | ConflictError | UnprocessableEntityError;
 
   @doc("Delete category")
   @route("{uid}")
   @delete
-  remove(@path uid: uuid): NoContentResponse | NotFoundError;
+  remove(@path uid: uuid): NoContentResponse | NotFoundError | UnprocessableEntityError;
 }

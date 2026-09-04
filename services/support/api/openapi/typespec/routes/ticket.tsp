@@ -19,16 +19,16 @@ interface Tickets {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): TicketFindAllResponse;
+  ): TicketFindAllResponse | UnprocessableEntityError;
 
   @doc("Open new ticket")
   @post
-  create(@body body: TicketCreateRequest): CreatedResponse;
+  create(@body body: TicketCreateRequest): CreatedResponse | BadRequestError | UnprocessableEntityError;
 
   @doc("Find ticket")
   @route("{uid}")
   @get
-  read(@path uid: uuid): TicketFindResponse | NotFoundError;
+  read(@path uid: uuid): TicketFindResponse | NotFoundError | UnprocessableEntityError;
 
   @doc("Update ticket")
   @route("{uid}")
@@ -36,7 +36,7 @@ interface Tickets {
   update(
     @path uid: uuid,
     @body body: TicketUpdateRequest,
-  ): TicketUpdateResponse | NotFoundError;
+  ): TicketUpdateResponse | BadRequestError | NotFoundError | UnprocessableEntityError;
 
   @doc("Update ticket status")
   @route("{uid}/status")
@@ -44,5 +44,5 @@ interface Tickets {
   updateStatus(
     @path uid: uuid,
     @body body: TicketUpdateStatusRequest,
-  ): TicketUpdateResponse | NotFoundError;
+  ): TicketUpdateResponse | NotFoundError | UnprocessableEntityError;
 }
