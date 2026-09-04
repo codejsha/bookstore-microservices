@@ -103,9 +103,19 @@
           "403": {
             "description": "Access is forbidden.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -140,9 +150,19 @@
           "403": {
             "description": "Access is forbidden.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -196,7 +216,7 @@
           "403": {
             "description": "Access is forbidden.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ForbiddenError"
                 }
@@ -206,9 +226,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -252,7 +282,7 @@
           "403": {
             "description": "Access is forbidden.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ForbiddenError"
                 }
@@ -262,9 +292,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -308,7 +348,7 @@
           "403": {
             "description": "Access is forbidden.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ForbiddenError"
                 }
@@ -318,9 +358,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -399,6 +449,16 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -430,9 +490,29 @@
           "403": {
             "description": "Access is forbidden.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the server.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -486,9 +566,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -530,7 +620,7 @@
           "403": {
             "description": "Access is forbidden.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ForbiddenError"
                 }
@@ -540,9 +630,29 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the server.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -587,7 +697,7 @@
           "403": {
             "description": "Access is forbidden.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ForbiddenError"
                 }
@@ -597,9 +707,19 @@
           "404": {
             "description": "The server cannot find the requested resource.",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Client error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnprocessableEntityError"
                 }
               }
             }
@@ -621,18 +741,24 @@
       "BadRequestError": {
         "type": "object",
         "required": [
-          "code",
-          "message"
+          "title",
+          "status"
         ],
         "properties": {
-          "code": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
             "type": "integer",
             "format": "int32"
           },
-          "message": {
+          "detail": {
             "type": "string"
           },
-          "details": {
+          "errors": {
             "type": "array",
             "items": {
               "type": "string"
@@ -648,18 +774,46 @@
           "PUSH"
         ]
       },
-      "ForbiddenError": {
+      "ConflictError": {
         "type": "object",
         "required": [
-          "code",
-          "message"
+          "title",
+          "status"
         ],
         "properties": {
-          "code": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
             "type": "integer",
             "format": "int32"
           },
-          "message": {
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
+      "ForbiddenError": {
+        "type": "object",
+        "required": [
+          "title",
+          "status"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "detail": {
             "type": "string"
           }
         }
@@ -667,15 +821,21 @@
       "NotFoundError": {
         "type": "object",
         "required": [
-          "code",
-          "message"
+          "title",
+          "status"
         ],
         "properties": {
-          "code": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
             "type": "integer",
             "format": "int32"
           },
-          "message": {
+          "detail": {
             "type": "string"
           }
         }
@@ -890,10 +1050,16 @@
             "$ref": "#/components/schemas/Channel"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "content": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           }
         }
       },
@@ -913,10 +1079,16 @@
             "$ref": "#/components/schemas/Channel"
           },
           "title_template": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "content_template": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           }
         }
       },
@@ -1025,10 +1197,16 @@
             "$ref": "#/components/schemas/Channel"
           },
           "title_template": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           },
           "content_template": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "pattern": "[\\s\\S]*\\S[\\s\\S]*"
           }
         }
       },
@@ -1066,6 +1244,34 @@
           "updated_at": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "UnprocessableEntityError": {
+        "type": "object",
+        "required": [
+          "title",
+          "status"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

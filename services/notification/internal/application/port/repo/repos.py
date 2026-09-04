@@ -4,6 +4,7 @@ from uuid import UUID
 
 from internal.domain.aggregate.notification_aggregate import NotificationAggregate
 from internal.domain.aggregate.template_aggregate import TemplateAggregate
+from internal.domain.constant.channel import Channel
 from internal.domain.constant.notification_type import NotificationType
 from internal.domain.model.option.notification_option import (
     NotificationFilterOption,
@@ -42,7 +43,17 @@ class TemplateRepository(ABC):
     async def find_by_uid(self, uid: UUID) -> TemplateAggregate | None: ...
 
     @abstractmethod
+    async def find_by_type_and_channel(
+        self, notification_type: NotificationType, channel: Channel
+    ) -> TemplateAggregate | None: ...
+
+    @abstractmethod
     async def find_all(self, option: TemplateFilterOption) -> tuple[list[TemplateAggregate], int]: ...
+
+    @abstractmethod
+    async def purge_deleted_by_type_and_channel(
+        self, notification_type: NotificationType, channel: Channel
+    ) -> bool: ...
 
     @abstractmethod
     async def delete_by_uid(self, uid: UUID) -> bool: ...

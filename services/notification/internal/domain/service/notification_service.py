@@ -4,8 +4,10 @@ from uuid import UUID, uuid7
 from internal.application.port.repo.repos import NotificationRepository, TemplateRepository
 from internal.domain.aggregate.notification_aggregate import NotificationAggregate
 from internal.domain.aggregate.template_aggregate import TemplateAggregate
+from internal.domain.constant.channel import Channel
 from internal.domain.constant.notification_type import NotificationType
 from internal.domain.constant.status import NotificationStatus
+from internal.domain.error import TemplateAlreadyExistsError
 from internal.domain.model.command.notification_command import (
     CreateTemplateCommand,
     SendNotificationCommand,
@@ -75,6 +77,7 @@ class NotificationService:
         return await self._notification_repo.update(uid, _mutate)
 
     async def create_template(self, command: CreateTemplateCommand) -> TemplateAggregate:
+        await self._reserve_type_and_channel(command.notification_type, command.channel, None)
         now = datetime.now(UTC)
         template = TemplateAggregate(
             uid=uuid7(),
@@ -98,10 +101,12 @@ class NotificationService:
         if template is None:
             return None
         now = datetime.now(UTC)
-        if command.notification_type is not None:
-            template.notification_type = command.notification_type
-        if command.channel is not None:
-            template.channel = command.channel
+        notification_type = command.notification_type or template.notification_type
+        channel = command.channel or template.channel
+        if (notification_type, channel) != (template.notification_type, template.channel):
+            await self._reserve_type_and_channel(notification_type, channel, uid)
+        template.notification_type = notification_type
+        template.channel = channel
         if command.title_template is not None:
             template.title_template = command.title_template
         if command.content_template is not None:
@@ -111,3 +116,11 @@ class NotificationService:
 
     async def delete_template(self, uid: UUID) -> bool:
         return await self._template_repo.delete_by_uid(uid)
+
+    async def _reserve_type_and_channel(
+        self, notification_type: NotificationType, channel: Channel, current_uid: UUID | None
+    ) -> None:
+        existing = await self._template_repo.find_by_type_and_channel(notification_type, channel)
+        if existing is not None and existing.uid != current_uid:
+            raise TemplateAlreadyExistsError(notification_type, channel)
+        await self._template_repo.purge_deleted_by_type_and_channel(notification_type, channel)

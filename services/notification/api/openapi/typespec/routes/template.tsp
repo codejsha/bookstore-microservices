@@ -16,24 +16,27 @@ interface Templates {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): TemplateFindAllResponse;
+  ): TemplateFindAllResponse | UnprocessableEntityError;
 
   @doc("Create new template")
   @post
-  create(@body body: TemplateCreateRequest): CreatedResponse | ForbiddenError;
+  create(@body body: TemplateCreateRequest): CreatedResponse | ForbiddenError | ConflictError | UnprocessableEntityError;
 
   @doc("Find template")
   @route("{uid}")
   @get
-  read(@path uid: uuid): TemplateFindResponse | NotFoundError;
+  read(@path uid: uuid): TemplateFindResponse | NotFoundError | UnprocessableEntityError;
 
   @doc("Update template")
   @route("{uid}")
   @put
-  update(@path uid: uuid, @body body: TemplateUpdateRequest): TemplateUpdateResponse | ForbiddenError | NotFoundError;
+  update(
+    @path uid: uuid,
+    @body body: TemplateUpdateRequest,
+  ): TemplateUpdateResponse | ForbiddenError | NotFoundError | ConflictError | UnprocessableEntityError;
 
   @doc("Delete template")
   @route("{uid}")
   @delete
-  delete(@path uid: uuid): NoContentResponse | ForbiddenError | NotFoundError;
+  delete(@path uid: uuid): NoContentResponse | ForbiddenError | NotFoundError | UnprocessableEntityError;
 }

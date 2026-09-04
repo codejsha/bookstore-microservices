@@ -29,12 +29,12 @@ def _customer_client(app: FastAPI) -> TestClient:
     return TestClient(app, headers={"x-user-id": CUSTOMER_UID, "x-user-roles": "PROFILE,ORDER,VIEW"})
 
 
-def test_missing_auth_returns_401(app: FastAPI) -> None:
+def test_notifications_anonymous_caller_unauthorized(app: FastAPI) -> None:
     response = TestClient(app).get("/api/v1/notifications")
     assert response.status_code == 401
 
 
-def test_corrupt_jwt_payload_returns_401(app: FastAPI) -> None:
+def test_notifications_corrupt_jwt_payload_unauthorized(app: FastAPI) -> None:
     response = TestClient(app).get(
         "/api/v1/notifications",
         headers={"x-user-id": CUSTOMER_UID, "x-jwt-payload": "bm90IGpzb24="},
@@ -42,7 +42,7 @@ def test_corrupt_jwt_payload_returns_401(app: FastAPI) -> None:
     assert response.status_code == 401
 
 
-def test_list_is_pinned_to_caller(app: FastAPI, service: MagicMock) -> None:
+def test_list_notifications_customer_caller_pins_filter_to_caller(app: FastAPI, service: MagicMock) -> None:
     service.list_notifications.return_value = ([], 0)
     response = _customer_client(app).get("/api/v1/notifications", params={"user_uid": OTHER_UID})
     assert response.status_code == 200
@@ -50,13 +50,13 @@ def test_list_is_pinned_to_caller(app: FastAPI, service: MagicMock) -> None:
     assert str(option.user_uid) == CUSTOMER_UID
 
 
-def test_read_others_notification_forbidden(app: FastAPI, service: MagicMock) -> None:
+def test_get_notification_owned_by_another_user_forbidden(app: FastAPI, service: MagicMock) -> None:
     service.get_notification.return_value = make_notification(user_uid=uuid4())
     response = _customer_client(app).get(f"/api/v1/notifications/{uuid4()}")
     assert response.status_code == 403
 
 
-def test_read_own_notification_allowed(app: FastAPI, service: MagicMock) -> None:
+def test_get_notification_owned_by_caller_ok(app: FastAPI, service: MagicMock) -> None:
     from uuid import UUID
 
     service.get_notification.return_value = make_notification(user_uid=UUID(CUSTOMER_UID))
@@ -64,7 +64,7 @@ def test_read_own_notification_allowed(app: FastAPI, service: MagicMock) -> None
     assert response.status_code == 200
 
 
-def test_customer_cannot_send_notification(app: FastAPI, service: MagicMock) -> None:
+def test_send_notification_customer_caller_forbidden(app: FastAPI, service: MagicMock) -> None:
     response = _customer_client(app).post(
         "/api/v1/notifications",
         json={

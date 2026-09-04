@@ -5,14 +5,26 @@ namespace NotificationService;
 model TemplateCreateRequest {
   notification_type: NotificationType;
   channel: Channel;
+  @minLength(1)
+  @maxLength(255)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   title_template: string;
+  @minLength(1)
+  @maxLength(10000)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   content_template: string;
 }
 
 model TemplateUpdateRequest {
   notification_type?: NotificationType;
   channel?: Channel;
+  @minLength(1)
+  @maxLength(255)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   title_template?: string;
+  @minLength(1)
+  @maxLength(10000)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   content_template?: string;
 }
 

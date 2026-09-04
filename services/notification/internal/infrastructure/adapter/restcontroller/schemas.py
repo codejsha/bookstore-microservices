@@ -6,14 +6,15 @@ from pydantic import BaseModel
 from internal.domain.constant.channel import Channel
 from internal.domain.constant.notification_type import NotificationType
 from internal.domain.constant.status import NotificationStatus
+from internal.domain.model.command import NonBlankStr255, NonBlankStr10000
 
 
 class SendNotificationRequest(BaseModel):
     user_uid: UUID
     notification_type: NotificationType
     channel: Channel
-    title: str
-    content: str
+    title: NonBlankStr255
+    content: NonBlankStr10000
 
 
 class NotificationResponse(BaseModel):
@@ -37,15 +38,15 @@ class NotificationFindAllResponse(BaseModel):
 class CreateTemplateRequest(BaseModel):
     notification_type: NotificationType
     channel: Channel
-    title_template: str
-    content_template: str
+    title_template: NonBlankStr255
+    content_template: NonBlankStr10000
 
 
 class UpdateTemplateRequest(BaseModel):
     notification_type: NotificationType | None = None
     channel: Channel | None = None
-    title_template: str | None = None
-    content_template: str | None = None
+    title_template: NonBlankStr255 | None = None
+    content_template: NonBlankStr10000 | None = None
 
 
 class TemplateResponse(BaseModel):
@@ -61,7 +62,3 @@ class TemplateResponse(BaseModel):
 class TemplateFindAllResponse(BaseModel):
     total: int
     items: list[TemplateResponse]
-
-
-class ErrorResponse(BaseModel):
-    detail: str

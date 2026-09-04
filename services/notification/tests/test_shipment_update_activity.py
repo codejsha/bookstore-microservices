@@ -35,7 +35,7 @@ def _sent_command(notification_service: AsyncMock) -> SendNotificationCommand:
 
 
 class TestSendShipmentUpdate:
-    async def test_builds_command_from_camelcase_payload(
+    async def test_send_shipment_update_payload_camelcase_builds_send_command(
         self, activities: NotificationActivities, notification_service: AsyncMock
     ) -> None:
         user_uid = uuid4()
@@ -58,7 +58,7 @@ class TestSendShipmentUpdate:
         assert str(order_uid) in command.content
         assert "1Z-TRACK-999" in command.content
 
-    async def test_unknown_notification_type_falls_back_to_dispatched(
+    async def test_send_shipment_update_unknown_notification_type_falls_back_to_dispatched(
         self, activities: NotificationActivities, notification_service: AsyncMock
     ) -> None:
         payload = ShipmentUpdateInput(
@@ -73,7 +73,7 @@ class TestSendShipmentUpdate:
         command = _sent_command(notification_service)
         assert command.notification_type == NotificationType.SHIPMENT_DISPATCHED
 
-    async def test_missing_tracking_number_still_builds_valid_command(
+    async def test_send_shipment_update_tracking_number_missing_still_builds_valid_command(
         self, activities: NotificationActivities, notification_service: AsyncMock
     ) -> None:
         order_uid = uuid4()
@@ -92,7 +92,7 @@ class TestSendShipmentUpdate:
         assert str(order_uid) in command.content
         assert "Tracking number" not in command.content
 
-    async def test_tracking_number_defaults_to_none_when_omitted(
+    async def test_send_shipment_update_without_tracking_number_leaves_it_out_of_content(
         self, activities: NotificationActivities, notification_service: AsyncMock
     ) -> None:
         payload = ShipmentUpdateInput(
@@ -109,7 +109,7 @@ class TestSendShipmentUpdate:
 
 
 class TestSendShipmentUpdateIdempotency:
-    async def test_skips_send_when_notification_already_exists(
+    async def test_send_shipment_update_existing_notification_already_skips_send(
         self, activities: NotificationActivities, notification_service: AsyncMock
     ) -> None:
         order_uid = uuid4()
@@ -133,7 +133,7 @@ class TestSendShipmentUpdateIdempotency:
         )
         notification_service.send_notification.assert_not_awaited()
 
-    async def test_insert_race_falls_back_to_existing_row(
+    async def test_send_shipment_update_insert_race_falls_back_to_existing_row(
         self, activities: NotificationActivities, notification_service: AsyncMock
     ) -> None:
         order_uid = uuid4()
@@ -157,7 +157,7 @@ class TestSendShipmentUpdateIdempotency:
         assert notification_service.find_by_order_and_type.await_count == 2
         notification_service.send_notification.assert_awaited_once()
 
-    async def test_insert_race_reraises_when_no_row_found(
+    async def test_send_shipment_update_insert_races_and_no_row_found_reraises_integrity_error(
         self, activities: NotificationActivities, notification_service: AsyncMock
     ) -> None:
         order_uid = uuid4()
@@ -176,10 +176,10 @@ class TestSendShipmentUpdateIdempotency:
 
 
 class TestShipmentUpdateInputContract:
-    def test_field_names_are_exact_camelcase(self) -> None:
+    def test_shipment_update_input_fields_listed_are_exact_camelcase(self) -> None:
         names = {f.name for f in fields(ShipmentUpdateInput)}
         assert names == {"userUid", "orderUid", "notificationType", "trackingNumber"}
 
-    def test_tracking_number_is_optional(self) -> None:
+    def test_shipment_update_input_without_tracking_number_defaults_to_none(self) -> None:
         (tracking_field,) = (f for f in fields(ShipmentUpdateInput) if f.name == "trackingNumber")
         assert tracking_field.default is None

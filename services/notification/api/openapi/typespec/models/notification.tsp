@@ -6,7 +6,13 @@ model SendNotificationRequest {
   user_uid: uuid;
   notification_type: NotificationType;
   channel: Channel;
+  @minLength(1)
+  @maxLength(255)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   title: string;
+  @minLength(1)
+  @maxLength(10000)
+  @pattern("[\\s\\S]*\\S[\\s\\S]*")
   content: string;
 }
 

@@ -12,7 +12,7 @@ ENV_PREFIX = "NOTIFICATION"
 
 
 class TestExpandSourceMap:
-    def test_nested_dotted_keys(self) -> None:
+    def test_expand_source_map_dotted_keys_nests_dict(self) -> None:
         flat = {
             "server.port": 8080,
             "server.mode": "prod",
@@ -26,7 +26,7 @@ class TestExpandSourceMap:
             "telemetry": {"enabled": True},
         }
 
-    def test_array_index_notation(self) -> None:
+    def test_expand_source_map_keys_indexed_builds_lists(self) -> None:
         flat = {
             "servers[0].host": "a",
             "servers[1].host": "b",
@@ -39,12 +39,12 @@ class TestExpandSourceMap:
             "tags": ["x", "y"],
         }
 
-    def test_malformed_bracket_treated_as_literal(self) -> None:
+    def test_expand_source_map_malformed_bracket_keeps_key_literal(self) -> None:
         assert cc._expand_source_map({"weird[abc": 1}) == {"weird[abc": 1}
 
 
 class TestMergePropertySources:
-    def test_earlier_source_wins(self) -> None:
+    def test_merge_property_sources_keys_overlap_keeps_earlier_source(self) -> None:
         sources = [
             {"name": "prod", "source": {"server.mode": "prod", "database.host": "prod-db"}},
             {"name": "base", "source": {"server.mode": "base", "server.port": 8080}},
@@ -58,29 +58,29 @@ class TestMergePropertySources:
 
 
 class TestUrlBuilding:
-    def test_strip_configserver_prefix(self) -> None:
+    def test_strip_configserver_prefix_bare_url_with_or_without_prefix(self) -> None:
         assert cc._strip_configserver_prefix("configserver:http://host:8888") == "http://host:8888"
         assert cc._strip_configserver_prefix("http://host:8888") == "http://host:8888"
 
-    def test_build_url_without_label_lowercases(self) -> None:
+    def test_build_url_without_label_lowercases_app_and_profile(self) -> None:
         url = cc._build_url("http://host:8888/", "Support", "Dev", "")
         assert url == "http://host:8888/support/dev"
 
-    def test_build_url_with_label(self) -> None:
+    def test_build_url_with_label_appends_it(self) -> None:
         url = cc._build_url("http://host:8888", "support", "prod", "MAIN")
         assert url == "http://host:8888/support/prod/main"
 
 
 class TestFetchCloudConfig:
-    def test_no_server_returns_empty(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_fetch_cloud_config_unset_server_is_empty(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("APP_CONFIG_SERVER", raising=False)
         assert cc.fetch_cloud_config(CLOUD_CONFIG_APP_NAME) == {}
 
-    def test_empty_server_returns_empty(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_fetch_cloud_config_blank_server_is_empty(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("APP_CONFIG_SERVER", "   ")
         assert cc.fetch_cloud_config(CLOUD_CONFIG_APP_NAME) == {}
 
-    def test_failure_raises_after_retries(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_fetch_cloud_config_every_attempt_fails_raises_after_retries(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("APP_CONFIG_SERVER", "configserver:http://unreachable:8888")
         monkeypatch.setenv("APP_CONFIG_PROFILE", "dev")
         monkeypatch.delenv("APP_CONFIG_LABEL", raising=False)
@@ -98,7 +98,7 @@ class TestFetchCloudConfig:
             cc.fetch_cloud_config(CLOUD_CONFIG_APP_NAME)
         assert calls["n"] == cc._MAX_ATTEMPTS
 
-    def test_success_parses_and_expands(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_fetch_cloud_config_server_responds_parses_and_expands(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("APP_CONFIG_SERVER", "configserver:http://host:8888")
         monkeypatch.setenv("APP_CONFIG_PROFILE", "prod")
         monkeypatch.delenv("APP_CONFIG_LABEL", raising=False)
@@ -144,7 +144,7 @@ class TestSettingsPrecedence:
         monkeypatch.delenv(f"{ENV_PREFIX}__DATABASE__HOST", raising=False)
         monkeypatch.delenv(f"{ENV_PREFIX}__SERVER__MODE", raising=False)
 
-    def test_cloud_values_applied_and_env_overrides(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_settings_env_and_cloud_both_set_prefers_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._clear_env(monkeypatch)
 
         monkeypatch.setattr(
@@ -164,7 +164,7 @@ class TestSettingsPrecedence:
         assert settings.server.mode == "prod"
         assert settings.database.db_name == DatabaseConfig().db_name
 
-    def test_defaults_when_cloud_empty(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_settings_empty_cloud_uses_defaults(self, monkeypatch: pytest.MonkeyPatch) -> None:
         self._clear_env(monkeypatch)
         monkeypatch.setattr(cc, "fetch_cloud_config", lambda _app: {})
 

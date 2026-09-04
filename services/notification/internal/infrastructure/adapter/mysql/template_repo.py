@@ -1,11 +1,13 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from internal.application.port.repo.repos import TemplateRepository
 from internal.domain.aggregate.template_aggregate import TemplateAggregate
+from internal.domain.constant.channel import Channel
+from internal.domain.constant.notification_type import NotificationType
 from internal.domain.model.option.notification_option import TemplateFilterOption
 from internal.infrastructure.adapter.mysql.models import TemplateEntity
 from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
@@ -63,6 +65,21 @@ class MySQLTemplateRepository(TemplateRepository):
             ).scalar_one_or_none()
             return self._to_aggregate(entity) if entity else None
 
+    async def find_by_type_and_channel(
+        self, notification_type: NotificationType, channel: Channel
+    ) -> TemplateAggregate | None:
+        async with self._session_factory() as session:
+            entity = (
+                await session.execute(
+                    select(TemplateEntity).where(
+                        TemplateEntity.notification_type == notification_type,
+                        TemplateEntity.channel == channel,
+                        TemplateEntity.deleted_at.is_(None),
+                    )
+                )
+            ).scalar_one_or_none()
+            return self._to_aggregate(entity) if entity else None
+
     async def find_all(self, option: TemplateFilterOption) -> tuple[list[TemplateAggregate], int]:
         async with self._session_factory() as session:
             query = select(TemplateEntity).where(TemplateEntity.deleted_at.is_(None))
@@ -84,6 +101,18 @@ class MySQLTemplateRepository(TemplateRepository):
             total = (await session.execute(count_query)).scalar() or 0
             entities = (await session.execute(query)).scalars().all()
             return [self._to_aggregate(e) for e in entities], total
+
+    async def purge_deleted_by_type_and_channel(self, notification_type: NotificationType, channel: Channel) -> bool:
+        async with self._session_factory() as session:
+            result = await session.execute(
+                delete(TemplateEntity).where(
+                    TemplateEntity.notification_type == notification_type,
+                    TemplateEntity.channel == channel,
+                    TemplateEntity.deleted_at.is_not(None),
+                )
+            )
+            await session.commit()
+            return result.rowcount > 0
 
     async def delete_by_uid(self, uid: UUID) -> bool:
         async with self._session_factory() as session:
