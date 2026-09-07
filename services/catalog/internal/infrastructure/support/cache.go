@@ -3,6 +3,7 @@ package support
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"go.uber.org/fx"
@@ -20,15 +21,16 @@ func NewWorkListCache(lc fx.Lifecycle, cacheCfg *sharedconfig.CacheConfig) *cach
 	}
 
 	addr := fmt.Sprintf("%s:%d", cacheCfg.Host, cacheCfg.Port)
-	client, err := NewValkeyClient(addr, cacheCfg.Password, 0)
+	pingCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	client, err := NewCacheClient(pingCtx, addr, cacheCfg.Password, 0)
 	if err != nil {
 		logrus.WithError(err).Warn("valkey unreachable; work-list caching disabled")
 		return cache.NewWorkListCache(nil)
 	}
 	lc.Append(fx.Hook{
 		OnStop: func(context.Context) error {
-			client.Close()
-			return nil
+			return client.Close()
 		},
 	})
 	logrus.WithField("addr", addr).Info("valkey cache enabled for work-list read path")
