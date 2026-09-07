@@ -27,3 +27,13 @@ variable "nexus_pypi_url" {
   description = "Nexus pypi group simple-index URL the uv builds resolve against (cached pypi.org)"
   type        = string
 }
+
+variable "nexus_raw_url" {
+  description = "Nexus raw-hosted repo base (no trailing slash) codegen-verify-grpc fetches the mirrored proto bundle from"
+  type        = string
+}
+
+variable "codegen_verify_targets" {
+  description = "Codegen drift checks the CI pipeline runs: any of openapi, grpc (external and db are not applicable to the uv services). Empty runs none."
+  type        = list(string)
+}

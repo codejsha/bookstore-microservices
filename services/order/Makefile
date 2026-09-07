@@ -3,6 +3,7 @@ VERSION := 1.0.0
 GRADLE_VERSION ?= 9.4.1
 
 CONTAINER_ENGINE ?= podman
+GRADLE ?= sh gradlew
 
 APP_NAME := $(SERVICE_NAME)-app
 COMMIT := $(shell git rev-parse --short HEAD)
@@ -31,19 +32,15 @@ spec:
 wrapper:
 	perl -pi -e 's,gradle-[0-9.]+-bin\.zip,gradle-$(GRADLE_VERSION)-bin.zip,' gradle/wrapper/gradle-wrapper.properties
 	gradle wrapper --gradle-version $(GRADLE_VERSION) --console=plain
-	sh gradlew wrapper --gradle-version $(GRADLE_VERSION) --console=plain
+	$(GRADLE) wrapper --gradle-version $(GRADLE_VERSION) --console=plain
 
 .PHONY: clean
 clean:
-	sh gradlew clean --console=plain
+	$(GRADLE) clean --console=plain
 
 .PHONY: style
 style:
-	sh gradlew spotlessApply --console=plain
-
-.PHONY: buf
-buf:
-	cd ../../api/grpc && make grpc
+	$(GRADLE) spotlessApply --console=plain
 
 .PHONY: openapi-bundle
 openapi-bundle:
@@ -57,20 +54,49 @@ openapi-gen:
 .PHONY: openapi
 openapi: openapi-bundle openapi-gen
 
+NEXUS_RAW_URL ?= https://nexus.example.com/repository/raw-hosted
+NEXUS_AUTH ?=
+nexus_auth = { if [ -n "$(NEXUS_AUTH)" ]; then printf '%s' "$(NEXUS_AUTH)"; \
+	else u=$$(vault kv get -mount=kv -field=username nexus/publisher) && \
+	     p=$$(vault kv get -mount=kv -field=password nexus/publisher) && \
+	     [ -n "$$u" ] && [ -n "$$p" ] && printf '%s:%s' "$$u" "$$p"; fi; }
+
+GRPC_API_VERSION := 1.0.0
+GRPC_PROTO_DIR := ./api/grpc/proto
+GRPC_PROTO_URL := $(NEXUS_RAW_URL)/vendor/bookstore-grpc/$(GRPC_API_VERSION)/proto.tar.gz
+
+.PHONY: grpc-fetch
+grpc-fetch:
+	@auth=$$($(nexus_auth)); \
+	[ -n "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_AUTH or ensure Vault kv/nexus/publisher is reachable)" >&2; exit 1; }; \
+	rm -rf $(GRPC_PROTO_DIR) && mkdir -p $(GRPC_PROTO_DIR) && \
+	curl -fsS -u "$$auth" "$(GRPC_PROTO_URL)" | tar -xz -C $(GRPC_PROTO_DIR)
+
+$(GRPC_PROTO_DIR)/buf.yaml:
+	@$(MAKE) --no-print-directory grpc-fetch
+
+.PHONY: grpc-gen
+grpc-gen: $(GRPC_PROTO_DIR)/buf.yaml
+	rm -rf ./src/main/generated/com/codejsha/bookstore/generated/application/port/pb
+	cd api/grpc && buf generate --template buf.gen.yaml
+
+.PHONY: grpc
+grpc: grpc-gen
+
 .PHONY: jooq
 jooq:
 	rm -rf ./src/main/generated/com/codejsha/bookstore/generated/infrastructure/adapter/jooq
-	sh gradlew jooqGenerateContainer --console=plain
+	$(GRADLE) jooqGenerateContainer --console=plain
 
 .PHONY: api-gen
-api-gen: spec buf openapi
+api-gen: spec grpc openapi
 
 .PHONY: gen
 gen: api-gen jooq
 
 .PHONY: build
 build: spec
-	sh gradlew build --info --console=plain
+	$(GRADLE) build --info --console=plain
 
 .PHONY: podman-build
 podman-build: build
@@ -87,11 +113,11 @@ podman-push: podman-build
 
 .PHONY: test
 test:
-	sh gradlew test --console=plain
+	$(GRADLE) test --console=plain
 
 .PHONY: run
 run:
-	sh gradlew bootRun --console=plain
+	$(GRADLE) bootRun --console=plain
 
 .PHONY: migrate-create
 migrate-create:

@@ -1,0 +1,267 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: codegen-verify-db
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Cli
+    tekton.dev/tags: build
+    tekton.dev/displayName: "Database codegen drift verify"
+spec:
+  description: >-
+    Regenerates the database access code (gorm-gen for Go, jOOQ for Kotlin)
+    from the committed migrations and fails if it differs from what is
+    committed.
+
+    Both generators work the same way: start a throwaway database in a
+    Testcontainer, apply db/migrations to it, introspect the resulting schema
+    and write the code. That needs a Docker daemon, which this task provides
+    as a docker:dind sidecar -- the only privileged workload in the CI
+    namespace, and the reason its Pod Security enforce level is `privileged`.
+    The daemon binds loopback only, so nothing outside the pod can reach it
+    (the sidecar args start with `dockerd` on purpose: the image entrypoint
+    prepends its own tcp://0.0.0.0:2375 default only when the args start with
+    a flag).
+    Ryuk is disabled: the sidecar dies with the pod, taking every container
+    with it.
+
+    `make <GEN_TARGET>` is the same target a developer runs locally, so the
+    regenerated tree must match the commit byte for byte. `git add -N` on
+    GENERATED_DIRS makes new untracked files show up in the diff too -- a new
+    table whose DAO was never generated is exactly the drift being caught.
+
+    Go: the gorm-codegen-cli binary is staged from its image into a shared
+    volume by the stage step and `make gorm` runs on the stock node bookworm
+    image (make + git are all it needs). Kotlin: `make jooq` runs on the same
+    gradle image as the build, with the same Nexus init script and sibling
+    includeBuilds (jooq-codegen-plugin, shared-library-kotlin) the build-app
+    task writes -- passing NEXUS_MAVEN_URL turns that on. The Makefile's
+    `GRADLE` variable is overridden to the image's gradle so the wrapper does
+    not download a distribution.
+
+    Separate from codegen-verify-openapi so that task stays free of the
+    privileged sidecar and either check can be enabled on its own.
+  workspaces:
+    - name: source
+  params:
+    - name: GORM_CODEGEN_IMAGE
+      description: >-
+        In-house gorm-codegen-cli generator image, built and pushed to Harbor
+        from its own repository (`make podman-publish` there). The binary is
+        staged from /usr/local/bin/gorm-codegen-cli, so the image must carry a
+        shell for the stage step. Pulled even for jooq runs (steps cannot be
+        skipped), but only copied from when GEN_TARGET is gorm.
+      type: string
+      default: harbor.example.com/bookstore/gorm-codegen-cli:0.1.0
+    - name: IMAGE
+      description: >-
+        Image the verify step runs `make <GEN_TARGET>` in. gorm needs make,
+        git and bash (node bookworm has them); jooq needs the gradle image the
+        build uses.
+      type: string
+      default: docker.io/library/node:24-bookworm
+    - name: DIND_IMAGE
+      description: Docker-in-Docker sidecar image the Testcontainers talk to
+      type: string
+      default: docker.io/library/docker:28-dind
+    - name: CONTEXT_DIR
+      description: working directory relative to the workspace
+      type: string
+      default: ./
+    - name: TARGET_DIR
+      description: directory to run make in (relative to CONTEXT_DIR)
+      type: string
+      default: ./
+    - name: GEN_TARGET
+      description: the make target that reruns the database codegen (gorm or jooq)
+      type: string
+    - name: GENERATED_DIRS
+      description: >-
+        Space-separated directories (relative to TARGET_DIR) the generator
+        writes into; new untracked files under them count as drift.
+      type: string
+      default: generated
+    - name: MAKE_ARGS
+      description: extra arguments for make (variable overrides such as GRADLE=...)
+      type: array
+      default: []
+    - name: PLUGIN_DIR
+      description: jooq-codegen-plugin checkout (relative to CONTEXT_DIR), included as a plugin build
+      type: string
+      default: .lib/jooq-codegen-plugin
+    - name: LIB_DIR
+      description: shared-library-kotlin checkout (relative to CONTEXT_DIR), included as a build
+      type: string
+      default: .lib/shared-library-kotlin
+    - name: NEXUS_MAVEN_URL
+      description: >-
+        Nexus maven group URL. When set, a Gradle init script redirects every
+        repository to it (with credentials) and includes the sibling builds --
+        the same setup the build-app task uses. Empty leaves Gradle alone,
+        which is what a gorm run wants.
+      type: string
+      default: ""
+    - name: NEXUS_SECRET_NAME
+      description: k8s secret holding Nexus username/password for the maven group
+      type: string
+      default: nexus-credentials
+    - name: FOOJAY_VERSION
+      description: foojay-resolver-convention plugin version to pin in the init script
+      type: string
+      default: "1.0.0"
+  volumes:
+    - name: tools
+      emptyDir: {}
+    - name: dind-storage
+      emptyDir: {}
+  sidecars:
+    - name: dind
+      image: $(params.DIND_IMAGE)
+      securityContext:
+        privileged: true
+      env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
+      args:
+        - dockerd
+        - --host=unix:///var/run/docker.sock
+        - --host=tcp://127.0.0.1:2375
+      volumeMounts:
+        - name: dind-storage
+          mountPath: /var/lib/docker
+  steps:
+    - name: stage-gorm-codegen
+      image: $(params.GORM_CODEGEN_IMAGE)
+      volumeMounts:
+        - name: tools
+          mountPath: /tools
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        mkdir -p /tools/bin
+        if [ "$(params.GEN_TARGET)" = "gorm" ]; then
+          cp /usr/local/bin/gorm-codegen-cli /tools/bin/gorm-codegen-cli
+        fi
+    - name: verify
+      image: $(params.IMAGE)
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
+      volumeMounts:
+        - name: tools
+          mountPath: /tools
+      env:
+        - name: GIT_CONFIG_COUNT
+          value: "1"
+        - name: GIT_CONFIG_KEY_0
+          value: safe.directory
+        - name: GIT_CONFIG_VALUE_0
+          value: "*"
+        - name: DOCKER_HOST
+          value: tcp://127.0.0.1:2375
+        - name: TESTCONTAINERS_RYUK_DISABLED
+          value: "true"
+        - name: PLUGIN_DIR
+          value: $(params.PLUGIN_DIR)
+        - name: LIB_DIR
+          value: $(params.LIB_DIR)
+        - name: FOOJAY_VERSION
+          value: $(params.FOOJAY_VERSION)
+        - name: NEXUS_MAVEN_URL
+          value: $(params.NEXUS_MAVEN_URL)
+        - name: NEXUS_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: username
+              optional: true
+        - name: NEXUS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: password
+              optional: true
+        - name: GRADLE_USER_HOME
+          value: $(workspaces.source.path)/.gradle
+      args:
+        - "$(params.MAKE_ARGS[*])"
+      script: |
+        #!/usr/bin/env bash
+        set -eu
+
+        export PATH="/tools/bin:${PATH}"
+
+        i=0
+        until (exec 3<>/dev/tcp/127.0.0.1/2375) 2>/dev/null; do
+          i=$((i + 1))
+          if [ "$i" -ge 60 ]; then
+            echo "codegen-verify-db: docker daemon did not come up on ${DOCKER_HOST}." >&2
+            exit 1
+          fi
+          sleep 2
+        done
+
+        if [ -n "${NEXUS_MAVEN_URL:-}" ]; then
+          mkdir -p "$GRADLE_USER_HOME/init.d"
+          cat > "$GRADLE_USER_HOME/init.d/nexus.gradle" <<'INIT'
+        def nexusUrl = System.getenv('NEXUS_MAVEN_URL')
+        def nexusUser = System.getenv('NEXUS_USER')
+        def nexusPassword = System.getenv('NEXUS_PASSWORD')
+        def pluginDir = System.getenv('PLUGIN_DIR')
+        def libDir = System.getenv('LIB_DIR')
+        def foojayVersion = System.getenv('FOOJAY_VERSION')
+
+        def applyNexus = { handler ->
+            handler.clear()
+            handler.maven { repo ->
+                repo.url = nexusUrl
+                repo.allowInsecureProtocol = true
+                repo.credentials { c ->
+                    c.username = nexusUser
+                    c.password = nexusPassword
+                }
+            }
+        }
+
+        beforeSettings { settings ->
+            applyNexus(settings.pluginManagement.repositories)
+            settings.dependencyResolutionManagement {
+                applyNexus(it.repositories)
+            }
+
+            settings.pluginManagement.resolutionStrategy.eachPlugin { details ->
+                if (details.requested.id.id == 'org.gradle.toolchains.foojay-resolver-convention') {
+                    details.useVersion(foojayVersion)
+                }
+            }
+
+            def plugin = new File(settings.rootDir, pluginDir)
+            def lib = new File(settings.rootDir, libDir)
+            if (plugin.isDirectory() && lib.isDirectory()) {
+                settings.pluginManagement.includeBuild(plugin.absolutePath)
+                settings.includeBuild(lib.absolutePath)
+            }
+        }
+
+        allprojects {
+            buildscript { applyNexus(repositories) }
+            afterEvaluate { applyNexus(repositories) }
+        }
+        INIT
+        fi
+
+        make -C "$(params.TARGET_DIR)" "$(params.GEN_TARGET)" "$@"
+
+        cd "$(params.TARGET_DIR)"
+        git add --intent-to-add -- $(params.GENERATED_DIRS)
+        if git diff --exit-code; then
+          echo "codegen-verify-db: generated database code is in sync with the migrations."
+        else
+          echo "" >&2
+          echo "codegen-verify-db: FAILED — generated database code is out of sync." >&2
+          echo "A db/migrations change was not followed by a matching" >&2
+          echo "'make $(params.GEN_TARGET)'. Run it locally and commit the result." >&2
+          exit 1
+        fi
+
+        chmod -R a+rwX "$(workspaces.source.path)" 2>/dev/null || true

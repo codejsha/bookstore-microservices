@@ -42,10 +42,6 @@ style:
 	goimports -w ./internal/{application,domain,infrastructure}
 	gofmt -w ./internal/{application,domain,infrastructure}
 
-.PHONY: buf
-buf:
-	cd ../../api/grpc && make grpc
-
 .PHONY: openapi-bundle
 openapi-bundle:
 	cd api/openapi && pnpm install --frozen-lockfile && pnpm exec tsp compile ./main.tsp --output-dir .
@@ -58,13 +54,42 @@ openapi-gen:
 .PHONY: openapi
 openapi: openapi-bundle openapi-gen
 
+NEXUS_RAW_URL ?= https://nexus.example.com/repository/raw-hosted
+NEXUS_AUTH ?=
+nexus_auth = { if [ -n "$(NEXUS_AUTH)" ]; then printf '%s' "$(NEXUS_AUTH)"; \
+	else u=$$(vault kv get -mount=kv -field=username nexus/publisher) && \
+	     p=$$(vault kv get -mount=kv -field=password nexus/publisher) && \
+	     [ -n "$$u" ] && [ -n "$$p" ] && printf '%s:%s' "$$u" "$$p"; fi; }
+
+GRPC_API_VERSION := 1.0.0
+GRPC_PROTO_DIR := ./api/grpc/proto
+GRPC_PROTO_URL := $(NEXUS_RAW_URL)/vendor/bookstore-grpc/$(GRPC_API_VERSION)/proto.tar.gz
+
+.PHONY: grpc-fetch
+grpc-fetch:
+	@auth=$$($(nexus_auth)); \
+	[ -n "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_AUTH or ensure Vault kv/nexus/publisher is reachable)" >&2; exit 1; }; \
+	rm -rf $(GRPC_PROTO_DIR) && mkdir -p $(GRPC_PROTO_DIR) && \
+	curl -fsS -u "$$auth" "$(GRPC_PROTO_URL)" | tar -xz -C $(GRPC_PROTO_DIR)
+
+$(GRPC_PROTO_DIR)/buf.yaml:
+	@$(MAKE) --no-print-directory grpc-fetch
+
+.PHONY: grpc-gen
+grpc-gen: $(GRPC_PROTO_DIR)/buf.yaml
+	rm -rf ./generated/application/port/pb
+	cd api/grpc && buf generate --template buf.gen.yaml
+
+.PHONY: grpc
+grpc: grpc-gen
+
 .PHONY: gorm
 gorm:
 	rm -rf ./generated/infrastructure/port/{dao,entity,repo}
 	gorm-codegen-cli generate -e gen
 
 .PHONY: api-gen
-api-gen: spec buf openapi
+api-gen: spec grpc openapi
 
 .PHONY: gen
 gen: api-gen gorm

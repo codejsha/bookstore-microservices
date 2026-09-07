@@ -253,7 +253,7 @@ module "trigger_binding" {
 module "golang_template" {
   source                  = "./modules/golang-template"
   nexus_raw_url           = var.nexus_raw_url
-  skip_codegen_verify     = var.skip_codegen_verify
+  codegen_verify_targets  = var.codegen_verify_targets
   vault_internal_url      = var.vault_internal_url
   harbor_registry         = var.harbor_registry
   namespace               = var.namespace
@@ -273,29 +273,31 @@ module "golang_template" {
 }
 
 module "gradle_template" {
-  source              = "./modules/gradle-template"
-  nexus_maven_url     = var.nexus_maven_url
-  nexus_raw_url       = var.nexus_raw_url
-  skip_codegen_verify = var.skip_codegen_verify
-  vault_internal_url  = var.vault_internal_url
-  harbor_registry     = var.harbor_registry
-  harbor_address      = var.harbor_address
-  namespace           = var.namespace
-  services            = var.gradle_services
-  vault_url           = var.vault_url
+  source                 = "./modules/gradle-template"
+  nexus_maven_url        = var.nexus_maven_url
+  nexus_raw_url          = var.nexus_raw_url
+  codegen_verify_targets = var.codegen_verify_targets
+  vault_internal_url     = var.vault_internal_url
+  harbor_registry        = var.harbor_registry
+  harbor_address         = var.harbor_address
+  namespace              = var.namespace
+  services               = var.gradle_services
+  vault_url              = var.vault_url
   providers = {
     vault = vault
   }
 }
 
 module "uv_template" {
-  source             = "./modules/uv-template"
-  nexus_pypi_url     = var.nexus_pypi_url
-  vault_internal_url = var.vault_internal_url
-  harbor_registry    = var.harbor_registry
-  namespace          = var.namespace
-  services           = var.uv_services
-  vault_url          = var.vault_url
+  source                 = "./modules/uv-template"
+  nexus_pypi_url         = var.nexus_pypi_url
+  nexus_raw_url          = var.nexus_raw_url
+  codegen_verify_targets = var.codegen_verify_targets
+  vault_internal_url     = var.vault_internal_url
+  harbor_registry        = var.harbor_registry
+  namespace              = var.namespace
+  services               = var.uv_services
+  vault_url              = var.vault_url
   providers = {
     vault = vault
   }

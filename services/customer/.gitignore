@@ -536,5 +536,6 @@ bin/
 api/openapi/schema/openapi*.json
 api/idpapi/schema/admin-openapi*.json
 api/payapi/schema/openapi*.json
+api/grpc/proto/
 db/flyway.conf
 

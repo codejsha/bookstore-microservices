@@ -11,6 +11,10 @@ spec:
     tasks:
       - clone-source-repo (git-clone)
       - clone-lib-repo (git-clone, shared-library-go)
+      - codegen-verify-openapi (make openapi + git diff)
+      - codegen-verify-external (make idpapi from the Nexus-mirrored spec + git diff; identity only)
+      - codegen-verify-grpc (make grpc from the Nexus-mirrored proto bundle + git diff; customer/identity only)
+      - codegen-verify-db (make gorm against a Testcontainer + git diff)
       - trivy-fs-scan (trivy fs vuln)
       - gitleaks-scan (gitleaks secret detection, commits since last scanned build)
       - build-go-app (make)
@@ -65,19 +69,41 @@ spec:
     - name: ca-bundle-configmap
       type: string
       default: internal-ca
-    ### codegen-verify params
-    - name: oapi-codegen-image
-      type: string
-      default: harbor.example.com/bookstore/oapi-codegen-cli:1.0.0
-    - name: nexus-raw-url
-      type: string
-      default: http://nexus.nexus.svc.cluster.local:8081/repository/raw-hosted
+    ### codegen-verify params (targets: openapi, external, grpc, db)
+    - name: codegen-verify-targets
+      type: array
+      default: []
     - name: nexus-secret-name
       type: string
       default: nexus-credentials
-    - name: skip-codegen-verify
+    ### codegen-verify-openapi params
+    - name: oapi-codegen-image
       type: string
-      default: "true"
+      default: harbor.example.com/bookstore/oapi-codegen-cli:1.0.0
+    ### codegen-verify-external params
+    - name: codegen-verify-external-services
+      type: array
+      default:
+        - identity
+    - name: nexus-raw-url
+      type: string
+      default: http://nexus.nexus.svc.cluster.local:8081/repository/raw-hosted
+    ### codegen-verify-grpc params
+    - name: codegen-verify-grpc-services
+      type: array
+      default:
+        - customer
+        - identity
+    - name: protoc-toolchain-image
+      type: string
+      default: harbor.example.com/bookstore/protoc-toolchain:0.1.0
+    ### codegen-verify-db params
+    - name: gorm-codegen-image
+      type: string
+      default: harbor.example.com/bookstore/gorm-codegen-cli:0.1.0
+    - name: dind-image
+      type: string
+      default: docker.io/library/docker:28-dind
     ### kaniko (image build) params
     - name: kaniko-dockerfile
       type: string
@@ -192,14 +218,14 @@ spec:
           workspace: git-lib-ssh-auth
 
     ### task
-    - name: codegen-verify
+    - name: codegen-verify-openapi
       runAfter:
         - clone-lib-repo
       when:
-        - input: $(params.skip-codegen-verify)
-          operator: notin
+        - input: openapi
+          operator: in
           values:
-            - "true"
+            - "$(params.codegen-verify-targets[*])"
       taskRef:
         resolver: git
         params:
@@ -208,7 +234,7 @@ spec:
           - name: revision
             value: main
           - name: pathInRepo
-            value: task/codegen-verify/0.1/codegen-verify.yaml
+            value: task/codegen-verify-openapi/0.1/codegen-verify-openapi.yaml
       params:
         - name: OAPI_CODEGEN_IMAGE
           value: $(params.oapi-codegen-image)
@@ -216,12 +242,123 @@ spec:
           value: $(params.context-dir)
         - name: TARGET_DIR
           value: $(params.target-dir)
+        - name: GENERATED_DIRS
+          value: generated
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
+    - name: codegen-verify-external
+      runAfter:
+        - codegen-verify-openapi
+      when:
+        - input: external
+          operator: in
+          values:
+            - "$(params.codegen-verify-targets[*])"
+        - input: $(params.service-name)
+          operator: in
+          values:
+            - "$(params.codegen-verify-external-services[*])"
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/codegen-verify-external/0.1/codegen-verify-external.yaml
+      params:
+        - name: OAPI_CODEGEN_IMAGE
+          value: $(params.oapi-codegen-image)
+        - name: CONTEXT_DIR
+          value: $(params.context-dir)
+        - name: TARGET_DIR
+          value: $(params.target-dir)
+        - name: GEN_TARGET
+          value: idpapi
+        - name: GENERATED_DIRS
+          value: generated
         - name: NEXUS_RAW_URL
           value: $(params.nexus-raw-url)
         - name: NEXUS_SECRET_NAME
           value: $(params.nexus-secret-name)
-        - name: SKIP
-          value: $(params.skip-codegen-verify)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
+    - name: codegen-verify-grpc
+      runAfter:
+        - codegen-verify-external
+      when:
+        - input: grpc
+          operator: in
+          values:
+            - "$(params.codegen-verify-targets[*])"
+        - input: $(params.service-name)
+          operator: in
+          values:
+            - "$(params.codegen-verify-grpc-services[*])"
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/codegen-verify-grpc/0.1/codegen-verify-grpc.yaml
+      params:
+        - name: PROTOC_TOOLCHAIN_IMAGE
+          value: $(params.protoc-toolchain-image)
+        - name: CONTEXT_DIR
+          value: $(params.context-dir)
+        - name: TARGET_DIR
+          value: $(params.target-dir)
+        - name: GENERATED_DIRS
+          value: generated
+        - name: NEXUS_RAW_URL
+          value: $(params.nexus-raw-url)
+        - name: NEXUS_SECRET_NAME
+          value: $(params.nexus-secret-name)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
+    - name: codegen-verify-db
+      runAfter:
+        - codegen-verify-grpc
+      when:
+        - input: db
+          operator: in
+          values:
+            - "$(params.codegen-verify-targets[*])"
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/codegen-verify-db/0.1/codegen-verify-db.yaml
+      params:
+        - name: GORM_CODEGEN_IMAGE
+          value: $(params.gorm-codegen-image)
+        - name: DIND_IMAGE
+          value: $(params.dind-image)
+        - name: CONTEXT_DIR
+          value: $(params.context-dir)
+        - name: TARGET_DIR
+          value: $(params.target-dir)
+        - name: GEN_TARGET
+          value: gorm
+        - name: GENERATED_DIRS
+          value: generated
       workspaces:
         - name: source
           workspace: shared-workspace
@@ -292,6 +429,7 @@ spec:
     - name: build-go-app
       runAfter:
         - trivy-fs-scan
+        - codegen-verify-db
       taskRef:
         resolver: git
         params:

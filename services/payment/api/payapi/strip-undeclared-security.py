@@ -1,20 +1,4 @@
 #!/usr/bin/env python3
-"""Drop security requirements that name a scheme the spec never declares.
-
-Hyperswitch's published spec is invalid: two subscription operations require a
-`client_secret` scheme that is absent from components.securitySchemes. That is a
-hard error for oapi-codegen, so `make payapi` could not regenerate the client at
-all -- against the pinned tag or any other.
-
-The offending requirements are dropped rather than the missing scheme invented:
-we do not call the subscriptions API, and guessing at how `client_secret` is
-transported would be fabricating an auth contract we have not verified.
-
-Runs against the *bundled* spec, so the mirrored upstream artifact stays pristine.
-Prints what it removed -- if a future Hyperswitch version fixes the bug, or breaks
-a scheme we actually use, that shows up in the build log rather than passing
-silently.
-"""
 
 import json
 import sys

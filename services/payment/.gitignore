@@ -537,4 +537,5 @@ api/openapi/schema/openapi*.json
 api/idpapi/schema/admin-openapi*.json
 api/payapi/schema/openapi*.json
 api/payapi/openapi_spec_v1.json
+api/grpc/proto/
 db/flyway.conf

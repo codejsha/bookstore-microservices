@@ -1,0 +1,164 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: codegen-verify-grpc
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Cli
+    tekton.dev/tags: build
+    tekton.dev/displayName: "gRPC codegen drift verify"
+spec:
+  description: >-
+    Regenerates a service's gRPC stubs from the proto bundle mirrored in the
+    Nexus raw-hosted repository and fails if they differ from what is
+    committed.
+
+    The protos are authored once in the monorepo's api/grpc (TypeSpec ->
+    proto) and published there with `make grpc-mirror` as
+    vendor/bookstore-grpc/<version>/proto.tar.gz. Each consuming service pins
+    GRPC_API_VERSION in its Makefile, gitignores the fetched copy under
+    api/grpc/proto and generates its own stubs from a service-local
+    buf.gen.yaml. This task only exports NEXUS_RAW_URL and NEXUS_AUTH (the
+    publisher user, which has read on the raw repo) and runs the same
+    `make grpc` a developer runs: fetch the bundle, `buf generate`. New files
+    under GENERATED_DIRS are marked with `git add -N` so an untracked output
+    counts as drift too.
+
+    Tools: buf, protoc and the protoc-gen-go / protoc-gen-go-grpc /
+    protoc-gen-grpc-java plugins are staged from the protoc-toolchain image
+    into a shared volume by the stage step; make, git, curl and tar come with
+    the image the verify step runs on (node bookworm by default). Python
+    services generate with `uv run python -m grpc_tools.protoc` instead, so
+    they run on the non-slim uv image with NEXUS_PYPI_URL set, which points uv
+    at the Nexus PyPI group the same way the build-app task does; the staged
+    binaries go unused there (the stage image is still pulled -- steps cannot
+    be skipped). UV_FROZEN keeps `uv run` from touching uv.lock.
+  workspaces:
+    - name: source
+  params:
+    - name: PROTOC_TOOLCHAIN_IMAGE
+      description: >-
+        In-house protoc toolchain image, built and pushed to Harbor from the
+        monorepo's api/grpc (`make podman-push` there; Dockerfile under
+        toolchain/). Carries
+        buf, protoc, protoc-gen-go, protoc-gen-go-grpc and protoc-gen-grpc-java
+        under /usr/local/bin, pinned to the versions the committed stubs were
+        generated with, plus a shell for the stage step.
+      type: string
+      default: harbor.example.com/bookstore/protoc-toolchain:0.1.0
+    - name: IMAGE
+      description: >-
+        Image the verify step runs `make <GEN_TARGET>` in. Must carry make,
+        git, curl and tar -- the full (non-slim) node bookworm image does.
+      type: string
+      default: docker.io/library/node:24-bookworm
+    - name: CONTEXT_DIR
+      description: working directory relative to the workspace
+      type: string
+      default: ./
+    - name: TARGET_DIR
+      description: directory to run make in (relative to CONTEXT_DIR)
+      type: string
+      default: ./
+    - name: GEN_TARGET
+      description: the make target that reruns the gRPC codegen
+      type: string
+      default: grpc
+    - name: GENERATED_DIRS
+      description: >-
+        Space-separated directories (relative to TARGET_DIR) the generator
+        writes into; new untracked files under them count as drift.
+      type: string
+      default: generated
+    - name: NEXUS_RAW_URL
+      description: >-
+        Nexus raw-hosted repository base URL (no trailing slash) the Makefile
+        fetches the proto bundle from, e.g.
+        http://nexus.nexus.svc.cluster.local:8081/repository/raw-hosted
+      type: string
+    - name: NEXUS_SECRET_NAME
+      description: k8s secret holding the Nexus username/password with read on the raw repo
+      type: string
+      default: nexus-credentials
+    - name: NEXUS_PYPI_URL
+      description: >-
+        Nexus PyPI group simple index URL. When set, uv resolves through it
+        (with the same credentials) -- what a Python service's `uv run` needs.
+        Empty leaves uv alone.
+      type: string
+      default: ""
+  volumes:
+    - name: tools
+      emptyDir: {}
+  steps:
+    - name: stage-protoc-toolchain
+      image: $(params.PROTOC_TOOLCHAIN_IMAGE)
+      volumeMounts:
+        - name: tools
+          mountPath: /tools
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        mkdir -p /tools/bin
+        for bin in buf protoc protoc-gen-go protoc-gen-go-grpc protoc-gen-grpc-java; do
+          cp "/usr/local/bin/$bin" "/tools/bin/$bin"
+        done
+    - name: verify
+      image: $(params.IMAGE)
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
+      volumeMounts:
+        - name: tools
+          mountPath: /tools
+      env:
+        - name: GIT_CONFIG_COUNT
+          value: "1"
+        - name: GIT_CONFIG_KEY_0
+          value: safe.directory
+        - name: GIT_CONFIG_VALUE_0
+          value: "*"
+        - name: NEXUS_RAW_URL
+          value: $(params.NEXUS_RAW_URL)
+        - name: NEXUS_PYPI_URL
+          value: $(params.NEXUS_PYPI_URL)
+        - name: UV_FROZEN
+          value: "1"
+        - name: NEXUS_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: username
+        - name: NEXUS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: password
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+
+        export PATH="/tools/bin:${PATH}"
+        export NEXUS_AUTH="${NEXUS_USER}:${NEXUS_PASSWORD}"
+
+        if [ -n "${NEXUS_PYPI_URL:-}" ]; then
+          proto="${NEXUS_PYPI_URL%%://*}"
+          rest="${NEXUS_PYPI_URL#*://}"
+          export UV_DEFAULT_INDEX="$proto://$NEXUS_USER:$NEXUS_PASSWORD@$rest"
+          export UV_INDEX_URL="$UV_DEFAULT_INDEX"
+          export UV_INSECURE_HOST="${rest%%/*}"
+        fi
+
+        make -C "$(params.TARGET_DIR)" "$(params.GEN_TARGET)"
+
+        cd "$(params.TARGET_DIR)"
+        git add --intent-to-add -- $(params.GENERATED_DIRS)
+        if git diff --exit-code; then
+          echo "codegen-verify-grpc: generated gRPC stubs are in sync with the mirrored protos."
+        else
+          echo "" >&2
+          echo "codegen-verify-grpc: FAILED — generated gRPC stubs are out of sync." >&2
+          echo "The pinned GRPC_API_VERSION bundle or the generator changed without a" >&2
+          echo "matching 'make $(params.GEN_TARGET)'. Run it locally and commit the result." >&2
+          exit 1
+        fi
