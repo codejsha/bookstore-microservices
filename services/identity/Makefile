@@ -43,10 +43,6 @@ style:
 	goimports -w ./internal/{application,domain,infrastructure}
 	gofmt -w ./internal/{application,domain,infrastructure}
 
-.PHONY: buf
-buf:
-	cd ../../api/grpc && make grpc
-
 .PHONY: openapi-bundle
 openapi-bundle:
 	cd api/openapi && pnpm install --frozen-lockfile && pnpm exec tsp compile ./main.tsp --output-dir .
@@ -62,8 +58,31 @@ openapi: openapi-bundle openapi-gen
 NEXUS_RAW_URL ?= https://nexus.example.com/repository/raw-hosted
 NEXUS_AUTH ?=
 nexus_auth = { if [ -n "$(NEXUS_AUTH)" ]; then printf '%s' "$(NEXUS_AUTH)"; \
-	else printf '%s:%s' "$$(vault kv get -mount=kv -field=username nexus/publisher)" \
-	                    "$$(vault kv get -mount=kv -field=password nexus/publisher)"; fi; }
+	else u=$$(vault kv get -mount=kv -field=username nexus/publisher) && \
+	     p=$$(vault kv get -mount=kv -field=password nexus/publisher) && \
+	     [ -n "$$u" ] && [ -n "$$p" ] && printf '%s:%s' "$$u" "$$p"; fi; }
+
+GRPC_API_VERSION := 1.0.0
+GRPC_PROTO_DIR := ./api/grpc/proto
+GRPC_PROTO_URL := $(NEXUS_RAW_URL)/vendor/bookstore-grpc/$(GRPC_API_VERSION)/proto.tar.gz
+
+.PHONY: grpc-fetch
+grpc-fetch:
+	@auth=$$($(nexus_auth)); \
+	[ -n "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_AUTH or ensure Vault kv/nexus/publisher is reachable)" >&2; exit 1; }; \
+	rm -rf $(GRPC_PROTO_DIR) && mkdir -p $(GRPC_PROTO_DIR) && \
+	curl -fsS -u "$$auth" "$(GRPC_PROTO_URL)" | tar -xz -C $(GRPC_PROTO_DIR)
+
+$(GRPC_PROTO_DIR)/buf.yaml:
+	@$(MAKE) --no-print-directory grpc-fetch
+
+.PHONY: grpc-gen
+grpc-gen: $(GRPC_PROTO_DIR)/buf.yaml
+	rm -rf ./generated/application/port/pb
+	cd api/grpc && buf generate --template buf.gen.yaml
+
+.PHONY: grpc
+grpc: grpc-gen
 
 IDPAPI_SPEC := ./api/idpapi/admin-openapi.json
 IDPAPI_SPEC_URL := $(NEXUS_RAW_URL)/vendor/keycloak/$(KEYCLOAK_VERSION)/admin-openapi.json
@@ -100,7 +119,7 @@ idpapi-mirror: idpapi-generate
 
 .PHONY: idpapi-bundle
 idpapi-bundle: $(IDPAPI_SPEC)
-	redocly bundle --config ./api/idpapi/redocly.yaml admin@v1
+	cd api/idpapi && pnpm install --frozen-lockfile && pnpm exec redocly bundle --config ./redocly.yaml admin@v1
 	python3 ./api/idpapi/patch-spec.py
 
 .PHONY: idpapi-gen
@@ -117,7 +136,7 @@ gorm:
 	gorm-codegen-cli generate -e gen
 
 .PHONY: api-gen
-api-gen: spec buf openapi idpapi
+api-gen: spec grpc openapi idpapi
 
 .PHONY: gen
 gen: api-gen gorm

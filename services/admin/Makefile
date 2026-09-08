@@ -1,6 +1,7 @@
 SERVICE_NAME := admin
 VERSION := 1.0.0
 GRADLE_VERSION ?= 9.4.1
+GRADLE ?= sh gradlew
 
 APP_NAME := $(SERVICE_NAME)-app
 COMMIT := $(shell git rev-parse --short HEAD)
@@ -31,15 +32,15 @@ spec:
 wrapper:
 	perl -pi -e 's,gradle-[0-9.]+-bin\.zip,gradle-$(GRADLE_VERSION)-bin.zip,' gradle/wrapper/gradle-wrapper.properties
 	gradle wrapper --gradle-version $(GRADLE_VERSION) --console=plain
-	sh gradlew wrapper --gradle-version $(GRADLE_VERSION) --console=plain
+	$(GRADLE) wrapper --gradle-version $(GRADLE_VERSION) --console=plain
 
 .PHONY: clean
 clean:
-	sh gradlew clean --console=plain
+	$(GRADLE) clean --console=plain
 
 .PHONY: style
 style:
-	sh gradlew spotlessApply --console=plain
+	$(GRADLE) spotlessApply --console=plain
 
 .PHONY: openapi-bundle
 openapi-bundle:
@@ -66,7 +67,7 @@ gen: spec openapi clients
 
 .PHONY: build
 build: spec
-	sh gradlew build --info --console=plain
+	$(GRADLE) build --info --console=plain
 
 .PHONY: podman-build
 podman-build: build
@@ -83,11 +84,11 @@ podman-push: podman-build
 
 .PHONY: test
 test:
-	sh gradlew test --console=plain
+	$(GRADLE) test --console=plain
 
 .PHONY: run
 run:
-	sh gradlew bootRun --console=plain
+	$(GRADLE) bootRun --console=plain
 
 CONTRACT_SCHEMA_PATH := $(abspath api/openapi/schema/openapi.1.0.0.json)
 

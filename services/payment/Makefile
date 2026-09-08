@@ -3,6 +3,7 @@ VERSION := 1.0.0
 GRADLE_VERSION ?= 9.4.1
 
 CONTAINER_ENGINE ?= podman
+GRADLE ?= sh gradlew
 HYPERSWITCH_VERSION := 1.122.0
 
 APP_NAME := $(SERVICE_NAME)-app
@@ -32,19 +33,15 @@ spec:
 wrapper:
 	perl -pi -e 's,gradle-[0-9.]+-bin\.zip,gradle-$(GRADLE_VERSION)-bin.zip,' gradle/wrapper/gradle-wrapper.properties
 	gradle wrapper --gradle-version $(GRADLE_VERSION) --console=plain
-	sh gradlew wrapper --gradle-version $(GRADLE_VERSION) --console=plain
+	$(GRADLE) wrapper --gradle-version $(GRADLE_VERSION) --console=plain
 
 .PHONY: clean
 clean:
-	sh gradlew clean --console=plain
+	$(GRADLE) clean --console=plain
 
 .PHONY: style
 style:
-	sh gradlew spotlessApply --console=plain --info
-
-.PHONY: buf
-buf:
-	cd ../../api/grpc && make grpc
+	$(GRADLE) spotlessApply --console=plain --info
 
 .PHONY: openapi-bundle
 openapi-bundle:
@@ -61,8 +58,31 @@ openapi: openapi-bundle openapi-gen
 NEXUS_RAW_URL ?= https://nexus.example.com/repository/raw-hosted
 NEXUS_AUTH ?=
 nexus_auth = { if [ -n "$(NEXUS_AUTH)" ]; then printf '%s' "$(NEXUS_AUTH)"; \
-	else printf '%s:%s' "$$(vault kv get -mount=kv -field=username nexus/publisher)" \
-	                    "$$(vault kv get -mount=kv -field=password nexus/publisher)"; fi; }
+	else u=$$(vault kv get -mount=kv -field=username nexus/publisher) && \
+	     p=$$(vault kv get -mount=kv -field=password nexus/publisher) && \
+	     [ -n "$$u" ] && [ -n "$$p" ] && printf '%s:%s' "$$u" "$$p"; fi; }
+
+GRPC_API_VERSION := 1.0.0
+GRPC_PROTO_DIR := ./api/grpc/proto
+GRPC_PROTO_URL := $(NEXUS_RAW_URL)/vendor/bookstore-grpc/$(GRPC_API_VERSION)/proto.tar.gz
+
+.PHONY: grpc-fetch
+grpc-fetch:
+	@auth=$$($(nexus_auth)); \
+	[ -n "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_AUTH or ensure Vault kv/nexus/publisher is reachable)" >&2; exit 1; }; \
+	rm -rf $(GRPC_PROTO_DIR) && mkdir -p $(GRPC_PROTO_DIR) && \
+	curl -fsS -u "$$auth" "$(GRPC_PROTO_URL)" | tar -xz -C $(GRPC_PROTO_DIR)
+
+$(GRPC_PROTO_DIR)/buf.yaml:
+	@$(MAKE) --no-print-directory grpc-fetch
+
+.PHONY: grpc-gen
+grpc-gen: $(GRPC_PROTO_DIR)/buf.yaml
+	rm -rf ./src/main/generated/com/codejsha/bookstore/generated/application/port/pb
+	cd api/grpc && buf generate --template buf.gen.yaml
+
+.PHONY: grpc
+grpc: grpc-gen
 
 PAYAPI_SPEC := ./api/payapi/openapi_spec_v1.json
 PAYAPI_SPEC_URL := $(NEXUS_RAW_URL)/vendor/hyperswitch/$(HYPERSWITCH_VERSION)/openapi_spec_v1.json
@@ -90,8 +110,9 @@ payapi-mirror: payapi-download
 
 .PHONY: payapi-bundle
 payapi-bundle: $(PAYAPI_SPEC)
-	redocly bundle --config ./api/payapi/redocly.yaml core@v1
+	cd api/payapi && pnpm install --frozen-lockfile && pnpm exec redocly bundle --config ./redocly.yaml core@v1
 	python3 ./api/payapi/strip-undeclared-security.py ./api/payapi/schema/openapi.json
+	python3 ./api/payapi/add-missing-path-params.py ./api/payapi/schema/openapi.json
 
 .PHONY: payapi-gen
 payapi-gen:
@@ -104,17 +125,17 @@ payapi: payapi-bundle payapi-gen
 .PHONY: jooq
 jooq:
 	rm -rf ./src/main/generated/com/codejsha/bookstore/generated/infrastructure/adapter/jooq
-	sh gradlew jooqGenerateContainer --console=plain
+	$(GRADLE) jooqGenerateContainer --console=plain
 
 .PHONY: api-gen
-api-gen: spec buf openapi payapi
+api-gen: spec grpc openapi payapi
 
 .PHONY: gen
 gen: api-gen jooq
 
 .PHONY: build
 build: spec
-	sh gradlew build --info --console=plain
+	$(GRADLE) build --info --console=plain
 
 .PHONY: podman-build
 podman-build: build
@@ -131,11 +152,11 @@ podman-push: podman-build
 
 .PHONY: test
 test:
-	sh gradlew test --console=plain
+	$(GRADLE) test --console=plain
 
 .PHONY: run
 run:
-	sh gradlew bootRun --console=plain
+	$(GRADLE) bootRun --console=plain
 
 .PHONY: migrate-create
 migrate-create:

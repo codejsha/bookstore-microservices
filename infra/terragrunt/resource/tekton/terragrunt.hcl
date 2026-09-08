@@ -47,7 +47,7 @@ inputs = {
 
   nexus_docker_registry = "nexus-docker.nexus.svc.cluster.local:5000"
 
-  skip_codegen_verify = "true"
+  codegen_verify_targets = []
 
   source_repo_suffix = local.gitea.source_repo_suffix
 

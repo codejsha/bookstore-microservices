@@ -1,15 +1,4 @@
 #!/usr/bin/env python3
-"""Patch known defects in the bundled Keycloak admin OpenAPI spec.
-
-Upstream Keycloak emits the composite-role filter endpoint with the same path
-template `{client-uuid}` twice, which OpenAPI forbids (the two segments bind to
-different clients: the role's owning client and the composite filter target).
-Rename the trailing occurrence and declare its parameter so the spec validates
-and the generated client exposes both values.
-
-Idempotent: exits quietly when the path is absent (already patched, or fixed
-upstream in a newer Keycloak).
-"""
 
 import json
 import sys

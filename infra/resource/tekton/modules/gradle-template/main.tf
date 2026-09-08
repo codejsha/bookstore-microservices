@@ -65,14 +65,14 @@ resource "kubernetes_secret_v1" "lib_repo_ssh_auth" {
 
 resource "kubernetes_manifest" "tekton_trigger_template" {
   manifest = yamldecode(templatefile("${path.module}/manifests/triggertemplate.yaml", {
-    namespace           = var.namespace,
-    vault_url           = var.vault_url,
-    harbor_registry     = var.harbor_registry,
-    harbor_address      = var.harbor_address,
-    vault_internal_url  = var.vault_internal_url,
-    nexus_raw_url       = var.nexus_raw_url,
-    skip_codegen_verify = var.skip_codegen_verify,
-    nexus_maven_url     = var.nexus_maven_url,
+    namespace              = var.namespace,
+    vault_url              = var.vault_url,
+    harbor_registry        = var.harbor_registry,
+    harbor_address         = var.harbor_address,
+    vault_internal_url     = var.vault_internal_url,
+    nexus_raw_url          = var.nexus_raw_url,
+    codegen_verify_targets = var.codegen_verify_targets,
+    nexus_maven_url        = var.nexus_maven_url,
   }))
 
   field_manager {

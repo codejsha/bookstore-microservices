@@ -1,0 +1,21 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package
+      path: order/v1.proto
+      value: pb/orderpb
+    - file_option: java_package
+      path: order/v1.proto
+      value: com.codejsha.bookstore.generated.application.port.pb.orderpb
+    - file_option: java_multiple_files
+      value: true
+inputs:
+  - directory: ./proto
+    paths:
+      - proto/modules/order/v1.proto
+plugins:
+  - protoc_builtin: java
+    out: ../../src/main/generated
+  - local: protoc-gen-grpc-java
+    out: ../../src/main/generated

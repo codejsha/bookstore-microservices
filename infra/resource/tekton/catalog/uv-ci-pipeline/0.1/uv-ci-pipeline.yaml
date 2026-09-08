@@ -10,6 +10,8 @@ spec:
     Deployment is a separate cd-pipeline run, never created by this pipeline.
     tasks:
       - clone-source-repo (git-clone)
+      - codegen-verify-openapi (make openapi + git diff)
+      - codegen-verify-grpc (make grpc from the Nexus-mirrored proto bundle + git diff; delivery only)
       - trivy-fs-scan (trivy fs vuln)
       - gitleaks-scan (gitleaks secret detection, commits since last scanned build)
       - build-app (uv sync + uv run pytest + uv build)
@@ -50,6 +52,28 @@ spec:
     - name: nexus-secret-name
       type: string
       default: nexus-credentials
+    ### codegen-verify params (targets: openapi, grpc)
+    - name: codegen-verify-targets
+      type: array
+      default: []
+    - name: nexus-raw-url
+      type: string
+      default: http://nexus.nexus.svc.cluster.local:8081/repository/raw-hosted
+    ### codegen-verify-openapi params
+    - name: oapi-codegen-image
+      type: string
+      default: harbor.example.com/bookstore/oapi-codegen-cli:1.0.0
+    ### codegen-verify-grpc params
+    - name: codegen-verify-grpc-services
+      type: array
+      default:
+        - delivery
+    - name: protoc-toolchain-image
+      type: string
+      default: harbor.example.com/bookstore/protoc-toolchain:0.1.0
+    - name: codegen-verify-grpc-image
+      type: string
+      default: ghcr.io/astral-sh/uv:python3.13-bookworm
     ### kaniko (image build) params
     - name: kaniko-dockerfile
       type: string
@@ -132,6 +156,80 @@ spec:
           workspace: git-source-ssh-auth
 
     ### task
+    - name: codegen-verify-openapi
+      runAfter:
+        - clone-source-repo
+      when:
+        - input: openapi
+          operator: in
+          values:
+            - "$(params.codegen-verify-targets[*])"
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/codegen-verify-openapi/0.1/codegen-verify-openapi.yaml
+      params:
+        - name: OAPI_CODEGEN_IMAGE
+          value: $(params.oapi-codegen-image)
+        - name: CONTEXT_DIR
+          value: $(params.context-dir)
+        - name: TARGET_DIR
+          value: $(params.context-dir)
+        - name: GENERATED_DIRS
+          value: generated
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
+    - name: codegen-verify-grpc
+      runAfter:
+        - codegen-verify-openapi
+      when:
+        - input: grpc
+          operator: in
+          values:
+            - "$(params.codegen-verify-targets[*])"
+        - input: $(params.service-name)
+          operator: in
+          values:
+            - "$(params.codegen-verify-grpc-services[*])"
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/codegen-verify-grpc/0.1/codegen-verify-grpc.yaml
+      params:
+        - name: PROTOC_TOOLCHAIN_IMAGE
+          value: $(params.protoc-toolchain-image)
+        - name: IMAGE
+          value: $(params.codegen-verify-grpc-image)
+        - name: CONTEXT_DIR
+          value: $(params.context-dir)
+        - name: TARGET_DIR
+          value: $(params.context-dir)
+        - name: GENERATED_DIRS
+          value: generated
+        - name: NEXUS_RAW_URL
+          value: $(params.nexus-raw-url)
+        - name: NEXUS_SECRET_NAME
+          value: $(params.nexus-secret-name)
+        - name: NEXUS_PYPI_URL
+          value: $(params.nexus-pypi-url)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
     - name: trivy-fs-scan
       runAfter:
         - clone-source-repo
@@ -193,6 +291,7 @@ spec:
     - name: build-app
       runAfter:
         - trivy-fs-scan
+        - codegen-verify-grpc
       taskSpec:
         workspaces:
           - name: source

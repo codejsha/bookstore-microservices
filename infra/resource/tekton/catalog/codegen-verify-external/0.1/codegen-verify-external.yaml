@@ -1,0 +1,139 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: codegen-verify-external
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Cli
+    tekton.dev/tags: build
+    tekton.dev/displayName: "External API codegen drift verify"
+spec:
+  description: >-
+    Regenerates the client code for a mirrored third-party API (identity's
+    Keycloak admin API via `make idpapi`, payment's Hyperswitch API via
+    `make payapi`) and fails if it differs from what is committed.
+
+    The input spec is not in git: each service vendors it at a pinned version
+    under vendor/<product>/<version>/ in the Nexus raw-hosted repository and
+    gitignores the local copy. The Makefile's *-fetch rule downloads it when
+    missing, so this task only exports NEXUS_RAW_URL (the in-cluster URL) and
+    NEXUS_AUTH (the publisher user, which has read on the raw repo) and runs
+    the same `make <GEN_TARGET>` a developer runs: fetch, redocly bundle, the
+    service's patch script, oapi-codegen-cli. New files under GENERATED_DIRS
+    are marked with `git add -N` so an untracked output counts as drift too.
+
+    Tools: the oapi-codegen-cli binary is staged from its image into a shared
+    volume by the stage step; @redocly/cli comes from the service's own
+    api/{idpapi,payapi} pnpm lockfile (the bundle recipe runs `pnpm install
+    --frozen-lockfile` first), so local and CI bundle with the same version;
+    make, git, curl, python3 and node+pnpm via corepack come with the stock
+    node bookworm image.
+  workspaces:
+    - name: source
+  params:
+    - name: OAPI_CODEGEN_IMAGE
+      description: >-
+        In-house oapi-codegen-cli generator image, built and pushed to Harbor
+        from its own repository (`make podman-publish` there). Debian-slim
+        based; the binary is staged from /usr/local/bin/oapi-codegen-cli.
+      type: string
+      default: harbor.example.com/bookstore/oapi-codegen-cli:1.0.0
+    - name: NODE_IMAGE
+      description: >-
+        Image the verify step runs `make <GEN_TARGET>` in. Must carry node +
+        corepack plus make, git, curl and python3 -- the full (non-slim) node
+        bookworm image does.
+      type: string
+      default: docker.io/library/node:24-bookworm
+    - name: CONTEXT_DIR
+      description: working directory relative to the workspace
+      type: string
+      default: ./
+    - name: TARGET_DIR
+      description: directory to run make in (relative to CONTEXT_DIR)
+      type: string
+      default: ./
+    - name: GEN_TARGET
+      description: the make target that reruns the external API codegen (idpapi or payapi)
+      type: string
+    - name: GENERATED_DIRS
+      description: >-
+        Space-separated directories (relative to TARGET_DIR) the generator
+        writes into; new untracked files under them count as drift.
+      type: string
+      default: generated
+    - name: NEXUS_RAW_URL
+      description: >-
+        Nexus raw-hosted repository base URL (no trailing slash) the Makefile
+        fetches the mirrored spec from, e.g.
+        http://nexus.nexus.svc.cluster.local:8081/repository/raw-hosted
+      type: string
+    - name: NEXUS_SECRET_NAME
+      description: k8s secret holding the Nexus username/password with read on the raw repo
+      type: string
+      default: nexus-credentials
+  volumes:
+    - name: tools
+      emptyDir: {}
+  steps:
+    - name: stage-oapi-codegen
+      image: $(params.OAPI_CODEGEN_IMAGE)
+      volumeMounts:
+        - name: tools
+          mountPath: /tools
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        mkdir -p /tools/bin
+        cp /usr/local/bin/oapi-codegen-cli /tools/bin/oapi-codegen-cli
+    - name: verify
+      image: $(params.NODE_IMAGE)
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
+      volumeMounts:
+        - name: tools
+          mountPath: /tools
+      env:
+        - name: GIT_CONFIG_COUNT
+          value: "1"
+        - name: GIT_CONFIG_KEY_0
+          value: safe.directory
+        - name: GIT_CONFIG_VALUE_0
+          value: "*"
+        - name: COREPACK_ENABLE_DOWNLOAD_PROMPT
+          value: "0"
+        - name: NEXUS_RAW_URL
+          value: $(params.NEXUS_RAW_URL)
+        - name: NEXUS_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: username
+        - name: NEXUS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.NEXUS_SECRET_NAME)
+              key: password
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+
+        export PATH="/tools/bin:${PATH}"
+        corepack enable
+
+        export NEXUS_AUTH="${NEXUS_USER}:${NEXUS_PASSWORD}"
+
+        make -C "$(params.TARGET_DIR)" "$(params.GEN_TARGET)"
+
+        cd "$(params.TARGET_DIR)"
+        git add --intent-to-add -- $(params.GENERATED_DIRS)
+        if git diff --exit-code; then
+          echo "codegen-verify-external: generated external API client is in sync with the mirrored spec."
+        else
+          echo "" >&2
+          echo "codegen-verify-external: FAILED — generated external API client is out of sync." >&2
+          echo "The mirrored spec version or the generator changed without a" >&2
+          echo "matching 'make $(params.GEN_TARGET)'. Run it locally and commit the result." >&2
+          exit 1
+        fi

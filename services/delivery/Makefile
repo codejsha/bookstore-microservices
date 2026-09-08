@@ -1,6 +1,5 @@
 SERVICE_NAME := delivery
 VERSION := 1.0.0
-PROTO_DIR := ../../api/grpc/proto/modules
 PB_OUT := generated/application/port/pb/deliverypb
 
 .PHONY: none
@@ -24,20 +23,44 @@ style:
 	uv run ruff check --fix .
 	uv run ruff format .
 
-.PHONY: grpc
-grpc:
+NEXUS_RAW_URL ?= https://nexus.example.com/repository/raw-hosted
+NEXUS_AUTH ?=
+nexus_auth = { if [ -n "$(NEXUS_AUTH)" ]; then printf '%s' "$(NEXUS_AUTH)"; \
+	else u=$$(vault kv get -mount=kv -field=username nexus/publisher) && \
+	     p=$$(vault kv get -mount=kv -field=password nexus/publisher) && \
+	     [ -n "$$u" ] && [ -n "$$p" ] && printf '%s:%s' "$$u" "$$p"; fi; }
+
+GRPC_API_VERSION := 1.0.0
+GRPC_PROTO_DIR := ./api/grpc/proto
+GRPC_PROTO_URL := $(NEXUS_RAW_URL)/vendor/bookstore-grpc/$(GRPC_API_VERSION)/proto.tar.gz
+
+.PHONY: grpc-fetch
+grpc-fetch:
+	@auth=$$($(nexus_auth)); \
+	[ -n "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_AUTH or ensure Vault kv/nexus/publisher is reachable)" >&2; exit 1; }; \
+	rm -rf $(GRPC_PROTO_DIR) && mkdir -p $(GRPC_PROTO_DIR) && \
+	curl -fsS -u "$$auth" "$(GRPC_PROTO_URL)" | tar -xz -C $(GRPC_PROTO_DIR)
+
+$(GRPC_PROTO_DIR)/buf.yaml:
+	@$(MAKE) --no-print-directory grpc-fetch
+
+.PHONY: grpc-gen
+grpc-gen: $(GRPC_PROTO_DIR)/buf.yaml
 	rm -rf $(PB_OUT)
 	mkdir -p $(PB_OUT)
 	uv run python -m grpc_tools.protoc \
-		-I=$(PROTO_DIR) \
+		-I=$(GRPC_PROTO_DIR)/modules \
 		--python_out=$(PB_OUT) \
 		--grpc_python_out=$(PB_OUT) \
 		--pyi_out=$(PB_OUT) \
-		$(PROTO_DIR)/delivery/v1.proto
+		$(GRPC_PROTO_DIR)/modules/delivery/v1.proto
 	@touch $(PB_OUT)/__init__.py $(PB_OUT)/delivery/__init__.py
 	@sed -i.bak 's|^from delivery import v1_pb2|from . import v1_pb2|' \
 		$(PB_OUT)/delivery/v1_pb2_grpc.py
 	@rm -f $(PB_OUT)/delivery/v1_pb2_grpc.py.bak
+
+.PHONY: grpc
+grpc: grpc-gen
 
 .PHONY: openapi-bundle
 openapi-bundle:

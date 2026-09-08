@@ -1,0 +1,125 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: codegen-verify-openapi
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Cli
+    tekton.dev/tags: build
+    tekton.dev/displayName: "OpenAPI codegen drift verify"
+spec:
+  description: >-
+    Regenerates the OpenAPI server code from the TypeSpec sources and fails if
+    it differs from what is committed.
+
+    All codegen is a local developer concern -- CI never produces generated
+    artifacts, it only regenerates to compare. The generated OpenAPI server
+    code is checked in, but CI otherwise only compiles it -- so a .tsp change
+    that is not followed by a local regen ships stale generated code that
+    still builds green. This task closes that gap: it runs `make openapi`
+    (compile the TypeSpec, rerun the oapi codegen), marks new files under
+    GENERATED_DIRS with `git add -N` so an untracked output counts as drift
+    too, and then `git diff --exit-code`. Drift fails the build with the diff.
+
+    Sibling checks: codegen-verify-db reruns the gorm / jOOQ database codegen
+    behind a Docker-in-Docker sidecar, codegen-verify-external reruns the
+    mirrored third-party API clients (identity's idpapi, payment's payapi)
+    from the spec in the Nexus raw repository. Excluded and verified nowhere
+    but locally: the gRPC buf codegen (driven from the monorepo's api/grpc
+    with workstation-local protoc plugins; the source repo CI clones is only
+    the services/<name> subtree), the version-stamping spec target (touches
+    monorepo paths outside the subtree), admin's downstream clients (built
+    from sibling services' specs outside the subtree), and the
+    @bookstore/*-client npm packages (generated and published from
+    packages/clients).
+
+    There is no combined toolchain image. The in-house oapi-codegen-cli binary
+    is staged from its image into a shared volume by the stage step, and
+    everything else `make openapi` drives (make, git, node+pnpm via corepack)
+    comes with the stock node bookworm image the verify step runs on.
+  workspaces:
+    - name: source
+  params:
+    - name: OAPI_CODEGEN_IMAGE
+      description: >-
+        In-house oapi-codegen-cli generator image, built and pushed to Harbor
+        from its own repository (`make podman-publish` there). Debian-slim
+        based; the binary is staged from /usr/local/bin/oapi-codegen-cli.
+      type: string
+      default: harbor.example.com/bookstore/oapi-codegen-cli:1.0.0
+    - name: NODE_IMAGE
+      description: >-
+        Image the verify step runs `make openapi` in. Must carry node +
+        corepack plus make and git -- the full (non-slim) node bookworm
+        image does.
+      type: string
+      default: docker.io/library/node:24-bookworm
+    - name: CONTEXT_DIR
+      description: working directory relative to the workspace
+      type: string
+      default: ./
+    - name: TARGET_DIR
+      description: directory to run make in (relative to CONTEXT_DIR)
+      type: string
+      default: ./
+    - name: GEN_TARGET
+      description: the make target that reruns the OpenAPI codegen
+      type: string
+      default: openapi
+    - name: GENERATED_DIRS
+      description: >-
+        Space-separated directories (relative to TARGET_DIR) the generator
+        writes into; new untracked files under them count as drift.
+      type: string
+      default: generated
+  volumes:
+    - name: tools
+      emptyDir: {}
+  steps:
+    - name: stage-oapi-codegen
+      image: $(params.OAPI_CODEGEN_IMAGE)
+      volumeMounts:
+        - name: tools
+          mountPath: /tools
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        mkdir -p /tools/bin
+        cp /usr/local/bin/oapi-codegen-cli /tools/bin/oapi-codegen-cli
+    - name: verify
+      image: $(params.NODE_IMAGE)
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
+      volumeMounts:
+        - name: tools
+          mountPath: /tools
+      env:
+        - name: GIT_CONFIG_COUNT
+          value: "1"
+        - name: GIT_CONFIG_KEY_0
+          value: safe.directory
+        - name: GIT_CONFIG_VALUE_0
+          value: "*"
+        - name: COREPACK_ENABLE_DOWNLOAD_PROMPT
+          value: "0"
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+
+        export PATH="/tools/bin:${PATH}"
+        corepack enable
+
+        make -C "$(params.TARGET_DIR)" "$(params.GEN_TARGET)"
+
+        cd "$(params.TARGET_DIR)"
+        git add --intent-to-add -- $(params.GENERATED_DIRS)
+        if git diff --exit-code; then
+          echo "codegen-verify-openapi: generated OpenAPI code is in sync with the sources."
+        else
+          echo "" >&2
+          echo "codegen-verify-openapi: FAILED — generated OpenAPI code is out of sync." >&2
+          echo "A .tsp source or a mirrored spec version changed without a" >&2
+          echo "matching 'make openapi'. Run it locally and commit the result." >&2
+          exit 1
+        fi

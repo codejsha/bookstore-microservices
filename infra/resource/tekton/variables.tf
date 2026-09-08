@@ -126,14 +126,14 @@ variable "nexus_pypi_url" {
 }
 
 variable "nexus_raw_url" {
-  description = "Nexus raw repo base (no trailing slash) codegen-verify fetches the mirrored specs from"
+  description = "Nexus raw-hosted repo base (no trailing slash) codegen-verify-external / codegen-verify-grpc fetch the mirrored specs (idpapi/payapi, bookstore-grpc proto bundle) from"
   type        = string
 }
 
-variable "skip_codegen_verify" {
-  description = "\"true\" skips the codegen drift check in CI. Default-on until the oapi-codegen-cli image is published to Harbor; flip to \"false\" to enable."
-  type        = string
-  default     = "true"
+variable "codegen_verify_targets" {
+  description = "Codegen drift checks the golang/gradle/uv CI pipelines run: any of openapi (needs the oapi-codegen-cli image in Harbor), external (idpapi/payapi from the Nexus raw repo; identity and payment only), grpc (proto bundle from the Nexus raw repo; needs the protoc-toolchain image in Harbor; customer/identity/order/payment/delivery), db (needs the gorm-codegen-cli image and the privileged dind sidecar admitted in the CI namespace). Empty runs none."
+  type        = list(string)
+  default     = []
 }
 
 variable "nexus_npm_url" {

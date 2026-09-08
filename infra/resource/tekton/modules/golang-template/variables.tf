@@ -79,11 +79,11 @@ variable "argocd_internal_address" {
 }
 
 variable "nexus_raw_url" {
-  description = "Nexus raw repo base (no trailing slash) codegen-verify fetches the mirrored specs from"
+  description = "Nexus raw-hosted repo base (no trailing slash) codegen-verify-external / codegen-verify-grpc fetch the mirrored specs from"
   type        = string
 }
 
-variable "skip_codegen_verify" {
-  description = "\"true\" skips the codegen drift check in CI."
-  type        = string
+variable "codegen_verify_targets" {
+  description = "Codegen drift checks the CI pipeline runs: any of openapi, external, grpc, db. Empty runs none."
+  type        = list(string)
 }

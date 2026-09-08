@@ -58,5 +58,7 @@ spec:
             value: $(tt.params.service-name)
           - name: git-source-revision
             value: $(tt.params.git-revision)
-          - name: skip-codegen-verify
-            value: "${skip_codegen_verify}"
+          - name: codegen-verify-targets
+            value: ${jsonencode(codegen_verify_targets)}
+          - name: nexus-raw-url
+            value: "${nexus_raw_url}"
