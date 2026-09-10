@@ -1,0 +1,5 @@
+kubelet-arg:
+  - "eviction-hard=memory.available<5%,nodefs.available<5%,imagefs.available<5%"
+  - "kube-reserved=cpu=200m,memory=256Mi"
+  - "system-reserved=cpu=200m,memory=256Mi"
+
