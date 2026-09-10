@@ -32,6 +32,9 @@ inputs = {
   grafana_username    = "admin"
   grafana_password    = "secret:grafana-admin-credentials:admin_password"
 
+  edge_per_ip_ratelimit_enabled = false
+  edge_blocked_cidrs            = []
+
   edge_hosts = {
     "alloy-grpc.example.com"          = ["grafana"]
     "alloy-http.example.com"          = ["grafana"]

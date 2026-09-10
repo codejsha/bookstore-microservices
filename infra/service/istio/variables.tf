@@ -46,3 +46,21 @@ variable "keycloak_realm" {
   type        = string
   default     = "bookstore"
 }
+
+variable "edge_per_ip_ratelimit_enabled" {
+  description = "Add per-client-IP token buckets (Envoy local_ratelimit dynamic descriptors keyed on remote_address) next to the host/path-wide edge buckets. Enable only after the gateway access log shows real client addresses; behind a masquerading LB every client shares one bucket"
+  type        = bool
+  default     = false
+}
+
+variable "edge_per_ip_max_tracked_addresses" {
+  description = "Upper bound of distinct client addresses each vhost keeps a dynamic bucket for (LRU beyond that)"
+  type        = number
+  default     = 10000
+}
+
+variable "edge_blocked_cidrs" {
+  description = "Client CIDRs denied at bookstore-gateway for every host and path (403 before routing). Empty list = no policy. Only meaningful once the gateway sees real client addresses (externalTrafficPolicy Local verified)"
+  type        = list(string)
+  default     = []
+}
