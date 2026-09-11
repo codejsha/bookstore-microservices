@@ -117,7 +117,6 @@ function RightSidebar() {
     enabled: auth.isAuthenticated,
     placeholderData: {
       uid: "",
-      user_id: "0",
       items: [],
       total_items: 0,
       total_amount: 0,
