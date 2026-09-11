@@ -5,3 +5,8 @@ spring:
   threads:
     virtual:
       enabled: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.jooq.autoconfigure.JooqAutoConfiguration
