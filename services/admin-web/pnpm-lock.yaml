@@ -326,10 +326,10 @@ packages:
     os: [win32]
 
   '@bookstore/admin-client@1.0.0':
-    resolution: {integrity: sha512-gTDckTLe5dd/7bZdjP68BuZubdFGnXb/KzrHaGEZT/70mUoDa7zJvZHJZM1hYsv14g671z7mp+ikiHF6oyfu6g==}
+    resolution: {integrity: sha512-usikOnQixPegjVe3wBjbI5dDH/5+QxmCgr9Bpi8ME4ZR81kvl/BNW6su99By/1rGesnclA04NH0Y9x2E5RML6Q==}
 
   '@bookstore/design@1.0.0':
-    resolution: {integrity: sha512-3dbgjxuG72//vwiVU5e0fyyZByudaupFuMvOd6fezPhCu7L35U5EA2silFgaPaCkD5xx8uhk+DZL/yOuzz3Qew==}
+    resolution: {integrity: sha512-9EujdJrCIoRZXqlicjwCpbOZqWuY0003eglKpe3Lk4nvrDFwB8IoTP9qPueVnD15muMQeaYdUQyMsKvBXzVD7Q==}
     peerDependencies:
       react: ^19.0.0
       react-dom: ^19.0.0

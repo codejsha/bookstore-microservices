@@ -401,32 +401,32 @@ packages:
     os: [win32]
 
   '@bookstore/catalog-client@1.0.0':
-    resolution: {integrity: sha512-nz48h9R6LDmxZJmMtsyukDshgPtkcnZqesYPnogXlga6EuXDo5tnDGly5FAGvQsgDZSu352i78o1HokPeJ6VEg==}
+    resolution: {integrity: sha512-TAVk23WWznUFo3yLCie10AXVFTENkQxAYBtuavgK07JBde5kpuEFPzfXjIH2caWKJZiGcaIjHROciDbkzpCoZw==}
 
   '@bookstore/customer-client@1.0.0':
-    resolution: {integrity: sha512-uA/F58KuH6B1NVnCpArYMBJLWkw8wIXNvevkaEzvvpndEpMawghpt5IJpCoQLFnWCp36WorSvJV9wJlIJtvXiQ==}
+    resolution: {integrity: sha512-HqSVVzLOCjjOG6NaFHVqieZTWPPMN5mSbOjl6bZpjqQ0pQnxlA2LOIQJ++bQPelfrSFwvfKXmUOOK72snTwgkg==}
 
   '@bookstore/delivery-client@1.0.0':
-    resolution: {integrity: sha512-cNVRzle2AEEPV9qbVG1GFgbhbxtxVJJm7rFJhGVL3sBUlUMPI4EHrlou4TYjnAPvhiMS6fS3OT7Wh93U8tarTg==}
+    resolution: {integrity: sha512-7mD79dG6a27boRFQB3sFXIzV6xFr+TIEby5HIPrVf9mbK4nhTSHprhC1Ith9BW92bsO/QZfQpl+klSHBdJxO5w==}
 
   '@bookstore/design@1.0.0':
-    resolution: {integrity: sha512-3dbgjxuG72//vwiVU5e0fyyZByudaupFuMvOd6fezPhCu7L35U5EA2silFgaPaCkD5xx8uhk+DZL/yOuzz3Qew==}
+    resolution: {integrity: sha512-9EujdJrCIoRZXqlicjwCpbOZqWuY0003eglKpe3Lk4nvrDFwB8IoTP9qPueVnD15muMQeaYdUQyMsKvBXzVD7Q==}
     peerDependencies:
       react: ^19.0.0
       react-dom: ^19.0.0
       tailwindcss: ^4.0.0
 
   '@bookstore/identity-client@1.0.0':
-    resolution: {integrity: sha512-+sAJX36qVRSD7GpbnESPeQNyDlqSIQoh1g1Qx2Qw7CJC7gTHxAO0nSYqO9m4LMKbnHxfPKnvA7L8RY12BsVtgw==}
+    resolution: {integrity: sha512-8/IFsHzWDf2JSJHV4eHStgn0N+Ar9ZRQCCyPbIU3ycA+1XT+jRdAgyrFpvperVJTRDMa9e1GarT1iTZ2E0TKCQ==}
 
   '@bookstore/inventory-client@1.0.0':
-    resolution: {integrity: sha512-uewJrJxonvxHqNei6kEoHXs0s8SZOionb/7v5UNtnM7UQsTsTwrrkMxjUw+MZ42bl80dWxDLuakuujUaquuI8g==}
+    resolution: {integrity: sha512-SQREZIHLJCO8BQ18TqIYqn4lcuQ5geIArY2SmRljOlxXIzNXPFwV4zYr7QE6jzVKrliucOYDso1y/uiMCSQJQw==}
 
   '@bookstore/order-client@1.0.0':
-    resolution: {integrity: sha512-0IV5vf3StdyA9F2g3fDgJINYTk+fwykkXbyA1vTw9eVUbXJVvzCZoPv3OVXI1HF9xDGbgLFQn1e/mzqRsX6SNQ==}
+    resolution: {integrity: sha512-jYrwPisnekLQ4jZuZdjE1VqVBJF+Bim7Xt++i3IpU+/9xfoS/REILc6EVfNy/DyEta2bsYGR0dG05va9GJMYHg==}
 
   '@bookstore/payment-client@1.0.0':
-    resolution: {integrity: sha512-7swklChM2aKeTZAoPoEPGboRUjvt+KSYklUnKrUu1K+srL8lRmc+ScztfLVLuChnE/05DrUCRELVQzcI0lcDwg==}
+    resolution: {integrity: sha512-n1iHGqye6AlN3n961PYHb5H+SrceL1l541q6cZHh4R979bRD/iGmoR4UjdLFPLMayKZo5WyGsdtRHP4tyfNrdg==}
 
   '@dotenvx/dotenvx@1.61.0':
     resolution: {integrity: sha512-utL3cpZoFzflyqUkjYbxYujI6STBTmO5LFn4bbin/NZnRWN6wQ7eErhr3/Vpa5h/jicPFC6kTa42r940mQftJQ==}
