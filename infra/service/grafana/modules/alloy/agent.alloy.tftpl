@@ -61,8 +61,12 @@ loki.source.kubernetes "pods" {
 // --- Access-log tee → Kafka (risk-scorer) ------------------------------------
 loki.process "risk_access" {
   stage.match {
-    selector = "{namespace=\"bookstore\"} |= \"user_uid\""
-    action   = "keep"
+    selector = "{namespace=~\".+\", namespace!=\"bookstore\"}"
+    action   = "drop"
+  }
+  stage.match {
+    selector = "{namespace=\"bookstore\"} != \"user_uid\""
+    action   = "drop"
   }
   forward_to = [otelcol.receiver.loki.risk_access.receiver]
 }
@@ -77,10 +81,7 @@ otelcol.exporter.kafka "risk_access" {
   brokers          = ["bookstore-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093"]
   protocol_version = "3.0.0"
   topic            = "bookstore.access-log"
-
-  logs {
-    encoding = "raw"
-  }
+  encoding         = "raw"
 
   sending_queue {
     enabled = true
