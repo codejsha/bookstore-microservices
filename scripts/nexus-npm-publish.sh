@@ -19,14 +19,14 @@ die() {
 [ "$#" -gt 0 ] || die "usage: $(basename "$0") <package-dir> [<package-dir>...]"
 
 if [ -z "${VAULT_TOKEN:-}" ]; then
-  [ -r "${HOME}/.vault-token" ] || die "no VAULT_TOKEN and ~/.vault-token is unreadable"
-  VAULT_TOKEN="$(cat "${HOME}/.vault-token")"
+  [ -r "${HOME}/.vault/token" ] || die "no VAULT_TOKEN and ~/.vault/token is unreadable"
+  VAULT_TOKEN="$(cat "${HOME}/.vault/token")"
 fi
 export VAULT_TOKEN
 
 user="$(vault kv get -field=username "${VAULT_PUBLISHER_PATH}")" &&
   pass="$(vault kv get -field=password "${VAULT_PUBLISHER_PATH}")" ||
-  die "cannot read ${VAULT_PUBLISHER_PATH} from Vault (check VAULT_ADDR / ~/.vault-token)"
+  die "cannot read ${VAULT_PUBLISHER_PATH} from Vault (check VAULT_ADDR / ~/.vault/token)"
 
 npmrc="$(mktemp)"
 ca="$(mktemp)"
