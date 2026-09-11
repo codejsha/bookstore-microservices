@@ -164,6 +164,7 @@ spec:
           operator: in
           values:
             - "$(params.codegen-verify-targets[*])"
+            - none
       taskRef:
         resolver: git
         params:
@@ -195,6 +196,7 @@ spec:
           operator: in
           values:
             - "$(params.codegen-verify-targets[*])"
+            - none
         - input: $(params.service-name)
           operator: in
           values:
