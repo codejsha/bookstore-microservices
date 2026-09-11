@@ -18,7 +18,7 @@ statefulset:
       cache:
         enabled: false
       runner:
-        capacity: 2
+        capacity: 1
         labels:
           - "alpine-k8s:docker://docker.io/alpine/k8s:1.36.2"
       container:
