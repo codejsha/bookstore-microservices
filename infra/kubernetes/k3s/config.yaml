@@ -3,3 +3,7 @@ kubelet-arg:
   - "kube-reserved=cpu=200m,memory=256Mi"
   - "system-reserved=cpu=200m,memory=256Mi"
 
+tls-san:
+  - "workstation.internal"
+
+node-name: "workstation.internal"
