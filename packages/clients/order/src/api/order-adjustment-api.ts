@@ -38,6 +38,7 @@ export interface OrderAdjustmentApi {
   /**
    * Apply adjustment (coupon, point, tax, etc.) to an order
    * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    *
    * Response headers (on success; read via `response.headers` — not part of the return value):
@@ -51,6 +52,7 @@ export interface OrderAdjustmentApi {
   /**
    * Remove adjustment from an order
    * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   orderAdjustmentsRemove(

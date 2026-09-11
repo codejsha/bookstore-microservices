@@ -55,6 +55,9 @@ export interface RefundApi {
 
   /**
    * Create refund
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 409 (ConflictError) — The request conflicts with the current state of the server.
    *
    * Response headers (on success; read via `response.headers` — not part of the return value):
    * - `location`: string — Location of the created resource

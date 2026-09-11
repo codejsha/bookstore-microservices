@@ -50,6 +50,8 @@ export interface ShipmentApi {
 
   /**
    * List shipments
+   * Errors:
+   * 422 (UnprocessableEntityError) — Client error
    */
   shipmentsGetAll(
     orderUid: string | undefined,
@@ -60,6 +62,10 @@ export interface ShipmentApi {
 
   /**
    * Create shipment
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 409 (ConflictError) — The request conflicts with the current state of the server.
+   * 422 (UnprocessableEntityError) — Client error
    *
    * Response headers (on success; read via `response.headers` — not part of the return value):
    * - `location`: string — Location of the created resource
@@ -70,6 +76,8 @@ export interface ShipmentApi {
 
   /**
    * Get tracking history
+   * Errors:
+   * 422 (UnprocessableEntityError) — Client error
    */
   shipmentsGetTrackingHistory(
     shipmentUid: string,
@@ -78,7 +86,9 @@ export interface ShipmentApi {
   /**
    * Add tracking event
    * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 422 (UnprocessableEntityError) — Client error
    *
    * Response headers (on success; read via `response.headers` — not part of the return value):
    * - `location`: string — Location of the created resource
@@ -92,6 +102,7 @@ export interface ShipmentApi {
    * Find shipment
    * Errors:
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 422 (UnprocessableEntityError) — Client error
    */
   shipmentsRead(
     uid: string,
@@ -102,6 +113,7 @@ export interface ShipmentApi {
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 422 (UnprocessableEntityError) — Client error
    */
   shipmentsCancel(
     uid: string,
@@ -112,6 +124,7 @@ export interface ShipmentApi {
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 422 (UnprocessableEntityError) — Client error
    */
   shipmentsAssignCarrier(
     uid: string,
@@ -123,6 +136,7 @@ export interface ShipmentApi {
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 422 (UnprocessableEntityError) — Client error
    */
   shipmentsDeliver(
     uid: string,
@@ -133,6 +147,7 @@ export interface ShipmentApi {
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 422 (UnprocessableEntityError) — Client error
    */
   shipmentsDispatch(
     uid: string,
@@ -143,6 +158,7 @@ export interface ShipmentApi {
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 422 (UnprocessableEntityError) — Client error
    */
   shipmentsPickUp(
     uid: string,

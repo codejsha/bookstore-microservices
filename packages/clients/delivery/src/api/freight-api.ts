@@ -48,6 +48,8 @@ export interface FreightApi {
 
   /**
    * List freights
+   * Errors:
+   * 422 (UnprocessableEntityError) — Client error
    */
   freightsGetAll(
     shipmentUid: string | undefined,
@@ -58,6 +60,9 @@ export interface FreightApi {
 
   /**
    * Create freight
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 422 (UnprocessableEntityError) — Client error
    *
    * Response headers (on success; read via `response.headers` — not part of the return value):
    * - `location`: string — Location of the created resource
@@ -70,6 +75,7 @@ export interface FreightApi {
    * Find freight by shipment
    * Errors:
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 422 (UnprocessableEntityError) — Client error
    */
   freightsReadByShipment(
     shipmentUid: string,
@@ -79,6 +85,7 @@ export interface FreightApi {
    * Find freight
    * Errors:
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 422 (UnprocessableEntityError) — Client error
    */
   freightsRead(
     uid: string,
@@ -88,6 +95,7 @@ export interface FreightApi {
    * Update freight status
    * Errors:
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 422 (UnprocessableEntityError) — Client error
    */
   freightsUpdateStatus(
     uid: string,

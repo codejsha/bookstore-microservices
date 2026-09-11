@@ -3,11 +3,15 @@
 import { z } from 'zod';
 
 export interface UnauthorizedError {
-  code: number;
-  message: string;
+  detail?: string;
+  status: number;
+  title: string;
+  type?: string;
 }
 
 export const UnauthorizedErrorSchema = z.object({
-  code: z.number().int(),
-  message: z.string(),
+  detail: z.string().optional(),
+  status: z.number().int(),
+  title: z.string(),
+  type: z.string().optional(),
 });

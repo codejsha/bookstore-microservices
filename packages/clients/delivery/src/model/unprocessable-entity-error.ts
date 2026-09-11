@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 
-export interface BadRequestError {
+export interface UnprocessableEntityError {
   detail?: string;
   errors?: Array<string>;
   status: number;
@@ -10,7 +10,7 @@ export interface BadRequestError {
   type?: string;
 }
 
-export const BadRequestErrorSchema = z.object({
+export const UnprocessableEntityErrorSchema = z.object({
   detail: z.string().optional(),
   errors: z.array(z.string()).optional(),
   status: z.number().int(),
