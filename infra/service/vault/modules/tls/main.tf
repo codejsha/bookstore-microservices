@@ -63,11 +63,11 @@ resource "kubernetes_secret_v1" "vault_ha_tls" {
 }
 
 resource "local_file" "vault_key" {
-  filename = "vault.key"
+  filename = "${var.local_output_dir}/vault.key"
   content  = tls_private_key.vault_key.private_key_pem
 }
 
 resource "local_file" "vault_crt" {
-  filename = "vault.crt"
+  filename = "${var.local_output_dir}/vault.crt"
   content  = kubernetes_certificate_signing_request_v1.vault_kube_csr.certificate
 }

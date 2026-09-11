@@ -22,3 +22,8 @@ variable "kube_api_server_address" {
   description = "Kubernetes API server address (host:port, no scheme)"
   type        = string
 }
+
+variable "local_output_dir" {
+  description = "Absolute directory where generated CA certificates and TLS files are written"
+  type        = string
+}

@@ -52,9 +52,10 @@ resource "kubernetes_namespace_v1" "vault" {
 }
 
 module "tls" {
-  source      = "./modules/tls"
-  namespace   = kubernetes_namespace_v1.vault.metadata[0].name
-  kube_ca_crt = local.kube_ca_crt
+  source           = "./modules/tls"
+  namespace        = kubernetes_namespace_v1.vault.metadata[0].name
+  kube_ca_crt      = local.kube_ca_crt
+  local_output_dir = var.local_output_dir
 }
 
 module "helm" {
@@ -66,8 +67,9 @@ module "helm" {
 }
 
 module "pki" {
-  source    = "./modules/pki"
-  vault_url = var.vault_url
+  source           = "./modules/pki"
+  vault_url        = var.vault_url
+  local_output_dir = var.local_output_dir
   providers = {
     vault = vault
   }
