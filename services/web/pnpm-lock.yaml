@@ -410,7 +410,7 @@ packages:
     resolution: {integrity: sha512-7mD79dG6a27boRFQB3sFXIzV6xFr+TIEby5HIPrVf9mbK4nhTSHprhC1Ith9BW92bsO/QZfQpl+klSHBdJxO5w==}
 
   '@bookstore/design@1.0.0':
-    resolution: {integrity: sha512-9EujdJrCIoRZXqlicjwCpbOZqWuY0003eglKpe3Lk4nvrDFwB8IoTP9qPueVnD15muMQeaYdUQyMsKvBXzVD7Q==}
+    resolution: {integrity: sha512-mXOUmeUXww3KBfzUy6r0xEshoPlV0FkBzIxAYC5RoKGWMT3oz1W8LEjEXLtaZXHlZglubesalbEDmEt3bNl61Q==}
     peerDependencies:
       react: ^19.0.0
       react-dom: ^19.0.0

@@ -329,7 +329,7 @@ packages:
     resolution: {integrity: sha512-usikOnQixPegjVe3wBjbI5dDH/5+QxmCgr9Bpi8ME4ZR81kvl/BNW6su99By/1rGesnclA04NH0Y9x2E5RML6Q==}
 
   '@bookstore/design@1.0.0':
-    resolution: {integrity: sha512-9EujdJrCIoRZXqlicjwCpbOZqWuY0003eglKpe3Lk4nvrDFwB8IoTP9qPueVnD15muMQeaYdUQyMsKvBXzVD7Q==}
+    resolution: {integrity: sha512-mXOUmeUXww3KBfzUy6r0xEshoPlV0FkBzIxAYC5RoKGWMT3oz1W8LEjEXLtaZXHlZglubesalbEDmEt3bNl61Q==}
     peerDependencies:
       react: ^19.0.0
       react-dom: ^19.0.0
