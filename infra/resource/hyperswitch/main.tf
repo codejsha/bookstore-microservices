@@ -86,6 +86,7 @@ resource "restapi_object" "merchant_webhook" {
   ignore_all_server_changes = true
 
   data = jsonencode({
+    merchant_id                  = restapi_object.merchant.id
     enable_payment_response_hash = true
     payment_response_hash_key    = random_password.webhook_secret.result
     webhook_details = {

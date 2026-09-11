@@ -51,11 +51,11 @@ variable "webhook_payment_statuses" {
     "partially_captured_and_capturable",
     "expired",
   ]
-  description = "Payment intent statuses that trigger an outgoing webhook."
+  description = "Payment intent statuses (IntentStatus enum) that trigger an outgoing webhook."
 }
 
 variable "webhook_refund_statuses" {
   type        = list(string)
-  default     = ["succeeded", "failed"]
-  description = "Refund statuses that trigger an outgoing webhook."
+  default     = ["success", "failure"]
+  description = "Refund statuses that trigger an outgoing webhook (router enum: success/failure/pending/manual_review/transaction_failure — not RefundStatus)."
 }
