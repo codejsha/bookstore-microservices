@@ -6,6 +6,7 @@ import { OrderShippingCreateRequestSchema } from './order-shipping-create-reques
 
 export interface CartCheckoutRequest {
   currency: string;
+  /** Client key; the server stores it prefixed with the user uid, so the stored key stays within 100 characters */
   idempotency_key: string;
   shipping?: OrderShippingCreateRequest;
 }

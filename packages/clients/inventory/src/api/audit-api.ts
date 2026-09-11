@@ -55,6 +55,9 @@ export interface AuditApi {
 
   /**
    * Create stock audit (실사)
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   auditsCreate(
     body: AuditCreateRequest,

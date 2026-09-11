@@ -60,6 +60,10 @@ export interface WorkApi {
 
   /**
    * Create new work
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 409 (ConflictError) — The request conflicts with the current state of the server.
    *
    * Response headers (on success; read via `response.headers` — not part of the return value):
    * - `location`: string — Location of the created resource
@@ -90,7 +94,9 @@ export interface WorkApi {
   /**
    * Update work
    * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 409 (ConflictError) — The request conflicts with the current state of the server.
    */
   worksUpdate(
     uid: string,

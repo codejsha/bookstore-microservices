@@ -37,6 +37,8 @@ export interface StatsApi {
 
   /**
    * Get delivery dashboard
+   * Errors:
+   * 422 (UnprocessableEntityError) — Client error
    */
   statsGetDashboard(
     carrierUid: string | undefined,

@@ -58,6 +58,9 @@ export interface StockApi {
 
   /**
    * Adjust stock quantity (correction)
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   stocksAdjust(
     body: StockAdjustRequest,
@@ -65,6 +68,9 @@ export interface StockApi {
 
   /**
    * Receive stock into warehouse (inbound)
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   stocksReceive(
     body: StockReceiveRequest,
@@ -74,6 +80,7 @@ export interface StockApi {
    * Release stock from warehouse (outbound)
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   stocksRelease(
     body: StockReleaseRequest,
@@ -83,6 +90,7 @@ export interface StockApi {
    * Reserve stock for an order
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   stocksReserve(
     body: StockReserveRequest,

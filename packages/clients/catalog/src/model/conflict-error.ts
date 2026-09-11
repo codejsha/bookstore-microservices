@@ -2,17 +2,15 @@
 
 import { z } from 'zod';
 
-export interface BadRequestError {
+export interface ConflictError {
   detail?: string;
-  errors?: Array<string>;
   status: number;
   title: string;
   type?: string;
 }
 
-export const BadRequestErrorSchema = z.object({
+export const ConflictErrorSchema = z.object({
   detail: z.string().optional(),
-  errors: z.array(z.string()).optional(),
   status: z.number().int(),
   title: z.string(),
   type: z.string().optional(),

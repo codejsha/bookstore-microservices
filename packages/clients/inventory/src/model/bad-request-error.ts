@@ -3,13 +3,17 @@
 import { z } from 'zod';
 
 export interface BadRequestError {
-  code: number;
-  details?: Array<string>;
-  message: string;
+  detail?: string;
+  errors?: Array<string>;
+  status: number;
+  title: string;
+  type?: string;
 }
 
 export const BadRequestErrorSchema = z.object({
-  code: z.number().int(),
-  details: z.array(z.string()).optional(),
-  message: z.string(),
+  detail: z.string().optional(),
+  errors: z.array(z.string()).optional(),
+  status: z.number().int(),
+  title: z.string(),
+  type: z.string().optional(),
 });
