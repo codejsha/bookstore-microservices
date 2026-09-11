@@ -6,12 +6,10 @@ scp root@workstation.internal:/var/lib/rancher/k3s/server/tls/client-admin.key ~
 
 ######################################################################
 
-export K3S_HOST_IP=$(ssh root@workstation.internal "kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type==\"InternalIP\")].address}'")
-: "${K3S_HOST_IP:?failed to resolve k3s node InternalIP}"
 scp root@workstation.internal:/etc/rancher/k3s/k3s.yaml ~/.kube/k3s/k3s.yaml
 yq -i '
   .clusters[0].name = "k3s" |
-  .clusters[0].cluster.server = "https://" + strenv(K3S_HOST_IP) + ":6443" |
+  .clusters[0].cluster.server = "https://workstation.internal:6443" |
   .users[0].name = "k3s" |
   .contexts[0].name = "k3s" |
   .contexts[0].context.cluster = "k3s" |

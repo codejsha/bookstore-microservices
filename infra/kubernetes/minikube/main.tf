@@ -19,10 +19,10 @@ resource "tls_cert_request" "proxy_csr" {
   dns_names = [
     "localhost",
     "*.example.com",
+    "workstation.internal",
   ]
   ip_addresses = [
     "127.0.0.1",
-    "workstation.internal"
   ]
 }
 
