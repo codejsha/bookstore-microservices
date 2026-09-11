@@ -251,15 +251,22 @@ resource "kubernetes_job_v1" "readonly_bootstrap" {
               sleep 10
             done
             echo "MySQL is ready. Provisioning read-only user $RO_USER on $APP_DATABASE ..."
+            existing=$(mysql -h "$MYSQL_HOST" -P "$MYSQL_PORT" \
+                             -u "$MYSQL_ROOT_USER" -p"$MYSQL_ROOT_PASSWORD" -N -B \
+                             -e "SELECT table_name FROM information_schema.tables WHERE table_schema = '$APP_DATABASE'")
             {
               echo "CREATE USER IF NOT EXISTS '$RO_USER'@'%' IDENTIFIED BY RANDOM PASSWORD;"
               for t in $RO_TABLES; do
-                echo "GRANT SELECT ON \`$APP_DATABASE\`.\`$t\` TO '$RO_USER'@'%';"
+                if printf '%s\n' "$existing" | grep -qx "$t"; then
+                  echo "GRANT SELECT ON \`$APP_DATABASE\`.\`$t\` TO '$RO_USER'@'%';"
+                else
+                  echo "table $APP_DATABASE.$t does not exist yet; grant skipped (re-run after the owning service's migrations)" >&2
+                fi
               done
               echo "FLUSH PRIVILEGES;"
             } | mysql -h "$MYSQL_HOST" -P "$MYSQL_PORT" \
                       -u "$MYSQL_ROOT_USER" -p"$MYSQL_ROOT_PASSWORD"
-            echo "Read-only user $RO_USER provisioned with SELECT on: $RO_TABLES"
+            echo "Read-only user $RO_USER provisioned (requested SELECT on: $RO_TABLES)"
           EOT
           ]
         }

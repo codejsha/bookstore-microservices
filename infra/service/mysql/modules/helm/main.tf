@@ -11,7 +11,7 @@ resource "helm_release" "mysql_operator" {
   name       = "mysql-operator"
   repository = "https://mysql.github.io/mysql-operator/"
   chart      = "mysql-operator"
-  version    = "2.2.8"
+  version    = "2.3.0"
   values = [
     file("${path.module}/values.yaml")
   ]
