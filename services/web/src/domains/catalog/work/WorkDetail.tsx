@@ -196,7 +196,7 @@ function EditionRow({ edition }: { edition: Edition }) {
   const handleAddToCart = () => {
     addToCart.mutate(
       {
-        product_id: numericIdFromUid(edition.uid),
+        product_id: String(numericIdFromUid(edition.uid)),
         product_name: edition.title,
         quantity: 1,
         currency: "USD",
