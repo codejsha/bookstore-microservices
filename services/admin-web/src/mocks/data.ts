@@ -9,9 +9,9 @@ export const identity: AdminIdentity = {
 };
 
 export const dashboard: Dashboard = {
-  works: { count: 1284, available: true },
-  orders: { count: 0, available: false },
-  warehouses: { count: 3, available: true },
+  works: { count: "1284", available: true },
+  orders: { count: "0", available: false },
+  warehouses: { count: "3", available: true },
 };
 
 export const authors: Author[] = [
