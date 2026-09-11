@@ -16,9 +16,8 @@ terraform {
 }
 
 resource "random_password" "valkey" {
-  length           = 24
-  special          = true
-  override_special = "!@#$%^&*"
+  length  = 24
+  special = false
 }
 
 resource "random_password" "postgresql" {
