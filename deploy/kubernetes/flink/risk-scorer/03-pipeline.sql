@@ -9,7 +9,7 @@ SELECT
         CAST(distinct_paths AS STRING), ' paths in 5m)",',
         '"flagged_by":"risk-scorer",',
         '"flagged_at":"', DATE_FORMAT(window_end, 'yyyy-MM-dd''T''HH:mm:ss''Z'''), '",',
-        '"expires_at":"', DATE_FORMAT(window_end + INTERVAL '${AUTO_FLAG_TTL_SECONDS}' SECOND, 'yyyy-MM-dd''T''HH:mm:ss''Z'''), '"}'
+        '"expires_at":"', DATE_FORMAT(window_end + INTERVAL '1' SECOND * ${AUTO_FLAG_TTL_SECONDS}, 'yyyy-MM-dd''T''HH:mm:ss''Z'''), '"}'
     )
 FROM (
     SELECT
