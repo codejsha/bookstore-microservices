@@ -4,11 +4,11 @@ metadata:
   name: acquire-run-slot
 spec:
   description: |
-    Serialize runs per service: hold this PipelineRun until every older run
-    labeled with the same bookstore.dev/service has reached a terminal
-    Succeeded condition. Per-repo FIFO ordering lives here because Gitea
-    auto-cancels superseded Actions runs, so nothing above the pipeline can
-    be trusted to queue.
+    Serialize runs cluster-wide: hold this PipelineRun until every older run
+    in the namespace (any service, CI or CD) has reached a terminal Succeeded
+    condition, so at most one pipeline executes at a time. FIFO ordering
+    lives here because Gitea auto-cancels superseded Actions runs, so nothing
+    above the pipeline can be trusted to queue.
   params:
     - name: service-name
       type: string
@@ -31,8 +31,8 @@ spec:
         ME="$(params.own-run)"
         SVC="$(params.service-name)"
         MYTS=$(kubectl get pipelinerun -n "$NS" "$ME" -o jsonpath='{.metadata.creationTimestamp}')
-        for _ in $(seq 1 240); do
-          BLOCKING=$(kubectl get pipelinerun -n "$NS" -l "bookstore.dev/service=$SVC" -o json \
+        for _ in $(seq 1 1440); do
+          BLOCKING=$(kubectl get pipelinerun -n "$NS" -o json \
             | jq -r --arg me "$ME" --arg ts "$MYTS" \
               '[.items[]
                 | select(.metadata.name != $me)
@@ -44,8 +44,8 @@ spec:
             echo "slot acquired for $SVC"
             exit 0
           fi
-          echo "waiting: $BLOCKING older run(s) for $SVC still active"
+          echo "waiting: $BLOCKING older run(s) still active ($SVC queued)"
           sleep 15
         done
-        echo "gave up waiting for the $SVC run slot after 60m" >&2
+        echo "gave up waiting for the $SVC run slot after 6h" >&2
         exit 1

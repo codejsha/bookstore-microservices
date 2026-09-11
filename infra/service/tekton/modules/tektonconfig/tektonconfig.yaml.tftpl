@@ -68,6 +68,7 @@ spec:
       successfulHistoryLimit: ${prune_successful_history_limit}
       failedHistoryLimit: ${prune_failed_history_limit}
   pipeline:
+    default-timeout-minutes: 180
     git-resolver-config:
       scm-type: gitea
       server-url: ${gitea_internal_url}
