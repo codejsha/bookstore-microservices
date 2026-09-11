@@ -29,6 +29,7 @@ inputs = {
   vault_address           = "vault.example.com"
   vault_service_name      = "vault-ui"
   kube_api_server_address = "workstation.internal:6443"
+  local_output_dir        = "${get_repo_root()}/infra/service/vault"
 }
 
 prevent_destroy = true
