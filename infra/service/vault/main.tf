@@ -125,7 +125,7 @@ resource "vault_pki_secret_backend_role" "wildcard" {
   allow_subdomains   = true
   allow_bare_domains = true
   allow_glob_domains = true
-  max_ttl            = "8760h"
+  max_ttl            = "31536000" # 8760h
   depends_on         = [module.pki]
 }
 
