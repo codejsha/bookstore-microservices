@@ -85,6 +85,8 @@ spec:
       image: $(params.GITLEAKS_IMAGE)
       workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
       env:
+        - name: EXCLUDE_PATHS
+          value: $(params.EXCLUDE_PATHS)
         - name: GITEA_USER
           valueFrom:
             secretKeyRef:
@@ -101,12 +103,11 @@ spec:
         #!/usr/bin/env sh
         set -eu
         CONFIG_ARGS=""
-        if [ -n "$(params.EXCLUDE_PATHS)" ]; then
+        if [ -n "${EXCLUDE_PATHS:-}" ]; then
           (
             printf '[extend]\nuseDefault = true\n\n[allowlist]\npaths = [\n'
-            IFS=','
-            for p in $(params.EXCLUDE_PATHS); do
-              printf "  '''%s''',\n" "$p"
+            printf '%s\n' "$EXCLUDE_PATHS" | tr ',' '\n' | while IFS= read -r p; do
+              [ -n "$p" ] && printf "  '''%s''',\n" "$p"
             done
             printf ']\n'
           ) > /tmp/gitleaks.toml

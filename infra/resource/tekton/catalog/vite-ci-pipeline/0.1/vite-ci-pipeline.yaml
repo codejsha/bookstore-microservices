@@ -38,6 +38,9 @@ spec:
     - name: context-dir
       type: string
       default: .
+    - name: pnpm-version
+      type: string
+      default: 12.3.4
     - name: build-script
       type: string
       default: |
@@ -201,6 +204,8 @@ spec:
             type: string
           - name: context-dir
             type: string
+          - name: pnpm-version
+            type: string
           - name: build-script
             type: string
           - name: nexus-npm-url
@@ -212,6 +217,8 @@ spec:
             image: $(params.node-image)
             workingDir: $(workspaces.source.path)/$(params.context-dir)
             env:
+              - name: PNPM_VERSION
+                value: $(params.pnpm-version)
               - name: NEXUS_NPM_URL
                 value: $(params.nexus-npm-url)
               - name: NEXUS_USER
@@ -233,19 +240,18 @@ spec:
               registry=$NEXUS_NPM_URL
               ${NEXUS_NPM_URL#*:}:_auth=$auth
               EOF
-              export COREPACK_NPM_REGISTRY="$NEXUS_NPM_URL"
-              export COREPACK_NPM_USERNAME="$NEXUS_USER"
-              export COREPACK_NPM_PASSWORD="$NEXUS_PASSWORD"
-
               printf '\n@bookstore:registry=%s\n' "$NEXUS_NPM_URL" >> .npmrc
 
-              corepack enable
+              corepack disable
+              npm install -g "pnpm@$PNPM_VERSION"
               $(params.build-script)
       params:
         - name: node-image
           value: $(params.node-image)
         - name: context-dir
           value: $(params.context-dir)
+        - name: pnpm-version
+          value: $(params.pnpm-version)
         - name: build-script
           value: $(params.build-script)
         - name: nexus-npm-url
