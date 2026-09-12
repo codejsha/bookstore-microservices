@@ -326,7 +326,7 @@ packages:
     os: [win32]
 
   '@bookstore/admin-client@1.0.0':
-    resolution: {integrity: sha512-usikOnQixPegjVe3wBjbI5dDH/5+QxmCgr9Bpi8ME4ZR81kvl/BNW6su99By/1rGesnclA04NH0Y9x2E5RML6Q==}
+    resolution: {integrity: sha512-GdOLXQq4hGVDDOTaQqlT9tiZSgrwAd4n3ndJA6f64kbihAG44X4aOZJto8ZUyFDDF0AQ4yv8MKDx4ksvkNcmbA==}
 
   '@bookstore/design@1.0.0':
     resolution: {integrity: sha512-mXOUmeUXww3KBfzUy6r0xEshoPlV0FkBzIxAYC5RoKGWMT3oz1W8LEjEXLtaZXHlZglubesalbEDmEt3bNl61Q==}

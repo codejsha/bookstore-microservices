@@ -404,7 +404,7 @@ packages:
     resolution: {integrity: sha512-TAVk23WWznUFo3yLCie10AXVFTENkQxAYBtuavgK07JBde5kpuEFPzfXjIH2caWKJZiGcaIjHROciDbkzpCoZw==}
 
   '@bookstore/customer-client@1.0.0':
-    resolution: {integrity: sha512-HqSVVzLOCjjOG6NaFHVqieZTWPPMN5mSbOjl6bZpjqQ0pQnxlA2LOIQJ++bQPelfrSFwvfKXmUOOK72snTwgkg==}
+    resolution: {integrity: sha512-MOizApQCdCjtD3YdIJez9IfHLIzRXL9DyBD2KKRMK4UPgaAEWjxUTpv3/0UnZSpLB7WRI6IT5y0lt2TmlRYnhg==}
 
   '@bookstore/delivery-client@1.0.0':
     resolution: {integrity: sha512-7mD79dG6a27boRFQB3sFXIzV6xFr+TIEby5HIPrVf9mbK4nhTSHprhC1Ith9BW92bsO/QZfQpl+klSHBdJxO5w==}
@@ -417,7 +417,7 @@ packages:
       tailwindcss: ^4.0.0
 
   '@bookstore/identity-client@1.0.0':
-    resolution: {integrity: sha512-8/IFsHzWDf2JSJHV4eHStgn0N+Ar9ZRQCCyPbIU3ycA+1XT+jRdAgyrFpvperVJTRDMa9e1GarT1iTZ2E0TKCQ==}
+    resolution: {integrity: sha512-YkHMacOZatnjz/FtmJ/FFIZt26fb9mwhmlIrFd60Td54FoN8tCopYUP2JLIA3+qevIfPA1y+HE+wuI6xHlCNtQ==}
 
   '@bookstore/inventory-client@1.0.0':
     resolution: {integrity: sha512-SQREZIHLJCO8BQ18TqIYqn4lcuQ5geIArY2SmRljOlxXIzNXPFwV4zYr7QE6jzVKrliucOYDso1y/uiMCSQJQw==}

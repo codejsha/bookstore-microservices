@@ -322,7 +322,7 @@ const customer = {
   first_name: "John",
   last_name: "Doe",
   phone: "+1-555-0100",
-  roles: ["PROFILE", "ORDER", "VIEW"],
+  roles: ["USER"],
 };
 
 const points = {

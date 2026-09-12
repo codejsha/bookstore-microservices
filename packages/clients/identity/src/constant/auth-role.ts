@@ -4,22 +4,18 @@ import { z } from 'zod';
 
 export enum AuthRole {
   AuthRoleUnknown = 'UNKNOWN',
-  AuthRoleAdmin = 'ADMIN',
-  AuthRoleSystem = 'SYSTEM',
+  AuthRoleUser = 'USER',
+  AuthRoleStaff = 'STAFF',
   AuthRoleManage = 'MANAGE',
-  AuthRoleProfile = 'PROFILE',
-  AuthRoleOrder = 'ORDER',
-  AuthRoleView = 'VIEW',
+  AuthRoleSystem = 'SYSTEM',
 }
 
 export const AuthRoleSchema = z.enum([
   'UNKNOWN',
-  'ADMIN',
-  'SYSTEM',
+  'USER',
+  'STAFF',
   'MANAGE',
-  'PROFILE',
-  'ORDER',
-  'VIEW',
+  'SYSTEM',
 ]);
 
 /**
