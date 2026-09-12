@@ -8,14 +8,14 @@ from generated.application.port.model.dashboard_response import DashboardRespons
 from generated.application.port.model.shipment_status_count import ShipmentStatusCount
 from internal.domain.model.option.delivery_option import StatsFilterOption
 from internal.domain.service.delivery_service import StatsService
-from internal.infrastructure.support.auth import require_staff
+from internal.infrastructure.support.auth import require_manager
 
 
 def create_stats_router(service: StatsService) -> APIRouter:
     router = APIRouter(
         prefix="/api/v1/stats",
         tags=["stats"],
-        dependencies=[Depends(require_staff)],
+        dependencies=[Depends(require_manager)],
     )
 
     @router.get("/dashboard", response_model=DashboardResponse)

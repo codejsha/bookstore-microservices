@@ -47,6 +47,9 @@ interface StockApi {
 
     /**
      * Adjust stock quantity (correction)
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/stocks/adjust
      * @param requestBody @RequestBody
@@ -63,6 +66,9 @@ interface StockApi {
 
     /**
      * Receive stock into warehouse (inbound)
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/stocks/receive
      * @param requestBody @RequestBody
@@ -81,6 +87,7 @@ interface StockApi {
      * Release stock from warehouse (outbound)
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/stocks/release
      * @param requestBody @RequestBody
@@ -99,6 +106,7 @@ interface StockApi {
      * Reserve stock for an order
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/stocks/reserve
      * @param requestBody @RequestBody

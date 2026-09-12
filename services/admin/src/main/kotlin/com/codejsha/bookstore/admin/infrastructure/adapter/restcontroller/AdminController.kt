@@ -3,7 +3,7 @@ package com.codejsha.bookstore.admin.infrastructure.adapter.restcontroller
 import com.codejsha.bookstore.admin.application.usecase.DashboardUseCase
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.admin.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.admin.infrastructure.support.auth.assertAdmin
+import com.codejsha.bookstore.admin.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.generated.application.port.openapi.api.AdminApi
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminDashboardResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminIdentityResponse
@@ -21,13 +21,13 @@ class AdminController(
 
     override fun adminMe(): ResponseEntity<AdminIdentityResponse> = runBlocking {
         val principal = principalResolver.require()
-        principal.assertAdmin()
+        principal.assertStaff()
         ResponseEntity.ok(toAdminIdentityResponse(principal))
     }
 
     override fun adminDashboard(): ResponseEntity<AdminDashboardResponse> = runBlocking {
         val principal = principalResolver.require()
-        principal.assertAdmin()
+        principal.assertStaff()
         val context = buildContext(principal)
         ResponseEntity.ok(toAdminDashboardResponse(dashboardUseCase.loadDashboard(context)))
     }

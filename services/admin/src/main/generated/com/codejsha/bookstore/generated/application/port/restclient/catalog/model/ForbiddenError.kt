@@ -6,9 +6,15 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 data class ForbiddenError(
 
-    @field:JsonProperty("code")
-    val code: Int,
+    @field:JsonProperty("detail")
+    val detail: String? = null,
 
-    @field:JsonProperty("message")
-    val message: String,
+    @field:JsonProperty("status")
+    val status: Int,
+
+    @field:JsonProperty("title")
+    val title: String,
+
+    @field:JsonProperty("type")
+    val type: String? = null,
 )

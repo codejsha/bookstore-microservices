@@ -6,7 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const RoleAdmin = "admin"
+const (
+	RoleStaff  = "STAFF"
+	RoleManage = "MANAGE"
+	RoleSystem = "SYSTEM"
+)
 
 var ownerParamByRoute = map[string]string{
 	"/api/v1/customers/:uid":                       "uid",
@@ -24,15 +28,25 @@ var ownerParamByRoute = map[string]string{
 	"/api/v1/customers/:uid/wishlist/remove":       "uid",
 }
 
-var adminOnlyRoutes = map[string]bool{
-	"/api/v1/customers":                  true,
+var staffOnlyRoutes = map[string]bool{
+	"/api/v1/customers": true,
+}
+
+var manageOnlyRoutes = map[string]bool{
 	"/api/v1/customers/:uid/points/earn": true,
 }
 
 func GinOwnershipMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if adminOnlyRoutes[c.FullPath()] {
-			if !requireAdmin(c) {
+		if staffOnlyRoutes[c.FullPath()] {
+			if !requireStaff(c) {
+				return
+			}
+			c.Next()
+			return
+		}
+		if manageOnlyRoutes[c.FullPath()] {
+			if !requireManage(c) {
 				return
 			}
 			c.Next()
@@ -43,33 +57,46 @@ func GinOwnershipMiddleware() gin.HandlerFunc {
 			c.Next()
 			return
 		}
-		if !requireOwnerOrAdmin(c, c.Param(param)) {
+		if !requireOwnerOrStaff(c, c.Param(param)) {
 			return
 		}
 		c.Next()
 	}
 }
 
-func requireAdmin(c *gin.Context) bool {
+func requireStaff(c *gin.Context) bool {
 	p := PrincipalFromContext(c)
 	if p == nil {
 		abortWithProblem(c, http.StatusUnauthorized, "authentication required")
 		return false
 	}
-	if p.HasRole(RoleAdmin) {
+	if hasAnyRole(p, RoleStaff, RoleSystem) {
 		return true
 	}
 	abortWithProblem(c, http.StatusForbidden, "forbidden")
 	return false
 }
 
-func requireOwnerOrAdmin(c *gin.Context, targetUid string) bool {
+func requireManage(c *gin.Context) bool {
 	p := PrincipalFromContext(c)
 	if p == nil {
 		abortWithProblem(c, http.StatusUnauthorized, "authentication required")
 		return false
 	}
-	if p.Sub == targetUid || p.HasRole(RoleAdmin) {
+	if hasAnyRole(p, RoleManage, RoleSystem) {
+		return true
+	}
+	abortWithProblem(c, http.StatusForbidden, "forbidden")
+	return false
+}
+
+func requireOwnerOrStaff(c *gin.Context, targetUid string) bool {
+	p := PrincipalFromContext(c)
+	if p == nil {
+		abortWithProblem(c, http.StatusUnauthorized, "authentication required")
+		return false
+	}
+	if p.Sub == targetUid || hasAnyRole(p, RoleStaff, RoleSystem) {
 		return true
 	}
 	abortWithProblem(c, http.StatusForbidden, "forbidden")

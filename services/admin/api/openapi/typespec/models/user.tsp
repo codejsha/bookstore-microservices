@@ -20,7 +20,7 @@ model AdminUserResponse {
   @doc("ACTIVE, SUSPENDED, or DEACTIVATED")
   status: string;
 
-  @doc("Realm role names, e.g. ADMIN")
+  @doc("Realm role names: USER, STAFF, MANAGE, SYSTEM")
   roles: string[];
 
   last_login_at?: utcDateTime;

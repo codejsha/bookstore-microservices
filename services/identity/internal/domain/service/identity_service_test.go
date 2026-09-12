@@ -178,7 +178,7 @@ func TestRegisterUser_WhenEmailFree_CreatesIdpUser(t *testing.T) {
 			id := "idp-id-1"
 			fn := "Alice"
 			ln := "Smith"
-			roles := []string{"PROFILE", "ORDER", "VIEW"}
+			roles := []string{"USER"}
 			return []idp.UserRepresentation{{Id: &id, Email: &email, FirstName: &fn, LastName: &ln, RealmRoles: &roles}}, nil
 		},
 		createUserFn: func(_ context.Context, realm string, req idp.UserRepresentation) error {
@@ -209,8 +209,8 @@ func TestRegisterUser_WhenEmailFree_CreatesIdpUser(t *testing.T) {
 	if listCount != 2 {
 		t.Errorf("ListUsers calls = %d, want 2 (pre + post)", listCount)
 	}
-	if got := users.realmRoles["idp-id-1"]; len(got) != 3 {
-		t.Errorf("bound realm roles = %v, want the 3 defaults", got)
+	if got := users.realmRoles["idp-id-1"]; len(got) != 1 || got[0] != "USER" {
+		t.Errorf("bound realm roles = %v, want the default [USER]", got)
 	}
 	if agg.Email() != "u@example.com" || agg.FirstName() != "Alice" || agg.LastName() != "Smith" {
 		t.Errorf("agg fields = email=%q first=%q last=%q", agg.Email(), agg.FirstName(), agg.LastName())
@@ -325,7 +325,7 @@ func TestRegisterUser_WhenRolesRequested_BindsThemAfterCreate(t *testing.T) {
 	}
 	svc := newSvc(nil, users)
 	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{
-		Email: em, Password: "p", FirstName: fn, LastName: ln, Roles: []string{"VIEW"},
+		Email: em, Password: "p", FirstName: fn, LastName: ln, Roles: []string{"USER"},
 	})
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -334,13 +334,13 @@ func TestRegisterUser_WhenRolesRequested_BindsThemAfterCreate(t *testing.T) {
 		t.Errorf("CreateUser RealmRoles = %v, want nil (Keycloak ignores it)", captured.RealmRoles)
 	}
 	got := users.realmRoles[id]
-	if len(got) != 1 || got[0] != "VIEW" {
-		t.Errorf("bound realm roles = %v, want [VIEW]", got)
+	if len(got) != 1 || got[0] != "USER" {
+		t.Errorf("bound realm roles = %v, want [USER]", got)
 	}
 }
 
 func TestRegisterUser_WhenRoleElevated_ReturnsErrElevatedRoleOnRegister(t *testing.T) {
-	for _, role := range []string{"MANAGE", "SYSTEM", "ADMIN", "manage"} {
+	for _, role := range []string{"STAFF", "MANAGE", "SYSTEM", "staff"} {
 		t.Run(role, func(t *testing.T) {
 			created := false
 			users := &stubUsersClient{
@@ -379,7 +379,7 @@ func TestRegisterUser_WhenElevatedRoleMixedWithBaseline_ReturnsErrElevatedRoleOn
 
 	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{
 		Email: "u@x.com", Password: "p", FirstName: "F", LastName: "L",
-		Roles: []string{"VIEW", "PROFILE", "SYSTEM"},
+		Roles: []string{"USER", "SYSTEM"},
 	})
 
 	if !errors.Is(err, ErrElevatedRoleOnRegister) {
@@ -395,7 +395,7 @@ func TestRegisterUser_WhenRoleBindingFails_DeletesIdpUser(t *testing.T) {
 	users := &stubUsersClient{
 		createUserFn: func(context.Context, string, idp.UserRepresentation) error { return nil },
 		setUserRealmRolesFn: func(context.Context, string, string, []string) error {
-			return errors.New("role ADMIN does not exist in realm test-realm")
+			return errors.New("role USER does not exist in realm test-realm")
 		},
 		deleteUserFn: func(_ context.Context, _ string, userId string) error {
 			deleted = userId
@@ -412,7 +412,7 @@ func TestRegisterUser_WhenRoleBindingFails_DeletesIdpUser(t *testing.T) {
 
 	svc := newSvc(nil, users)
 	_, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{
-		Email: em, Password: "p", FirstName: "F", LastName: "L", Roles: []string{"VIEW"},
+		Email: em, Password: "p", FirstName: "F", LastName: "L", Roles: []string{"USER"},
 	})
 	if err == nil {
 		t.Fatal("RegisterUser succeeded, want failure when realm roles cannot be bound")
@@ -440,13 +440,13 @@ func TestRegisterUser_WhenRegistrationSucceeds_ReturnsRolesAndTimestamps(t *test
 
 	agg, err := svc.RegisterUser(context.Background(), command.UserRegisterCommand{
 		Email: em, Password: "secret", FirstName: "Alice", LastName: "Smith",
-		Roles: []string{"VIEW"},
+		Roles: []string{"USER"},
 	})
 	if err != nil {
 		t.Fatalf("RegisterUser err: %v", err)
 	}
 	if got := agg.Roles(); len(got) != 1 {
-		t.Errorf("response roles = %v, want the single granted VIEW role", got)
+		t.Errorf("response roles = %v, want the single granted USER role", got)
 	}
 	if agg.CreatedAt().IsZero() {
 		t.Error("response createdAt is zero; want the synced/local timestamp")
@@ -457,7 +457,7 @@ func TestRegisterUser_WhenRegistrationSucceeds_ReturnsRolesAndTimestamps(t *test
 
 func TestFindAllUsers_WhenRepoReturnsRows_ReturnsAggregates(t *testing.T) {
 	results := []*repo.UserResult{
-		{Id: 1, Email: "a@x.com", FirstName: "A", LastName: "B", Roles: []string{"VIEW"}},
+		{Id: 1, Email: "a@x.com", FirstName: "A", LastName: "B", Roles: []string{"USER"}},
 		{Id: 2, Email: "b@x.com", FirstName: "C", LastName: "D", Roles: []string{}},
 	}
 	userRepo := &stubUserRepo{
@@ -676,7 +676,7 @@ func TestSyncUserFromIdp_WhenIdpReturnsUser_ReturnsAggregate(t *testing.T) {
 			if userId != id {
 				t.Errorf("userId = %q, want %q", userId, id)
 			}
-			roles := []string{"PROFILE"}
+			roles := []string{"USER"}
 			return idp.UserRepresentation{Id: &userId, Email: &em, FirstName: &fn, LastName: &ln, RealmRoles: &roles}, nil
 		},
 	}
@@ -709,7 +709,7 @@ func TestRegisterUser_WhenRegistrationSucceeds_UpsertsLocalRow(t *testing.T) {
 	id := "idp-1"
 	em := "u@x.com"
 	fn, ln := "Alice", "Smith"
-	roles := []string{"VIEW"}
+	roles := []string{"USER"}
 	calls := 0
 	users := &stubUsersClient{
 		listUsersFn: func(context.Context, string, string) ([]idp.UserRepresentation, error) {
@@ -826,14 +826,14 @@ func TestUpdateUserRoles_WhenRolesChanged_BindsInKeycloakAndUpdatesLocalRow(t *t
 		},
 	}
 	svc := newSvc(userRepo, usersClient)
-	roles := []string{"MANAGE", "ORDER"}
+	roles := []string{"MANAGE", "STAFF"}
 	if _, err := svc.UpdateUserRoles(context.Background(), "uid", command.UserRolesCommand{Roles: roles}); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 	if got := usersClient.realmRoles[idpId]; len(got) != 2 || got[0] != "MANAGE" {
 		t.Errorf("Keycloak roles = %v", got)
 	}
-	if len(capturedDbRoles) != 2 || capturedDbRoles[1] != "ORDER" {
+	if len(capturedDbRoles) != 2 || capturedDbRoles[1] != "STAFF" {
 		t.Errorf("DB roles = %v", capturedDbRoles)
 	}
 }
@@ -913,7 +913,7 @@ func TestSyncUserFromIdp_WhenIdpUserDisabled_UpsertsLocalRowAsSuspended(t *testi
 	em := "u@x.com"
 	enabled := false
 	fn, ln := "A", "B"
-	roles := []string{"VIEW"}
+	roles := []string{"USER"}
 	usersClient := &stubUsersClient{
 		getUserFn: func(_ context.Context, _ string, userId string) (idp.UserRepresentation, error) {
 			return idp.UserRepresentation{Id: &userId, Email: &em, FirstName: &fn, LastName: &ln, RealmRoles: &roles, Enabled: &enabled}, nil
@@ -963,7 +963,7 @@ func TestRegisterUser_WhenIdpOmitsRealmRoles_UpsertsRequestedRoles(t *testing.T)
 	}); err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	want := []string{"PROFILE", "ORDER", "VIEW"}
+	want := []string{"USER"}
 	if !reflect.DeepEqual(captured.Roles, want) {
 		t.Errorf("captured.Roles = %v, want %v (Keycloak GET /users never returns realmRoles)", captured.Roles, want)
 	}
@@ -983,7 +983,7 @@ func TestSyncUserFromIdp_WhenIdpOmitsRealmRoles_FetchesRoleMappings(t *testing.T
 			if userId != id {
 				t.Errorf("userId = %q, want %q", userId, id)
 			}
-			return []string{"PROFILE", "VIEW"}, nil
+			return []string{"USER", "STAFF"}, nil
 		},
 	}
 	var captured repo.UserUpsert
@@ -1001,8 +1001,8 @@ func TestSyncUserFromIdp_WhenIdpOmitsRealmRoles_FetchesRoleMappings(t *testing.T
 	if mappingCalls != 1 {
 		t.Errorf("role-mapping calls = %d, want 1", mappingCalls)
 	}
-	if !reflect.DeepEqual(captured.Roles, []string{"PROFILE", "VIEW"}) {
-		t.Errorf("captured.Roles = %v, want [PROFILE VIEW]", captured.Roles)
+	if !reflect.DeepEqual(captured.Roles, []string{"USER", "STAFF"}) {
+		t.Errorf("captured.Roles = %v, want [USER STAFF]", captured.Roles)
 	}
 	if len(got.Roles()) != 2 {
 		t.Errorf("aggregate roles = %v, want 2 resolved roles", got.Roles())
@@ -1077,7 +1077,7 @@ func TestUpdateUserRoles_WhenRolesChanged_LogsOutAndRevokesSessions(t *testing.T
 
 	revoker := &stubRevoker{}
 	_, err := newSvcWithRevoker(userRepo, usersClient, revoker).
-		UpdateUserRoles(context.Background(), "uid", command.UserRolesCommand{Roles: []string{"VIEW"}})
+		UpdateUserRoles(context.Background(), "uid", command.UserRolesCommand{Roles: []string{"USER"}})
 	if err != nil {
 		t.Fatalf("UpdateUserRoles: %v", err)
 	}
@@ -1244,22 +1244,22 @@ func TestUpdateUserRoles_WhenLocalWriteFails_CompensatesKeycloak(t *testing.T) {
 	}
 	userRepo := &stubUserRepo{
 		findByUidFn: func(context.Context, string) (*repo.UserResult, error) {
-			return &repo.UserResult{Id: 1, IdpId: &idpId, Roles: []string{"VIEW"}}, nil
+			return &repo.UserResult{Id: 1, IdpId: &idpId, Roles: []string{"USER"}}, nil
 		},
 		updateRolesFn: func(context.Context, string, []string) error {
 			return errors.New("db down")
 		},
 	}
 	_, err := newSvc(userRepo, usersClient).
-		UpdateUserRoles(context.Background(), "uid", command.UserRolesCommand{Roles: []string{"MANAGE", "ORDER"}})
+		UpdateUserRoles(context.Background(), "uid", command.UserRolesCommand{Roles: []string{"MANAGE", "STAFF"}})
 	if err == nil || !strings.Contains(err.Error(), "failed to update roles in local DB") {
 		t.Fatalf("err = %v, want local-DB wrap", err)
 	}
 	if setCalls != 2 {
 		t.Errorf("SetUserRealmRoles calls = %d, want 2 (apply + compensate)", setCalls)
 	}
-	if got := usersClient.realmRoles[idpId]; len(got) != 1 || got[0] != "VIEW" {
-		t.Errorf("post-compensation Keycloak roles = %v, want [VIEW] (restored)", got)
+	if got := usersClient.realmRoles[idpId]; len(got) != 1 || got[0] != "USER" {
+		t.Errorf("post-compensation Keycloak roles = %v, want [USER] (restored)", got)
 	}
 }
 

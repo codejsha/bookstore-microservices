@@ -52,6 +52,10 @@ interface WorkApi {
 
     /**
      * Create new work
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/works
      * @param requestBody @RequestBody
@@ -110,7 +114,9 @@ interface WorkApi {
     /**
      * Update work
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * PUT /api/v1/works/{uid}
      * @param uid @PathVariable("uid")

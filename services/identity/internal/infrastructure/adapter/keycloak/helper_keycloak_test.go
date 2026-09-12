@@ -186,8 +186,8 @@ func TestFresh_WhenExpiryWithinSkew_ReturnsFalse(t *testing.T) {
 		want      bool
 	}{
 		"whenExpiryComfortablyAhead_returnsTrue": {now.Add(2 * expirySkew), true},
-		"whenExpiryWithinSkew_returnsFalse": {now.Add(expirySkew / 2), false},
-		"whenAlreadyExpired_returnsFalse": {now.Add(-time.Second), false},
+		"whenExpiryWithinSkew_returnsFalse":      {now.Add(expirySkew / 2), false},
+		"whenAlreadyExpired_returnsFalse":        {now.Add(-time.Second), false},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {

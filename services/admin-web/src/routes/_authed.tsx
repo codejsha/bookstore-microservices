@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { adminMeQueryOptions, isAdmin } from "@/domains/admin";
+import { adminMeQueryOptions, isStaff } from "@/domains/admin";
 import { ApiError, signInHref } from "@/shared/api/client";
 import { AdminShell } from "@/shared/components/AdminShell";
 
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authed")({
       throw error;
     }
 
-    if (!isAdmin(identity)) {
+    if (!isStaff(identity)) {
       throw redirect({ to: "/unauthorized" });
     }
     return { identity };

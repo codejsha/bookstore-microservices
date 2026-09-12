@@ -10,8 +10,8 @@ function UnauthorizedPage() {
     <div className="flex min-h-screen flex-col items-center justify-center gap-3 p-8 text-center">
       <h1 className="font-semibold text-lg">Not authorized</h1>
       <p className="max-w-md text-muted-foreground text-sm">
-        Your account does not have the ADMIN role. Ask an administrator to grant
-        it, or sign in with a different account.
+        Your account does not have the STAFF role. Ask a manager to grant it, or
+        sign in with a different account.
       </p>
       <a
         href="/oauth2/sign_out"

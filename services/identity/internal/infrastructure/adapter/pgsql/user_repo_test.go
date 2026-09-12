@@ -15,7 +15,7 @@ func TestToUserResult_WhenRowFullyPopulated_MapsEveryField(t *testing.T) {
 	phone := "+1-555"
 	got := toUserResult(&entity.UsersEntity{
 		Id: 11, IdpUid: "idp-1", Email: "u@x.com", FirstName: "F", LastName: "L",
-		Phone: &phone, Role: `{"values":["PROFILE","VIEW"]}`, Status: "ACTIVE",
+		Phone: &phone, Role: `{"values":["USER","STAFF"]}`, Status: "ACTIVE",
 		LastLoginAt: &updated, CreatedAt: now, UpdatedAt: &updated,
 	})
 	if got.Id != 11 || got.IdpId == nil || *got.IdpId != "idp-1" {
@@ -27,7 +27,7 @@ func TestToUserResult_WhenRowFullyPopulated_MapsEveryField(t *testing.T) {
 	if got.Phone == nil || *got.Phone != phone {
 		t.Errorf("Phone = %v", got.Phone)
 	}
-	if !reflect.DeepEqual(got.Roles, []string{"PROFILE", "VIEW"}) {
+	if !reflect.DeepEqual(got.Roles, []string{"USER", "STAFF"}) {
 		t.Errorf("Roles = %v", got.Roles)
 	}
 }
@@ -47,7 +47,7 @@ func TestParseRoles(t *testing.T) {
 	}{
 		{"whenInputEmpty_returnsNil", "", nil},
 		{"whenJsonMalformed_returnsNil", "not json", nil},
-		{"whenRolesPresent_returnsRoles", `{"values":["ORDER","MANAGE"]}`, []string{"ORDER", "MANAGE"}},
+		{"whenRolesPresent_returnsRoles", `{"values":["STAFF","MANAGE"]}`, []string{"STAFF", "MANAGE"}},
 		{"whenValuesEmpty_returnsEmptySlice", `{"values":[]}`, []string{}},
 	}
 	for _, c := range cases {
@@ -68,7 +68,7 @@ func TestEncodeRoles(t *testing.T) {
 	}{
 		{"whenRolesNil_returnsEmptyJsonArray", nil, `{"values":[]}`},
 		{"whenRolesEmpty_returnsEmptyJsonArray", []string{}, `{"values":[]}`},
-		{"whenRolesPresent_returnsJsonValues", []string{"PROFILE", "VIEW"}, `{"values":["PROFILE","VIEW"]}`},
+		{"whenRolesPresent_returnsJsonValues", []string{"USER", "STAFF"}, `{"values":["USER","STAFF"]}`},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

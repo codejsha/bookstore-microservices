@@ -6,7 +6,8 @@ import com.codejsha.bookstore.admin.domain.model.command.WorkUpdateCommand
 import com.codejsha.bookstore.admin.domain.model.option.WorkQueryOption
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.admin.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.admin.infrastructure.support.auth.assertAdmin
+import com.codejsha.bookstore.admin.infrastructure.support.auth.assertManager
+import com.codejsha.bookstore.admin.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.generated.application.port.openapi.api.AdminCatalogApi
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminAuthorFindAllResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSubjectFindAllResponse
@@ -34,7 +35,7 @@ class AdminCatalogController(
         subjectUid: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminWorkFindAllResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val option = WorkQueryOption(title = title, authorUid = authorUid, subjectUid = subjectUid)
         val context = buildContext(principal)
         val result = catalogUseCase.findAllWorks(option, pageable ?: Pageable.unpaged(), context)
@@ -47,13 +48,13 @@ class AdminCatalogController(
     }
 
     override fun adminCatalogReadWork(uid: String): ResponseEntity<AdminWorkResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val context = buildContext(principal)
         ResponseEntity.ok(toAdminWorkResponse(catalogUseCase.findWork(uid, context)))
     }
 
     override fun adminCatalogCreateWork(requestBody: AdminWorkCreateRequest): ResponseEntity<Unit> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireManager()
         val context = buildContext(principal)
         val command = WorkCreateCommand(
             title = requestBody.title,
@@ -71,7 +72,7 @@ class AdminCatalogController(
         uid: String,
         requestBody: AdminWorkUpdateRequest,
     ): ResponseEntity<AdminWorkResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireManager()
         val context = buildContext(principal)
         val command = WorkUpdateCommand(
             title = requestBody.title,
@@ -88,7 +89,7 @@ class AdminCatalogController(
         name: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminAuthorFindAllResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val context = buildContext(principal)
         val result = catalogUseCase.findAllAuthors(name, pageable ?: Pageable.unpaged(), context)
         ResponseEntity.ok(
@@ -103,7 +104,7 @@ class AdminCatalogController(
         name: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminSubjectFindAllResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val context = buildContext(principal)
         val result = catalogUseCase.findAllSubjects(name, pageable ?: Pageable.unpaged(), context)
         ResponseEntity.ok(
@@ -114,7 +115,9 @@ class AdminCatalogController(
         )
     }
 
-    private fun requireAdmin(): Principal = principalResolver.require().also { it.assertAdmin() }
+    private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }
+
+    private fun requireManager(): Principal = principalResolver.require().also { it.assertManager() }
 
     private fun buildContext(principal: Principal) =
         ActorContext(actorId = 0L, ActorType.USER)

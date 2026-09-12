@@ -8,8 +8,8 @@ variable "realm_admin_username" {
   type        = string
 }
 
-variable "admin_role_id" {
-  description = "ID of the ADMIN realm role granted to the realm admin user"
+variable "manage_role_id" {
+  description = "ID of the MANAGE realm role granted to the realm admin user"
   type        = string
 }
 

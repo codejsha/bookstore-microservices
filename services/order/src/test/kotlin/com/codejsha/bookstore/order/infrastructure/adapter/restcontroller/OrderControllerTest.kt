@@ -20,8 +20,8 @@ import com.codejsha.bookstore.order.domain.model.command.OrderItemUpdateCommand
 import com.codejsha.bookstore.order.domain.model.command.OrderShippingCreateCommand
 import com.codejsha.bookstore.order.domain.model.command.OrderShippingUpdateCommand
 import com.codejsha.bookstore.order.domain.model.option.OrderQueryOption
+import com.codejsha.bookstore.order.infrastructure.support.auth.ForbiddenException
 import com.codejsha.bookstore.order.infrastructure.support.auth.HttpPrincipalResolver
-import com.codejsha.bookstore.order.infrastructure.support.auth.ROLE_ADMIN
 import com.codejsha.bookstore.order.support.OrderTestFixtures
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
@@ -31,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.verify
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -42,6 +43,7 @@ import tools.jackson.databind.ObjectMapper
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
 class OrderControllerTest {
@@ -62,12 +64,16 @@ class OrderControllerTest {
         RequestContextHolder.resetRequestAttributes()
     }
 
-    private fun bindAdmin() {
+    private fun bindRoles(roles: String) {
         val request = MockHttpServletRequest()
         request.addHeader("X-User-Id", subject)
-        request.addHeader("X-User-Roles", ROLE_ADMIN)
+        request.addHeader("X-User-Roles", roles)
         RequestContextHolder.setRequestAttributes(ServletRequestAttributes(request))
     }
+
+    private fun bindManager() = bindRoles("MANAGE,STAFF,USER")
+
+    private fun bindStaff() = bindRoles("STAFF,USER")
 
     @Test
     fun `ordersGetAll_whenFiltersGiven_forwardsThemAndMapsPage`(): Unit = runBlocking {
@@ -96,7 +102,7 @@ class OrderControllerTest {
         val useCase = mock(OrderUseCase::class.java)
         val controller = OrderController(useCase, resolver)
 
-        bindAdmin()
+        bindManager()
 
         val request = PlaceOrderRequest(
             userUid = OrderTestFixtures.USER_UID.toString(),
@@ -175,6 +181,17 @@ class OrderControllerTest {
             response.headers.location?.toString(),
         )
         verify(useCase).placeOrder(expectedOrderCmd, expectedItems, expectedShipping, controllerContext)
+    }
+
+    @Test
+    fun `ordersPlace_staffCaller_rejectedAsForbidden`() {
+        val useCase = mock(OrderUseCase::class.java)
+        val controller = OrderController(useCase, resolver)
+
+        bindStaff()
+
+        assertFailsWith<ForbiddenException> { controller.ordersPlace(placeOrderRequest()) }
+        verifyNoInteractions(useCase)
     }
 
     @Test
@@ -431,6 +448,40 @@ class OrderControllerTest {
             controllerContext,
         )
     }
+
+    private fun placeOrderRequest() = PlaceOrderRequest(
+        userUid = OrderTestFixtures.USER_UID.toString(),
+        currency = "KRW",
+        itemsAmount = 10_000.0,
+        discountAmount = null,
+        shippingAmount = null,
+        taxAmount = null,
+        totalAmount = 10_000.0,
+        idempotencyKey = "idem_002",
+        items = listOf(
+            OrderItemCreateRequest(
+                productId = 200L,
+                productName = "Book A",
+                sku = "SKU-A",
+                options = null,
+                quantity = 2,
+                currency = "KRW",
+                price = 5_000.0,
+                taxRate = null,
+            ),
+        ),
+        shipping = OrderShippingCreateRequest(
+            recipientName = "Alice",
+            recipientPhone = "010-1",
+            addressLine1 = "1 Foo St",
+            addressLine2 = null,
+            city = "Seoul",
+            state = "Seoul",
+            postalCode = "12345",
+            country = "KR",
+            shippingMethod = "STANDARD",
+        ),
+    )
 
     private fun orderAggregate(
         status: OrderStatus = OrderStatus.PENDING,

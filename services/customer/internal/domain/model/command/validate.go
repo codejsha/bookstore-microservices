@@ -74,7 +74,7 @@ func optionalEmail(field string, value *string) error {
 func requireKnownRoles(field string, roles []constant.AuthRole) error {
 	seen := make(map[constant.AuthRole]struct{}, len(roles))
 	for _, r := range roles {
-		if r <= constant.AUTHROLE_UNKNOWN || r > constant.AUTHROLE_VIEW {
+		if !isKnownRole(r) {
 			return invalidf("%s contains unknown role: %d", field, r)
 		}
 		if _, ok := seen[r]; ok {
@@ -83,4 +83,13 @@ func requireKnownRoles(field string, roles []constant.AuthRole) error {
 		seen[r] = struct{}{}
 	}
 	return nil
+}
+
+func isKnownRole(role constant.AuthRole) bool {
+	switch role {
+	case constant.AUTHROLE_USER, constant.AUTHROLE_STAFF, constant.AUTHROLE_MANAGE, constant.AUTHROLE_SYSTEM:
+		return true
+	default:
+		return false
+	}
 }

@@ -23,14 +23,14 @@ def service() -> MagicMock:
 def client(service: MagicMock) -> TestClient:
     app = FastAPI()
     app.include_router(create_comment_router(service))
-    return TestClient(app, headers={"x-user-id": str(STAFF_UID), "x-user-roles": "MANAGE"})
+    return TestClient(app, headers={"x-user-id": str(STAFF_UID), "x-user-roles": "MANAGE,STAFF,USER"})
 
 
 @pytest.fixture
 def customer_client(service: MagicMock) -> TestClient:
     app = FastAPI()
     app.include_router(create_comment_router(service))
-    return TestClient(app, headers={"x-user-id": str(CUSTOMER_UID), "x-user-roles": "VIEW"})
+    return TestClient(app, headers={"x-user-id": str(CUSTOMER_UID), "x-user-roles": "USER"})
 
 
 def test_add_comment_valid_request_created(client: TestClient, service: MagicMock) -> None:

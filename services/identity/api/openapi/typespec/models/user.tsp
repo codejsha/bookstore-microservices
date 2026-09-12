@@ -4,12 +4,10 @@ namespace IdentityService;
 
 enum AuthRole {
   UNKNOWN,
-  ADMIN,
-  SYSTEM,
+  USER,
+  STAFF,
   MANAGE,
-  PROFILE,
-  ORDER,
-  VIEW,
+  SYSTEM,
 }
 
 enum UserStatus {

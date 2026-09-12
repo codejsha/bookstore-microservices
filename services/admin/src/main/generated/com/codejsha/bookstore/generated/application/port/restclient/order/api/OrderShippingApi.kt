@@ -20,6 +20,7 @@ interface OrderShippingApi {
     /**
      * Set or replace shipping for an order (upsert)
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * PUT /api/v1/orders/{order_uid}/shipping
@@ -40,6 +41,7 @@ interface OrderShippingApi {
     /**
      * Update shipping details of an order
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * PATCH /api/v1/orders/{order_uid}/shipping

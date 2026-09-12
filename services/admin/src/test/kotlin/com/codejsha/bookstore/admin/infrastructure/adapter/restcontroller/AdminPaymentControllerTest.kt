@@ -45,8 +45,8 @@ class AdminPaymentControllerTest {
     }
 
     @Test
-    fun `every payment endpoint rejects a caller without the ADMIN role`() {
-        bindPrincipal(roles = "VIEW")
+    fun `every payment endpoint rejects a caller without the STAFF role`() {
+        bindPrincipal(roles = "USER")
         val useCase = mock(PaymentUseCase::class.java)
         val controller = AdminPaymentController(useCase, resolver)
 
@@ -59,7 +59,7 @@ class AdminPaymentControllerTest {
 
     @Test
     fun `list maps the filter and the captured amounts onto the response`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(PaymentUseCase::class.java)
         val controller = AdminPaymentController(useCase, resolver)
         val unpaged = Pageable.unpaged()
@@ -81,7 +81,7 @@ class AdminPaymentControllerTest {
 
     @Test
     fun `readPayment maps a failure without capture timestamps`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(PaymentUseCase::class.java)
         val controller = AdminPaymentController(useCase, resolver)
         given(useCase.findPayment(PAYMENT_UID, controllerContext)).willReturn(
@@ -98,7 +98,7 @@ class AdminPaymentControllerTest {
 
     @Test
     fun `refunds are listed for a single payment`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(PaymentUseCase::class.java)
         val controller = AdminPaymentController(useCase, resolver)
         val unpaged = Pageable.unpaged()

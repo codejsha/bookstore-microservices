@@ -13,7 +13,8 @@ import com.codejsha.bookstore.payment.infrastructure.support.auth.BadRequestExce
 import com.codejsha.bookstore.payment.infrastructure.support.auth.ForbiddenException
 import com.codejsha.bookstore.payment.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.payment.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.payment.infrastructure.support.auth.ROLE_ADMIN
+import com.codejsha.bookstore.payment.infrastructure.support.auth.isManager
+import com.codejsha.bookstore.payment.infrastructure.support.auth.isStaff
 import com.codejsha.bookstore.payment.infrastructure.support.auth.assertPaymentOwner
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
@@ -40,7 +41,7 @@ class PaymentController(
         pageable: Pageable?
     ): ResponseEntity<PaymentFindAllResponse> = runBlocking {
         val principal = principalResolver.require()
-        val ownerFilter = if (principal.hasRole(ROLE_ADMIN)) customerId else principal.sub
+        val ownerFilter = if (principal.isStaff()) customerId else principal.sub
         val option = PaymentQueryOption(customerId = ownerFilter, status = status?.value, connector = connector)
         val context = buildContext()
 
@@ -211,14 +212,14 @@ class PaymentController(
     }
 
     private fun createOwnerOf(principal: Principal, requestedCustomerId: String?): String =
-        if (principal.hasRole(ROLE_ADMIN)) {
-            requestedCustomerId ?: throw BadRequestException("customer_id is required when acting as admin")
+        if (principal.isStaff()) {
+            requestedCustomerId ?: throw BadRequestException("customer_id is required when acting as staff")
         } else {
             principal.sub
         }
 
     private fun updateOwnerOf(principal: Principal, requestedCustomerId: String?): String? {
-        if (principal.hasRole(ROLE_ADMIN)) return requestedCustomerId
+        if (principal.isManager()) return requestedCustomerId
         if (requestedCustomerId != null && requestedCustomerId != principal.sub) {
             throw ForbiddenException("cannot reassign a payment to another customer")
         }

@@ -75,7 +75,7 @@ class UserServiceTest {
         val client = RecordingIdentityClient()
         val service = UserService(client)
 
-        service.updateRoles(TARGET_UID, listOf("VIEW"), actorUid = ACTOR_UID, context = context)
+        service.updateRoles(TARGET_UID, listOf("USER"), actorUid = ACTOR_UID, context = context)
         service.suspendUser(TARGET_UID, actorUid = ACTOR_UID, context = context)
         service.deactivateUser(TARGET_UID, actorUid = ACTOR_UID, context = context)
 
@@ -88,7 +88,7 @@ class UserServiceTest {
         val service = UserService(client)
 
         assertFailsWith<SelfManagementException> {
-            service.updateRoles(ACTOR_UID, listOf("VIEW"), actorUid = ACTOR_UID, context = context)
+            service.updateRoles(ACTOR_UID, listOf("USER"), actorUid = ACTOR_UID, context = context)
         }
         assertFailsWith<SelfManagementException> {
             service.suspendUser(ACTOR_UID, actorUid = ACTOR_UID, context = context)
@@ -162,7 +162,7 @@ class UserServiceTest {
         private fun user(
             uid: String,
             status: String = "ACTIVE",
-            roles: List<String> = listOf("VIEW"),
+            roles: List<String> = listOf("USER"),
         ) = User(
             uid = uid,
             email = "user@example.com",

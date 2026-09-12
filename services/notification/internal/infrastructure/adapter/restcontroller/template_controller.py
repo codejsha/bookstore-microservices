@@ -18,7 +18,7 @@ from internal.infrastructure.adapter.restcontroller.schemas import (
     TemplateResponse,
     UpdateTemplateRequest,
 )
-from internal.infrastructure.support.auth import require_principal, require_staff
+from internal.infrastructure.support.auth import require_manager, require_principal
 
 
 def create_template_router(service: NotificationService) -> APIRouter:
@@ -28,7 +28,7 @@ def create_template_router(service: NotificationService) -> APIRouter:
         dependencies=[Depends(require_principal)],
     )
 
-    @router.post("", status_code=201, dependencies=[Depends(require_staff)])
+    @router.post("", status_code=201, dependencies=[Depends(require_manager)])
     async def create_template(request: CreateTemplateRequest) -> Response:
         command = CreateTemplateCommand(
             notification_type=request.notification_type,
@@ -73,7 +73,7 @@ def create_template_router(service: NotificationService) -> APIRouter:
             items=[_to_response(a) for a in aggregates],
         )
 
-    @router.put("/{uid}", response_model=TemplateResponse, dependencies=[Depends(require_staff)])
+    @router.put("/{uid}", response_model=TemplateResponse, dependencies=[Depends(require_manager)])
     async def update_template(uid: UUID, request: UpdateTemplateRequest) -> TemplateResponse:
         command = UpdateTemplateCommand(
             notification_type=request.notification_type,
@@ -89,7 +89,7 @@ def create_template_router(service: NotificationService) -> APIRouter:
             raise HTTPException(status_code=404, detail="Template not found")
         return _to_response(aggregate)
 
-    @router.delete("/{uid}", status_code=204, dependencies=[Depends(require_staff)])
+    @router.delete("/{uid}", status_code=204, dependencies=[Depends(require_manager)])
     async def delete_template(uid: UUID) -> None:
         if not await service.delete_template(uid):
             raise HTTPException(status_code=404, detail="Template not found")

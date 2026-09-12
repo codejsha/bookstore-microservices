@@ -7,7 +7,8 @@ import com.codejsha.bookstore.payment.domain.aggregate.RefundAggregate
 import com.codejsha.bookstore.payment.domain.model.command.RefundCreateCommand
 import com.codejsha.bookstore.payment.domain.model.option.RefundQueryOption
 import com.codejsha.bookstore.payment.infrastructure.support.auth.HttpPrincipalResolver
-import com.codejsha.bookstore.payment.infrastructure.support.auth.assertAdmin
+import com.codejsha.bookstore.payment.infrastructure.support.auth.assertManager
+import com.codejsha.bookstore.payment.infrastructure.support.auth.assertStaff
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
 import kotlinx.coroutines.runBlocking
@@ -29,7 +30,7 @@ class RefundController(
         status: RefundStatus?,
         pageable: Pageable?
     ): ResponseEntity<RefundFindAllResponse> = runBlocking {
-        principalResolver.require().assertAdmin()
+        principalResolver.require().assertStaff()
         val option = RefundQueryOption(paymentId = paymentId, status = status?.value)
         val context = buildContext()
 
@@ -42,7 +43,7 @@ class RefundController(
     }
 
     override fun refundsCreate(requestBody: RefundCreateRequest): ResponseEntity<Unit> = runBlocking {
-        principalResolver.require().assertAdmin()
+        principalResolver.require().assertManager()
         val context = buildContext()
         val command = RefundCreateCommand(
             paymentId = requestBody.paymentId,
@@ -58,7 +59,7 @@ class RefundController(
     }
 
     override fun refundsRead(uid: String): ResponseEntity<RefundFindResponse> = runBlocking {
-        principalResolver.require().assertAdmin()
+        principalResolver.require().assertStaff()
         val context = buildContext()
         val refund = refundUseCase.findRefund(UUID.fromString(uid), context)
         ResponseEntity.ok(toRefundFindResponse(refund))

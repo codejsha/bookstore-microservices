@@ -26,7 +26,7 @@ TARGET_CUSTOMER_UID = uuid4()
 def client(service: MagicMock) -> TestClient:
     app = FastAPI()
     app.include_router(create_ticket_router(service))
-    return TestClient(app, headers={"x-user-id": str(STAFF_UID), "x-user-roles": "MANAGE"})
+    return TestClient(app, headers={"x-user-id": str(STAFF_UID), "x-user-roles": "MANAGE,STAFF,USER"})
 
 
 def test_create_ticket_blank_subject_unprocessable(client: TestClient, service: MagicMock) -> None:

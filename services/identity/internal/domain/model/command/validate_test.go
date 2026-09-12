@@ -16,7 +16,7 @@ func TestUserRegisterCommand_Validate(t *testing.T) {
 		wantErr bool
 	}{
 		{"whenOnlyRequiredFieldsSet_returnsNil", func(c *UserRegisterCommand) {}, false},
-		{"whenRolesKnown_returnsNil", func(c *UserRegisterCommand) { c.Roles = []string{"PROFILE", "VIEW"} }, false},
+		{"whenRolesKnown_returnsNil", func(c *UserRegisterCommand) { c.Roles = []string{"USER", "STAFF"} }, false},
 		{"whenEmailMalformed_returnsErrInvalidCommand", func(c *UserRegisterCommand) { c.Email = "not-an-email" }, true},
 		{"whenPasswordBlank_returnsErrInvalidCommand", func(c *UserRegisterCommand) { c.Password = " " }, true},
 		{"whenFirstNameBlank_returnsErrInvalidCommand", func(c *UserRegisterCommand) { c.FirstName = "" }, true},
@@ -24,7 +24,7 @@ func TestUserRegisterCommand_Validate(t *testing.T) {
 		{"whenPhoneBlank_returnsErrInvalidCommand", func(c *UserRegisterCommand) { c.Phone = ptr(" ") }, true},
 		{"whenRoleUnknown_returnsErrInvalidCommand", func(c *UserRegisterCommand) { c.Roles = []string{"SUPERUSER"} }, true},
 		{"whenRoleIsUnknownLiteral_returnsErrInvalidCommand", func(c *UserRegisterCommand) { c.Roles = []string{"UNKNOWN"} }, true},
-		{"whenRolesDuplicated_returnsErrInvalidCommand", func(c *UserRegisterCommand) { c.Roles = []string{"VIEW", "view"} }, true},
+		{"whenRolesDuplicated_returnsErrInvalidCommand", func(c *UserRegisterCommand) { c.Roles = []string{"USER", "user"} }, true},
 		{"whenEmailAtLimit_returnsNil", func(c *UserRegisterCommand) { c.Email = strings.Repeat("a", 95) + "@b.co" }, false},
 		{"whenEmailOverLimit_returnsErrInvalidCommand", func(c *UserRegisterCommand) { c.Email = strings.Repeat("a", 96) + "@b.co" }, true},
 		{"whenFirstNameAtLimit_returnsNil", func(c *UserRegisterCommand) { c.FirstName = strings.Repeat("j", 50) }, false},
@@ -78,7 +78,7 @@ func TestUserUpdateCommand_WhenFieldBlankOrOverLimit_ReturnsErrInvalidCommand(t 
 // One pass over the role rules: a known set passes, an empty set, an unknown role and
 // a duplicated role are each rejected.
 func TestUserRolesCommand_WhenRolesEmptyUnknownOrDuplicated_ReturnsErrInvalidCommand(t *testing.T) {
-	if err := (UserRolesCommand{Roles: []string{"ADMIN", "MANAGE"}}).Validate(); err != nil {
+	if err := (UserRolesCommand{Roles: []string{"STAFF", "MANAGE"}}).Validate(); err != nil {
 		t.Fatalf("want nil, got %v", err)
 	}
 	if err := (UserRolesCommand{}).Validate(); !errors.Is(err, ErrInvalidCommand) {
@@ -87,7 +87,10 @@ func TestUserRolesCommand_WhenRolesEmptyUnknownOrDuplicated_ReturnsErrInvalidCom
 	if err := (UserRolesCommand{Roles: []string{"NOPE"}}).Validate(); !errors.Is(err, ErrInvalidCommand) {
 		t.Fatalf("unknown role: want ErrInvalidCommand, got %v", err)
 	}
-	if err := (UserRolesCommand{Roles: []string{"VIEW", "VIEW"}}).Validate(); !errors.Is(err, ErrInvalidCommand) {
+	if err := (UserRolesCommand{Roles: []string{"ADMIN"}}).Validate(); !errors.Is(err, ErrInvalidCommand) {
+		t.Fatalf("retired role: want ErrInvalidCommand, got %v", err)
+	}
+	if err := (UserRolesCommand{Roles: []string{"USER", "USER"}}).Validate(); !errors.Is(err, ErrInvalidCommand) {
 		t.Fatalf("duplicate roles: want ErrInvalidCommand, got %v", err)
 	}
 }

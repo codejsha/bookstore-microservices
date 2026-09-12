@@ -20,14 +20,14 @@ def service() -> MagicMock:
 def client(service: MagicMock) -> TestClient:
     app = FastAPI()
     app.include_router(create_faq_router(service))
-    return TestClient(app, headers={"x-user-id": "42", "x-user-roles": "MANAGE"})
+    return TestClient(app, headers={"x-user-id": "42", "x-user-roles": "MANAGE,STAFF,USER"})
 
 
 @pytest.fixture
 def customer_client(service: MagicMock) -> TestClient:
     app = FastAPI()
     app.include_router(create_faq_router(service))
-    return TestClient(app, headers={"x-user-id": "7", "x-user-roles": "VIEW"})
+    return TestClient(app, headers={"x-user-id": "7", "x-user-roles": "USER"})
 
 
 def test_create_faq_unknown_category_bad_request(client: TestClient, service: MagicMock) -> None:

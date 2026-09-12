@@ -41,7 +41,7 @@ class RefundControllerTest {
 
     @BeforeEach
     fun bindPrincipal() {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "MANAGE,STAFF,USER")
     }
 
     private fun bindPrincipal(roles: String?) {
@@ -56,10 +56,9 @@ class RefundControllerTest {
         RequestContextHolder.resetRequestAttributes()
     }
 
-    // Every refund endpoint is driven through the same admin guard.
     @Test
-    fun `refundEndpoints_whenCallerLacksAdminRole_throw`() {
-        bindPrincipal(roles = "ORDER,VIEW")
+    fun `refundEndpoints_callerLacksStaffRole_throws`() {
+        bindPrincipal(roles = "USER")
         val useCase = mock(RefundUseCase::class.java)
         val controller = RefundController(useCase, resolver)
 
@@ -67,6 +66,20 @@ class RefundControllerTest {
         assertFailsWith<ForbiddenException> { controller.refundsRead(UUID.randomUUID().toString()) }
         assertFailsWith<ForbiddenException> {
             controller.refundsCreate(RefundCreateRequest(paymentId = "pay_1", amount = 100L, currency = "KRW", idempotencyKey = "idem_1"))
+        }
+        verifyNoInteractions(useCase)
+    }
+
+    @Test
+    fun `refundsCreate_staffCaller_throwsForbidden`() {
+        bindPrincipal(roles = "STAFF,USER")
+        val useCase = mock(RefundUseCase::class.java)
+        val controller = RefundController(useCase, resolver)
+
+        assertFailsWith<ForbiddenException> {
+            controller.refundsCreate(
+                RefundCreateRequest(paymentId = "pay_1", amount = 100L, currency = "KRW", idempotencyKey = "idem_1"),
+            )
         }
         verifyNoInteractions(useCase)
     }

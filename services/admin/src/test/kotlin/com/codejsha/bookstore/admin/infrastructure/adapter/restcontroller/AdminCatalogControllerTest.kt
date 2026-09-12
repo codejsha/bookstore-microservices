@@ -50,8 +50,8 @@ class AdminCatalogControllerTest {
     }
 
     @Test
-    fun `every catalog endpoint rejects a caller without the ADMIN role`() {
-        bindPrincipal(roles = "VIEW")
+    fun `every catalog endpoint rejects a caller without the STAFF role`() {
+        bindPrincipal(roles = "USER")
         val useCase = mock(CatalogUseCase::class.java)
         val controller = AdminCatalogController(useCase, resolver)
 
@@ -68,7 +68,7 @@ class AdminCatalogControllerTest {
 
     @Test
     fun `an absent pageable is forwarded as unpaged`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(CatalogUseCase::class.java)
         val controller = AdminCatalogController(useCase, resolver)
         val unpaged = Pageable.unpaged()
@@ -82,7 +82,7 @@ class AdminCatalogControllerTest {
 
     @Test
     fun `a sorted page is forwarded as the caller requested it`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(CatalogUseCase::class.java)
         val controller = AdminCatalogController(useCase, resolver)
 
@@ -100,7 +100,7 @@ class AdminCatalogControllerTest {
 
     @Test
     fun `createWork answers 201 without a body`() {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "MANAGE,STAFF,USER")
         val useCase = mock(CatalogUseCase::class.java)
         val controller = AdminCatalogController(useCase, resolver)
 
@@ -112,7 +112,7 @@ class AdminCatalogControllerTest {
 
     @Test
     fun `updateWork forwards absent fields as null so the catalog leaves them alone`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "MANAGE,STAFF,USER")
         val useCase = mock(CatalogUseCase::class.java)
         val controller = AdminCatalogController(useCase, resolver)
 
@@ -129,6 +129,19 @@ class AdminCatalogControllerTest {
         controller.adminCatalogUpdateWork(WORK_UID, AdminWorkUpdateRequest(title = "Dune Messiah"))
 
         verify(useCase).updateWork(WORK_UID, expected, controllerContext)
+    }
+
+    @Test
+    fun `a staff caller cannot write to the catalog`() {
+        bindPrincipal(roles = "STAFF,USER")
+        val useCase = mock(CatalogUseCase::class.java)
+        val controller = AdminCatalogController(useCase, resolver)
+
+        assertFailsWith<ForbiddenException> { controller.adminCatalogCreateWork(createRequest()) }
+        assertFailsWith<ForbiddenException> {
+            controller.adminCatalogUpdateWork(WORK_UID, AdminWorkUpdateRequest(title = "x"))
+        }
+        verifyNoInteractions(useCase)
     }
 
     private fun createRequest() = AdminWorkCreateRequest(title = "Dune", authorUids = listOf(AUTHOR_UID))

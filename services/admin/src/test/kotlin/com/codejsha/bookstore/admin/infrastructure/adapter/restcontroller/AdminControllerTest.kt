@@ -44,7 +44,7 @@ class AdminControllerTest {
 
     @Test
     fun `adminMe returns the subject and roles projected by the mesh`() {
-        bindPrincipal(roles = "ADMIN,VIEW")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(DashboardUseCase::class.java)
         val controller = AdminController(useCase, resolver)
 
@@ -53,12 +53,12 @@ class AdminControllerTest {
         assertEquals("11111111-1111-1111-1111-111111111111", body.uid)
         assertEquals("admin@example.com", body.email)
         assertEquals("root", body.name)
-        assertEquals(listOf("ADMIN", "VIEW"), body.roles)
+        assertEquals(listOf("STAFF", "USER"), body.roles)
     }
 
     @Test
-    fun `every endpoint rejects a caller without the ADMIN role`() {
-        bindPrincipal(roles = "ORDER,VIEW")
+    fun `every endpoint rejects a caller without the STAFF role`() {
+        bindPrincipal(roles = "USER")
         val useCase = mock(DashboardUseCase::class.java)
         val controller = AdminController(useCase, resolver)
 
@@ -79,7 +79,7 @@ class AdminControllerTest {
 
     @Test
     fun `adminDashboard maps an unavailable downstream to an unavailable metric`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(DashboardUseCase::class.java)
         given(useCase.loadDashboard(controllerContext)).willReturn(
             Dashboard(

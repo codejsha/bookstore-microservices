@@ -6,13 +6,17 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from internal.domain.service.support_service import SupportService
+from internal.infrastructure.adapter.restcontroller.category_controller import create_category_router
 from internal.infrastructure.adapter.restcontroller.comment_controller import create_comment_router
+from internal.infrastructure.adapter.restcontroller.faq_controller import create_faq_router
 from internal.infrastructure.adapter.restcontroller.ticket_controller import create_ticket_router
-from tests.conftest import make_comment, make_ticket
+from tests.conftest import make_category, make_comment, make_faq, make_ticket
 
 CUSTOMER_UID = uuid4()
 OTHER_UID = uuid4()
-CUSTOMER_HEADERS = {"x-user-id": str(CUSTOMER_UID), "x-user-roles": "PROFILE,ORDER,VIEW"}
+CUSTOMER_HEADERS = {"x-user-id": str(CUSTOMER_UID), "x-user-roles": "USER"}
+STAFF_HEADERS = {"x-user-id": str(uuid4()), "x-user-roles": "STAFF,USER"}
+SYSTEM_HEADERS = {"x-user-id": str(uuid4()), "x-user-roles": "SYSTEM"}
 
 
 @pytest.fixture
@@ -34,6 +38,20 @@ def comment_app(service: MagicMock) -> FastAPI:
     return app
 
 
+@pytest.fixture
+def category_app(service: MagicMock) -> FastAPI:
+    app = FastAPI()
+    app.include_router(create_category_router(service))
+    return app
+
+
+@pytest.fixture
+def faq_app(service: MagicMock) -> FastAPI:
+    app = FastAPI()
+    app.include_router(create_faq_router(service))
+    return app
+
+
 def _customer(app: FastAPI) -> TestClient:
     return TestClient(app, headers=CUSTOMER_HEADERS)
 
@@ -46,7 +64,7 @@ def test_tickets_anonymous_caller_unauthorized(ticket_app: FastAPI) -> None:
 
 
 def test_tickets_non_uuid_subject_forbidden(ticket_app: FastAPI, service: MagicMock) -> None:
-    client = TestClient(ticket_app, headers={"x-user-id": "7", "x-user-roles": "PROFILE,VIEW"})
+    client = TestClient(ticket_app, headers={"x-user-id": "7", "x-user-roles": "USER"})
     assert client.get("/api/v1/tickets").status_code == 403
 
 
@@ -105,3 +123,44 @@ def test_add_comment_ticket_owned_by_another_customer_forbidden(comment_app: Fas
     service.get_ticket.return_value = make_ticket(customer_uid=OTHER_UID)
     response = _customer(comment_app).get(f"/api/v1/tickets/{uuid4()}/comments")
     assert response.status_code == 403
+
+
+# ─── Staff vs manager roles ───────────────────────────────────────────────
+
+
+def test_update_ticket_status_staff_caller_ok(ticket_app: FastAPI, service: MagicMock) -> None:
+    service.update_ticket_status.return_value = make_ticket(customer_uid=CUSTOMER_UID)
+    response = TestClient(ticket_app, headers=STAFF_HEADERS).patch(
+        f"/api/v1/tickets/{uuid4()}/status", json={"status": "RESOLVED"}
+    )
+    assert response.status_code == 200
+
+
+def test_update_ticket_status_system_caller_ok(ticket_app: FastAPI, service: MagicMock) -> None:
+    service.update_ticket_status.return_value = make_ticket(customer_uid=CUSTOMER_UID)
+    response = TestClient(ticket_app, headers=SYSTEM_HEADERS).patch(
+        f"/api/v1/tickets/{uuid4()}/status", json={"status": "RESOLVED"}
+    )
+    assert response.status_code == 200
+
+
+def test_create_category_staff_caller_forbidden(category_app: FastAPI, service: MagicMock) -> None:
+    response = TestClient(category_app, headers=STAFF_HEADERS).post("/api/v1/categories", json={"name": "Billing"})
+    assert response.status_code == 403
+
+
+def test_create_category_system_caller_created(category_app: FastAPI, service: MagicMock) -> None:
+    service.create_category.return_value = make_category()
+    response = TestClient(category_app, headers=SYSTEM_HEADERS).post("/api/v1/categories", json={"name": "Billing"})
+    assert response.status_code == 201
+
+
+def test_create_faq_staff_caller_forbidden(faq_app: FastAPI, service: MagicMock) -> None:
+    response = TestClient(faq_app, headers=STAFF_HEADERS).post("/api/v1/faqs", json={"question": "Q?", "answer": "A."})
+    assert response.status_code == 403
+
+
+def test_create_faq_system_caller_created(faq_app: FastAPI, service: MagicMock) -> None:
+    service.create_faq.return_value = make_faq()
+    response = TestClient(faq_app, headers=SYSTEM_HEADERS).post("/api/v1/faqs", json={"question": "Q?", "answer": "A."})
+    assert response.status_code == 201

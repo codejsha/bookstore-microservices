@@ -35,7 +35,7 @@ locals {
   waypoint_name      = "bookstore-waypoint"
   waypoint_principal = "cluster.local/ns/${var.namespace}/sa/${local.waypoint_name}"
 
-  role_admin = "ADMIN"
+  role_staff = "STAFF"
 
   introspect_services = [
     "admin",
@@ -384,8 +384,8 @@ resource "kubernetes_manifest" "authz_admin" {
           ]
           when = [
             {
-              key    = "request.auth.claims[realm_access][roles]"
-              values = [local.role_admin]
+              key    = "request.auth.claims[roles]"
+              values = [local.role_staff]
             }
           ]
         }

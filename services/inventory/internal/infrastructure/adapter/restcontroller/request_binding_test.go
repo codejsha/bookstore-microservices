@@ -210,10 +210,10 @@ func TestClosingCreateBinding_WhenPeriodOutOfRange_Returns400(t *testing.T) {
 	})
 
 	cases := map[string]string{
-		"whenMonthZero_returns400":     `{"warehouse_uid":"` + uidWarehouse1 + `","year":2026,"month":0}`,
-		"whenMonthAboveTwelve_returns400":     `{"warehouse_uid":"` + uidWarehouse1 + `","year":2026,"month":13}`,
+		"whenMonthZero_returns400":        `{"warehouse_uid":"` + uidWarehouse1 + `","year":2026,"month":0}`,
+		"whenMonthAboveTwelve_returns400": `{"warehouse_uid":"` + uidWarehouse1 + `","year":2026,"month":13}`,
 		"whenYearBelowMin_returns400":     `{"warehouse_uid":"` + uidWarehouse1 + `","year":1999,"month":6}`,
-		"whenPeriodMissing_returns400": `{"warehouse_uid":"` + uidWarehouse1 + `"}`,
+		"whenPeriodMissing_returns400":    `{"warehouse_uid":"` + uidWarehouse1 + `"}`,
 	}
 	for name, body := range cases {
 		t.Run(name, func(t *testing.T) {

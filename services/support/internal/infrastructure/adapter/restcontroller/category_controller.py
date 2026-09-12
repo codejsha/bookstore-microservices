@@ -14,7 +14,7 @@ from internal.infrastructure.adapter.restcontroller.schemas import (
     CreateCategoryRequest,
     UpdateCategoryRequest,
 )
-from internal.infrastructure.support.auth import require_principal, require_staff
+from internal.infrastructure.support.auth import require_manager, require_principal
 
 
 def create_category_router(service: SupportService) -> APIRouter:
@@ -24,7 +24,7 @@ def create_category_router(service: SupportService) -> APIRouter:
         dependencies=[Depends(require_principal)],
     )
 
-    @router.post("", status_code=201, response_model=CategoryResponse, dependencies=[Depends(require_staff)])
+    @router.post("", status_code=201, response_model=CategoryResponse, dependencies=[Depends(require_manager)])
     async def create_category(request: CreateCategoryRequest) -> CategoryResponse:
         command = CreateCategoryCommand(
             name=request.name,
@@ -49,7 +49,7 @@ def create_category_router(service: SupportService) -> APIRouter:
     async def list_categories() -> list[CategoryResponse]:
         return [_to_response(c) for c in await service.list_categories()]
 
-    @router.patch("/{uid}", response_model=CategoryResponse, dependencies=[Depends(require_staff)])
+    @router.patch("/{uid}", response_model=CategoryResponse, dependencies=[Depends(require_manager)])
     async def update_category(uid: UUID, request: UpdateCategoryRequest) -> CategoryResponse:
         command = UpdateCategoryCommand(
             name=request.name,
@@ -66,7 +66,7 @@ def create_category_router(service: SupportService) -> APIRouter:
             raise HTTPException(status_code=404, detail="Category not found")
         return _to_response(category)
 
-    @router.delete("/{uid}", status_code=204, dependencies=[Depends(require_staff)])
+    @router.delete("/{uid}", status_code=204, dependencies=[Depends(require_manager)])
     async def delete_category(uid: UUID) -> None:
         if not await service.delete_category(uid):
             raise HTTPException(status_code=404, detail="Category not found")

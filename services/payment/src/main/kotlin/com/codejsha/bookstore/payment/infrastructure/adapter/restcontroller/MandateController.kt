@@ -8,7 +8,7 @@ import com.codejsha.bookstore.payment.domain.model.command.MandateSetupCommand
 import com.codejsha.bookstore.payment.domain.model.option.MandateQueryOption
 import com.codejsha.bookstore.payment.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.payment.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.payment.infrastructure.support.auth.ROLE_ADMIN
+import com.codejsha.bookstore.payment.infrastructure.support.auth.isStaff
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
 import kotlinx.coroutines.runBlocking
@@ -32,7 +32,7 @@ class MandateController(
         pageable: Pageable?
     ): ResponseEntity<MandateFindAllResponse> = runBlocking {
         val principal = principalResolver.require()
-        val ownerFilter = if (principal.hasRole(ROLE_ADMIN)) customerId else principal.sub
+        val ownerFilter = if (principal.isStaff()) customerId else principal.sub
         val option = MandateQueryOption(customerId = ownerFilter, mandateStatus = mandateStatus?.value)
         val context = buildContext()
 
@@ -59,22 +59,22 @@ class MandateController(
     override fun mandatesRead(uid: String): ResponseEntity<MandateFindResponse> = runBlocking {
         val principal = principalResolver.require()
         val mandate = mandateUseCase.findMandate(UUID.fromString(uid), buildContext())
-        assertOwnerOrAdmin(principal, mandate)
+        assertOwnerOrStaff(principal, mandate)
         ResponseEntity.ok(toMandateFindResponse(mandate))
     }
 
     override fun mandatesRevoke(uid: String): ResponseEntity<MandateFindResponse> = runBlocking {
         val principal = principalResolver.require()
         val context = buildContext()
-        assertOwnerOrAdmin(principal, mandateUseCase.findMandate(UUID.fromString(uid), context))
+        assertOwnerOrStaff(principal, mandateUseCase.findMandate(UUID.fromString(uid), context))
         val mandate = mandateUseCase.revokeMandate(UUID.fromString(uid), context)
         ResponseEntity.ok(toMandateFindResponse(mandate))
     }
 
     // ─── Authorization ──────────────────────────────────────────────────────
 
-    private fun assertOwnerOrAdmin(principal: Principal, mandate: MandateAggregate) {
-        if (principal.hasRole(ROLE_ADMIN) || mandate.customerId == principal.sub) return
+    private fun assertOwnerOrStaff(principal: Principal, mandate: MandateAggregate) {
+        if (principal.isStaff() || mandate.customerId == principal.sub) return
         throw ResponseStatusException(HttpStatus.NOT_FOUND, "Mandate not found")
     }
 

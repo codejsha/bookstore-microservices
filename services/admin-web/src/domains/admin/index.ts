@@ -1,7 +1,8 @@
 export {
   adminMeQueryOptions,
   dashboardQueryOptions,
-  isAdmin,
+  isManager,
+  isStaff,
 } from "./admin-queries";
 export type { AdminIdentity, Dashboard, Metric } from "./types";
-export { ROLE_ADMIN } from "./types";
+export { ROLE_MANAGE, ROLE_STAFF } from "./types";

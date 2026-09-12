@@ -43,15 +43,15 @@ class AdminUserControllerTest {
     }
 
     @Test
-    fun `every user endpoint rejects a caller without the ADMIN role`() {
-        bindPrincipal(roles = "VIEW")
+    fun `every user endpoint rejects a caller without the STAFF role`() {
+        bindPrincipal(roles = "USER")
         val useCase = mock(UserUseCase::class.java)
         val controller = AdminUserController(useCase, resolver)
 
         assertFailsWithForbidden { controller.adminUsersListUsers(null, null, null, null, null) }
         assertFailsWithForbidden { controller.adminUsersReadUser(TARGET_UID) }
         assertFailsWithForbidden {
-            controller.adminUsersUpdateUserRoles(TARGET_UID, AdminUserRolesRequest(roles = listOf("ADMIN")))
+            controller.adminUsersUpdateUserRoles(TARGET_UID, AdminUserRolesRequest(roles = listOf("MANAGE")))
         }
         assertFailsWithForbidden { controller.adminUsersSuspendUser(TARGET_UID) }
         assertFailsWithForbidden { controller.adminUsersReactivateUser(TARGET_UID) }
@@ -61,7 +61,7 @@ class AdminUserControllerTest {
 
     @Test
     fun `list maps the filter and the user fields onto the response`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(UserUseCase::class.java)
         val controller = AdminUserController(useCase, resolver)
         val unpaged = Pageable.unpaged()
@@ -76,29 +76,44 @@ class AdminUserControllerTest {
         assertEquals(TARGET_UID, item.uid)
         assertEquals("ada@example.com", item.email)
         assertEquals("ACTIVE", item.status)
-        assertEquals(listOf("VIEW"), item.roles)
+        assertEquals(listOf("USER"), item.roles)
         assertEquals(CREATED_AT, item.createdAt)
     }
 
     @Test
     fun `a write forwards the calling administrator as the actor`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "MANAGE,STAFF,USER")
         val useCase = mock(UserUseCase::class.java)
         val controller = AdminUserController(useCase, resolver)
-        given(useCase.updateRoles(TARGET_UID, listOf("ADMIN"), ACTOR_UID, controllerContext))
-            .willReturn(user(roles = listOf("ADMIN")))
+        given(useCase.updateRoles(TARGET_UID, listOf("MANAGE"), ACTOR_UID, controllerContext))
+            .willReturn(user(roles = listOf("MANAGE")))
         given(useCase.suspendUser(TARGET_UID, ACTOR_UID, controllerContext)).willReturn(user(status = "SUSPENDED"))
         given(useCase.deactivateUser(TARGET_UID, ACTOR_UID, controllerContext))
             .willReturn(user(status = "DEACTIVATED"))
 
-        val roles = controller.adminUsersUpdateUserRoles(TARGET_UID, AdminUserRolesRequest(roles = listOf("ADMIN")))
+        val roles = controller.adminUsersUpdateUserRoles(TARGET_UID, AdminUserRolesRequest(roles = listOf("MANAGE")))
         controller.adminUsersSuspendUser(TARGET_UID)
         controller.adminUsersDeactivateUser(TARGET_UID)
 
-        assertEquals(listOf("ADMIN"), roles.body!!.roles)
-        verify(useCase).updateRoles(TARGET_UID, listOf("ADMIN"), ACTOR_UID, controllerContext)
+        assertEquals(listOf("MANAGE"), roles.body!!.roles)
+        verify(useCase).updateRoles(TARGET_UID, listOf("MANAGE"), ACTOR_UID, controllerContext)
         verify(useCase).suspendUser(TARGET_UID, ACTOR_UID, controllerContext)
         verify(useCase).deactivateUser(TARGET_UID, ACTOR_UID, controllerContext)
+    }
+
+    @Test
+    fun `a staff caller cannot manage a user account`() {
+        bindPrincipal(roles = "STAFF,USER")
+        val useCase = mock(UserUseCase::class.java)
+        val controller = AdminUserController(useCase, resolver)
+
+        assertFailsWithForbidden {
+            controller.adminUsersUpdateUserRoles(TARGET_UID, AdminUserRolesRequest(roles = listOf("MANAGE")))
+        }
+        assertFailsWithForbidden { controller.adminUsersSuspendUser(TARGET_UID) }
+        assertFailsWithForbidden { controller.adminUsersReactivateUser(TARGET_UID) }
+        assertFailsWithForbidden { controller.adminUsersDeactivateUser(TARGET_UID) }
+        verifyNoInteractions(useCase)
     }
 
     private fun assertFailsWithForbidden(block: () -> Unit) {
@@ -107,7 +122,7 @@ class AdminUserControllerTest {
         } catch (_: ForbiddenException) {
             return
         }
-        throw AssertionError("expected the ADMIN role gate to reject the call")
+        throw AssertionError("expected the role gate to reject the call")
     }
 
     private companion object {
@@ -117,7 +132,7 @@ class AdminUserControllerTest {
 
         private fun user(
             status: String = "ACTIVE",
-            roles: List<String> = listOf("VIEW"),
+            roles: List<String> = listOf("USER"),
         ) = User(
             uid = TARGET_UID,
             email = "ada@example.com",

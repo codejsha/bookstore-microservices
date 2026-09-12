@@ -70,12 +70,10 @@ module "realm_roles" {
   source   = "./modules/realm-roles"
   realm_id = module.realm.realm_id
   roles = {
-    ADMIN   = "Full back-office access to the admin console"
-    SYSTEM  = "Internal service-to-service automation"
-    MANAGE  = "Manage catalog and inventory resources"
-    PROFILE = "Manage own profile"
-    ORDER   = "Place and manage own orders"
-    VIEW    = "Read public catalog resources"
+    USER   = "Signed-in customer: own profile, orders and public catalog"
+    STAFF  = "Operations staff: catalog, inventory, delivery and support handling"
+    MANAGE = "Full back-office access including users, payments and settlement"
+    SYSTEM = "Internal service-to-service automation"
   }
   providers = {
     keycloak = keycloak
@@ -98,7 +96,7 @@ module "identity_client" {
   source               = "./modules/identity-client"
   realm_id             = module.realm.realm_id
   realm_admin_username = var.identity_realm_admin_username
-  admin_role_id        = module.realm_roles.role_ids["ADMIN"]
+  manage_role_id       = module.realm_roles.role_ids["MANAGE"]
   providers = {
     keycloak = keycloak
     vault    = vault

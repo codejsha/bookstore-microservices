@@ -180,7 +180,7 @@ func TestWrites_WhenWriteFails_LeaveCachedUserInPlace(t *testing.T) {
 	inner := &fakeRepo{writeErr: errors.New("db down")}
 	r := NewCachingUserRepo(inner, store)
 
-	if err := r.UpdateRoles(context.Background(), "u1", []string{"ADMIN"}); err == nil {
+	if err := r.UpdateRoles(context.Background(), "u1", []string{"MANAGE"}); err == nil {
 		t.Fatal("expected the repo error to surface")
 	}
 	if len(store.delKeys) != 0 {

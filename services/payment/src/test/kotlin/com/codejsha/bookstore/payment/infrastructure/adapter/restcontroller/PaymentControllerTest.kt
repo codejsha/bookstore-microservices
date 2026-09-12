@@ -209,8 +209,8 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentsCreate_whenCallerIsAdmin_usesNamedCustomer`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+    fun `paymentsCreate_staffCaller_usesNamedCustomer`(): Unit = runBlocking {
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
 
@@ -223,8 +223,8 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentsCreate_whenCallerIsAdminAndNamesNoCustomer_throws`() {
-        bindPrincipal(roles = "ADMIN")
+    fun `paymentsCreate_staffCallerNamesNoCustomer_throws`() {
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
 

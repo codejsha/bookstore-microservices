@@ -10,7 +10,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/constant"
 )
 
-func TestToCustomerFindResponse_WhenAggregateFullyPopulated_MapsEveryField(t *testing.T) {
+func TestToCustomerFindResponse_AggregateFullyPopulated_MapsEveryField(t *testing.T) {
 	phone := "+1-555"
 	a := &aggregate.CustomerAggregate{
 		Uid:       "u-1",
@@ -18,7 +18,7 @@ func TestToCustomerFindResponse_WhenAggregateFullyPopulated_MapsEveryField(t *te
 		FirstName: "A",
 		LastName:  "B",
 		Phone:     &phone,
-		Roles:     []constant.AuthRole{constant.AUTHROLE_ORDER, constant.AUTHROLE_VIEW},
+		Roles:     []constant.AuthRole{constant.AUTHROLE_USER, constant.AUTHROLE_STAFF},
 	}
 	got := toCustomerFindResponse(a)
 	if got.Uid != "u-1" {
@@ -33,32 +33,32 @@ func TestToCustomerFindResponse_WhenAggregateFullyPopulated_MapsEveryField(t *te
 	if got.Roles == nil || len(*got.Roles) != 2 {
 		t.Fatalf("Roles = %v", got.Roles)
 	}
-	if (*got.Roles)[0] != openapi.AUTHROLE_ORDER || (*got.Roles)[1] != openapi.AUTHROLE_VIEW {
+	if (*got.Roles)[0] != openapi.AUTHROLE_USER || (*got.Roles)[1] != openapi.AUTHROLE_STAFF {
 		t.Errorf("Roles = %+v", *got.Roles)
 	}
 }
 
-func TestToCustomerUpdateResponse_WhenAggregateGiven_MapsEveryField(t *testing.T) {
+func TestToCustomerUpdateResponse_AggregateGiven_MapsEveryField(t *testing.T) {
 	a := &aggregate.CustomerAggregate{
 		Uid:       "u-1",
 		Email:     "a@b.com",
 		FirstName: "A",
 		LastName:  "B",
-		Roles:     []constant.AuthRole{constant.AUTHROLE_PROFILE},
+		Roles:     []constant.AuthRole{constant.AUTHROLE_MANAGE},
 	}
 	got := toCustomerUpdateResponse(a)
 	if got.Uid != "u-1" || *got.Email != "a@b.com" {
 		t.Errorf("got = %+v", got)
 	}
-	if got.Roles == nil || len(*got.Roles) != 1 || (*got.Roles)[0] != openapi.AUTHROLE_PROFILE {
+	if got.Roles == nil || len(*got.Roles) != 1 || (*got.Roles)[0] != openapi.AUTHROLE_MANAGE {
 		t.Errorf("Roles = %v", got.Roles)
 	}
 }
 
-func TestAuthRoles_WhenConvertedBothWays_RoundTripUnchanged(t *testing.T) {
-	in := []openapi.AuthRole{openapi.AUTHROLE_ORDER, openapi.AUTHROLE_PROFILE}
+func TestAuthRoles_ConvertedBothWays_RoundTripUnchanged(t *testing.T) {
+	in := []openapi.AuthRole{openapi.AUTHROLE_USER, openapi.AUTHROLE_MANAGE}
 	domain := toAuthRoles(&in)
-	if !reflect.DeepEqual(domain, []constant.AuthRole{constant.AUTHROLE_ORDER, constant.AUTHROLE_PROFILE}) {
+	if !reflect.DeepEqual(domain, []constant.AuthRole{constant.AUTHROLE_USER, constant.AUTHROLE_MANAGE}) {
 		t.Errorf("toAuthRoles = %v", domain)
 	}
 	rest := authRolesToRest(domain)
@@ -67,7 +67,7 @@ func TestAuthRoles_WhenConvertedBothWays_RoundTripUnchanged(t *testing.T) {
 	}
 }
 
-func TestToAuthRoles_WhenRolesNil_ReturnsNil(t *testing.T) {
+func TestToAuthRoles_RolesNil_NilSlice(t *testing.T) {
 	if got := toAuthRoles(nil); got != nil {
 		t.Errorf("nil -> %v, want nil", got)
 	}
