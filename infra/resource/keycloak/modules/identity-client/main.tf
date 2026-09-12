@@ -52,7 +52,7 @@ resource "keycloak_user_roles" "realm_admin_roles" {
   user_id  = keycloak_user.realm_admin.id
   role_ids = [
     data.keycloak_role.realm_admin.id,
-    var.admin_role_id,
+    var.manage_role_id,
   ]
 }
 
