@@ -41,6 +41,15 @@ func (p *Principal) HasRole(role string) bool {
 	return false
 }
 
+func hasAnyRole(p *Principal, roles ...string) bool {
+	for _, role := range roles {
+		if p.HasRole(role) {
+			return true
+		}
+	}
+	return false
+}
+
 func (p *Principal) HasScope(scope string) bool {
 	for _, s := range p.Scopes {
 		if s == scope {

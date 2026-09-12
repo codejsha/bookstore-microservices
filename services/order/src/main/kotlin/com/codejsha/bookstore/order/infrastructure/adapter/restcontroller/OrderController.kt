@@ -15,8 +15,9 @@ import com.codejsha.bookstore.order.domain.model.option.OrderQueryOption
 import com.codejsha.bookstore.order.infrastructure.support.auth.ForbiddenException
 import com.codejsha.bookstore.order.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.order.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.order.infrastructure.support.auth.ROLE_ADMIN
 import com.codejsha.bookstore.order.infrastructure.support.auth.assertOrderOwner
+import com.codejsha.bookstore.order.infrastructure.support.auth.isManager
+import com.codejsha.bookstore.order.infrastructure.support.auth.isStaff
 import com.codejsha.bookstore.order.infrastructure.support.auth.subjectUserUid
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
@@ -42,7 +43,7 @@ class OrderController(
     ): ResponseEntity<OrderFindAllResponse> = runBlocking {
         val principal = principalResolver.require()
         val ownerFilter: UUID? =
-            if (principal.hasRole(ROLE_ADMIN)) userUid?.let { UUID.fromString(it) }
+            if (principal.isStaff()) userUid?.let { UUID.fromString(it) }
             else principal.subjectUserUid()
         val option = OrderQueryOption(userUid = ownerFilter, status = status?.value)
         val context = buildContext(principal)
@@ -58,9 +59,9 @@ class OrderController(
     override fun ordersPlace(requestBody: PlaceOrderRequest): ResponseEntity<Unit> = runBlocking {
         val principal = principalResolver.require()
         val context = buildContext(principal)
-        if (!principal.hasRole(ROLE_ADMIN)) {
+        if (!principal.isManager()) {
             throw ForbiddenException(
-                "direct order placement is admin-only; use cart checkout for server-side pricing",
+                "direct order placement is manager-only; use cart checkout for server-side pricing",
             )
         }
         val ownerUserUid: UUID = UUID.fromString(requestBody.userUid)

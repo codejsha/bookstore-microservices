@@ -44,6 +44,8 @@ interface WarehouseApi {
 
     /**
      * Register new warehouse
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      *
      * POST /api/v1/warehouses
      * @param requestBody @RequestBody
@@ -79,6 +81,7 @@ interface WarehouseApi {
     /**
      * Update warehouse
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * PUT /api/v1/warehouses/{uid}

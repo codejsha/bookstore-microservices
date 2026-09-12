@@ -47,8 +47,8 @@ class AdminOrderControllerTest {
     }
 
     @Test
-    fun `every order endpoint rejects a caller without the ADMIN role`() {
-        bindPrincipal(roles = "VIEW")
+    fun `every order endpoint rejects a caller without the STAFF role`() {
+        bindPrincipal(roles = "USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)
 
@@ -60,7 +60,7 @@ class AdminOrderControllerTest {
 
     @Test
     fun `an unfiltered list forwards no owner and no paging`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)
         val unpaged = Pageable.unpaged()
@@ -78,7 +78,7 @@ class AdminOrderControllerTest {
 
     @Test
     fun `a filtered page forwards the owner, the status and the requested page`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)
         val option = OrderQueryOption(userUid = USER_UID, status = "PAID")
@@ -93,7 +93,7 @@ class AdminOrderControllerTest {
 
     @Test
     fun `readOrder maps the lines and the shipping destination`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)
         given(useCase.findOrder(ORDER_UID, controllerContext)).willReturn(order(withLines = true))
@@ -110,7 +110,7 @@ class AdminOrderControllerTest {
 
     @Test
     fun `an order without lines maps items to null`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)
         given(useCase.findOrder(ORDER_UID, controllerContext)).willReturn(order(withLines = false))
@@ -123,7 +123,7 @@ class AdminOrderControllerTest {
 
     @Test
     fun `cancelOrder answers with the order as the order service left it`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "MANAGE,STAFF,USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)
         given(useCase.cancelOrder(ORDER_UID, controllerContext)).willReturn(order(status = "CANCELLED"))
@@ -132,6 +132,16 @@ class AdminOrderControllerTest {
 
         assertEquals(200, response.statusCode.value())
         assertEquals("CANCELLED", response.body!!.status)
+    }
+
+    @Test
+    fun `a staff caller cannot cancel an order`() {
+        bindPrincipal(roles = "STAFF,USER")
+        val useCase = mock(OrderUseCase::class.java)
+        val controller = AdminOrderController(useCase, resolver)
+
+        assertFailsWith<ForbiddenException> { controller.adminOrdersCancelOrder(ORDER_UID) }
+        verifyNoInteractions(useCase)
     }
 
     private companion object {

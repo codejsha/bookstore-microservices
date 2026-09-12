@@ -6,7 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const roleAdmin = "admin"
+const (
+	roleStaff  = "STAFF"
+	roleSystem = "SYSTEM"
+)
 
 var writeRoutes = map[string]bool{
 	"POST /api/v1/works":          true,
@@ -37,7 +40,7 @@ func GinAuthorizationMiddleware() gin.HandlerFunc {
 			abortWithProblem(c, http.StatusUnauthorized, "authentication required")
 			return
 		}
-		if writeRoutes[c.Request.Method+" "+route] && !p.HasRole(roleAdmin) {
+		if writeRoutes[c.Request.Method+" "+route] && !hasAnyRole(p, roleStaff, roleSystem) {
 			abortWithProblem(c, http.StatusForbidden, "forbidden")
 			return
 		}

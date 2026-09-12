@@ -71,7 +71,7 @@ func TestUserGrpcServer_WhenUserExists_ReturnsUser(t *testing.T) {
 			if uid != "u-1" {
 				t.Errorf("uid = %q", uid)
 			}
-			return newAggregate("idp-1", "u@x.com", []string{"PROFILE", "ORDER"}), nil
+			return newAggregate("idp-1", "u@x.com", []string{"USER", "STAFF"}), nil
 		},
 	}
 	srv := NewUserGrpcServer(use)
@@ -83,7 +83,7 @@ func TestUserGrpcServer_WhenUserExists_ReturnsUser(t *testing.T) {
 	if u.GetUid() != "idp-1" || u.GetEmail() != "u@x.com" {
 		t.Errorf("user = %+v", u)
 	}
-	if len(u.GetRoles()) != 2 || u.GetRoles()[0] != "PROFILE" || u.GetRoles()[1] != "ORDER" {
+	if len(u.GetRoles()) != 2 || u.GetRoles()[0] != "USER" || u.GetRoles()[1] != "STAFF" {
 		t.Errorf("Roles = %v", u.GetRoles())
 	}
 	if u.GetStatus() != userpb.UserStatus_USER_STATUS_ACTIVE {
@@ -133,8 +133,8 @@ func TestUserGrpcServer_WhenFiltersGiven_ForwardsThemToTheUsecase(t *testing.T) 
 				t.Errorf("Phone = %v", opt.Phone())
 			}
 			return 2, []*aggregate.UserAggregate{
-				newAggregate("idp-1", "a@x.com", []string{"VIEW"}),
-				newAggregate("idp-2", "b@x.com", []string{"VIEW"}),
+				newAggregate("idp-1", "a@x.com", []string{"USER"}),
+				newAggregate("idp-2", "b@x.com", []string{"USER"}),
 			}, nil
 		},
 	}

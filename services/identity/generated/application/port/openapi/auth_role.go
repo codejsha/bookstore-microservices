@@ -8,12 +8,10 @@ type AuthRole string
 
 const (
 	AUTHROLE_UNKNOWN AuthRole = "UNKNOWN"
-	AUTHROLE_ADMIN   AuthRole = "ADMIN"
-	AUTHROLE_SYSTEM  AuthRole = "SYSTEM"
+	AUTHROLE_USER    AuthRole = "USER"
+	AUTHROLE_STAFF   AuthRole = "STAFF"
 	AUTHROLE_MANAGE  AuthRole = "MANAGE"
-	AUTHROLE_PROFILE AuthRole = "PROFILE"
-	AUTHROLE_ORDER   AuthRole = "ORDER"
-	AUTHROLE_VIEW    AuthRole = "VIEW"
+	AUTHROLE_SYSTEM  AuthRole = "SYSTEM"
 )
 
 // ParseAuthRole parses a string into a AuthRole value.
@@ -22,18 +20,14 @@ func ParseAuthRole(value string) (AuthRole, error) {
 	switch AuthRole(value) {
 	case AUTHROLE_UNKNOWN:
 		return AUTHROLE_UNKNOWN, nil
-	case AUTHROLE_ADMIN:
-		return AUTHROLE_ADMIN, nil
-	case AUTHROLE_SYSTEM:
-		return AUTHROLE_SYSTEM, nil
+	case AUTHROLE_USER:
+		return AUTHROLE_USER, nil
+	case AUTHROLE_STAFF:
+		return AUTHROLE_STAFF, nil
 	case AUTHROLE_MANAGE:
 		return AUTHROLE_MANAGE, nil
-	case AUTHROLE_PROFILE:
-		return AUTHROLE_PROFILE, nil
-	case AUTHROLE_ORDER:
-		return AUTHROLE_ORDER, nil
-	case AUTHROLE_VIEW:
-		return AUTHROLE_VIEW, nil
+	case AUTHROLE_SYSTEM:
+		return AUTHROLE_SYSTEM, nil
 	}
 	return "", fmt.Errorf("invalid AuthRole: %q", value)
 }
@@ -43,17 +37,13 @@ func (v AuthRole) IsValid() bool {
 	switch v {
 	case AUTHROLE_UNKNOWN:
 		return true
-	case AUTHROLE_ADMIN:
+	case AUTHROLE_USER:
 		return true
-	case AUTHROLE_SYSTEM:
+	case AUTHROLE_STAFF:
 		return true
 	case AUTHROLE_MANAGE:
 		return true
-	case AUTHROLE_PROFILE:
-		return true
-	case AUTHROLE_ORDER:
-		return true
-	case AUTHROLE_VIEW:
+	case AUTHROLE_SYSTEM:
 		return true
 	}
 	return false

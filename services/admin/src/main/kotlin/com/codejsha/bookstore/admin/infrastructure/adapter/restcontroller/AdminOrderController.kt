@@ -4,7 +4,8 @@ import com.codejsha.bookstore.admin.application.usecase.OrderUseCase
 import com.codejsha.bookstore.admin.domain.model.option.OrderQueryOption
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.admin.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.admin.infrastructure.support.auth.assertAdmin
+import com.codejsha.bookstore.admin.infrastructure.support.auth.assertManager
+import com.codejsha.bookstore.admin.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.generated.application.port.openapi.api.AdminOrderApi
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminOrderFindAllResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminOrderResponse
@@ -26,7 +27,7 @@ class AdminOrderController(
         status: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminOrderFindAllResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val option = OrderQueryOption(userUid = userUid, status = status)
         val context = buildContext(principal)
         val result = orderUseCase.findAllOrders(option, pageable ?: Pageable.unpaged(), context)
@@ -39,18 +40,20 @@ class AdminOrderController(
     }
 
     override fun adminOrdersReadOrder(uid: String): ResponseEntity<AdminOrderResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val context = buildContext(principal)
         ResponseEntity.ok(toAdminOrderResponse(orderUseCase.findOrder(uid, context)))
     }
 
     override fun adminOrdersCancelOrder(uid: String): ResponseEntity<AdminOrderResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireManager()
         val context = buildContext(principal)
         ResponseEntity.ok(toAdminOrderResponse(orderUseCase.cancelOrder(uid, context)))
     }
 
-    private fun requireAdmin(): Principal = principalResolver.require().also { it.assertAdmin() }
+    private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }
+
+    private fun requireManager(): Principal = principalResolver.require().also { it.assertManager() }
 
     private fun buildContext(principal: Principal) =
         ActorContext(actorId = 0L, ActorType.USER)

@@ -23,7 +23,7 @@ def service() -> MagicMock:
 def client(service: MagicMock) -> TestClient:
     app = FastAPI()
     app.include_router(create_stats_router(service))
-    return TestClient(app, headers={"x-user-id": "42", "x-user-roles": "MANAGE"})
+    return TestClient(app, headers={"x-user-id": "42", "x-user-roles": "MANAGE,STAFF,USER"})
 
 
 @pytest.fixture(autouse=True)

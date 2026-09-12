@@ -83,7 +83,8 @@ def get_principal(request: Request) -> Principal | None:
     )
 
 
-STAFF_ROLES: tuple[str, ...] = ("MANAGE", "SYSTEM")
+STAFF_ROLES: tuple[str, ...] = ("STAFF", "SYSTEM")
+MANAGE_ROLES: tuple[str, ...] = ("MANAGE", "SYSTEM")
 
 
 def require_principal(principal: Principal | None = Depends(get_principal)) -> Principal:
@@ -96,7 +97,17 @@ def is_staff(principal: Principal) -> bool:
     return any(principal.has_role(role) for role in STAFF_ROLES)
 
 
+def is_manager(principal: Principal) -> bool:
+    return any(principal.has_role(role) for role in MANAGE_ROLES)
+
+
 def require_staff(principal: Principal = Depends(require_principal)) -> Principal:
     if not is_staff(principal):
         raise HTTPException(status_code=403, detail="Staff role required")
+    return principal
+
+
+def require_manager(principal: Principal = Depends(require_principal)) -> Principal:
+    if not is_manager(principal):
+        raise HTTPException(status_code=403, detail="Manager role required")
     return principal

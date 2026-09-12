@@ -13,7 +13,9 @@ import com.codejsha.bookstore.settlement.domain.model.option.SettlementQueryOpti
 import com.codejsha.bookstore.settlement.infrastructure.support.auth.ForbiddenException
 import com.codejsha.bookstore.settlement.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.settlement.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.settlement.infrastructure.support.auth.ROLE_ADMIN
+import com.codejsha.bookstore.settlement.infrastructure.support.auth.ROLE_MANAGE
+import com.codejsha.bookstore.settlement.infrastructure.support.auth.assertStaff
+import com.codejsha.bookstore.settlement.infrastructure.support.auth.isManager
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
 import kotlinx.coroutines.runBlocking
@@ -36,7 +38,7 @@ class SettlementController(
         status: SettlementStatus?,
         pageable: Pageable?,
     ): ResponseEntity<SettlementFindAllResponse> = runBlocking {
-        val principal = principalResolver.require()
+        val principal = principalResolver.require().also { it.assertStaff() }
         val option = SettlementQueryOption(settlementDate = date, status = status?.value)
         val context = buildContext(principal)
         val result = settlementUseCase.findAllSettlements(option, pageable ?: Pageable.unpaged(), context)
@@ -49,7 +51,7 @@ class SettlementController(
     }
 
     override fun settlementsRead(settlementUid: String): ResponseEntity<SettlementFindResponse> = runBlocking {
-        val principal = principalResolver.require()
+        val principal = principalResolver.require().also { it.assertStaff() }
         val context = buildContext(principal)
         val settlement = settlementUseCase.findSettlement(UUID.fromString(settlementUid), context)
         ResponseEntity.ok(toSettlementFindResponse(settlement))
@@ -59,8 +61,8 @@ class SettlementController(
         requestBody: SettlementRunRequest,
     ): ResponseEntity<SettlementRunResponse> {
         val principal = principalResolver.require()
-        if (!principal.hasRole(ROLE_ADMIN)) {
-            throw ForbiddenException("triggering a settlement run requires the $ROLE_ADMIN role")
+        if (!principal.isManager()) {
+            throw ForbiddenException("triggering a settlement run requires the $ROLE_MANAGE role")
         }
         val context = buildContext(principal)
         val command = TriggerSettlementRunCommand(

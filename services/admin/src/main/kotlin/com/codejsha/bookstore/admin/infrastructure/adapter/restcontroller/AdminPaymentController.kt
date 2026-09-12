@@ -5,7 +5,7 @@ import com.codejsha.bookstore.admin.domain.model.option.PaymentQueryOption
 import com.codejsha.bookstore.admin.domain.model.option.RefundQueryOption
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.admin.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.admin.infrastructure.support.auth.assertAdmin
+import com.codejsha.bookstore.admin.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.generated.application.port.openapi.api.AdminPaymentApi
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminPaymentFindAllResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminPaymentResponse
@@ -30,7 +30,7 @@ class AdminPaymentController(
         connector: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminPaymentFindAllResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val option = PaymentQueryOption(customerId = customerId, status = status, connector = connector)
         val context = buildContext(principal)
         val result = paymentUseCase.findAllPayments(option, pageable ?: Pageable.unpaged(), context)
@@ -43,7 +43,7 @@ class AdminPaymentController(
     }
 
     override fun adminPaymentsReadPayment(uid: String): ResponseEntity<AdminPaymentResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val context = buildContext(principal)
         ResponseEntity.ok(toAdminPaymentResponse(paymentUseCase.findPayment(uid, context)))
     }
@@ -53,7 +53,7 @@ class AdminPaymentController(
         status: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminRefundFindAllResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val option = RefundQueryOption(paymentId = paymentId, status = status)
         val context = buildContext(principal)
         val result = paymentUseCase.findAllRefunds(option, pageable ?: Pageable.unpaged(), context)
@@ -66,12 +66,12 @@ class AdminPaymentController(
     }
 
     override fun adminPaymentsReadRefund(uid: String): ResponseEntity<AdminRefundResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val context = buildContext(principal)
         ResponseEntity.ok(toAdminRefundResponse(paymentUseCase.findRefund(uid, context)))
     }
 
-    private fun requireAdmin(): Principal = principalResolver.require().also { it.assertAdmin() }
+    private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }
 
     private fun buildContext(principal: Principal) =
         ActorContext(actorId = 0L, ActorType.USER)

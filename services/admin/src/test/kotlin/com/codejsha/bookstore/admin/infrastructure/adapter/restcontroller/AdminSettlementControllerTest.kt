@@ -48,8 +48,8 @@ class AdminSettlementControllerTest {
     }
 
     @Test
-    fun `every settlement endpoint rejects a caller without the ADMIN role`() {
-        bindPrincipal(roles = "VIEW")
+    fun `every settlement endpoint rejects a caller without the STAFF role`() {
+        bindPrincipal(roles = "USER")
         val useCase = mock(SettlementUseCase::class.java)
         val controller = AdminSettlementController(useCase, resolver)
 
@@ -63,7 +63,7 @@ class AdminSettlementControllerTest {
 
     @Test
     fun `readSettlement maps the bucket and its detail lines onto the response`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(SettlementUseCase::class.java)
         val controller = AdminSettlementController(useCase, resolver)
         given(useCase.findSettlement(BUCKET_UID, controllerContext)).willReturn(bucket(withDetails = true))
@@ -85,7 +85,7 @@ class AdminSettlementControllerTest {
 
     @Test
     fun `list maps buckets without detail lines`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(SettlementUseCase::class.java)
         val controller = AdminSettlementController(useCase, resolver)
         val unpaged = Pageable.unpaged()
@@ -102,7 +102,7 @@ class AdminSettlementControllerTest {
 
     @Test
     fun `triggerRun answers 202 with the run acknowledgement`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "MANAGE,STAFF,USER")
         val useCase = mock(SettlementUseCase::class.java)
         val controller = AdminSettlementController(useCase, resolver)
         val ack = SettlementRunAck(
@@ -125,7 +125,7 @@ class AdminSettlementControllerTest {
 
     @Test
     fun `triggerRun defaults rerun to false when absent`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "MANAGE,STAFF,USER")
         val useCase = mock(SettlementUseCase::class.java)
         val controller = AdminSettlementController(useCase, resolver)
         val ack = SettlementRunAck(uid = RUN_UID, targetDate = DATE, status = "RUNNING", startedAt = TS)
@@ -135,6 +135,18 @@ class AdminSettlementControllerTest {
         controller.adminSettlementsTriggerRun(AdminSettlementRunRequest(targetDate = DATE))
 
         verify(useCase).triggerSettlementRun(command, controllerContext)
+    }
+
+    @Test
+    fun `a staff caller cannot trigger a settlement run`() {
+        bindPrincipal(roles = "STAFF,USER")
+        val useCase = mock(SettlementUseCase::class.java)
+        val controller = AdminSettlementController(useCase, resolver)
+
+        assertFailsWith<ForbiddenException> {
+            controller.adminSettlementsTriggerRun(AdminSettlementRunRequest(targetDate = DATE))
+        }
+        verifyNoInteractions(useCase)
     }
 
     private fun bucket(withDetails: Boolean) = SettlementBucket(

@@ -8,7 +8,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/constant"
 )
 
-func isAdmin(p *Principal) bool {
+func hasManage(p *Principal) bool {
 	if p == nil {
 		return false
 	}
@@ -29,26 +29,26 @@ func writeForbidden(c *gin.Context) {
 	abortWithProblem(c, http.StatusForbidden, "insufficient privileges")
 }
 
-func requireAdmin(c *gin.Context) bool {
+func requireManage(c *gin.Context) bool {
 	p := PrincipalFromContext(c)
 	if p == nil {
 		writeUnauthorized(c)
 		return false
 	}
-	if !isAdmin(p) {
+	if !hasManage(p) {
 		writeForbidden(c)
 		return false
 	}
 	return true
 }
 
-func requireSelfOrAdmin(c *gin.Context, uid string) bool {
+func requireSelfOrManage(c *gin.Context, uid string) bool {
 	p := PrincipalFromContext(c)
 	if p == nil {
 		writeUnauthorized(c)
 		return false
 	}
-	if p.Sub == uid || isAdmin(p) {
+	if p.Sub == uid || hasManage(p) {
 		return true
 	}
 	writeForbidden(c)
@@ -63,25 +63,25 @@ func GinAuthorizationMiddleware() gin.HandlerFunc {
 		ok := true
 		switch {
 		case method == http.MethodGet && path == "/api/v1/users":
-			ok = requireAdmin(c)
+			ok = requireManage(c)
 		case method == http.MethodGet && path == "/api/v1/users/by-email/:email":
-			ok = requireAdmin(c)
+			ok = requireManage(c)
 		case path == "/api/v1/risk" || path == "/api/v1/risk/:uid":
-			ok = requireAdmin(c)
+			ok = requireManage(c)
 		case method == http.MethodPut && path == "/api/v1/users/:uid/roles":
-			ok = requireAdmin(c)
+			ok = requireManage(c)
 		case method == http.MethodPost && path == "/api/v1/users/:uid/suspend":
-			ok = requireAdmin(c)
+			ok = requireManage(c)
 		case method == http.MethodPost && path == "/api/v1/users/:uid/reactivate":
-			ok = requireAdmin(c)
+			ok = requireManage(c)
 		case method == http.MethodPost && path == "/api/v1/users/:uid/deactivate":
-			ok = requireAdmin(c)
+			ok = requireManage(c)
 		case method == http.MethodGet && path == "/api/v1/users/:uid":
-			ok = requireSelfOrAdmin(c, c.Param("uid"))
+			ok = requireSelfOrManage(c, c.Param("uid"))
 		case method == http.MethodPut && path == "/api/v1/users/:uid":
-			ok = requireSelfOrAdmin(c, c.Param("uid"))
+			ok = requireSelfOrManage(c, c.Param("uid"))
 		case method == http.MethodPost && path == "/api/v1/users/sync/:idp_uid":
-			ok = requireSelfOrAdmin(c, c.Param("idp_uid"))
+			ok = requireSelfOrManage(c, c.Param("idp_uid"))
 		}
 
 		if !ok {

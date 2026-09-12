@@ -30,20 +30,20 @@ func TestCustomerUpdateCommand_Validate(t *testing.T) {
 		mutate  func(c *CustomerUpdateCommand)
 		wantErr bool
 	}{
-		{"whenOnlyUidSet_returnsNil", func(c *CustomerUpdateCommand) {}, false},
-		{"whenEveryFieldSet_returnsNil", func(c *CustomerUpdateCommand) {
+		{"onlyUidSet_noError", func(c *CustomerUpdateCommand) {}, false},
+		{"everyFieldSet_noError", func(c *CustomerUpdateCommand) {
 			c.Email = ptr("a@b.co")
 			c.FirstName = ptr("Jin")
-			c.Roles = []constant.AuthRole{constant.AUTHROLE_PROFILE, constant.AUTHROLE_VIEW}
+			c.Roles = []constant.AuthRole{constant.AUTHROLE_STAFF, constant.AUTHROLE_MANAGE}
 		}, false},
-		{"whenUidBlank_returnsErrInvalidCommand", func(c *CustomerUpdateCommand) { c.Uid = " " }, true},
-		{"whenEmailMalformed_returnsErrInvalidCommand", func(c *CustomerUpdateCommand) { c.Email = ptr("not-an-email") }, true},
-		{"whenPasswordBlank_returnsErrInvalidCommand", func(c *CustomerUpdateCommand) { c.Password = ptr("  ") }, true},
-		{"whenPhoneBlank_returnsErrInvalidCommand", func(c *CustomerUpdateCommand) { c.Phone = ptr("") }, true},
-		{"whenRoleUnknown_returnsErrInvalidCommand", func(c *CustomerUpdateCommand) { c.Roles = []constant.AuthRole{constant.AUTHROLE_UNKNOWN} }, true},
-		{"whenRoleOutOfRange_returnsErrInvalidCommand", func(c *CustomerUpdateCommand) { c.Roles = []constant.AuthRole{99} }, true},
-		{"whenRolesDuplicated_returnsErrInvalidCommand", func(c *CustomerUpdateCommand) {
-			c.Roles = []constant.AuthRole{constant.AUTHROLE_VIEW, constant.AUTHROLE_VIEW}
+		{"uidBlank_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Uid = " " }, true},
+		{"emailMalformed_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Email = ptr("not-an-email") }, true},
+		{"passwordBlank_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Password = ptr("  ") }, true},
+		{"phoneBlank_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Phone = ptr("") }, true},
+		{"roleUnknown_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Roles = []constant.AuthRole{constant.AUTHROLE_UNKNOWN} }, true},
+		{"roleNotAKnownMember_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Roles = []constant.AuthRole{99} }, true},
+		{"rolesDuplicated_errInvalidCommand", func(c *CustomerUpdateCommand) {
+			c.Roles = []constant.AuthRole{constant.AUTHROLE_USER, constant.AUTHROLE_USER}
 		}, true},
 	}
 	for _, tt := range tests {

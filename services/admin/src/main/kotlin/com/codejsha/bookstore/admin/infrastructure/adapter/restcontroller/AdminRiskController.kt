@@ -4,7 +4,8 @@ import com.codejsha.bookstore.admin.application.usecase.UserUseCase
 import com.codejsha.bookstore.admin.domain.model.external.RiskEntry
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.admin.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.admin.infrastructure.support.auth.assertAdmin
+import com.codejsha.bookstore.admin.infrastructure.support.auth.assertManager
+import com.codejsha.bookstore.admin.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.generated.application.port.openapi.api.AdminRiskApi
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminRiskEntryListResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminRiskEntryResponse
@@ -23,7 +24,7 @@ class AdminRiskController(
 ) : AdminRiskApi {
 
     override fun adminRiskListRisk(): ResponseEntity<AdminRiskEntryListResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val entries = userUseCase.listRisk(buildContext(principal))
         ResponseEntity.ok(AdminRiskEntryListResponse(entries = entries.map { it.toResponse() }))
     }
@@ -32,7 +33,7 @@ class AdminRiskController(
         uid: String,
         requestBody: AdminRiskFlagRequest,
     ): ResponseEntity<AdminRiskEntryResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireManager()
         val entry = userUseCase.flagRisk(
             uid = uid,
             level = requestBody.level.value,
@@ -45,7 +46,7 @@ class AdminRiskController(
     }
 
     override fun adminRiskUnflagRisk(uid: String): ResponseEntity<Unit> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireManager()
         userUseCase.unflagRisk(uid, buildContext(principal))
         ResponseEntity.noContent().build()
     }
@@ -59,7 +60,9 @@ class AdminRiskController(
         expiresAt = expiresAt,
     )
 
-    private fun requireAdmin(): Principal = principalResolver.require().also { it.assertAdmin() }
+    private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }
+
+    private fun requireManager(): Principal = principalResolver.require().also { it.assertManager() }
 
     private fun buildContext(principal: Principal) =
         ActorContext(actorId = 0L, ActorType.USER)

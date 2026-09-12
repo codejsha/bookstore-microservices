@@ -92,17 +92,13 @@ func (s identityService) deleteOrphanedIdpUserByEmail(ctx context.Context, email
 var ErrElevatedRoleOnRegister = errors.New("identity: registration may not grant elevated roles")
 var ErrUserAlreadyExists = errors.New("identity: user already exists")
 var selfServiceRolesAllowed = map[string]bool{
-	string(openapi.AUTHROLE_PROFILE): true,
-	string(openapi.AUTHROLE_ORDER):   true,
-	string(openapi.AUTHROLE_VIEW):    true,
+	string(openapi.AUTHROLE_USER): true,
 }
 
 func selfServiceRoles(requested []string) ([]string, error) {
 	if len(requested) == 0 {
 		return []string{
-			string(openapi.AUTHROLE_PROFILE),
-			string(openapi.AUTHROLE_ORDER),
-			string(openapi.AUTHROLE_VIEW),
+			string(openapi.AUTHROLE_USER),
 		}, nil
 	}
 	for _, role := range requested {

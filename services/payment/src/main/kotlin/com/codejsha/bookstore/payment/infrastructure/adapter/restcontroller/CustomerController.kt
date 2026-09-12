@@ -14,7 +14,7 @@ import com.codejsha.bookstore.payment.domain.model.option.CustomerQueryOption
 import com.codejsha.bookstore.payment.domain.model.option.PaymentMethodQueryOption
 import com.codejsha.bookstore.payment.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.payment.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.payment.infrastructure.support.auth.ROLE_ADMIN
+import com.codejsha.bookstore.payment.infrastructure.support.auth.isStaff
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
 import kotlinx.coroutines.runBlocking
@@ -41,7 +41,7 @@ class CustomerController(
         pageable: Pageable?
     ): ResponseEntity<CustomerFindAllResponse> = runBlocking {
         val principal = principalResolver.require()
-        val ownerFilter = if (principal.hasRole(ROLE_ADMIN)) customerId else principal.sub
+        val ownerFilter = if (principal.isStaff()) customerId else principal.sub
         val option = CustomerQueryOption(customerId = ownerFilter, email = email)
         val context = buildContext()
 
@@ -56,7 +56,7 @@ class CustomerController(
     override fun customersCreate(requestBody: CustomerCreateRequest): ResponseEntity<Unit> = runBlocking {
         val principal = principalResolver.require()
         val context = buildContext()
-        val ownerCustomerId = if (principal.hasRole(ROLE_ADMIN)) requestBody.customerId else principal.sub
+        val ownerCustomerId = if (principal.isStaff()) requestBody.customerId else principal.sub
         val command = CustomerCreateCommand(
             customerId = ownerCustomerId,
             name = requestBody.name,
@@ -76,7 +76,7 @@ class CustomerController(
         val principal = principalResolver.require()
         val context = buildContext()
         val customer = customerUseCase.findCustomer(UUID.fromString(uid), context)
-        assertOwnerOrAdmin(principal, customer)
+        assertOwnerOrStaff(principal, customer)
         ResponseEntity.ok(toCustomerFindResponse(customer))
     }
 
@@ -86,7 +86,7 @@ class CustomerController(
     ): ResponseEntity<CustomerUpdateResponse> = runBlocking {
         val principal = principalResolver.require()
         val context = buildContext()
-        assertOwnerOrAdmin(principal, customerUseCase.findCustomer(UUID.fromString(uid), context))
+        assertOwnerOrStaff(principal, customerUseCase.findCustomer(UUID.fromString(uid), context))
         val command = CustomerUpdateCommand(
             name = requestBody.name,
             email = requestBody.email,
@@ -104,7 +104,7 @@ class CustomerController(
     override fun customersDelete(uid: String): ResponseEntity<Unit> = runBlocking {
         val principal = principalResolver.require()
         val context = buildContext()
-        assertOwnerOrAdmin(principal, customerUseCase.findCustomer(UUID.fromString(uid), context))
+        assertOwnerOrStaff(principal, customerUseCase.findCustomer(UUID.fromString(uid), context))
         customerUseCase.deleteCustomer(UUID.fromString(uid), context)
         ResponseEntity.noContent().build()
     }
@@ -208,11 +208,11 @@ class CustomerController(
     // ─── Authorization ──────────────────────────────────────────────────────
 
     private suspend fun authorizeCustomer(customerUid: String, principal: Principal, context: ActorContext) {
-        assertOwnerOrAdmin(principal, customerUseCase.findCustomer(UUID.fromString(customerUid), context))
+        assertOwnerOrStaff(principal, customerUseCase.findCustomer(UUID.fromString(customerUid), context))
     }
 
-    private fun assertOwnerOrAdmin(principal: Principal, customer: CustomerAggregate) {
-        if (principal.hasRole(ROLE_ADMIN) || customer.customerId == principal.sub) return
+    private fun assertOwnerOrStaff(principal: Principal, customer: CustomerAggregate) {
+        if (principal.isStaff() || customer.customerId == principal.sub) return
         throw ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found")
     }
 

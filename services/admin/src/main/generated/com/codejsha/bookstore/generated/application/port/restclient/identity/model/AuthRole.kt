@@ -6,12 +6,10 @@ import com.fasterxml.jackson.annotation.JsonValue
 
 enum class AuthRole(@JsonValue val value: String) {
     UNKNOWN("UNKNOWN"),
-    ADMIN("ADMIN"),
-    SYSTEM("SYSTEM"),
+    USER("USER"),
+    STAFF("STAFF"),
     MANAGE("MANAGE"),
-    PROFILE("PROFILE"),
-    ORDER("ORDER"),
-    VIEW("VIEW");
+    SYSTEM("SYSTEM");
 
     companion object {
         fun fromValue(value: String): AuthRole {

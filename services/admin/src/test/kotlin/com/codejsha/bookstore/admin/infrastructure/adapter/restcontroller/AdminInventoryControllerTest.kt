@@ -45,8 +45,8 @@ class AdminInventoryControllerTest {
     }
 
     @Test
-    fun `every inventory endpoint rejects a caller without the ADMIN role`() {
-        bindPrincipal(roles = "VIEW")
+    fun `every inventory endpoint rejects a caller without the STAFF role`() {
+        bindPrincipal(roles = "USER")
         val useCase = mock(InventoryUseCase::class.java)
         val controller = AdminInventoryController(useCase, resolver)
 
@@ -58,7 +58,7 @@ class AdminInventoryControllerTest {
 
     @Test
     fun `listWarehouses maps the name filter and the warehouse fields`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(InventoryUseCase::class.java)
         val controller = AdminInventoryController(useCase, resolver)
         val unpaged = Pageable.unpaged()
@@ -76,7 +76,7 @@ class AdminInventoryControllerTest {
 
     @Test
     fun `listStocks maps the per-warehouse breakdown`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(InventoryUseCase::class.java)
         val controller = AdminInventoryController(useCase, resolver)
         val unpaged = Pageable.unpaged()
@@ -95,7 +95,7 @@ class AdminInventoryControllerTest {
 
     @Test
     fun `an edition held in no warehouse keeps an empty breakdown`(): Unit = runBlocking {
-        bindPrincipal(roles = "ADMIN")
+        bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(InventoryUseCase::class.java)
         val controller = AdminInventoryController(useCase, resolver)
         val unpaged = Pageable.unpaged()

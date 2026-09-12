@@ -46,11 +46,10 @@ scalar uuid extends string;
 
 enum AuthRole {
   UNKNOWN,
-  SYSTEM,
+  USER,
+  STAFF,
   MANAGE,
-  PROFILE,
-  ORDER,
-  VIEW,
+  SYSTEM,
 }
 
 enum OrderStatus {

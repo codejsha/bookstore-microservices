@@ -111,6 +111,7 @@ interface ReviewApi {
     /**
      * Edit a review
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * PUT /api/v1/customers/{uid}/reviews/{review_uid}

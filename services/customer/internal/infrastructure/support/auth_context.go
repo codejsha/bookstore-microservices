@@ -43,6 +43,15 @@ func (p *Principal) HasRole(role string) bool {
 	return false
 }
 
+func hasAnyRole(p *Principal, roles ...string) bool {
+	for _, role := range roles {
+		if p.HasRole(role) {
+			return true
+		}
+	}
+	return false
+}
+
 func (p *Principal) HasScope(scope string) bool {
 	for _, s := range p.Scopes {
 		if s == scope {
@@ -144,7 +153,7 @@ func GinPrincipalMiddleware() gin.HandlerFunc {
 			trace.SpanFromContext(c.Request.Context()).SetAttributes(attribute.String("enduser.id", p.Sub))
 			c.Request = c.Request.WithContext(httpx.WithCaller(
 				c.Request.Context(),
-				httpx.Caller{UserUid: p.Sub, IsAdmin: p.HasRole(RoleAdmin)},
+				httpx.Caller{UserUid: p.Sub, IsAdmin: hasAnyRole(p, RoleStaff, RoleSystem)},
 			))
 		}
 		if auth := c.GetHeader("Authorization"); auth != "" {

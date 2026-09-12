@@ -70,7 +70,7 @@ func newAggregate(idpId, email, first, last, phone, status string) *aggregate.Us
 	}
 	res := &repo.UserResult{
 		Id: 1, IdpId: &idp, Email: email, FirstName: first, LastName: last,
-		Phone: phonePtr, Roles: []string{"PROFILE", "VIEW"}, Status: status,
+		Phone: phonePtr, Roles: []string{"USER", "STAFF"}, Status: status,
 		CreatedAt: time.Now(),
 	}
 	return aggregate.NewUserAggregate(res)
@@ -87,7 +87,7 @@ func TestUsersRegister_WhenRequestValid_ReturnsRegisteredUser(t *testing.T) {
 		},
 	}
 	ctrl := NewUserController(use)
-	roles := []openapi.AuthRole{openapi.AUTHROLE_PROFILE, openapi.AUTHROLE_ORDER}
+	roles := []openapi.AuthRole{openapi.AUTHROLE_USER, openapi.AUTHROLE_STAFF}
 	req := openapi.UserRegisterRequest{
 		Email: "u@x.com", Password: "secret", FirstName: "F", LastName: "L", Roles: &roles,
 	}
@@ -101,7 +101,7 @@ func TestUsersRegister_WhenRequestValid_ReturnsRegisteredUser(t *testing.T) {
 	if captured.Email != "u@x.com" || len(captured.Roles) != 2 {
 		t.Errorf("captured = %+v", captured)
 	}
-	if captured.Roles[0] != "PROFILE" || captured.Roles[1] != "ORDER" {
+	if captured.Roles[0] != "USER" || captured.Roles[1] != "STAFF" {
 		t.Errorf("Roles = %+v", captured.Roles)
 	}
 }
@@ -224,12 +224,12 @@ func TestUsersUpdateRoles_WhenRequestValid_PassesRolesToUsecase(t *testing.T) {
 	}
 	ctrl := NewUserController(use)
 	_, err := ctrl.UsersUpdateRoles(context.Background(), "uid-1", openapi.UserRolesRequest{
-		Roles: []openapi.AuthRole{openapi.AUTHROLE_MANAGE, openapi.AUTHROLE_VIEW},
+		Roles: []openapi.AuthRole{openapi.AUTHROLE_MANAGE, openapi.AUTHROLE_USER},
 	})
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if len(captured.Roles) != 2 || captured.Roles[0] != "MANAGE" || captured.Roles[1] != "VIEW" {
+	if len(captured.Roles) != 2 || captured.Roles[0] != "MANAGE" || captured.Roles[1] != "USER" {
 		t.Errorf("Roles = %+v", captured.Roles)
 	}
 }
@@ -279,8 +279,8 @@ func TestAuthRolesToStrings_WhenRolesNil_ReturnsNil(t *testing.T) {
 	if got := authRolesToStrings(nil); got != nil {
 		t.Errorf("nil -> %v, want nil", got)
 	}
-	in := []openapi.AuthRole{openapi.AUTHROLE_ORDER, openapi.AUTHROLE_VIEW}
-	if got := authRolesToStrings(&in); len(got) != 2 || got[0] != "ORDER" || got[1] != "VIEW" {
+	in := []openapi.AuthRole{openapi.AUTHROLE_STAFF, openapi.AUTHROLE_USER}
+	if got := authRolesToStrings(&in); len(got) != 2 || got[0] != "STAFF" || got[1] != "USER" {
 		t.Errorf("got = %v", got)
 	}
 }

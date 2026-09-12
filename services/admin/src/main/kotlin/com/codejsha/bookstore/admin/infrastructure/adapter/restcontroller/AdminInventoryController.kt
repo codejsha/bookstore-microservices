@@ -4,7 +4,7 @@ import com.codejsha.bookstore.admin.application.usecase.InventoryUseCase
 import com.codejsha.bookstore.admin.domain.model.option.StockQueryOption
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.admin.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.admin.infrastructure.support.auth.assertAdmin
+import com.codejsha.bookstore.admin.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.generated.application.port.openapi.api.AdminInventoryApi
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminStockFindAllResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminWarehouseFindAllResponse
@@ -26,7 +26,7 @@ class AdminInventoryController(
         name: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminWarehouseFindAllResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val context = buildContext(principal)
         val result = inventoryUseCase.findAllWarehouses(name, pageable ?: Pageable.unpaged(), context)
         ResponseEntity.ok(
@@ -38,7 +38,7 @@ class AdminInventoryController(
     }
 
     override fun adminInventoryReadWarehouse(uid: String): ResponseEntity<AdminWarehouseResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val context = buildContext(principal)
         ResponseEntity.ok(toAdminWarehouseResponse(inventoryUseCase.findWarehouse(uid, context)))
     }
@@ -48,7 +48,7 @@ class AdminInventoryController(
         warehouseUid: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminStockFindAllResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val option = StockQueryOption(editionUid = editionUid, warehouseUid = warehouseUid)
         val context = buildContext(principal)
         val result = inventoryUseCase.findAllStocks(option, pageable ?: Pageable.unpaged(), context)
@@ -60,7 +60,7 @@ class AdminInventoryController(
         )
     }
 
-    private fun requireAdmin(): Principal = principalResolver.require().also { it.assertAdmin() }
+    private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }
 
     private fun buildContext(principal: Principal) =
         ActorContext(actorId = 0L, ActorType.USER)

@@ -32,15 +32,15 @@ func TestWithUserAuthorization_WhenBearerTokenPresent_AttachesAuthorizationMetad
 	})
 }
 
-func TestToCustomerAggregate_WhenProtoHasPhoneAndRoles_MapsEveryField(t *testing.T) {
-	t.Run("whenPhoneAndRolesPresent_mapsEveryField", func(t *testing.T) {
+func TestToCustomerAggregate_ProtoHasPhoneAndRoles_MapsEveryField(t *testing.T) {
+	t.Run("phoneAndRolesPresent_mapsEveryField", func(t *testing.T) {
 		got := toCustomerAggregate(&userpb.User{
 			Uid:       "u-1",
 			Email:     "a@b.com",
 			FirstName: "A",
 			LastName:  "B",
 			Phone:     "+1-555",
-			Roles:     []string{"ORDER", "VIEW", "BOGUS"},
+			Roles:     []string{"USER", "STAFF", "BOGUS"},
 		})
 		if got.Uid != "u-1" || got.Email != "a@b.com" {
 			t.Errorf("identity fields = %+v", got)
@@ -48,13 +48,13 @@ func TestToCustomerAggregate_WhenProtoHasPhoneAndRoles_MapsEveryField(t *testing
 		if got.Phone == nil || *got.Phone != "+1-555" {
 			t.Errorf("phone = %v, want +1-555", got.Phone)
 		}
-		want := []constant.AuthRole{constant.AUTHROLE_ORDER, constant.AUTHROLE_VIEW, constant.AUTHROLE_UNKNOWN}
+		want := []constant.AuthRole{constant.AUTHROLE_USER, constant.AUTHROLE_STAFF, constant.AUTHROLE_UNKNOWN}
 		if !reflect.DeepEqual(got.Roles, want) {
 			t.Errorf("roles = %+v, want %+v", got.Roles, want)
 		}
 	})
 
-	t.Run("whenPhoneMissing_returnsNilPhone", func(t *testing.T) {
+	t.Run("phoneMissing_nilPhone", func(t *testing.T) {
 		got := toCustomerAggregate(&userpb.User{Uid: "u-2", Email: "x@y.com"})
 		if got.Phone != nil {
 			t.Errorf("phone = %v, want nil for empty string", got.Phone)

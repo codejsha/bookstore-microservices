@@ -5,7 +5,8 @@ import com.codejsha.bookstore.admin.domain.model.command.TriggerSettlementRunCom
 import com.codejsha.bookstore.admin.domain.model.option.SettlementQueryOption
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.admin.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.admin.infrastructure.support.auth.assertAdmin
+import com.codejsha.bookstore.admin.infrastructure.support.auth.assertManager
+import com.codejsha.bookstore.admin.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.generated.application.port.openapi.api.AdminSettlementApi
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSettlementFindAllResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSettlementResponse
@@ -31,7 +32,7 @@ class AdminSettlementController(
         status: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminSettlementFindAllResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val option = SettlementQueryOption(settlementDate = date, status = status)
         val context = buildContext(principal)
         val result = settlementUseCase.findAllSettlements(option, pageable ?: Pageable.unpaged(), context)
@@ -44,7 +45,7 @@ class AdminSettlementController(
     }
 
     override fun adminSettlementsReadSettlement(uid: String): ResponseEntity<AdminSettlementResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireStaff()
         val context = buildContext(principal)
         ResponseEntity.ok(toAdminSettlementResponse(settlementUseCase.findSettlement(uid, context)))
     }
@@ -52,7 +53,7 @@ class AdminSettlementController(
     override fun adminSettlementsTriggerRun(
         requestBody: AdminSettlementRunRequest,
     ): ResponseEntity<AdminSettlementRunResponse> = runBlocking {
-        val principal = requireAdmin()
+        val principal = requireManager()
         val context = buildContext(principal)
         val command = TriggerSettlementRunCommand(
             targetDate = requestBody.targetDate,
@@ -62,7 +63,9 @@ class AdminSettlementController(
         ResponseEntity.status(HttpStatus.ACCEPTED).body(toAdminSettlementRunResponse(ack))
     }
 
-    private fun requireAdmin(): Principal = principalResolver.require().also { it.assertAdmin() }
+    private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }
+
+    private fun requireManager(): Principal = principalResolver.require().also { it.assertManager() }
 
     private fun buildContext(principal: Principal) =
         ActorContext(actorId = 0L, ActorType.USER)

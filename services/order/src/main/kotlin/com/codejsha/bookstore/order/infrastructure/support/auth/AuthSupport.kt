@@ -9,7 +9,9 @@ import org.springframework.web.context.request.ServletRequestAttributes
 import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
-const val ROLE_ADMIN = "ADMIN"
+const val ROLE_STAFF = "STAFF"
+const val ROLE_MANAGE = "MANAGE"
+const val ROLE_SYSTEM = "SYSTEM"
 
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
 class UnauthorizedException(message: String = "authentication required") : RuntimeException(message)
@@ -37,7 +39,19 @@ fun Principal.subjectUserUid(): UUID? = runCatching { UUID.fromString(sub) }.get
 
 fun Principal?.orUnauthorized(): Principal = this ?: throw UnauthorizedException()
 
+fun Principal.isStaff(): Boolean = hasRole(ROLE_STAFF) || hasRole(ROLE_SYSTEM)
+
+fun Principal.isManager(): Boolean = hasRole(ROLE_MANAGE) || hasRole(ROLE_SYSTEM)
+
+fun Principal.assertStaff() {
+    if (!isStaff()) throw ForbiddenException("staff role required")
+}
+
+fun Principal.assertManager() {
+    if (!isManager()) throw ForbiddenException("manager role required")
+}
+
 fun Principal.assertOrderOwner(ownerUserUid: UUID) {
-    if (hasRole(ROLE_ADMIN)) return
+    if (isStaff()) return
     if (subjectUserUid() != ownerUserUid) throw ForbiddenException("not the owner of this order")
 }

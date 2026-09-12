@@ -18,8 +18,8 @@ import com.codejsha.bookstore.order.infrastructure.support.auth.AuthPrincipal
 import com.codejsha.bookstore.order.infrastructure.support.auth.BadRequestException
 import com.codejsha.bookstore.order.infrastructure.support.auth.ForbiddenException
 import com.codejsha.bookstore.order.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.order.infrastructure.support.auth.ROLE_ADMIN
 import com.codejsha.bookstore.order.infrastructure.support.auth.assertOrderOwner
+import com.codejsha.bookstore.order.infrastructure.support.auth.isStaff
 import com.codejsha.bookstore.order.infrastructure.support.auth.orUnauthorized
 import com.codejsha.bookstore.order.infrastructure.support.auth.subjectUserUid
 import com.codejsha.platform.shared.data.ActorContext
@@ -55,7 +55,7 @@ class OrderWorkflowController(
     ): ResponseEntity<WorkflowTriggerResponse> {
         val actor = principal.orUnauthorized()
         val ownerUserUid: String =
-            if (actor.hasRole(ROLE_ADMIN)) body.userUid
+            if (actor.isStaff()) body.userUid
             else actor.subjectUserUid()?.toString()
                 ?: throw ForbiddenException("subject '${actor.sub}' is not a valid user uid")
         val cartItems = runBlocking {
