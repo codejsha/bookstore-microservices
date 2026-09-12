@@ -46,6 +46,7 @@ func NewGinServer(
 		logHelper: logHelper,
 		userAPI:   userAPI,
 		authzAPI:  authzAPI,
+		riskAPI:   riskAPI,
 	}
 	s.InitializeEngine()
 	s.RegisterRoutes()
