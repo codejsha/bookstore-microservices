@@ -32,6 +32,7 @@ locals {
     "whitelist-domain"      = var.whitelist_domain
     "code-challenge-method" = "S256"
     "skip-provider-button"  = "true"
+    "silence-ping-logging"  = "true"
   }
 
   session_values = var.session_store == "redis" ? {
