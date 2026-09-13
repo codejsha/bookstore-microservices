@@ -12,6 +12,7 @@ include "vault" {
 
 dependencies {
   paths = [
+    "../../resource/cert-manager-issuers",
     "../../service/keycloak",
     "../../service/vault",
   ]
@@ -37,6 +38,8 @@ inputs = {
   realm_name       = "bookstore"
   argocd_url       = "https://argocd.example.com"
   argocd_namespace = "argocd"
+  kiali_url        = "https://kiali.example.com"
+  kiali_namespace  = "istio-system"
 
   web_root_url                        = "http://localhost:5173"
   web_valid_redirect_uris             = ["http://localhost:5173/*", "https://bookstore.example.com/*"]

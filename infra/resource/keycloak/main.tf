@@ -92,6 +92,18 @@ module "argocd_oidc" {
   }
 }
 
+module "kiali_oidc" {
+  source    = "./modules/kiali-oidc"
+  realm_id  = module.realm.realm_id
+  kiali_url = var.kiali_url
+  namespace = var.kiali_namespace
+  providers = {
+    keycloak   = keycloak
+    vault      = vault
+    kubernetes = kubernetes
+  }
+}
+
 module "identity_client" {
   source               = "./modules/identity-client"
   realm_id             = module.realm.realm_id

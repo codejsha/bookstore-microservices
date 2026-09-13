@@ -4,6 +4,24 @@ deployment:
       mount: /kiali-override-secrets/grafana-admin-credentials
       optional: true
 
+server:
+  web_fqdn: kiali.example.com
+  web_schema: https
+  web_port: "443"
+  web_root: /kiali
+
+auth:
+  strategy: openid
+  openid:
+    client_id: kiali
+    issuer_uri: "https://keycloak.example.com/realms/bookstore"
+    username_claim: preferred_username
+    scopes:
+      - openid
+      - profile
+      - email
+    disable_rbac: true
+
 external_services:
   prometheus:
     url: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
