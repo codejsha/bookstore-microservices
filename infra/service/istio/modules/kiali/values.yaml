@@ -10,8 +10,8 @@ external_services:
 
   grafana:
     enabled: true
-    internal_url: "http://prometheus-grafana.prometheus.svc.cluster.local"
-    external_url: "http://grafana.example.com"
+    internal_url: "http://grafana.grafana.svc.cluster.local"
+    external_url: "https://grafana.example.com"
     datasource_uid: "prometheus"
     dashboards:
       - name: "Istio Mesh Dashboard"
