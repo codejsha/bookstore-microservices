@@ -80,3 +80,15 @@ variable "postgres_cluster_config" {
     debezium_secret_name = optional(string, "")
   }))
 }
+
+variable "rotation_schedule" {
+  description = "Cron schedule (Vault server clock, UTC) driving the Postgres static-role password rotations. Default 19:10 UTC = 04:10 KST, staggered behind the MySQL rotations."
+  type        = string
+  default     = "10 19 * * *"
+}
+
+variable "rotation_window" {
+  description = "Seconds after each rotation_schedule tick during which Vault may still perform the rotation before skipping it."
+  type        = number
+  default     = 3600
+}

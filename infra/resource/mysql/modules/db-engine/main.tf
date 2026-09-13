@@ -89,7 +89,8 @@ resource "vault_database_secret_backend_static_role" "mysql_static" {
   db_name  = vault_database_secret_backend_connection.mysql[each.key].name
   username = var.mysql_db_config[each.key].app_user
 
-  rotation_period = 86400
+  rotation_schedule = var.rotation_schedule
+  rotation_window   = var.rotation_window
   rotation_statements = [
     "ALTER USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';",
   ]
@@ -103,7 +104,8 @@ resource "vault_database_secret_backend_static_role" "cross_service_readonly" {
   db_name  = vault_database_secret_backend_connection.mysql[each.value.target_service].name
   username = each.value.username
 
-  rotation_period = 86400
+  rotation_schedule = var.rotation_schedule
+  rotation_window   = var.rotation_window
   rotation_statements = [
     "ALTER USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';",
   ]

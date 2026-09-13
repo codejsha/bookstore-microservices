@@ -82,5 +82,6 @@ resource "vault_database_secret_backend_static_role" "postgres_static" {
   db_name  = vault_database_secret_backend_connection.postgres[each.key].name
   username = var.postgres_app_user_map[each.key]
 
-  rotation_period = 86400
+  rotation_schedule = var.rotation_schedule
+  rotation_window   = var.rotation_window
 }
