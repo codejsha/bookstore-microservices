@@ -1,5 +1,5 @@
 replicaCount: 2
-revisionHistoryLimit: 3
+revisionHistoryLimit: 0
 
 image:
   repository: harbor.example.com/bookstore/notification
