@@ -33,6 +33,16 @@ variable "argocd_namespace" {
   type        = string
 }
 
+variable "kiali_url" {
+  description = "Kiali external URL"
+  type        = string
+}
+
+variable "kiali_namespace" {
+  description = "Kiali namespace"
+  type        = string
+}
+
 variable "vault_url" {
   description = "Vault URL"
   type        = string
