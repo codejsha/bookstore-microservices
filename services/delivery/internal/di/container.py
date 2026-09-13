@@ -1,3 +1,7 @@
+import asyncio
+
+from sqlalchemy import text
+
 from internal.config.config import Settings
 from internal.domain.service.delivery_service import (
     CarrierService,
@@ -12,6 +16,8 @@ from internal.infrastructure.adapter.mysql.stats_repo import MySQLStatsRepositor
 from internal.infrastructure.adapter.mysql.tracking_repo import MySQLTrackingRepository
 from internal.infrastructure.adapter.temporal.shipment_activities import ShipmentActivities
 from internal.infrastructure.support.database import create_session_factory
+
+_PING_TIMEOUT = 3.0
 
 
 class Container:
@@ -34,6 +40,17 @@ class Container:
         self.stats_service = StatsService(stats_repo=self.stats_repo)
 
         self.shipment_activities = ShipmentActivities(shipment_service=self.shipment_service)
+
+    async def ping_db(self) -> bool:
+        async def _run() -> None:
+            async with self._session_factory() as session:
+                await session.execute(text("SELECT 1"))
+
+        try:
+            await asyncio.wait_for(_run(), timeout=_PING_TIMEOUT)
+        except Exception:
+            return False
+        return True
 
     def temporal_activities(self) -> list:
         return [self.shipment_activities.create_shipment]

@@ -10,6 +10,7 @@ from internal.di.container import Container
 from internal.infrastructure.adapter.restcontroller.category_controller import create_category_router
 from internal.infrastructure.adapter.restcontroller.comment_controller import create_comment_router
 from internal.infrastructure.adapter.restcontroller.faq_controller import create_faq_router
+from internal.infrastructure.adapter.restcontroller.health_controller import create_health_router
 from internal.infrastructure.adapter.restcontroller.ticket_controller import create_ticket_router
 from internal.infrastructure.support.logging import access_log_middleware, configure_logging
 from internal.infrastructure.support.problem import register_problem_handlers
@@ -42,10 +43,7 @@ def create_app() -> FastAPI:
     app.include_router(create_comment_router(container.support_service))
     app.include_router(create_category_router(container.support_service))
     app.include_router(create_faq_router(container.support_service))
-
-    @app.get("/health")
-    def health():
-        return {"status": "ok"}
+    app.include_router(create_health_router(container.ping_db))
 
     app.middleware("http")(access_log_middleware)
     instrument_fastapi(app)

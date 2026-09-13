@@ -1,3 +1,7 @@
+import asyncio
+
+from sqlalchemy import text
+
 from internal.application.port.repo.repos import (
     FaqRepository,
     TicketCategoryRepository,
@@ -16,6 +20,8 @@ from internal.infrastructure.adapter.mysql.ticket_comment_repo import (
 from internal.infrastructure.adapter.mysql.ticket_repo import MySQLTicketRepository
 from internal.infrastructure.support.database import create_engine_and_session_factory
 
+_PING_TIMEOUT = 3.0
+
 
 class Container:
     def __init__(self, settings: Settings):
@@ -33,3 +39,14 @@ class Container:
             category_repo=self.category_repo,
             faq_repo=self.faq_repo,
         )
+
+    async def ping_db(self) -> bool:
+        async def _run() -> None:
+            async with self._session_factory() as session:
+                await session.execute(text("SELECT 1"))
+
+        try:
+            await asyncio.wait_for(_run(), timeout=_PING_TIMEOUT)
+        except Exception:
+            return False
+        return True

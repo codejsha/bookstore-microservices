@@ -31,7 +31,7 @@ class AccessLogFilter : OncePerRequestFilter() {
         }
 
         val status = response.status
-        if (request.requestURI == "/health" && status < HttpServletResponse.SC_BAD_REQUEST) {
+        if (request.requestURI.startsWith("/health") && status < HttpServletResponse.SC_BAD_REQUEST) {
             return
         }
         logAccess(request, status, start)

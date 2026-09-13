@@ -68,7 +68,7 @@ async def access_log_middleware(
         raise
 
     status = response.status_code
-    if request.url.path == "/health" and status < 400:
+    if request.url.path.startswith("/health") and status < 400:
         return response
 
     _log_access(request, status, time.perf_counter_ns() - start)
