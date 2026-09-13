@@ -18,6 +18,10 @@ cleanupController:
 
 admissionController:
   replicas: 1
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: prometheus
   extraVolumes:
     - name: internal-ca
       configMap:

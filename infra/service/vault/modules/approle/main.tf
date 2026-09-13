@@ -91,6 +91,7 @@ locals {
     flink             = []
     foundation-alerts = []
     argo-rollouts     = []
+    kyverno           = []
   }
 
   config_policies = {
@@ -197,6 +198,7 @@ locals {
     "harbor", "argocd", "opensearch", "gitea", "kafka",
     "prometheus", "keycloak", "flink", "nexus",
     "foundation-alerts", "argo-rollouts",
+    "kyverno",
     # "youtrack",
   ])
   grafana_alert_read_rules = [
