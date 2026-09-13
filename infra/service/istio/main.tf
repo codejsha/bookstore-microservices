@@ -194,6 +194,21 @@ resource "kubernetes_config_map_v1" "bookstore_gateway_options" {
         externalTrafficPolicy = "Local"
       }
     })
+    deployment = yamlencode({
+      spec = {
+        template = {
+          metadata = {
+            annotations = {
+              "proxy.istio.io/config" = yamlencode({
+                proxyStatsMatcher = {
+                  inclusionRegexps = [".*http_local_rate_limit.*"]
+                }
+              })
+            }
+          }
+        }
+      }
+    })
   }
 }
 

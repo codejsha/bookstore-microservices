@@ -38,5 +38,6 @@ external_services:
       - name: "Istio Performance Dashboard"
       - name: "Istio Control Plane Dashboard"
       - name: "Istio Wasm Extension Dashboard"
+      - name: "Istio Ztunnel Dashboard"
     auth:
       type: "basic"
