@@ -92,6 +92,10 @@ resource "kubernetes_deployment_v1" "ratelimit" {
             value = "false"
           }
           env {
+            name  = "USE_PROMETHEUS"
+            value = "true"
+          }
+          env {
             name  = "LOG_FORMAT"
             value = "json"
           }
@@ -103,6 +107,10 @@ resource "kubernetes_deployment_v1" "ratelimit" {
           port {
             name           = "http"
             container_port = 8080
+          }
+          port {
+            name           = "metrics"
+            container_port = 9090
           }
 
           volume_mount {
@@ -161,6 +169,33 @@ resource "kubernetes_service_v1" "ratelimit" {
       target_port = 8080
     }
   }
+}
+
+resource "kubernetes_manifest" "ratelimit_podmonitor" {
+  manifest = {
+    apiVersion = "monitoring.coreos.com/v1"
+    kind       = "PodMonitor"
+    metadata = {
+      name      = "ratelimit"
+      namespace = var.namespace
+      labels = merge(local.app_labels, {
+        release = "prometheus"
+      })
+    }
+    spec = {
+      selector = {
+        matchLabels = local.app_labels
+      }
+      podMetricsEndpoints = [
+        {
+          port     = "metrics"
+          path     = "/metrics"
+          interval = "30s"
+        }
+      ]
+    }
+  }
+  depends_on = [kubernetes_deployment_v1.ratelimit]
 }
 
 resource "kubernetes_manifest" "waypoint_ratelimit_filter" {
