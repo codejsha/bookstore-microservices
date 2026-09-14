@@ -20,12 +20,12 @@ terraform {
 }
 
 ephemeral "vault_kv_secret_v2" "grafana_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "grafana/admin/credentials"
 }
 
 data "vault_kv_secret_v2" "argocd_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "argocd/admin/credentials"
 }
 
@@ -60,7 +60,7 @@ resource "kubernetes_limit_range_v1" "resource_limits" {
 }
 
 data "vault_kv_secret_v2" "gitea_ssh_host" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "gitea/ssh/host"
 }
 

@@ -57,11 +57,11 @@ terraform {
         role=tf-${local.vault_role} \
         jwt="$(kubectl create token tf-${local.vault_role} -n ${local.common.vault_ns} --duration=20m)")
       export VAULT_TOKEN
-      if ! vault kv get -field=password_bcrypt kv/argocd/admin/credentials >/dev/null 2>&1; then
+      if ! vault kv get -field=password_bcrypt kv-infra/argocd/admin/credentials >/dev/null 2>&1; then
         pw=$(vault read -field=password sys/policies/password/password-special/generate)
         hash=$(printf '%s' "$pw" | htpasswd -niBC 10 "" | cut -d: -f2 | sed 's/^$2y$/$2a$/')
         mtime=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-        vault kv put kv/argocd/admin/credentials username=admin password="$pw" password_bcrypt="$hash" password_mtime="$mtime" >/dev/null
+        vault kv put kv-infra/argocd/admin/credentials username=admin password="$pw" password_bcrypt="$hash" password_mtime="$mtime" >/dev/null
       fi
     EOT
     ]

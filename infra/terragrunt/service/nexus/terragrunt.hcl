@@ -57,9 +57,9 @@ terraform {
         role=tf-${local.vault_role} \
         jwt="$(kubectl create token tf-${local.vault_role} -n ${local.common.vault_ns} --duration=20m)")
       export VAULT_TOKEN
-      if ! vault kv get -field=password kv/nexus/admin/credentials >/dev/null 2>&1; then
+      if ! vault kv get -field=password kv-infra/nexus/admin/credentials >/dev/null 2>&1; then
         pw=$(vault read -field=password sys/policies/password/password-special/generate)
-        vault kv put kv/nexus/admin/credentials \
+        vault kv put kv-infra/nexus/admin/credentials \
           username="${local.admin_username}" \
           password="$pw" \
           >/dev/null
@@ -80,7 +80,7 @@ terraform {
       export VAULT_TOKEN
 
       NS=nexus
-      DESIRED_PW=$(vault kv get -field=password kv/nexus/admin/credentials)
+      DESIRED_PW=$(vault kv get -field=password kv-infra/nexus/admin/credentials)
 
       kubectl -n "$NS" rollout status deploy/nexus --timeout=300s || true
       kubectl -n "$NS" port-forward svc/nexus 18081:8081 >/dev/null 2>&1 &

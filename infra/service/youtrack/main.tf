@@ -25,7 +25,7 @@ data "vault_pki_secret_backend_issuer" "pki_int" {
 }
 
 ephemeral "vault_kv_secret_v2" "grafana_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "grafana/admin/credentials"
 }
 

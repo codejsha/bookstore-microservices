@@ -64,8 +64,8 @@ terraform {
         role=tf-${local.vault_role} \
         jwt="$(kubectl create token tf-${local.vault_role} -n ${local.common.vault_ns} --duration=20m)")
       export VAULT_TOKEN
-      user=$(vault kv get -field=admin_user kv/grafana/admin/credentials)
-      pw=$(vault kv get -field=admin_password kv/grafana/admin/credentials)
+      user=$(vault kv get -field=admin_user kv-infra/grafana/admin/credentials)
+      pw=$(vault kv get -field=admin_password kv-infra/grafana/admin/credentials)
       code=000
       for _ in $(seq 1 30); do
         code=$(curl -sk -o /dev/null -w '%%{http_code}' -u "$user:$pw" "https://${local.grafana_address}/api/org" || true)

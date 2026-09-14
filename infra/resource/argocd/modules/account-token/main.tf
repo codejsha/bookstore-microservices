@@ -33,7 +33,7 @@ resource "argocd_account_token" "account_tokens" {
 resource "vault_kv_secret_v2" "account_tokens" {
   for_each = toset(local.accounts)
   name     = "argocd/${each.key}/token"
-  mount    = "kv"
+  mount    = "kv-infra"
   data_json = jsonencode({
     token = argocd_account_token.account_tokens[each.key].jwt
   })

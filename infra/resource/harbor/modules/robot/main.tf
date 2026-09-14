@@ -41,7 +41,7 @@ resource "random_password" "robot" {
 }
 
 resource "vault_kv_secret_v2" "registry" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "harbor/ci/credentials"
   data_json = jsonencode({
     username = harbor_robot_account.ci.full_name

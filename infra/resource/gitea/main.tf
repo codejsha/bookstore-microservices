@@ -41,7 +41,7 @@ resource "random_password" "webhook" {
 }
 
 resource "vault_kv_secret_v2" "webhook" {
-  mount     = "kv"
+  mount     = "kv-infra"
   name      = "gitea/webhook/credentials"
   data_json = jsonencode({ token = random_password.webhook.result })
 }
@@ -59,7 +59,7 @@ resource "gitea_public_key" "tekton_resolver" {
 }
 
 resource "vault_kv_secret_v2" "tekton_resolver_ssh" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "gitea/ssh/tekton-resolver"
   data_json = jsonencode({
     private = tls_private_key.tekton_resolver.private_key_pem
@@ -73,7 +73,7 @@ locals {
 }
 
 ephemeral "vault_kv_secret_v2" "gitea_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "gitea/admin/credentials"
 }
 

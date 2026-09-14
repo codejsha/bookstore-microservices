@@ -32,7 +32,7 @@ resource "gitea_repository_key" "repo_key" {
 
 resource "vault_kv_secret_v2" "tls_keys" {
   name  = "gitea/ssh/${var.repo_name}"
-  mount = "kv"
+  mount = "kv-infra"
   data_json = jsonencode(
     {
       private = tls_private_key.tls_keys.private_key_pem,

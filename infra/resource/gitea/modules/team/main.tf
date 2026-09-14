@@ -37,7 +37,7 @@ resource "gitea_team_members" "team_members" {
 resource "vault_kv_secret_v2" "credentials" {
   for_each = nonsensitive(toset(keys(local.user_credentials_by_key)))
   name     = "gitea/users/${nonsensitive(local.user_credentials_by_key[each.key].username)}"
-  mount    = "kv"
+  mount    = "kv-infra"
   data_json = jsonencode(
     {
       username = nonsensitive(local.user_credentials_by_key[each.key].username),

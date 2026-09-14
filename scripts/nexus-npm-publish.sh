@@ -6,7 +6,7 @@ set -o nounset
 set -o pipefail
 
 VAULT_ADDR="${VAULT_ADDR:-http://vault.example.com}"
-VAULT_PUBLISHER_PATH="${VAULT_PUBLISHER_PATH:-kv/nexus/publisher}"
+VAULT_PUBLISHER_PATH="${VAULT_PUBLISHER_PATH:-kv-infra/nexus/publisher}"
 NEXUS_REGISTRY="${NEXUS_REGISTRY:-nexus.example.com/repository/npm-hosted}"
 NEXUS_CA_FILE="${NEXUS_CA_FILE:-}"
 export VAULT_ADDR

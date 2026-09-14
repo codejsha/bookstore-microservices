@@ -58,7 +58,7 @@ resource "kubernetes_manifest" "vaultstaticsecret_hyperswitch_app" {
     }
     spec = {
       type         = "kv-v2"
-      mount        = "kv"
+      mount        = "kv-infra"
       path         = "hyperswitch/app/credentials"
       refreshAfter = "1h"
       vaultAuthRef = "hyperswitch"

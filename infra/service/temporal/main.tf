@@ -41,7 +41,7 @@ resource "kubernetes_limit_range_v1" "resource_limits" {
 }
 
 data "vault_kv_secret_v2" "mysql" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "temporal/mysql"
 }
 

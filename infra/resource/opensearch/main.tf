@@ -12,7 +12,7 @@ terraform {
 }
 
 ephemeral "vault_kv_secret_v2" "opensearch" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "opensearch/admin/credentials"
 }
 

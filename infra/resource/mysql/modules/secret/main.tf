@@ -48,8 +48,8 @@ resource "vault_kubernetes_auth_backend_role" "bookstore_mysql" {
 
 resource "vault_kv_secret_v2" "bookstore_mysql" {
   for_each = toset(var.mysql_services)
-  name     = "bookstore/${each.key}/mysql"
-  mount    = "kv"
+  name     = "${each.key}/mysql"
+  mount    = "kv-bookstore"
   data_json = jsonencode({
     root_password = var.mysql_root_password,
     username      = "${each.key}_app",

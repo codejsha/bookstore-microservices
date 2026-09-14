@@ -29,11 +29,11 @@ podAnnotations:
     db.username={{ .Data.username }}
     db.password={{ .Data.password }}
     {{- end -}}
-  vault.hashicorp.com/agent-inject-secret-env-opensearch: "kv/data/opensearch/admin/credentials"
+  vault.hashicorp.com/agent-inject-secret-env-opensearch: "kv-infra/data/opensearch/admin/credentials"
   vault.hashicorp.com/secret-volume-path-env-opensearch: "/vault/secrets"
   vault.hashicorp.com/agent-inject-file-env-opensearch: "env-opensearch"
   vault.hashicorp.com/agent-inject-template-env-opensearch: |
-    {{- with secret "kv/data/opensearch/admin/credentials" -}}
+    {{- with secret "kv-infra/data/opensearch/admin/credentials" -}}
     export OPENSEARCH_USERNAME="{{ .Data.data.username }}"
     export OPENSEARCH_PASSWORD="{{ .Data.data.password }}"
     {{- end -}}

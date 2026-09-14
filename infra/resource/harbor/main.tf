@@ -16,7 +16,7 @@ terraform {
 }
 
 ephemeral "vault_kv_secret_v2" "harbor_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "harbor/admin/credentials"
 }
 
@@ -44,7 +44,7 @@ locals {
 
 resource "vault_kv_secret_v2" "harbor_user" {
   for_each = toset(var.harbor_usernames)
-  mount    = "kv"
+  mount    = "kv-infra"
   name     = "harbor/users/${each.value}/credentials"
   data_json = jsonencode({
     username = each.value

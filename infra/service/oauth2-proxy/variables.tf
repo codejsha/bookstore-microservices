@@ -18,7 +18,7 @@ variable "credentials_secret_name" {
 variable "vault_kv_path" {
   description = "Vault KV v2 path (relative to the kv mount) holding oauth2-proxy client-id/client-secret/cookie-secret"
   type        = string
-  default     = "bookstore/oauth2-proxy/config"
+  default     = "oauth2-proxy/config"
 }
 
 variable "oidc_issuer_url" {

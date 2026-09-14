@@ -26,8 +26,8 @@ style:
 NEXUS_RAW_URL ?= https://nexus.example.com/repository/raw-hosted
 NEXUS_AUTH ?=
 nexus_auth = { if [ -n "$(NEXUS_AUTH)" ]; then printf '%s' "$(NEXUS_AUTH)"; \
-	else u=$$(vault kv get -mount=kv -field=username nexus/publisher) && \
-	     p=$$(vault kv get -mount=kv -field=password nexus/publisher) && \
+	else u=$$(vault kv get -mount=kv-infra -field=username nexus/publisher) && \
+	     p=$$(vault kv get -mount=kv-infra -field=password nexus/publisher) && \
 	     [ -n "$$u" ] && [ -n "$$p" ] && printf '%s:%s' "$$u" "$$p"; fi; }
 
 GRPC_API_VERSION := 1.0.0
@@ -37,7 +37,7 @@ GRPC_PROTO_URL := $(NEXUS_RAW_URL)/vendor/bookstore-grpc/$(GRPC_API_VERSION)/pro
 .PHONY: grpc-fetch
 grpc-fetch:
 	@auth=$$($(nexus_auth)); \
-	[ -n "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_AUTH or ensure Vault kv/nexus/publisher is reachable)" >&2; exit 1; }; \
+	[ -n "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_AUTH or ensure Vault kv-infra/nexus/publisher is reachable)" >&2; exit 1; }; \
 	rm -rf $(GRPC_PROTO_DIR) && mkdir -p $(GRPC_PROTO_DIR) && \
 	curl -fsS -u "$$auth" "$(GRPC_PROTO_URL)" | tar -xz -C $(GRPC_PROTO_DIR)
 

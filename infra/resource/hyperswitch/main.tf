@@ -16,7 +16,7 @@ terraform {
 }
 
 ephemeral "vault_kv_secret_v2" "app" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "hyperswitch/app/credentials"
 }
 
@@ -98,7 +98,7 @@ resource "restapi_object" "merchant_webhook" {
 }
 
 resource "vault_kv_secret_v2" "payment" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "hyperswitch/payment"
   data_json = jsonencode({
     api_key        = jsondecode(restapi_object.api_key.create_response)["api_key"]

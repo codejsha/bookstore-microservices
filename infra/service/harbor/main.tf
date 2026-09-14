@@ -24,7 +24,7 @@ terraform {
 }
 
 ephemeral "vault_kv_secret_v2" "grafana_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "grafana/admin/credentials"
 }
 

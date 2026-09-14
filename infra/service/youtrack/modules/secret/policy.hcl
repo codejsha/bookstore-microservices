@@ -1,1 +1,1 @@
-path "kv/data/youtrack/*" { capabilities = ["read"] }
+path "kv-infra/data/youtrack/*" { capabilities = ["read"] }

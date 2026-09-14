@@ -16,7 +16,7 @@ resource "gitea_token" "admin_token" {
 
 resource "vault_kv_secret_v2" "admin_token" {
   name  = "gitea/admin/token"
-  mount = "kv"
+  mount = "kv-infra"
   data_json = jsonencode({
     token = gitea_token.admin_token.token
   })
@@ -29,7 +29,7 @@ resource "gitea_token" "resolver_token" {
 
 resource "vault_kv_secret_v2" "resolver_token" {
   name  = "gitea/resolver/token"
-  mount = "kv"
+  mount = "kv-infra"
   data_json = jsonencode({
     token = gitea_token.resolver_token.token
   })

@@ -30,7 +30,7 @@ resource "keycloak_openid_client" "kiali" {
 }
 
 resource "vault_kv_secret_v2" "kiali_oidc_secret" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "keycloak/kiali-oidc/client-secret"
   data_json = jsonencode({
     client_secret = keycloak_openid_client.kiali.client_secret

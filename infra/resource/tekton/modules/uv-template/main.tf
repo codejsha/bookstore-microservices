@@ -11,13 +11,13 @@ terraform {
 
 data "vault_kv_secret_v2" "source_ssh_keys" {
   for_each = toset(var.services)
-  mount    = "kv"
+  mount    = "kv-infra"
   name     = "gitea/ssh/${each.key}-source"
 }
 
 data "vault_kv_secret_v2" "helm_ssh_keys" {
   for_each = toset(var.services)
-  mount    = "kv"
+  mount    = "kv-infra"
   name     = "gitea/ssh/${each.key}-helm"
 }
 

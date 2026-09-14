@@ -74,15 +74,15 @@ terraform {
         jwt="$(kubectl create token tf-${local.vault_role} -n ${local.common.vault_ns} --duration=20m)")
       export VAULT_TOKEN
 
-      if ! vault kv get -field=password kv/harbor/admin/credentials >/dev/null 2>&1; then
+      if ! vault kv get -field=password kv-infra/harbor/admin/credentials >/dev/null 2>&1; then
         pw=$(vault read -field=password sys/policies/password/password-special/generate)
-        vault kv put kv/harbor/admin/credentials username=admin password="$pw" >/dev/null
+        vault kv put kv-infra/harbor/admin/credentials username=admin password="$pw" >/dev/null
       fi
 
-      if ! vault kv get -field=REGISTRY_PASSWD kv/harbor/registry/credentials >/dev/null 2>&1; then
+      if ! vault kv get -field=REGISTRY_PASSWD kv-infra/harbor/registry/credentials >/dev/null 2>&1; then
         pw=$(vault read -field=password sys/policies/password/password-alphanumeric/generate)
         htp=$(htpasswd -nbB harbor_registry_user "$pw")
-        vault kv put kv/harbor/registry/credentials \
+        vault kv put kv-infra/harbor/registry/credentials \
           REGISTRY_PASSWD="$pw" \
           REGISTRY_HTPASSWD="$htp" \
           username="harbor_registry_user" >/dev/null

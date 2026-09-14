@@ -26,32 +26,32 @@ provider "gitea" {
 }
 
 data "vault_kv_secret_v2" "argocd_ci_token" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "argocd/dev-ci/token"
 }
 
 data "vault_kv_secret_v2" "gitea_webhook" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "gitea/webhook/credentials"
 }
 
 data "vault_kv_secret_v2" "gitea_resolver_token" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "gitea/resolver/token"
 }
 
 data "vault_kv_secret_v2" "gitea_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "gitea/admin/credentials"
 }
 
 data "vault_kv_secret_v2" "nexus_publisher" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "nexus/publisher"
 }
 
 data "vault_kv_secret_v2" "harbor_ci" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "harbor/ci/credentials"
 }
 

@@ -58,7 +58,7 @@ resource "kubernetes_manifest" "vaultstaticsecret_harbor_admin" {
     }
     spec = {
       type         = "kv-v2"
-      mount        = "kv"
+      mount        = "kv-infra"
       path         = "harbor/admin/credentials"
       refreshAfter = "1h"
       vaultAuthRef = "harbor"
@@ -80,7 +80,7 @@ resource "kubernetes_manifest" "vaultstaticsecret_harbor_registry" {
     }
     spec = {
       type         = "kv-v2"
-      mount        = "kv"
+      mount        = "kv-infra"
       path         = "harbor/registry/credentials"
       refreshAfter = "1h"
       vaultAuthRef = "harbor"

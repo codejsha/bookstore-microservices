@@ -11,13 +11,13 @@ terraform {
 
 data "vault_kv_secret_v2" "source_ssh_keys" {
   for_each = toset(var.services)
-  mount    = "kv"
+  mount    = "kv-infra"
   name     = "gitea/ssh/${each.key}-source"
 }
 
 data "vault_kv_secret_v2" "helm_ssh_keys" {
   for_each = toset(var.services)
-  mount    = "kv"
+  mount    = "kv-infra"
   name     = "gitea/ssh/${each.key}-helm"
 }
 
@@ -46,7 +46,7 @@ resource "kubernetes_secret_v1" "helm_repo_ssh_auth" {
 }
 
 data "vault_kv_secret_v2" "lib_ssh_key" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "gitea/ssh/${var.lib_repo}"
 }
 

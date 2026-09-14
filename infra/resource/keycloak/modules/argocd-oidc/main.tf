@@ -44,7 +44,7 @@ resource "keycloak_openid_group_membership_protocol_mapper" "argocd_groups" {
 }
 
 resource "vault_kv_secret_v2" "argocd_oidc_secret" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "keycloak/argocd-oidc/client-secret"
   data_json = jsonencode({
     client_secret = keycloak_openid_client.argocd.client_secret

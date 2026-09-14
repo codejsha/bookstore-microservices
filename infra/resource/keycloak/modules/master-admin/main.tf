@@ -38,7 +38,7 @@ resource "keycloak_user_roles" "admin" {
 }
 
 resource "vault_kv_secret_v2" "admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "keycloak/admin/credentials"
   data_json = jsonencode({
     username = keycloak_user.admin.username

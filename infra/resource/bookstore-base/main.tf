@@ -43,7 +43,7 @@ resource "kubernetes_limit_range_v1" "resource_limits" {
 }
 
 data "vault_kv_secret_v2" "harbor_pull" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = var.harbor_pull_vault_path
 }
 

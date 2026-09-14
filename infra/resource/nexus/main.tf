@@ -16,7 +16,7 @@ terraform {
 }
 
 ephemeral "vault_kv_secret_v2" "nexus_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "nexus/admin/credentials"
 }
 
@@ -82,7 +82,7 @@ module "security" {
 }
 
 resource "vault_kv_secret_v2" "publisher" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "nexus/publisher"
   data_json = jsonencode({
     username = var.publisher_username

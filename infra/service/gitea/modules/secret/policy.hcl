@@ -1,1 +1,1 @@
-path "kv/data/gitea/*" { capabilities = ["read"] }
+path "kv-infra/data/gitea/*" { capabilities = ["read"] }

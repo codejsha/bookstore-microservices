@@ -12,7 +12,7 @@ terraform {
 }
 
 data "vault_kv_secret_v2" "harbor_user" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "harbor/users/${var.harbor_user}/credentials"
 }
 

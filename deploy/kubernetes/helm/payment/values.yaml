@@ -63,9 +63,9 @@ podAnnotations:
     db.password={{ .Data.password }}
     db.name=payment_db
     {{- end -}}
-  vault.hashicorp.com/agent-inject-secret-hyperswitch.properties: "kv/data/hyperswitch/payment"
+  vault.hashicorp.com/agent-inject-secret-hyperswitch.properties: "kv-infra/data/hyperswitch/payment"
   vault.hashicorp.com/agent-inject-template-hyperswitch.properties: |
-    {{- with secret "kv/data/hyperswitch/payment" -}}
+    {{- with secret "kv-infra/data/hyperswitch/payment" -}}
     hyperswitch.api-key={{ .Data.data.api_key }}
     hyperswitch.webhook-secret={{ .Data.data.webhook_secret }}
     {{- end -}}

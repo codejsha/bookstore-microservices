@@ -52,8 +52,8 @@ resource "random_password" "cookie_secret" {
 }
 
 resource "vault_kv_secret_v2" "oauth2_proxy" {
-  mount = "kv"
-  name  = "bookstore/oauth2-proxy/config"
+  mount = "kv-bookstore"
+  name  = "oauth2-proxy/config"
   data_json = jsonencode({
     "client-id"     = keycloak_openid_client.oauth2_proxy.client_id
     "client-secret" = keycloak_openid_client.oauth2_proxy.client_secret
