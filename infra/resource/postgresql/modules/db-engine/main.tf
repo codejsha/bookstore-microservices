@@ -52,7 +52,7 @@ resource "vault_database_secret_backend_role" "postgres_dynamic" {
   max_ttl     = 86400
 
   creation_statements = [
-    <<-SQL
+    chomp(<<-SQL
       CREATE ROLE "{{name}}"
         WITH LOGIN
              PASSWORD '{{password}}'
@@ -62,15 +62,17 @@ resource "vault_database_secret_backend_role" "postgres_dynamic" {
       ALTER DEFAULT PRIVILEGES IN SCHEMA public
         GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "{{name}}";
     SQL
+    )
   ]
 
   revocation_statements = [
-    <<-SQL
+    chomp(<<-SQL
       REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM "{{name}}";
       REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM "{{name}}";
       REVOKE USAGE ON SCHEMA public FROM "{{name}}";
       DROP ROLE IF EXISTS "{{name}}";
     SQL
+    )
   ]
 }
 
