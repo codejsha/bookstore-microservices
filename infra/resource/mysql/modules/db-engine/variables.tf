@@ -49,3 +49,15 @@ variable "cross_service_readonly" {
   }))
   default = []
 }
+
+variable "rotation_schedule" {
+  description = "Cron schedule (Vault server clock, UTC) on which the database static roles rotate their passwords. Mutually exclusive with rotation_period."
+  type        = string
+  default     = "0 19 * * *"
+}
+
+variable "rotation_window" {
+  description = "Seconds after each rotation_schedule tick during which Vault may still perform the rotation before skipping it."
+  type        = number
+  default     = 3600
+}

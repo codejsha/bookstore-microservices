@@ -21,7 +21,6 @@ class DatabaseConfig(BaseModel):
     db_name: str = "notification_db"
     username: str = "root"
     password: str = ""
-    vault_env_prefix: str = ""
 
     @property
     def url(self) -> str:
@@ -57,7 +56,7 @@ class Settings(BaseSettings):
 
     app: AppConfig = AppConfig()
     server: ServerConfig = ServerConfig()
-    database: DatabaseConfig = DatabaseConfig(vault_env_prefix="NOTIFICATION")
+    database: DatabaseConfig = DatabaseConfig()
     telemetry: TelemetryConfig = TelemetryConfig()
     temporal: TemporalConfig = TemporalConfig()
 
@@ -77,3 +76,7 @@ class Settings(BaseSettings):
             CloudConfigSettingsSource(settings_cls, CLOUD_CONFIG_APP_NAME),
             file_secret_settings,
         )
+
+
+def vault_env_prefix() -> str:
+    return Settings.model_config["env_prefix"].rstrip("_")

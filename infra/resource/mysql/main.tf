@@ -74,6 +74,8 @@ module "db_engine" {
   mysql_services         = var.mysql_services
   mysql_db_config        = var.mysql_db_config
   cross_service_readonly = var.cross_service_readonly
+  rotation_schedule      = var.rotation_schedule
+  rotation_window        = var.rotation_window
   providers = {
     vault      = vault
     kubernetes = kubernetes

@@ -2,6 +2,7 @@ package support
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -38,6 +39,7 @@ func TestNewGinServer_riskRoute_servesInjectedRiskApi(t *testing.T) {
 		serverCfg,
 		logging.NewLogHelper(appCfg),
 		nil,
+		nil,
 		restcontroller.NewAuthzController(nil, nil, nil),
 		stubRiskApi{},
 	)
@@ -50,5 +52,61 @@ func TestNewGinServer_riskRoute_servesInjectedRiskApi(t *testing.T) {
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("GET /api/v1/risk = %d, want %d: %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+}
+
+func newTestGinServer(t *testing.T) *GinServer {
+	t.Helper()
+	appCfg := &config.AppConfig{Logging: config.LoggingConfig{Level: "error"}}
+	serverCfg := &config.ServerConfig{Host: "127.0.0.1", Port: "0", Mode: gin.TestMode}
+	return NewGinServer(
+		fxtest.NewLifecycle(t),
+		serverCfg,
+		logging.NewLogHelper(appCfg),
+		nil,
+		nil,
+		restcontroller.NewAuthzController(nil, nil, nil),
+		stubRiskApi{},
+	)
+}
+
+func getHealthPath(s *GinServer, path string) int {
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	rec := httptest.NewRecorder()
+	s.engine.ServeHTTP(rec, req)
+	return rec.Code
+}
+
+func TestGinServer_healthRoute_returns200(t *testing.T) {
+	s := newTestGinServer(t)
+
+	if code := getHealthPath(s, "/health"); code != http.StatusOK {
+		t.Fatalf("GET /health = %d, want %d", code, http.StatusOK)
+	}
+}
+
+func TestGinServer_readyRoute_nilDataSource_returns503(t *testing.T) {
+	s := newTestGinServer(t)
+
+	if code := getHealthPath(s, "/health/ready"); code != http.StatusServiceUnavailable {
+		t.Fatalf("GET /health/ready = %d, want %d", code, http.StatusServiceUnavailable)
+	}
+}
+
+func TestGinServer_readyRoute_checkSucceeds_returns200(t *testing.T) {
+	s := newTestGinServer(t)
+	s.readyCheck = func(context.Context) error { return nil }
+
+	if code := getHealthPath(s, "/health/ready"); code != http.StatusOK {
+		t.Fatalf("GET /health/ready = %d, want %d", code, http.StatusOK)
+	}
+}
+
+func TestGinServer_readyRoute_checkFails_returns503(t *testing.T) {
+	s := newTestGinServer(t)
+	s.readyCheck = func(context.Context) error { return errors.New("ping failed") }
+
+	if code := getHealthPath(s, "/health/ready"); code != http.StatusServiceUnavailable {
+		t.Fatalf("GET /health/ready = %d, want %d", code, http.StatusServiceUnavailable)
 	}
 }

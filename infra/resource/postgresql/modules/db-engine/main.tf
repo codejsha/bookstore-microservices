@@ -82,5 +82,37 @@ resource "vault_database_secret_backend_static_role" "postgres_static" {
   db_name  = vault_database_secret_backend_connection.postgres[each.key].name
   username = var.postgres_app_user_map[each.key]
 
-  rotation_period = 86400
+  rotation_schedule = var.rotation_schedule
+  rotation_window   = var.rotation_window
+}
+
+resource "terraform_data" "vault_agent_refresh" {
+  triggers_replace = [var.rotation_schedule, var.rotation_window]
+
+  depends_on = [vault_database_secret_backend_static_role.postgres_static]
+
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    environment = {
+      NAMESPACE = var.namespace
+      SERVICES  = join(" ", var.postgres_services)
+    }
+    command = <<-EOT
+      set -u
+      for svc in $SERVICES; do
+        pods=$(kubectl -n "$NAMESPACE" get pods -l app.kubernetes.io/name="$svc" -o name 2>/dev/null | grep -v -- '-batch-' || true)
+        if [ -z "$pods" ]; then
+          echo "vault-agent-refresh: $svc has no pods, skipping"
+          continue
+        fi
+        for p in $pods; do
+          if kubectl -n "$NAMESPACE" exec "$p" -c vault-agent -- sh -c 'kill -TERM $(pgrep -x vault)' >/dev/null 2>&1; then
+            echo "vault-agent-refresh: restarted vault-agent in $p"
+          else
+            echo "vault-agent-refresh: WARN could not restart vault-agent in $p" >&2
+          fi
+        done
+      done
+    EOT
+  }
 }

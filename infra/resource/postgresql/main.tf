@@ -74,6 +74,8 @@ module "db_engine" {
   postgres_services     = var.postgres_services
   postgres_db_map       = var.postgres_db_map
   postgres_app_user_map = var.postgres_app_user_map
+  rotation_schedule     = var.rotation_schedule
+  rotation_window       = var.rotation_window
 
   depends_on = [module.cluster]
 

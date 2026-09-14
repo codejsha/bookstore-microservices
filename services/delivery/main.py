@@ -9,6 +9,7 @@ from internal.config.config import Settings
 from internal.di.container import Container
 from internal.infrastructure.adapter.restcontroller.carrier_controller import create_carrier_router
 from internal.infrastructure.adapter.restcontroller.freight_controller import create_freight_router
+from internal.infrastructure.adapter.restcontroller.health_controller import create_health_router
 from internal.infrastructure.adapter.restcontroller.shipment_controller import create_shipment_router
 from internal.infrastructure.adapter.restcontroller.stats_controller import create_stats_router
 from internal.infrastructure.support.grpc_server import GrpcServerRunner
@@ -72,10 +73,7 @@ def create_app() -> FastAPI:
     app.include_router(create_carrier_router(container.carrier_service))
     app.include_router(create_freight_router(container.freight_service))
     app.include_router(create_stats_router(container.stats_service))
-
-    @app.get("/health")
-    def health():
-        return {"status": "ok"}
+    app.include_router(create_health_router(container.ping_db))
 
     app.middleware("http")(access_log_middleware)
     instrument_fastapi(app)

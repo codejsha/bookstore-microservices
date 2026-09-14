@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/codejsha/shared-library-go/pkg/config"
+	"github.com/codejsha/shared-library-go/pkg/database"
 	"github.com/codejsha/shared-library-go/pkg/logging"
 
 	"github.com/codejsha/bookstore-microservices/catalog/generated/application/port/openapi"
@@ -22,11 +24,15 @@ import (
 	"github.com/codejsha/bookstore-microservices/catalog/internal/infrastructure/httpx"
 )
 
+const readyCheckTimeout = 3 * time.Second
+
 type GinServer struct {
 	engine       *gin.Engine
 	server       *http.Server
 	serverCfg    *config.ServerConfig
 	logHelper    *logging.LogHelper
+	dataSource   *database.DataSource
+	readyCheck   func(ctx context.Context) error
 	workAPI      openapi.WorkApi
 	editionAPI   openapi.EditionApi
 	authorAPI    openapi.AuthorApi
@@ -38,6 +44,7 @@ func NewGinServer(
 	lc fx.Lifecycle,
 	serverCfg *config.ServerConfig,
 	logHelper *logging.LogHelper,
+	dataSource *database.DataSource,
 	workAPI openapi.WorkApi,
 	editionAPI openapi.EditionApi,
 	authorAPI openapi.AuthorApi,
@@ -47,11 +54,22 @@ func NewGinServer(
 	s := &GinServer{
 		serverCfg:    serverCfg,
 		logHelper:    logHelper,
+		dataSource:   dataSource,
 		workAPI:      workAPI,
 		editionAPI:   editionAPI,
 		authorAPI:    authorAPI,
 		publisherAPI: publisherAPI,
 		subjectAPI:   subjectAPI,
+	}
+	s.readyCheck = func(ctx context.Context) error {
+		if s.dataSource == nil {
+			return errors.New("datasource is not configured")
+		}
+		sqlDB, err := s.dataSource.DB().DB()
+		if err != nil {
+			return err
+		}
+		return sqlDB.PingContext(ctx)
 	}
 	s.InitializeEngine()
 	s.RegisterRoutes()
@@ -94,6 +112,15 @@ func (s *GinServer) InitializeEngine() {
 	s.engine.Use(otelgin.Middleware(string(constant.TracerNameGinServer)))
 	s.engine.Use(httpx.GinResponseMapping())
 	s.engine.GET("/health", func(c *gin.Context) { c.Status(http.StatusOK) })
+	s.engine.GET("/health/ready", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c.Request.Context(), readyCheckTimeout)
+		defer cancel()
+		if err := s.readyCheck(ctx); err != nil {
+			c.Status(http.StatusServiceUnavailable)
+			return
+		}
+		c.Status(http.StatusOK)
+	})
 	s.engine.Use(GinPrincipalMiddleware())
 	s.engine.Use(GinAuthorizationMiddleware())
 }
@@ -104,7 +131,7 @@ func GinAccessLogMiddleware(logHelper *logging.LogHelper) gin.HandlerFunc {
 		c.Next()
 
 		status := c.Writer.Status()
-		if c.Request.URL.Path == "/health" && status < http.StatusBadRequest {
+		if strings.HasPrefix(c.Request.URL.Path, "/health") && status < http.StatusBadRequest {
 			return
 		}
 

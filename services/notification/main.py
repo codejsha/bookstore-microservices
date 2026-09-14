@@ -8,6 +8,7 @@ from fastapi import FastAPI
 
 from internal.config.config import Settings
 from internal.di.container import Container
+from internal.infrastructure.adapter.restcontroller.health_controller import create_health_router
 from internal.infrastructure.adapter.restcontroller.notification_controller import create_notification_router
 from internal.infrastructure.adapter.restcontroller.template_controller import create_template_router
 from internal.infrastructure.support.logging import access_log_middleware, configure_logging
@@ -53,10 +54,7 @@ def create_app() -> FastAPI:
     register_problem_handlers(app)
     app.include_router(create_notification_router(container.notification_service))
     app.include_router(create_template_router(container.notification_service))
-
-    @app.get("/health")
-    def health():
-        return {"status": "ok"}
+    app.include_router(create_health_router(container.ping_db))
 
     app.middleware("http")(access_log_middleware)
     instrument_fastapi(app)

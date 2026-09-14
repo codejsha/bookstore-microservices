@@ -72,3 +72,15 @@ variable "cross_service_readonly" {
   }))
   default = []
 }
+
+variable "rotation_schedule" {
+  description = "Cron schedule (Vault server clock, UTC) driving the MySQL static-role password rotations. Default 19:00 UTC = 04:00 KST."
+  type        = string
+  default     = "0 19 * * *"
+}
+
+variable "rotation_window" {
+  description = "Seconds after each rotation_schedule tick during which Vault may still perform the rotation before skipping it."
+  type        = number
+  default     = 3600
+}

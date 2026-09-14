@@ -1,4 +1,8 @@
-from internal.config.config import Settings
+import asyncio
+
+from sqlalchemy import text
+
+from internal.config.config import Settings, vault_env_prefix
 from internal.domain.service.delivery_service import (
     CarrierService,
     FreightService,
@@ -13,11 +17,13 @@ from internal.infrastructure.adapter.mysql.tracking_repo import MySQLTrackingRep
 from internal.infrastructure.adapter.temporal.shipment_activities import ShipmentActivities
 from internal.infrastructure.support.database import create_session_factory
 
+_PING_TIMEOUT = 3.0
+
 
 class Container:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self._session_factory = create_session_factory(settings.database)
+        self._session_factory = create_session_factory(settings.database, vault_env_prefix())
 
         self.shipment_repo = MySQLShipmentRepository(self._session_factory)
         self.tracking_repo = MySQLTrackingRepository(self._session_factory)
@@ -34,6 +40,17 @@ class Container:
         self.stats_service = StatsService(stats_repo=self.stats_repo)
 
         self.shipment_activities = ShipmentActivities(shipment_service=self.shipment_service)
+
+    async def ping_db(self) -> bool:
+        async def _run() -> None:
+            async with self._session_factory() as session:
+                await session.execute(text("SELECT 1"))
+
+        try:
+            await asyncio.wait_for(_run(), timeout=_PING_TIMEOUT)
+        except Exception:
+            return False
+        return True
 
     def temporal_activities(self) -> list:
         return [self.shipment_activities.create_shipment]

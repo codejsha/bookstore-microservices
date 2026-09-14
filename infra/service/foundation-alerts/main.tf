@@ -275,3 +275,52 @@ module "security_alerts" {
     grafana = grafana
   }
 }
+
+module "database_alerts" {
+  source            = "../../shared/grafana-alertrules"
+  group_name        = "database"
+  folder_title      = "Database"
+  parent_folder_uid = grafana_folder.alerts.uid
+  rules = [
+    {
+      name            = "MysqlAccessDenied"
+      datasource_uid  = "loki"
+      datasource_type = "loki"
+      expr            = "sum by (pod) (count_over_time({namespace=\"bookstore\", container=\"mysql\"} |= \"Access denied for user\" [5m])) > 10"
+      for             = "5m"
+      severity        = "warning"
+      summary         = "MySQL is rejecting logins"
+      description     = "{{ $labels.pod }} logged {{ $value }} access-denied errors in 5 minutes; an application pool is most likely still using a stale password after a Vault static-role rotation."
+    },
+    {
+      name            = "PostgresAuthFailed"
+      datasource_uid  = "loki"
+      datasource_type = "loki"
+      expr            = "sum by (pod) (count_over_time({namespace=\"bookstore\", container=\"postgres\"} |= \"password authentication failed\" [5m])) > 10"
+      for             = "5m"
+      severity        = "warning"
+      summary         = "Postgres is rejecting logins"
+      description     = "{{ $labels.pod }} logged {{ $value }} password authentication failures in 5 minutes; an application pool is most likely still using a stale password after a Vault static-role rotation."
+    },
+    {
+      name        = "HikariConnectionTimeout"
+      expr        = "sum by (pod, pool_name) (increase(hikaricp_connections_timeout_total[5m])) > 0"
+      for         = "5m"
+      severity    = "warning"
+      summary     = "HikariCP connection acquisition is timing out"
+      description = "Pool {{ $labels.pool_name }} on {{ $labels.pod }} timed out {{ $value }} connection acquisitions in 5 minutes; the pool cannot reach the database or is exhausted."
+    },
+    {
+      name          = "VaultDbRotationFailed"
+      expr          = "increase(vault_database_UpdateUser_error[1h]) > 0"
+      for           = "0s"
+      severity      = "critical"
+      summary       = "Vault database static-role rotation failed"
+      description   = "Vault recorded {{ $value }} database UpdateUser errors on {{ $labels.instance }} in the last hour; a static-role password rotation did not complete and the credential in Vault may no longer match the database."
+      no_data_state = "OK"
+    },
+  ]
+  providers = {
+    grafana = grafana
+  }
+}
