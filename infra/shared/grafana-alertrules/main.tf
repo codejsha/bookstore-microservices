@@ -37,16 +37,25 @@ resource "grafana_rule_group" "this" {
           from = 600
           to   = 0
         }
-        model = jsonencode(merge(
-          {
-            refId      = "A"
-            datasource = { type = coalesce(rule.value.datasource_type, var.datasource_type), uid = coalesce(rule.value.datasource_uid, var.datasource_uid) }
-            expr       = rule.value.expr
-          },
+        model = (
           coalesce(rule.value.datasource_type, var.datasource_type) == "loki"
-          ? { queryType = "instant", editorMode = "code" }
-          : { instant = true, range = false, intervalMs = 1000, maxDataPoints = 43200 }
-        ))
+          ? jsonencode({
+            refId      = "A"
+            datasource = { type = "loki", uid = coalesce(rule.value.datasource_uid, var.datasource_uid) }
+            expr       = rule.value.expr
+            queryType  = "instant"
+            editorMode = "code"
+          })
+          : jsonencode({
+            refId         = "A"
+            datasource    = { type = coalesce(rule.value.datasource_type, var.datasource_type), uid = coalesce(rule.value.datasource_uid, var.datasource_uid) }
+            expr          = rule.value.expr
+            instant       = true
+            range         = false
+            intervalMs    = 1000
+            maxDataPoints = 43200
+          })
+        )
       }
 
       data {
