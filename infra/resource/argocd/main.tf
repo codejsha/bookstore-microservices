@@ -20,7 +20,7 @@ terraform {
 }
 
 ephemeral "vault_kv_secret_v2" "argocd" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "argocd/admin/credentials"
 }
 

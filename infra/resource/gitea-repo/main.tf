@@ -16,7 +16,7 @@ terraform {
 }
 
 data "vault_kv_secret_v2" "gitea_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "gitea/admin/credentials"
 }
 

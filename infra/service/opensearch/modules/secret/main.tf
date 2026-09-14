@@ -24,7 +24,7 @@ resource "random_password" "admin" {
 
 resource "vault_kv_secret_v2" "admin" {
   name  = "opensearch/admin/credentials"
-  mount = "kv"
+  mount = "kv-infra"
   data_json = jsonencode({
     username         = "admin"
     initial_password = random_password.admin.result
@@ -94,7 +94,7 @@ resource "kubernetes_manifest" "vaultstaticsecret_opensearch_admin" {
     }
     spec = {
       type         = "kv-v2"
-      mount        = "kv"
+      mount        = "kv-infra"
       path         = "opensearch/admin/credentials"
       refreshAfter = "1h"
       vaultAuthRef = "opensearch"

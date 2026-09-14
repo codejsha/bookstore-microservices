@@ -16,6 +16,16 @@ resource "helm_release" "argocd" {
     file("${path.module}/values.yaml"),
     yamlencode({
       configs = {
+        cm = {
+          "oidc.config" = yamlencode({
+            name            = "Keycloak"
+            issuer          = var.oidc_issuer
+            clientID        = "argocd"
+            clientSecret    = "$argocd-oidc-secret:oidc.keycloak.clientSecret"
+            requestedScopes = ["openid", "profile", "email", "groups"]
+            rootCA          = var.oidc_root_ca
+          })
+        }
         secret = {
           argocdServerAdminPassword      = var.admin_password_bcrypt
           argocdServerAdminPasswordMtime = var.admin_password_mtime

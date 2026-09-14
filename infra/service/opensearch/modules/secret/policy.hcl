@@ -1,1 +1,1 @@
-path "kv/data/opensearch/*" { capabilities = ["read"] }
+path "kv-infra/data/opensearch/*" { capabilities = ["read"] }

@@ -1,3 +1,3 @@
-path "kv/data/grafana/*" {
+path "kv-infra/data/grafana/*" {
   capabilities = ["read"]
 }

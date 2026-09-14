@@ -42,7 +42,7 @@ removed {
 }
 
 resource "vault_kv_secret_v2" "keycloak_bootstrap_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "keycloak/bootstrap/credentials"
   data_json = jsonencode({
     username = data.kubernetes_secret_v1.keycloak_initial_admin.data["username"]

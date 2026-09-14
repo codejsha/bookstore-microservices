@@ -46,7 +46,7 @@ resource "vault_kubernetes_auth_backend_role" "gitea" {
 
 resource "vault_kv_secret_v2" "valkey" {
   name  = "gitea/valkey/credentials"
-  mount = "kv"
+  mount = "kv-infra"
   data_json = jsonencode({
     password = random_password.valkey.result
   })
@@ -54,7 +54,7 @@ resource "vault_kv_secret_v2" "valkey" {
 
 resource "vault_kv_secret_v2" "postgresql" {
   name  = "gitea/postgresql/credentials"
-  mount = "kv"
+  mount = "kv-infra"
   data_json = jsonencode({
     username = var.postgresql_username
     password = random_password.postgresql.result
@@ -63,7 +63,7 @@ resource "vault_kv_secret_v2" "postgresql" {
 
 resource "vault_kv_secret_v2" "admin" {
   name  = "gitea/admin/credentials"
-  mount = "kv"
+  mount = "kv-infra"
   data_json = jsonencode({
     username = var.admin_username
     password = random_password.admin.result
@@ -100,7 +100,7 @@ resource "kubernetes_manifest" "vaultstaticsecret_gitea_admin" {
     }
     spec = {
       type         = "kv-v2"
-      mount        = "kv"
+      mount        = "kv-infra"
       path         = "gitea/admin/credentials"
       refreshAfter = "1h"
       vaultAuthRef = "gitea"
@@ -119,7 +119,7 @@ resource "tls_private_key" "ssh_host" {
 
 resource "vault_kv_secret_v2" "ssh_host" {
   name  = "gitea/ssh/host"
-  mount = "kv"
+  mount = "kv-infra"
   data_json = jsonencode({
     private = tls_private_key.ssh_host.private_key_openssh
     public  = trimspace(tls_private_key.ssh_host.public_key_openssh)

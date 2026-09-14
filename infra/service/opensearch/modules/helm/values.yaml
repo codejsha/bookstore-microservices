@@ -15,11 +15,11 @@ podAnnotations:
   vault.hashicorp.com/log-format: "json"
   vault.hashicorp.com/service: "http://vault.vault.svc.cluster.local:8200"
   vault.hashicorp.com/role: "opensearch-role"
-  vault.hashicorp.com/agent-inject-secret-admin-config: "kv/data/opensearch/admin/credentials"
+  vault.hashicorp.com/agent-inject-secret-admin-config: "kv-infra/data/opensearch/admin/credentials"
   vault.hashicorp.com/secret-volume-path-admin-config: "/vault/secrets"
   vault.hashicorp.com/agent-inject-file-admin-config: "env-admin"
   vault.hashicorp.com/agent-inject-template-admin-config: |
-    {{- with secret "kv/data/opensearch/admin/credentials" -}}
+    {{- with secret "kv-infra/data/opensearch/admin/credentials" -}}
     export OPENSEARCH_INITIAL_ADMIN_PASSWORD="{{ .Data.data.initial_password }}"
     {{- end -}}
 

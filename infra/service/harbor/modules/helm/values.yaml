@@ -13,6 +13,8 @@ expose:
 
 externalURL: https://harbor.example.com
 
+caBundleSecretName: harbor-ca-bundle
+
 persistence:
   enabled: true
   resourcePolicy: "keep"

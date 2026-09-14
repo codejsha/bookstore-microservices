@@ -20,7 +20,7 @@ terraform {
 }
 
 ephemeral "vault_kv_secret_v2" "grafana_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "grafana/admin/credentials"
 }
 
@@ -30,8 +30,8 @@ provider "grafana" {
 }
 
 data "vault_kv_secret_v2" "harbor_registry" {
-  mount = "kv"
-  name  = "harbor/users/harbor-devops/credentials"
+  mount = "kv-infra"
+  name  = "harbor/robots/pull/credentials"
 }
 
 data "kubernetes_service_v1" "harbor" {

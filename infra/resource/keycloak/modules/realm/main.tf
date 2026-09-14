@@ -9,7 +9,7 @@ terraform {
 resource "keycloak_realm" "platform" {
   realm        = var.realm_name
   enabled      = true
-  display_name = "Platform"
+  display_name = "Bookstore"
 
   login_theme   = "keycloak"
   account_theme = "keycloak.v3"

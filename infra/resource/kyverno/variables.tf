@@ -29,9 +29,10 @@ variable "harbor_address" {
   type        = string
 }
 
-variable "harbor_user" {
-  description = "Harbor user whose credentials Kyverno reads signatures with"
+variable "harbor_pull_vault_path" {
+  description = "Vault kv (v2) path holding the Harbor pull identity {username, password} Kyverno reads signatures with"
   type        = string
+  default     = "harbor/robots/pull/credentials"
 }
 
 variable "cosign_key_name" {

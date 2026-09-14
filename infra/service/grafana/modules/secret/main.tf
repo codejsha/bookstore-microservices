@@ -19,7 +19,7 @@ resource "random_password" "admin" {
 
 resource "vault_kv_secret_v2" "admin" {
   name  = "grafana/admin/credentials"
-  mount = "kv"
+  mount = "kv-infra"
   data_json = jsonencode({
     admin_user     = "admin"
     admin_password = random_password.admin.result
@@ -75,7 +75,7 @@ resource "kubernetes_manifest" "vaultstaticsecret_grafana_admin" {
     }
     spec = {
       type         = "kv-v2"
-      mount        = "kv"
+      mount        = "kv-infra"
       path         = "grafana/admin/credentials"
       refreshAfter = "1h"
       vaultAuthRef = "grafana"

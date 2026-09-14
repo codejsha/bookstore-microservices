@@ -152,7 +152,7 @@ resource "random_password" "temporal_mysql_user" {
 }
 
 resource "vault_kv_secret_v2" "temporal_mysql" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "temporal/mysql"
   data_json = jsonencode({
     root_password = random_password.temporal_mysql_root.result
@@ -174,7 +174,7 @@ resource "random_password" "seaweedfs_s3_secret_key" {
 }
 
 resource "vault_kv_secret_v2" "seaweedfs_s3" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "seaweedfs/s3/credentials"
   data_json = jsonencode({
     access_key_id     = random_password.seaweedfs_s3_access_key.result

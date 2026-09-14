@@ -86,8 +86,8 @@ resource "vault_kubernetes_auth_backend_role" "bookstore_identity" {
 
 resource "vault_kv_secret_v2" "bookstore_postgres" {
   for_each = toset(var.postgres_services)
-  name     = "bookstore/${each.key}/postgres"
-  mount    = "kv"
+  name     = "${each.key}/postgres"
+  mount    = "kv-bookstore"
   data_json = jsonencode({
     username = local.creds_by_service[each.key].username,
     password = local.creds_by_service[each.key].password,
@@ -95,8 +95,8 @@ resource "vault_kv_secret_v2" "bookstore_postgres" {
 }
 
 resource "vault_kv_secret_v2" "catalog_postgres_debezium" {
-  name  = "bookstore/catalog/postgres-debezium"
-  mount = "kv"
+  name  = "catalog/postgres-debezium"
+  mount = "kv-bookstore"
   data_json = jsonencode({
     username = var.debezium_username,
     password = var.debezium_password,

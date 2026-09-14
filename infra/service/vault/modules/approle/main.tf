@@ -9,12 +9,12 @@ terraform {
 locals {
   service_policies = {
     argocd = [
-      { path = "kv/data/argocd/admin/credentials", capabilities = ["create", "read", "update", "list"] },
-      { path = "kv/data/argocd/admin/credentials/*", capabilities = ["create", "read", "update", "list"] },
-      { path = "kv/data/gitea/ssh/host", capabilities = ["read"] },
+      { path = "kv-infra/data/argocd/admin/credentials", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/argocd/admin/credentials/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/gitea/ssh/host", capabilities = ["read"] },
     ]
     gitea = [
-      { path = "kv/data/gitea/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/gitea/*", capabilities = ["create", "read", "update", "list"] },
       { path = "pki_int/issuer/*", capabilities = ["read"] },
       { path = "pki_int/roles/gitea", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/gitea-issuer", capabilities = ["create", "read", "update", "delete"] },
@@ -22,7 +22,7 @@ locals {
       { path = "auth/kubernetes/role/gitea-role", capabilities = ["create", "read", "update", "delete"] },
     ]
     harbor = [
-      { path = "kv/data/harbor/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/harbor/*", capabilities = ["create", "read", "update", "list"] },
       { path = "pki_int/issuer/*", capabilities = ["read"] },
       { path = "pki_int/roles/harbor", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/harbor-issuer", capabilities = ["create", "read", "update", "delete"] },
@@ -30,7 +30,7 @@ locals {
       { path = "auth/kubernetes/role/vso-harbor-role", capabilities = ["create", "read", "update", "delete"] },
     ]
     nexus = [
-      { path = "kv/data/nexus/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/nexus/*", capabilities = ["create", "read", "update", "list"] },
       { path = "pki_int/issuer/*", capabilities = ["read"] },
       { path = "pki_int/roles/nexus", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/nexus-issuer", capabilities = ["create", "read", "update", "delete"] },
@@ -38,12 +38,12 @@ locals {
       { path = "auth/kubernetes/role/nexus-role", capabilities = ["create", "read", "update", "delete"] },
     ]
     hyperswitch = [
-      { path = "kv/data/hyperswitch/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/hyperswitch/*", capabilities = ["create", "read", "update", "list"] },
       { path = "sys/policies/acl/vso-hyperswitch", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/vso-hyperswitch-role", capabilities = ["create", "read", "update", "delete"] },
     ]
     keycloak = [
-      { path = "kv/data/keycloak/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/keycloak/*", capabilities = ["create", "read", "update", "list"] },
       { path = "pki_int/issuer/*", capabilities = ["read"] },
       { path = "pki_int/roles/keycloak", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/keycloak-issuer", capabilities = ["create", "read", "update", "delete"] },
@@ -53,20 +53,20 @@ locals {
       { path = "auth/kubernetes/role/vso-oauth2-proxy-role", capabilities = ["create", "read", "update", "delete"] },
     ]
     opensearch = [
-      { path = "kv/data/opensearch/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/opensearch/*", capabilities = ["create", "read", "update", "list"] },
       { path = "sys/policies/acl/opensearch", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/opensearch-role", capabilities = ["create", "read", "update", "delete"] },
       { path = "sys/policies/acl/vso-opensearch", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/vso-opensearch-role", capabilities = ["create", "read", "update", "delete"] },
     ]
     grafana = [
-      { path = "kv/data/seaweedfs/s3/credentials", capabilities = ["read"] },
-      { path = "kv/data/grafana/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/seaweedfs/s3/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/grafana/*", capabilities = ["create", "read", "update", "list"] },
       { path = "sys/policies/acl/vso-grafana", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/vso-grafana-role", capabilities = ["create", "read", "update", "delete"] },
     ]
     # youtrack = [
-    #   { path = "kv/data/youtrack/*", capabilities = ["create", "read", "update", "list"] },
+    #   { path = "kv-infra/data/youtrack/*", capabilities = ["create", "read", "update", "list"] },
     #   { path = "sys/policies/acl/youtrack", capabilities = ["create", "read", "update", "delete"] },
     #   { path = "pki_int/issuer/*", capabilities = ["read"] },
     #   { path = "pki_int/roles/youtrack", capabilities = ["create", "read", "update", "delete"] },
@@ -74,19 +74,19 @@ locals {
     #   { path = "auth/kubernetes/role/youtrack-role", capabilities = ["create", "read", "update", "delete"] },
     # ]
     seaweedfs = [
-      { path = "kv/data/seaweedfs/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/seaweedfs/*", capabilities = ["create", "read", "update", "list"] },
     ]
     prometheus = [
-      { path = "kv/data/opensearch/admin/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/opensearch/admin/credentials", capabilities = ["read"] },
     ]
     postgresql = [
-      { path = "kv/data/postgresql/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/postgresql/*", capabilities = ["create", "read", "update", "list"] },
     ]
     kafka = [
-      { path = "kv/data/harbor/users/harbor-devops/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/harbor/robots/pull/credentials", capabilities = ["read"] },
     ]
     temporal = [
-      { path = "kv/data/temporal/mysql", capabilities = ["read"] },
+      { path = "kv-infra/data/temporal/mysql", capabilities = ["read"] },
     ]
     flink             = []
     foundation-alerts = []
@@ -96,50 +96,52 @@ locals {
 
   config_policies = {
     argocd-config = [
-      { path = "kv/data/argocd/admin/credentials", capabilities = ["read"] },
-      { path = "kv/data/argocd/*", capabilities = ["create", "read", "update", "list"] },
-      { path = "kv/data/gitea/admin/credentials", capabilities = ["read"] },
-      { path = "kv/data/gitea/ssh/*", capabilities = ["read"] },
+      { path = "kv-infra/data/argocd/admin/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/argocd/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/gitea/admin/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/gitea/ssh/*", capabilities = ["read"] },
     ]
     gitea-config = [
-      { path = "kv/data/gitea/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/gitea/*", capabilities = ["create", "read", "update", "list"] },
       { path = "sys/policies/acl/gitea-ssh", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/gitea-ssh-role", capabilities = ["create", "read", "update", "delete"] },
       { path = "sys/policies/acl/config-server-gitea", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/config-server-gitea-role", capabilities = ["create", "read", "update", "delete"] },
     ]
     gitea-repo-config = [
-      { path = "kv/data/gitea/admin/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/gitea/admin/credentials", capabilities = ["read"] },
     ]
     flink-config = [
-      { path = "kv/data/opensearch/admin/credentials", capabilities = ["read"] },
-      { path = "kv/data/harbor/users/harbor-devops/credentials", capabilities = ["read"] },
-      { path = "kv/data/seaweedfs/s3/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/opensearch/admin/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/harbor/robots/pull/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/seaweedfs/s3/credentials", capabilities = ["read"] },
     ]
     hyperswitch-config = [
-      { path = "kv/data/hyperswitch/app/credentials", capabilities = ["read"] },
-      { path = "kv/data/hyperswitch/payment", capabilities = ["create", "read", "update"] },
+      { path = "kv-infra/data/hyperswitch/app/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/hyperswitch/payment", capabilities = ["create", "read", "update"] },
     ]
     keycloak-config = [
-      { path = "kv/data/keycloak/*", capabilities = ["create", "read", "update", "list"] },
-      { path = "kv/data/bookstore/identity/*", capabilities = ["create", "read", "update", "list"] },
-      { path = "kv/data/bookstore/oauth2-proxy/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/keycloak/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-bookstore/data/identity/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-bookstore/data/oauth2-proxy/*", capabilities = ["create", "read", "update", "list"] },
     ]
     kyverno-config = [
-      { path = "kv/data/harbor/users/*", capabilities = ["read"] },
+      { path = "kv-infra/data/harbor/robots/pull/credentials", capabilities = ["read"] },
       { path = "transit/keys/cosign-key", capabilities = ["read"] },
     ]
     harbor-config = [
-      { path = "kv/data/harbor/admin/credentials", capabilities = ["read"] },
-      { path = "kv/data/harbor/users/*", capabilities = ["create", "read", "update", "list"] },
-      { path = "kv/data/harbor/ci/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/harbor/admin/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/harbor/users/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/harbor/robots/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/harbor/ci/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/keycloak/harbor-oidc/client-secret", capabilities = ["read"] },
     ]
     nexus-config = [
-      { path = "kv/data/nexus/admin/credentials", capabilities = ["read"] },
-      { path = "kv/data/nexus/publisher", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/nexus/admin/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/nexus/publisher", capabilities = ["create", "read", "update", "list"] },
     ]
     mysql-config = [
-      { path = "kv/data/bookstore/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-bookstore/data/*", capabilities = ["create", "read", "update", "list"] },
       { path = "sys/policies/acl/bookstore-mysql", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/bookstore-mysql-role", capabilities = ["create", "read", "update", "delete"] },
       { path = "database/config/*", capabilities = ["create", "read", "update", "delete"] },
@@ -149,10 +151,10 @@ locals {
       { path = "database/reset/*", capabilities = ["create", "update"] },
     ]
     opensearch-config = [
-      { path = "kv/data/opensearch/admin/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/opensearch/admin/credentials", capabilities = ["read"] },
     ]
     postgresql-config = [
-      { path = "kv/data/bookstore/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-bookstore/data/*", capabilities = ["create", "read", "update", "list"] },
       { path = "sys/policies/acl/bookstore-postgres", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/bookstore-postgres-role", capabilities = ["create", "read", "update", "delete"] },
       { path = "sys/policies/acl/bookstore-identity", capabilities = ["create", "read", "update", "delete"] },
@@ -166,16 +168,16 @@ locals {
       { path = "database/reset/*", capabilities = ["create", "update"] },
     ]
     bookstore-base-config = [
-      { path = "kv/data/harbor/users/harbor-devops/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/harbor/robots/pull/credentials", capabilities = ["read"] },
     ]
     tekton-config = [
-      { path = "kv/data/argocd/dev-ci/token", capabilities = ["read"] },
-      { path = "kv/data/gitea/admin/credentials", capabilities = ["read"] },
-      { path = "kv/data/gitea/resolver/token", capabilities = ["read"] },
-      { path = "kv/data/gitea/ssh/*", capabilities = ["read"] },
-      { path = "kv/data/gitea/webhook/*", capabilities = ["read"] },
-      { path = "kv/data/harbor/ci/credentials", capabilities = ["read"] },
-      { path = "kv/data/nexus/publisher", capabilities = ["read"] },
+      { path = "kv-infra/data/argocd/dev-ci/token", capabilities = ["read"] },
+      { path = "kv-infra/data/gitea/admin/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/gitea/resolver/token", capabilities = ["read"] },
+      { path = "kv-infra/data/gitea/ssh/*", capabilities = ["read"] },
+      { path = "kv-infra/data/gitea/webhook/*", capabilities = ["read"] },
+      { path = "kv-infra/data/harbor/ci/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/nexus/publisher", capabilities = ["read"] },
       { path = "transit/keys/cosign-key", capabilities = ["create", "read", "update", "delete"] },
       { path = "transit/keys/cosign-key/config", capabilities = ["create", "read", "update"] },
       { path = "transit/sign/cosign-key/*", capabilities = ["create", "read", "update"] },
@@ -202,7 +204,7 @@ locals {
     # "youtrack",
   ])
   grafana_alert_read_rules = [
-    { path = "kv/data/grafana/admin/credentials", capabilities = ["read"] },
+    { path = "kv-infra/data/grafana/admin/credentials", capabilities = ["read"] },
   ]
 
   all_policies = {
@@ -216,22 +218,25 @@ locals {
 }
 
 locals {
+  kv_data_pattern = "^kv-(bookstore|infra)/data/"
 
   policies_expanded = {
     for name, rules in local.all_policies : name => flatten([
       for r in rules : (
-        startswith(r.path, "kv/data/")
-        ? (
-          length(setintersection(toset(r.capabilities), toset(["create", "update", "delete"]))) > 0
-          ? [
-            { path = r.path, capabilities = distinct(concat(r.capabilities, ["delete"])) },
-            { path = replace(r.path, "kv/data/", "kv/metadata/"), capabilities = ["create", "read", "update", "list", "delete"] },
-          ]
-          : [
-            r,
-            { path = replace(r.path, "kv/data/", "kv/metadata/"), capabilities = ["read"] },
-          ]
-        )
+        can(regex(local.kv_data_pattern, r.path))
+        ? flatten([
+          for base in [r.path] : (
+            length(setintersection(toset(r.capabilities), toset(["create", "update", "delete"]))) > 0
+            ? [
+              { path = base, capabilities = distinct(concat(r.capabilities, ["delete"])) },
+              { path = replace(base, "/\\/data\\//", "/metadata/"), capabilities = ["create", "read", "update", "list", "delete"] },
+            ]
+            : [
+              { path = base, capabilities = r.capabilities },
+              { path = replace(base, "/\\/data\\//", "/metadata/"), capabilities = ["read"] },
+            ]
+          )
+        ])
         : [r]
       )
     ])

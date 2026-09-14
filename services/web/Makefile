@@ -13,9 +13,9 @@ NEXUS_NPM_AUTH ?=
 podman-build:
 	@auth=$$(mktemp); trap 'rm -f "$$auth" ca-chain.pem' EXIT; \
 	{ if [ -n "$(NEXUS_NPM_AUTH)" ]; then printf '%s' "$(NEXUS_NPM_AUTH)"; \
-	  else printf '%s:%s' "$$(vault kv get -mount=kv -field=username nexus/publisher)" \
-	                      "$$(vault kv get -mount=kv -field=password nexus/publisher)" | base64; fi; } > "$$auth" 2>/dev/null; \
-	[ -s "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_NPM_AUTH or ensure Vault kv/nexus/publisher is reachable)" >&2; exit 1; }; \
+	  else printf '%s:%s' "$$(vault kv get -mount=kv-infra -field=username nexus/publisher)" \
+	                      "$$(vault kv get -mount=kv-infra -field=password nexus/publisher)" | base64; fi; } > "$$auth" 2>/dev/null; \
+	[ -s "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_NPM_AUTH or ensure Vault kv-infra/nexus/publisher is reachable)" >&2; exit 1; }; \
 	vault read -field=certificate pki_int/cert/ca_chain > ca-chain.pem 2>/dev/null; \
 	[ -s ca-chain.pem ] || { echo "ERROR: no Nexus CA (ensure Vault pki_int is reachable)" >&2; exit 1; }; \
 	podman build \

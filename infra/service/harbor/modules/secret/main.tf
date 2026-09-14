@@ -58,7 +58,7 @@ resource "kubernetes_manifest" "vaultstaticsecret_harbor_admin" {
     }
     spec = {
       type         = "kv-v2"
-      mount        = "kv"
+      mount        = "kv-infra"
       path         = "harbor/admin/credentials"
       refreshAfter = "1h"
       vaultAuthRef = "harbor"
@@ -80,7 +80,7 @@ resource "kubernetes_manifest" "vaultstaticsecret_harbor_registry" {
     }
     spec = {
       type         = "kv-v2"
-      mount        = "kv"
+      mount        = "kv-infra"
       path         = "harbor/registry/credentials"
       refreshAfter = "1h"
       vaultAuthRef = "harbor"
@@ -89,5 +89,22 @@ resource "kubernetes_manifest" "vaultstaticsecret_harbor_registry" {
         create = true
       }
     }
+  }
+}
+
+data "kubernetes_config_map_v1" "vault_pki_ca" {
+  metadata {
+    name      = var.ca_configmap_name
+    namespace = var.ca_configmap_namespace
+  }
+}
+
+resource "kubernetes_secret_v1" "ca_bundle" {
+  metadata {
+    name      = "harbor-ca-bundle"
+    namespace = var.namespace
+  }
+  data = {
+    "ca.crt" = data.kubernetes_config_map_v1.vault_pki_ca.data[var.ca_configmap_key]
   }
 }

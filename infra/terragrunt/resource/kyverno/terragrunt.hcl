@@ -34,7 +34,6 @@ inputs = {
   image_pull_secret = "harbor-pull"
 
   harbor_address = "harbor.example.com"
-  harbor_user    = "harbor-devops"
 
   cosign_key_name = "cosign-key"
 

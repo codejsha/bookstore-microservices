@@ -17,9 +17,9 @@ podAnnotations:
   vault.hashicorp.com/agent-inject: "true"
   vault.hashicorp.com/agent-init-first: "true"
   vault.hashicorp.com/role: "config-server-gitea-role"
-  vault.hashicorp.com/agent-inject-secret-git.properties: "kv/data/gitea/admin/credentials"
+  vault.hashicorp.com/agent-inject-secret-git.properties: "kv-infra/data/gitea/admin/credentials"
   vault.hashicorp.com/agent-inject-template-git.properties: |
-    {{- with secret "kv/data/gitea/admin/credentials" -}}
+    {{- with secret "kv-infra/data/gitea/admin/credentials" -}}
     gitea.username={{ .Data.data.username }}
     gitea.password={{ .Data.data.password }}
     {{- end -}}

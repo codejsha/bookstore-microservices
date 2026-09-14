@@ -33,7 +33,7 @@ variable "harbor_pull_secret_name" {
 variable "harbor_pull_vault_path" {
   description = "Vault kv (v2) path holding the harbor pull identity {username, password}."
   type        = string
-  default     = "harbor/users/harbor-devops/credentials"
+  default     = "harbor/robots/pull/credentials"
 }
 
 variable "vault_url" {

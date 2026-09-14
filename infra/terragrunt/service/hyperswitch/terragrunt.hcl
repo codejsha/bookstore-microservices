@@ -52,13 +52,13 @@ terraform {
         jwt="$(kubectl create token tf-${local.vault_role} -n ${local.common.vault_ns} --duration=20m)")
       export VAULT_TOKEN
 
-      if ! vault kv get -field=admin_api_key kv/hyperswitch/app/credentials >/dev/null 2>&1; then
+      if ! vault kv get -field=admin_api_key kv-infra/hyperswitch/app/credentials >/dev/null 2>&1; then
         admin_api_key=$(vault read -field=password sys/policies/password/password-alphanumeric/generate)
         jwt_secret=$(vault read -field=password sys/policies/password/password-alphanumeric/generate)
         recon_admin_api_key=$(vault read -field=password sys/policies/password/password-alphanumeric/generate)
         master_enc_key=$(openssl rand -hex 32)
         user_auth_encryption_key=$(openssl rand -hex 32)
-        vault kv put kv/hyperswitch/app/credentials \
+        vault kv put kv-infra/hyperswitch/app/credentials \
           admin_api_key="$admin_api_key" \
           jwt_secret="$jwt_secret" \
           recon_admin_api_key="$recon_admin_api_key" \
@@ -67,9 +67,9 @@ terraform {
           >/dev/null
       fi
 
-      if ! vault kv get -field=master_key kv/hyperswitch/card-vault/credentials >/dev/null 2>&1; then
+      if ! vault kv get -field=master_key kv-infra/hyperswitch/card-vault/credentials >/dev/null 2>&1; then
         card_vault_master_key=$(openssl rand -hex 64)
-        vault kv put kv/hyperswitch/card-vault/credentials \
+        vault kv put kv-infra/hyperswitch/card-vault/credentials \
           master_key="$card_vault_master_key" \
           >/dev/null
       fi

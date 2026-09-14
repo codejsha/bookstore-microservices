@@ -20,7 +20,7 @@ terraform {
 }
 
 data "vault_kv_secret_v2" "seaweedfs" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "seaweedfs/s3/credentials"
 }
 

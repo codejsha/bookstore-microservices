@@ -58,7 +58,7 @@ resource "kubernetes_manifest" "vaultstaticsecret_oauth2_proxy" {
     }
     spec = {
       type         = "kv-v2"
-      mount        = "kv"
+      mount        = "kv-bookstore"
       path         = var.vault_kv_path
       refreshAfter = "1h"
       vaultAuthRef = "oauth2-proxy"

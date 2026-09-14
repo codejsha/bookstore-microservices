@@ -1,12 +1,12 @@
-path "kv/data/bookstore/order/mysql*" { capabilities = ["read"] }
-path "kv/data/bookstore/payment/mysql*" { capabilities = ["read"] }
-path "kv/data/bookstore/delivery/mysql*" { capabilities = ["read"] }
-path "kv/data/bookstore/notification/mysql*" { capabilities = ["read"] }
-path "kv/data/bookstore/support/mysql*" { capabilities = ["read"] }
-path "kv/data/bookstore/settlement/mysql*" { capabilities = ["read"] }
-path "kv/data/bookstore/identity/keycloak" { capabilities = ["read"] }
+path "kv-bookstore/data/order/mysql*" { capabilities = ["read"] }
+path "kv-bookstore/data/payment/mysql*" { capabilities = ["read"] }
+path "kv-bookstore/data/delivery/mysql*" { capabilities = ["read"] }
+path "kv-bookstore/data/notification/mysql*" { capabilities = ["read"] }
+path "kv-bookstore/data/support/mysql*" { capabilities = ["read"] }
+path "kv-bookstore/data/settlement/mysql*" { capabilities = ["read"] }
+path "kv-bookstore/data/identity/keycloak" { capabilities = ["read"] }
 
-path "kv/data/hyperswitch/payment" { capabilities = ["read"] }
+path "kv-infra/data/hyperswitch/payment" { capabilities = ["read"] }
 
 path "database/creds/order-mysql-dynamic" { capabilities = ["read"] }
 path "database/creds/payment-mysql-dynamic" { capabilities = ["read"] }

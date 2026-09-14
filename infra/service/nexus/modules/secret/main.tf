@@ -51,7 +51,7 @@ resource "kubernetes_manifest" "vaultstaticsecret_nexus_admin" {
     }
     spec = {
       type         = "kv-v2"
-      mount        = "kv"
+      mount        = "kv-infra"
       path         = "nexus/admin/credentials"
       refreshAfter = "1h"
       vaultAuthRef = "nexus"

@@ -16,7 +16,7 @@ terraform {
 }
 
 ephemeral "vault_kv_secret_v2" "harbor_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "harbor/admin/credentials"
 }
 
@@ -26,35 +26,16 @@ provider "harbor" {
   password = ephemeral.vault_kv_secret_v2.harbor_admin.data["password"]
 }
 
-resource "random_password" "harbor_user" {
-  for_each = toset(var.harbor_usernames)
-  length   = 24
-  special  = false
+data "vault_kv_secret_v2" "harbor_oidc" {
+  mount = "kv-infra"
+  name  = "keycloak/harbor-oidc/client-secret"
 }
 
-locals {
-  harbor_users_set = toset([
-    for u in var.harbor_usernames : {
-      username = u
-      email    = "${u}@example.com"
-      password = random_password.harbor_user[u].result
-    }
-  ])
-}
-
-resource "vault_kv_secret_v2" "harbor_user" {
-  for_each = toset(var.harbor_usernames)
-  mount    = "kv"
-  name     = "harbor/users/${each.value}/credentials"
-  data_json = jsonencode({
-    username = each.value
-    password = random_password.harbor_user[each.value].result
-  })
-}
-
-module "user" {
-  source       = "./modules/user"
-  harbor_users = local.harbor_users_set
+module "auth" {
+  source             = "./modules/auth"
+  oidc_endpoint      = var.oidc_issuer
+  oidc_client_id     = data.vault_kv_secret_v2.harbor_oidc.data["client_id"]
+  oidc_client_secret = data.vault_kv_secret_v2.harbor_oidc.data["client_secret"]
   providers = {
     harbor = harbor
   }
@@ -63,6 +44,7 @@ module "user" {
 module "project" {
   source          = "./modules/project"
   harbor_projects = var.harbor_projects
+  depends_on      = [module.auth]
   providers = {
     harbor = harbor
   }

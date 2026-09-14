@@ -21,7 +21,7 @@ resource "vault_kubernetes_auth_backend_role" "youtrack" {
 
 resource "vault_kv_secret_v2" "license" {
   name  = "youtrack/license/credentials"
-  mount = "kv"
+  mount = "kv-infra"
   data_json = jsonencode({
     license_name = ""
     license_key  = ""

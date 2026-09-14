@@ -20,12 +20,12 @@ terraform {
 }
 
 ephemeral "vault_kv_secret_v2" "grafana_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "grafana/admin/credentials"
 }
 
 data "vault_kv_secret_v2" "argocd_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "argocd/admin/credentials"
 }
 
@@ -60,13 +60,22 @@ resource "kubernetes_limit_range_v1" "resource_limits" {
 }
 
 data "vault_kv_secret_v2" "gitea_ssh_host" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "gitea/ssh/host"
+}
+
+data "kubernetes_config_map_v1" "vault_pki_ca" {
+  metadata {
+    name      = var.ca_configmap_name
+    namespace = var.ca_configmap_namespace
+  }
 }
 
 module "helm" {
   source                = "./modules/helm"
   namespace             = kubernetes_namespace_v1.argocd.metadata[0].name
+  oidc_issuer           = var.oidc_issuer
+  oidc_root_ca          = data.kubernetes_config_map_v1.vault_pki_ca.data[var.ca_configmap_key]
   admin_password_bcrypt = data.vault_kv_secret_v2.argocd_admin.data["password_bcrypt"]
   admin_password_mtime  = data.vault_kv_secret_v2.argocd_admin.data["password_mtime"]
   ssh_extra_hosts       = "${var.gitea_ssh_fqdn} ${data.vault_kv_secret_v2.gitea_ssh_host.data["public"]}"

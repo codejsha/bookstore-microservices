@@ -1,1 +1,1 @@
-path "kv/data/nexus/*" { capabilities = ["read"] }
+path "kv-infra/data/nexus/*" { capabilities = ["read"] }

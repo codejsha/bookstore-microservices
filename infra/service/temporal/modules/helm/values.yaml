@@ -120,6 +120,30 @@ web:
       memory: 128Mi
   ingress:
     enabled: false
+  additionalEnv:
+    - name: TEMPORAL_AUTH_ENABLED
+      value: "true"
+    - name: TEMPORAL_AUTH_TYPE
+      value: oidc
+    - name: TEMPORAL_AUTH_LABEL
+      value: Keycloak
+    - name: TEMPORAL_AUTH_PROVIDER_URL
+      value: https://keycloak.example.com/realms/platform-infra
+    - name: TEMPORAL_AUTH_CALLBACK_URL
+      value: https://temporal.example.com/auth/sso/callback
+    - name: TEMPORAL_AUTH_SCOPES
+      value: openid,profile,email,groups
+    - name: SSL_CERT_DIR
+      value: /etc/ssl/certs:/etc/temporal/keycloak-ca
+  additionalEnvSecretName: temporal-web-oidc
+  additionalVolumes:
+    - name: keycloak-ca
+      configMap:
+        name: temporal-keycloak-ca
+  additionalVolumeMounts:
+    - name: keycloak-ca
+      mountPath: /etc/temporal/keycloak-ca
+      readOnly: true
 
 admintools:
   enabled: true

@@ -2,7 +2,7 @@ SERVICES := admin catalog customer delivery identity inventory order payment
 CONFIG := config.toml
 SPEC_DIR := ../../services
 PUBLISH_SCRIPT := ../../scripts/nexus-npm-publish.sh
-VAULT_PUBLISHER_PATH := kv/nexus/publisher
+VAULT_PUBLISHER_PATH := kv-infra/nexus/publisher
 VAULT_ADDR ?= http://vault.example.com
 NEXUS_CA_FILE ?=
 

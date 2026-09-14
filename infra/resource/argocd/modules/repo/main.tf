@@ -15,7 +15,7 @@ locals {
 
 data "vault_kv_secret_v2" "repo_ssh_keys" {
   for_each = toset(var.app_repos)
-  mount    = "kv"
+  mount    = "kv-infra"
   name     = "gitea/ssh/${each.key}"
 }
 

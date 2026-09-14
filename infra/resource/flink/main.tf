@@ -16,17 +16,17 @@ locals {
 }
 
 data "vault_kv_secret_v2" "opensearch_admin" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "opensearch/admin/credentials"
 }
 
 data "vault_kv_secret_v2" "harbor_pull" {
-  mount = "kv"
-  name  = "harbor/users/harbor-devops/credentials"
+  mount = "kv-infra"
+  name  = "harbor/robots/pull/credentials"
 }
 
 data "vault_kv_secret_v2" "seaweedfs_s3" {
-  mount = "kv"
+  mount = "kv-infra"
   name  = "seaweedfs/s3/credentials"
 }
 
