@@ -34,7 +34,22 @@ initContainers:
       cpu: 10m
       memory: 128Mi
 
+deployment:
+  env:
+    - name: SSL_CERT_DIR
+      value: /etc/ssl/certs:/etc/gitea/keycloak-ca
+
 gitea:
+  oauth:
+    - name: Keycloak
+      provider: openidConnect
+      existingSecret: gitea-oidc
+      autoDiscoverUrl: https://keycloak.example.com/realms/platform-infra/.well-known/openid-configuration
+      scopes: "openid profile email groups"
+      groupClaimName: groups
+      adminGroup: ADMIN
+      groupTeamMap: '{"OPERATOR":{"example-corp":["devops-team"]},"DEVELOPER":{"example-corp":["dev-team"]}}'
+
   metrics:
     enabled: true
     serviceMonitor:
@@ -52,11 +67,21 @@ gitea:
       ISSUE_INDEXER_TYPE: bleve
       REPO_INDEXER_ENABLED: true
     server:
+      ROOT_URL: https://git.example.com/
       SSH_PORT: 22
       SSH_LISTEN_PORT: 2222
       SSH_SERVER_HOST_KEYS: /etc/gitea/ssh/gitea.rsa
     webhook:
       ALLOWED_HOST_LIST: "*.svc.cluster.local"
+    service:
+      DISABLE_REGISTRATION: false
+      ALLOW_ONLY_EXTERNAL_REGISTRATION: true
+      ENABLE_PASSWORD_SIGNIN_FORM: false
+    oauth2_client:
+      ENABLE_AUTO_REGISTRATION: true
+      USERNAME: preferred_username
+      ACCOUNT_LINKING: auto
+      UPDATE_AVATAR: false
     actions:
       ENABLED: true
 

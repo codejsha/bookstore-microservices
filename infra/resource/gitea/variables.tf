@@ -34,15 +34,7 @@ variable "org_name" {
   type        = string
 }
 
-variable "dev_usernames" {
-  description = "Development usernames; passwords are generated and stored in vault."
-  type        = list(string)
-}
 
-variable "devops_usernames" {
-  description = "DevOps usernames; passwords are generated and stored in vault."
-  type        = list(string)
-}
 
 variable "dev_repos" {
   description = "List of repositories"

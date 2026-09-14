@@ -23,18 +23,6 @@ terraform {
   }
 }
 
-resource "random_password" "dev" {
-  for_each = toset(var.dev_usernames)
-  length   = 20
-  special  = false
-}
-
-resource "random_password" "devops" {
-  for_each = toset(var.devops_usernames)
-  length   = 20
-  special  = false
-}
-
 resource "random_password" "webhook" {
   length  = 40
   special = false
@@ -65,11 +53,6 @@ resource "vault_kv_secret_v2" "tekton_resolver_ssh" {
     private = tls_private_key.tekton_resolver.private_key_pem
     public  = tls_private_key.tekton_resolver.public_key_openssh
   })
-}
-
-locals {
-  dev_user_credentials    = [for u in var.dev_usernames : { username = u, password = random_password.dev[u].result }]
-  devops_user_credentials = [for u in var.devops_usernames : { username = u, password = random_password.devops[u].result }]
 }
 
 ephemeral "vault_kv_secret_v2" "gitea_admin" {
@@ -122,24 +105,22 @@ module "repos" {
 }
 
 module "dev_team" {
-  depends_on       = [module.organization, module.repos]
-  source           = "./modules/team"
-  org_name         = var.org_name
-  team_name        = "dev-team"
-  user_repos       = var.dev_repos
-  user_credentials = local.dev_user_credentials
+  depends_on = [module.organization, module.repos]
+  source     = "./modules/team"
+  org_name   = var.org_name
+  team_name  = "dev-team"
+  user_repos = var.dev_repos
   providers = {
     gitea = gitea
   }
 }
 
 module "devops_team" {
-  depends_on       = [module.organization, module.repos]
-  source           = "./modules/team"
-  org_name         = var.org_name
-  team_name        = "devops-team"
-  user_repos       = var.devops_repos
-  user_credentials = local.devops_user_credentials
+  depends_on = [module.organization, module.repos]
+  source     = "./modules/team"
+  org_name   = var.org_name
+  team_name  = "devops-team"
+  user_repos = var.devops_repos
   providers = {
     gitea = gitea
   }

@@ -44,11 +44,29 @@ resource "helm_release" "gitea" {
             defaultMode = 416
           }
         },
+        {
+          name = "keycloak-ca"
+          configMap = {
+            name = var.keycloak_ca_configmap_name
+          }
+        },
       ]
       extraContainerVolumeMounts = [
         {
           name      = "ssh-host-key"
           mountPath = "/etc/gitea/ssh"
+          readOnly  = true
+        },
+        {
+          name      = "keycloak-ca"
+          mountPath = "/etc/gitea/keycloak-ca"
+          readOnly  = true
+        },
+      ]
+      extraInitVolumeMounts = [
+        {
+          name      = "keycloak-ca"
+          mountPath = "/etc/gitea/keycloak-ca"
           readOnly  = true
         },
       ]

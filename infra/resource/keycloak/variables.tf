@@ -151,3 +151,13 @@ variable "infra_bootstrap_accounts" {
     role       = string
   }))
 }
+
+variable "gitea_url" {
+  description = "Gitea external URL"
+  type        = string
+}
+
+variable "gitea_namespace" {
+  description = "Gitea namespace"
+  type        = string
+}

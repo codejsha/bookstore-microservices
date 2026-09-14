@@ -48,6 +48,8 @@ inputs = {
   kiali_namespace  = "istio-system"
   grafana_url       = "https://grafana.example.com"
   harbor_url        = "https://harbor.example.com"
+  gitea_url         = "https://git.example.com"
+  gitea_namespace   = "gitea"
   grafana_namespace = "grafana"
 
   web_root_url                        = "http://localhost:5173"

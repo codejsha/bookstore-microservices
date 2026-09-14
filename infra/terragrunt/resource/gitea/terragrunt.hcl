@@ -51,8 +51,6 @@ inputs = {
   ]
   devops_repos = []
 
-  dev_usernames    = ["devadmin"]
-  devops_usernames = ["devopsadmin"]
 }
 
 terraform {

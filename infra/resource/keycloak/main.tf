@@ -141,6 +141,19 @@ moved {
   to   = module.infra_realm.keycloak_openid_user_realm_role_protocol_mapper.groups
 }
 
+module "gitea_oidc" {
+  source            = "./modules/gitea-oidc"
+  realm_id          = module.infra_realm.realm_id
+  groups_scope_name = module.infra_realm.groups_scope_name
+  gitea_url         = var.gitea_url
+  namespace         = var.gitea_namespace
+  providers = {
+    keycloak   = keycloak
+    vault      = vault
+    kubernetes = kubernetes
+  }
+}
+
 module "grafana_oidc" {
   source      = "./modules/grafana-oidc"
   realm_id    = module.infra_realm.realm_id
