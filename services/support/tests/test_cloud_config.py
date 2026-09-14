@@ -6,6 +6,7 @@ from internal.config.config import (
     DatabaseConfig,
     ServerConfig,
     Settings,
+    vault_env_prefix,
 )
 
 ENV_PREFIX = "SUPPORT"
@@ -172,3 +173,12 @@ class TestSettingsPrecedence:
 
         assert settings.server.mode == ServerConfig().mode
         assert settings.database.host == DatabaseConfig().host
+
+    def test_settings_database_from_source_keeps_vault_prefix_available(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        self._clear_env(monkeypatch)
+        monkeypatch.setattr(cc, "fetch_cloud_config", lambda _app: {})
+
+        settings = Settings(database={"host": "db", "port": 3306, "db_name": "x"})
+
+        assert settings.database.host == "db"
+        assert vault_env_prefix() == ENV_PREFIX

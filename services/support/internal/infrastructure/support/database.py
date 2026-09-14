@@ -65,7 +65,11 @@ def _make_do_connect(prefix: str, cache: _CredsCache):
 
 def create_engine_and_session_factory(
     config: DatabaseConfig,
+    vault_env_prefix: str,
 ) -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
+    if not vault_env_prefix:
+        raise ValueError("vault_env_prefix must not be empty")
+
     engine = create_async_engine(
         config.url,
         pool_size=10,
@@ -81,12 +85,12 @@ def create_engine_and_session_factory(
     event.listen(
         engine.sync_engine,
         "do_connect",
-        _make_do_connect(config.vault_env_prefix, _cache),
+        _make_do_connect(vault_env_prefix, _cache),
     )
 
     return engine, async_sessionmaker(bind=engine, expire_on_commit=False)
 
 
-def create_session_factory(config: DatabaseConfig) -> async_sessionmaker[AsyncSession]:
-    _, factory = create_engine_and_session_factory(config)
+def create_session_factory(config: DatabaseConfig, vault_env_prefix: str) -> async_sessionmaker[AsyncSession]:
+    _, factory = create_engine_and_session_factory(config, vault_env_prefix)
     return factory

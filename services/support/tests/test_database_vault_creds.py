@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from internal.config.config import DatabaseConfig
 from internal.infrastructure.support import database
 
 ENV_PREFIX = "SUPPORT"
@@ -69,3 +70,9 @@ class TestDoConnect:
 
         assert do_connect(None, None, [], cparams) is None
         assert cparams == {"user": "static-user", "password": "static-pass"}
+
+
+class TestCreateSessionFactory:
+    def test_create_session_factory_empty_prefix_raises(self) -> None:
+        with pytest.raises(ValueError):
+            database.create_session_factory(DatabaseConfig(), "")

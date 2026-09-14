@@ -2,7 +2,7 @@ import asyncio
 
 from sqlalchemy import text
 
-from internal.config.config import Settings
+from internal.config.config import Settings, vault_env_prefix
 from internal.domain.service.delivery_service import (
     CarrierService,
     FreightService,
@@ -23,7 +23,7 @@ _PING_TIMEOUT = 3.0
 class Container:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self._session_factory = create_session_factory(settings.database)
+        self._session_factory = create_session_factory(settings.database, vault_env_prefix())
 
         self.shipment_repo = MySQLShipmentRepository(self._session_factory)
         self.tracking_repo = MySQLTrackingRepository(self._session_factory)

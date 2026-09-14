@@ -3,7 +3,7 @@ import asyncio
 from sqlalchemy import text
 
 from internal.application.port.repo.repos import NotificationRepository, TemplateRepository
-from internal.config.config import Settings
+from internal.config.config import Settings, vault_env_prefix
 from internal.domain.service.notification_service import NotificationService
 from internal.infrastructure.adapter.mysql.notification_repo import MySQLNotificationRepository
 from internal.infrastructure.adapter.mysql.template_repo import MySQLTemplateRepository
@@ -17,7 +17,7 @@ _PING_TIMEOUT = 3.0
 class Container:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self._session_factory = create_session_factory(settings.database)
+        self._session_factory = create_session_factory(settings.database, vault_env_prefix())
 
         self.notification_repo: NotificationRepository = MySQLNotificationRepository(self._session_factory)
         self.template_repo: TemplateRepository = MySQLTemplateRepository(self._session_factory)
