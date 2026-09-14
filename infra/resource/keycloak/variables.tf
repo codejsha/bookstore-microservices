@@ -161,3 +161,13 @@ variable "gitea_namespace" {
   description = "Gitea namespace"
   type        = string
 }
+
+variable "temporal_url" {
+  description = "Temporal Web UI external URL"
+  type        = string
+}
+
+variable "temporal_namespace" {
+  description = "Temporal namespace"
+  type        = string
+}
