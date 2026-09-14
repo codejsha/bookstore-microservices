@@ -129,7 +129,7 @@ module "alertrules" {
     },
     {
       name        = "IstioMTLSPolicyError"
-      expr        = "sum(rate(istio_requests_total{connection_security_policy!=\"mutual_tls\",destination_service_namespace!=\"\"}[5m])) > 0"
+      expr        = "sum(rate(istio_requests_total{reporter=~\"waypoint|destination\",connection_security_policy!=\"mutual_tls\",destination_service_namespace!=\"\"}[5m])) > 0"
       for         = "15m"
       severity    = "warning"
       summary     = "Non-mTLS traffic detected in mesh"
@@ -209,7 +209,7 @@ module "alertrules" {
     },
     {
       name        = "ContainerOOMKilled"
-      expr        = "kube_pod_container_status_last_terminated_reason{reason=\"OOMKilled\"} == 1"
+      expr        = "(kube_pod_container_status_last_terminated_reason{reason=\"OOMKilled\"} == 1) and on (namespace, pod, container) (increase(kube_pod_container_status_restarts_total[15m]) > 0)"
       for         = "0m"
       severity    = "warning"
       summary     = "Container OOM killed ({{ $labels.namespace }}/{{ $labels.pod }})"

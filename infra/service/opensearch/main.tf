@@ -152,11 +152,11 @@ module "alertrules" {
     },
     {
       name        = "OpenSearchGCPauseHigh"
-      expr        = "avg_over_time(opensearch_jvm_gc_collection_time_seconds[10m]) > 0.5"
+      expr        = "max by (node, gc) (rate(opensearch_jvm_gc_collection_time_seconds[10m])) > 0.5"
       for         = "10m"
       severity    = "warning"
       summary     = "OpenSearch GC pause time high"
-      description = "OpenSearch node {{ $labels.node }} average GC pause time is {{ $value }}s, exceeding 0.5s threshold."
+      description = "OpenSearch node {{ $labels.node }} spends {{ $value }}s per second in {{ $labels.gc }} GC, exceeding 0.5s threshold."
     },
   ]
   providers = {

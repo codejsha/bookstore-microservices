@@ -54,13 +54,12 @@ module "alertrules" {
   parent_folder_uid = "alerts"
   rules = [
     {
-      name          = "KyvernoAdmissionDown"
-      expr          = "absent(up{job=\"kyverno-svc-metrics\"} == 1)"
-      for           = "5m"
-      severity      = "critical"
-      summary       = "Kyverno admission controller is down"
-      description   = "No healthy kyverno admission controller has been scraped for 5 minutes. The resource webhook fails open, so unsigned images are admitted while it is down."
-      no_data_state = "Alerting"
+      name        = "KyvernoAdmissionDown"
+      expr        = "absent(up{job=\"kyverno-svc-metrics\"} == 1)"
+      for         = "5m"
+      severity    = "critical"
+      summary     = "Kyverno admission controller is down"
+      description = "No healthy kyverno admission controller has been scraped for 5 minutes. The resource webhook fails open, so unsigned images are admitted while it is down."
     },
     {
       name        = "KyvernoAdmissionSlow"

@@ -239,7 +239,7 @@ module "alertrules" {
     },
     {
       name        = "KafkaTopicPartitionSkew"
-      expr        = "max without(partition) (kafka_log_log_size) / min without(partition) (kafka_log_log_size) > 1.5"
+      expr        = "max without (partition) (kafka_log_log_size{topic!~\"__.*|kafka-connect-.*\"}) / (min without (partition) (kafka_log_log_size{topic!~\"__.*|kafka-connect-.*\"}) > 0) > 1.5"
       for         = "10m"
       severity    = "warning"
       summary     = "Kafka topic partition skew detected"
