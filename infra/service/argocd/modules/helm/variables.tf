@@ -19,3 +19,13 @@ variable "ssh_extra_hosts" {
   type        = string
   default     = ""
 }
+
+variable "oidc_issuer" {
+  description = "OIDC issuer URL of the Keycloak realm that signs Argo CD logins"
+  type        = string
+}
+
+variable "oidc_root_ca" {
+  description = "PEM chain that signs the Keycloak edge certificate, trusted by Argo CD for OIDC discovery and token exchange"
+  type        = string
+}

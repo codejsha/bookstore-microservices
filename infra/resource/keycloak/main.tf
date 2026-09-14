@@ -80,9 +80,24 @@ module "realm_roles" {
   }
 }
 
+module "infra_realm" {
+  source             = "./modules/infra-realm"
+  realm_name         = var.infra_realm_name
+  bootstrap_accounts = var.infra_bootstrap_accounts
+  roles = {
+    DEVELOPER = "Developer: read and sync deployments, view dashboards and the mesh console"
+    OPERATOR  = "Platform operator: manage deployments and edit dashboards"
+    ADMIN     = "Platform administrator: full control of infrastructure tools"
+  }
+  providers = {
+    keycloak = keycloak
+    vault    = vault
+  }
+}
+
 module "argocd_oidc" {
   source     = "./modules/argocd-oidc"
-  realm_id   = module.realm.realm_id
+  realm_id   = module.infra_realm.realm_id
   argocd_url = var.argocd_url
   namespace  = var.argocd_namespace
   providers = {
@@ -94,7 +109,7 @@ module "argocd_oidc" {
 
 module "kiali_oidc" {
   source    = "./modules/kiali-oidc"
-  realm_id  = module.realm.realm_id
+  realm_id  = module.infra_realm.realm_id
   kiali_url = var.kiali_url
   namespace = var.kiali_namespace
   providers = {
@@ -104,11 +119,23 @@ module "kiali_oidc" {
   }
 }
 
+module "grafana_oidc" {
+  source      = "./modules/grafana-oidc"
+  realm_id    = module.infra_realm.realm_id
+  grafana_url = var.grafana_url
+  namespace   = var.grafana_namespace
+  providers = {
+    keycloak   = keycloak
+    vault      = vault
+    kubernetes = kubernetes
+  }
+}
+
 module "identity_client" {
-  source               = "./modules/identity-client"
-  realm_id             = module.realm.realm_id
-  realm_admin_username = var.identity_realm_admin_username
-  manage_role_id       = module.realm_roles.role_ids["MANAGE"]
+  source           = "./modules/identity-client"
+  realm_id         = module.realm.realm_id
+  manager_username = var.bookstore_manager_username
+  manage_role_id   = module.realm_roles.role_ids["MANAGE"]
   providers = {
     keycloak = keycloak
     vault    = vault

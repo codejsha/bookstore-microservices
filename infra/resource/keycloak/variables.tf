@@ -43,6 +43,16 @@ variable "kiali_namespace" {
   type        = string
 }
 
+variable "grafana_url" {
+  description = "Grafana external URL"
+  type        = string
+}
+
+variable "grafana_namespace" {
+  description = "Grafana namespace"
+  type        = string
+}
+
 variable "vault_url" {
   description = "Vault URL"
   type        = string
@@ -78,8 +88,8 @@ variable "web_web_origins" {
   type        = list(string)
 }
 
-variable "identity_realm_admin_username" {
-  description = "Realm admin username for identity service"
+variable "bookstore_manager_username" {
+  description = "Terraform-managed MANAGE account in the bookstore realm for the admin console"
   type        = string
 }
 
@@ -117,4 +127,22 @@ variable "oauth2_proxy_valid_post_logout_redirect_uris" {
 variable "oauth2_proxy_web_origins" {
   description = "Allowed CORS origins for oauth2-proxy"
   type        = list(string)
+}
+
+variable "infra_realm_name" {
+  description = "Keycloak realm name for platform operators and infrastructure tools"
+  type        = string
+}
+
+
+
+variable "infra_bootstrap_accounts" {
+  description = "Terraform-managed break-glass accounts in the infra realm, keyed by their Vault path segment"
+  type = map(object({
+    username   = string
+    email      = string
+    first_name = string
+    last_name  = string
+    role       = string
+  }))
 }

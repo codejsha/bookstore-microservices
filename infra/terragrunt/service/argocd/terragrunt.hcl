@@ -42,6 +42,7 @@ inputs = {
   gitea_ssh_fqdn  = "gitea-ssh.gitea.svc.cluster.local"
 
   grafana_url = "https://grafana.example.com"
+  oidc_issuer = "https://keycloak.example.com/realms/platform-infra"
 }
 
 terraform {

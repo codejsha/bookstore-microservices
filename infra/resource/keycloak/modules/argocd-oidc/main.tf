@@ -16,7 +16,7 @@ resource "keycloak_openid_client" "argocd" {
   realm_id                     = var.realm_id
   client_id                    = "argocd"
   name                         = "ArgoCD"
-  description                  = "Confidential client for Argo CD SSO: OIDC login with realm group membership mapped into the groups claim."
+  description                  = "Confidential client for Argo CD SSO: OIDC login with platform realm roles mapped into the groups claim."
   enabled                      = true
   access_type                  = "CONFIDENTIAL"
   standard_flow_enabled        = true
@@ -29,18 +29,31 @@ resource "keycloak_openid_client" "argocd" {
   root_url    = var.argocd_url
 }
 
-resource "keycloak_group" "argocd_groups" {
-  for_each = toset(["devadmin", "devopsadmin", "dev-user"])
-  realm_id = var.realm_id
-  name     = each.key
+resource "keycloak_openid_client_scope" "groups" {
+  realm_id               = var.realm_id
+  name                   = "groups"
+  description            = "Platform realm roles exposed as the groups claim for Argo CD RBAC"
+  include_in_token_scope = true
 }
 
-resource "keycloak_openid_group_membership_protocol_mapper" "argocd_groups" {
-  realm_id   = var.realm_id
-  client_id  = keycloak_openid_client.argocd.id
-  name       = "groups"
-  claim_name = "groups"
-  full_path  = false
+resource "keycloak_openid_user_realm_role_protocol_mapper" "argocd_groups" {
+  realm_id        = var.realm_id
+  client_scope_id = keycloak_openid_client_scope.groups.id
+  name            = "realm-roles-as-groups"
+
+  claim_name          = "groups"
+  multivalued         = true
+  add_to_id_token     = true
+  add_to_access_token = false
+  add_to_userinfo     = true
+}
+
+resource "keycloak_openid_client_default_scopes" "argocd" {
+  realm_id  = var.realm_id
+  client_id = keycloak_openid_client.argocd.id
+  default_scopes = concat(var.builtin_default_scopes, [
+    keycloak_openid_client_scope.groups.name,
+  ])
 }
 
 resource "vault_kv_secret_v2" "argocd_oidc_secret" {

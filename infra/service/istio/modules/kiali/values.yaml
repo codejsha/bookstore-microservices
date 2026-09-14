@@ -14,7 +14,7 @@ auth:
   strategy: openid
   openid:
     client_id: kiali
-    issuer_uri: "https://keycloak.example.com/realms/bookstore"
+    issuer_uri: "https://keycloak.example.com/realms/platform-infra"
     username_claim: preferred_username
     scopes:
       - openid

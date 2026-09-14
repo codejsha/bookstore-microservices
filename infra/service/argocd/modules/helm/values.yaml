@@ -5,35 +5,25 @@ configs:
   params:
     server.insecure: true
   cm:
-    url: "http://argocd.example.com"
+    url: "https://argocd.example.com"
     accounts.dev-ci: apiKey
-    oidc.config: |
-      name: Keycloak
-      issuer: http://keycloak.example.com/realms/platform
-      clientID: argocd
-      clientSecret: $argocd-oidc-secret:oidc.keycloak.clientSecret
-      requestedScopes:
-        - openid
-        - profile
-        - email
-        - groups
   rbac:
     create: true
     policy.default: ""
     policy.csv: |
-      g, devadmin, role:admin
+      g, ADMIN, role:admin
 
       p, role:ops, applications, *, */*, allow
       p, role:ops, logs, get, */*, allow
       p, role:ops, clusters, get, *, allow
       p, role:ops, repositories, get, *, allow
       p, role:ops, projects, get, *, allow
-      g, devopsadmin, role:ops
+      g, OPERATOR, role:ops
 
       p, role:developer, applications, get, */*, allow
       p, role:developer, applications, sync, */*, allow
       p, role:developer, logs, get, */*, allow
-      g, dev-user, role:developer
+      g, DEVELOPER, role:developer
 
       p, role:ci, applications, get, */*, allow
       p, role:ci, applications, update, */*, allow

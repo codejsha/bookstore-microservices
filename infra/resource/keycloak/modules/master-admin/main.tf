@@ -28,6 +28,10 @@ resource "keycloak_user" "admin" {
     value     = random_password.admin.result
     temporary = false
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "keycloak_user_roles" "admin" {
@@ -35,6 +39,10 @@ resource "keycloak_user_roles" "admin" {
   user_id    = keycloak_user.admin.id
   role_ids   = [var.admin_role_id]
   exhaustive = false
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "vault_kv_secret_v2" "admin" {
