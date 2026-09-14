@@ -147,3 +147,22 @@ moved {
   from = keycloak_user_roles.developer
   to   = keycloak_user_roles.bootstrap["developer"]
 }
+
+resource "keycloak_openid_client_scope" "groups" {
+  realm_id               = keycloak_realm.infra.id
+  name                   = "groups"
+  description            = "Platform realm roles exposed as the groups claim for tools that authorize by group"
+  include_in_token_scope = true
+}
+
+resource "keycloak_openid_user_realm_role_protocol_mapper" "groups" {
+  realm_id        = keycloak_realm.infra.id
+  client_scope_id = keycloak_openid_client_scope.groups.id
+  name            = "realm-roles-as-groups"
+
+  claim_name          = "groups"
+  multivalued         = true
+  add_to_id_token     = true
+  add_to_access_token = false
+  add_to_userinfo     = true
+}

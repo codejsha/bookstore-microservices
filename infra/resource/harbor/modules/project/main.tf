@@ -21,20 +21,22 @@ resource "harbor_project" "bookstore_helm_charts_project" {
   public = var.harbor_projects[local.bookstore_helm_charts_proj].is_public
 }
 
-resource "harbor_project_member_user" "bookstore_project_members" {
+resource "harbor_project_member_group" "bookstore_project_groups" {
   for_each = {
-    for user in var.harbor_projects[local.bookstore_proj].members : user.username => user
+    for group in var.harbor_projects[local.bookstore_proj].groups : group.group_name => group
   }
   project_id = harbor_project.bookstore_project.id
-  user_name  = each.value.username
+  group_name = each.value.group_name
+  type       = "oidc"
   role       = each.value.role
 }
 
-resource "harbor_project_member_user" "bookstore_helm_charts_project_members" {
+resource "harbor_project_member_group" "bookstore_helm_charts_project_groups" {
   for_each = {
-    for user in var.harbor_projects[local.bookstore_helm_charts_proj].members : user.username => user
+    for group in var.harbor_projects[local.bookstore_helm_charts_proj].groups : group.group_name => group
   }
   project_id = harbor_project.bookstore_helm_charts_project.id
-  user_name  = each.value.username
+  group_name = each.value.group_name
+  type       = "oidc"
   role       = each.value.role
 }

@@ -47,6 +47,7 @@ inputs = {
   kiali_url        = "https://kiali.example.com"
   kiali_namespace  = "istio-system"
   grafana_url       = "https://grafana.example.com"
+  harbor_url        = "https://harbor.example.com"
   grafana_namespace = "grafana"
 
   web_root_url                        = "http://localhost:5173"

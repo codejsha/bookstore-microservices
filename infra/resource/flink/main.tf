@@ -22,7 +22,7 @@ data "vault_kv_secret_v2" "opensearch_admin" {
 
 data "vault_kv_secret_v2" "harbor_pull" {
   mount = "kv-infra"
-  name  = "harbor/users/harbor-devops/credentials"
+  name  = "harbor/robots/pull/credentials"
 }
 
 data "vault_kv_secret_v2" "seaweedfs_s3" {

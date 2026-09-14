@@ -31,7 +31,7 @@ provider "grafana" {
 
 data "vault_kv_secret_v2" "harbor_registry" {
   mount = "kv-infra"
-  name  = "harbor/users/harbor-devops/credentials"
+  name  = "harbor/robots/pull/credentials"
 }
 
 data "kubernetes_service_v1" "harbor" {

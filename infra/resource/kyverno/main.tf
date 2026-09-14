@@ -13,7 +13,7 @@ terraform {
 
 data "vault_kv_secret_v2" "harbor_user" {
   mount = "kv-infra"
-  name  = "harbor/users/${var.harbor_user}/credentials"
+  name  = var.harbor_pull_vault_path
 }
 
 data "vault_generic_secret" "cosign_key" {

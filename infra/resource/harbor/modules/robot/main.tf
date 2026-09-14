@@ -48,3 +48,36 @@ resource "vault_kv_secret_v2" "registry" {
     password = random_password.robot.result
   })
 }
+
+resource "harbor_robot_account" "pull" {
+  name        = var.pull_robot_name
+  description = "Cluster image pull: bookstore workloads, Kafka Connect, Flink and Kyverno signature verification"
+  level       = "system"
+  secret      = random_password.pull.result
+
+  dynamic "permissions" {
+    for_each = var.projects
+    content {
+      kind      = "project"
+      namespace = permissions.value
+      access {
+        action   = "pull"
+        resource = "repository"
+      }
+    }
+  }
+}
+
+resource "random_password" "pull" {
+  length  = 32
+  special = false
+}
+
+resource "vault_kv_secret_v2" "pull" {
+  mount = "kv-infra"
+  name  = "harbor/robots/pull/credentials"
+  data_json = jsonencode({
+    username = harbor_robot_account.pull.full_name
+    password = random_password.pull.result
+  })
+}

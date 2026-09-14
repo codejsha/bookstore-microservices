@@ -24,23 +24,24 @@ inputs = {
   vault_k8s_jwt = run_cmd("--terragrunt-quiet", "kubectl", "create", "token",
   "tf-${local.vault_role}", "-n", local.common.vault_ns, "--duration=20m")
 
-  harbor_url = "https://harbor.example.com"
-
-  harbor_usernames = ["harbor-devops"]
+  harbor_url  = "https://harbor.example.com"
+  oidc_issuer = "https://keycloak.example.com/realms/platform-infra"
 
   harbor_projects = {
     bookstore = {
       project_name = "bookstore"
       is_public    = false
-      members = [
-        { username = "harbor-devops", role = "maintainer" },
+      groups = [
+        { group_name = "OPERATOR", role = "maintainer" },
+        { group_name = "DEVELOPER", role = "developer" },
       ]
     }
     bookstore-helm-charts = {
       project_name = "bookstore-helm-charts"
       is_public    = false
-      members = [
-        { username = "harbor-devops", role = "maintainer" },
+      groups = [
+        { group_name = "OPERATOR", role = "maintainer" },
+        { group_name = "DEVELOPER", role = "developer" },
       ]
     }
   }

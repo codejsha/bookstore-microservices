@@ -96,10 +96,11 @@ module "infra_realm" {
 }
 
 module "argocd_oidc" {
-  source     = "./modules/argocd-oidc"
-  realm_id   = module.infra_realm.realm_id
-  argocd_url = var.argocd_url
-  namespace  = var.argocd_namespace
+  source            = "./modules/argocd-oidc"
+  realm_id          = module.infra_realm.realm_id
+  groups_scope_name = module.infra_realm.groups_scope_name
+  argocd_url        = var.argocd_url
+  namespace         = var.argocd_namespace
   providers = {
     keycloak   = keycloak
     vault      = vault
@@ -117,6 +118,27 @@ module "kiali_oidc" {
     vault      = vault
     kubernetes = kubernetes
   }
+}
+
+module "harbor_oidc" {
+  source            = "./modules/harbor-oidc"
+  realm_id          = module.infra_realm.realm_id
+  groups_scope_name = module.infra_realm.groups_scope_name
+  harbor_url        = var.harbor_url
+  providers = {
+    keycloak = keycloak
+    vault    = vault
+  }
+}
+
+moved {
+  from = module.argocd_oidc.keycloak_openid_client_scope.groups
+  to   = module.infra_realm.keycloak_openid_client_scope.groups
+}
+
+moved {
+  from = module.argocd_oidc.keycloak_openid_user_realm_role_protocol_mapper.argocd_groups
+  to   = module.infra_realm.keycloak_openid_user_realm_role_protocol_mapper.groups
 }
 
 module "grafana_oidc" {

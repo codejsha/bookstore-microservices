@@ -83,7 +83,7 @@ locals {
       { path = "kv-infra/data/postgresql/*", capabilities = ["create", "read", "update", "list"] },
     ]
     kafka = [
-      { path = "kv-infra/data/harbor/users/harbor-devops/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/harbor/robots/pull/credentials", capabilities = ["read"] },
     ]
     temporal = [
       { path = "kv-infra/data/temporal/mysql", capabilities = ["read"] },
@@ -113,7 +113,7 @@ locals {
     ]
     flink-config = [
       { path = "kv-infra/data/opensearch/admin/credentials", capabilities = ["read"] },
-      { path = "kv-infra/data/harbor/users/harbor-devops/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/harbor/robots/pull/credentials", capabilities = ["read"] },
       { path = "kv-infra/data/seaweedfs/s3/credentials", capabilities = ["read"] },
     ]
     hyperswitch-config = [
@@ -126,13 +126,15 @@ locals {
       { path = "kv-bookstore/data/oauth2-proxy/*", capabilities = ["create", "read", "update", "list"] },
     ]
     kyverno-config = [
-      { path = "kv-infra/data/harbor/users/*", capabilities = ["read"] },
+      { path = "kv-infra/data/harbor/robots/pull/credentials", capabilities = ["read"] },
       { path = "transit/keys/cosign-key", capabilities = ["read"] },
     ]
     harbor-config = [
       { path = "kv-infra/data/harbor/admin/credentials", capabilities = ["read"] },
       { path = "kv-infra/data/harbor/users/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/harbor/robots/*", capabilities = ["create", "read", "update", "list"] },
       { path = "kv-infra/data/harbor/ci/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-infra/data/keycloak/harbor-oidc/client-secret", capabilities = ["read"] },
     ]
     nexus-config = [
       { path = "kv-infra/data/nexus/admin/credentials", capabilities = ["read"] },
@@ -166,7 +168,7 @@ locals {
       { path = "database/reset/*", capabilities = ["create", "update"] },
     ]
     bookstore-base-config = [
-      { path = "kv-infra/data/harbor/users/harbor-devops/credentials", capabilities = ["read"] },
+      { path = "kv-infra/data/harbor/robots/pull/credentials", capabilities = ["read"] },
     ]
     tekton-config = [
       { path = "kv-infra/data/argocd/dev-ci/token", capabilities = ["read"] },

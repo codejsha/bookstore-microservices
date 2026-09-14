@@ -136,6 +136,11 @@ variable "infra_realm_name" {
 
 
 
+variable "harbor_url" {
+  description = "Harbor external URL"
+  type        = string
+}
+
 variable "infra_bootstrap_accounts" {
   description = "Terraform-managed break-glass accounts in the infra realm, keyed by their Vault path segment"
   type = map(object({

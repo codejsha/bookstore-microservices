@@ -11,3 +11,8 @@ output "role_ids" {
     ADMIN     = keycloak_role.admin.id
   }
 }
+
+output "groups_scope_name" {
+  description = "Client scope that maps platform realm roles into the groups claim"
+  value       = keycloak_openid_client_scope.groups.name
+}

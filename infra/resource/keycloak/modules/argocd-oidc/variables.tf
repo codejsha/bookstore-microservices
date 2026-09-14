@@ -18,3 +18,8 @@ variable "builtin_default_scopes" {
   type        = list(string)
   default     = ["profile", "email", "roles", "web-origins", "acr", "basic"]
 }
+
+variable "groups_scope_name" {
+  description = "Realm client scope that carries platform roles in the groups claim"
+  type        = string
+}
