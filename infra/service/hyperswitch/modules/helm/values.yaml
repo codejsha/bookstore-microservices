@@ -122,13 +122,14 @@ hyperswitch-app:
         memory: 1536Mi
     zookeeper:
       networkPolicy: *ambient-hbone
+      heapSize: 256
       resources:
         requests:
           cpu: 50m
-          memory: 256Mi
+          memory: 384Mi
         limits:
           cpu: 375m
-          memory: 384Mi
+          memory: 512Mi
 
   hyperswitch-card-vault:
     postgresql:

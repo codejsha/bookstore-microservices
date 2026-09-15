@@ -23,6 +23,12 @@ resource "helm_release" "flink_operator" {
           requests = { cpu = "50m", memory = "512Mi" }
           limits   = { cpu = "500m", memory = "1536Mi" }
         }
+        webhook = {
+          resources = {
+            requests = { cpu = "10m", memory = "256Mi" }
+            limits   = { cpu = "500m", memory = "768Mi" }
+          }
+        }
       }
     })
   ]

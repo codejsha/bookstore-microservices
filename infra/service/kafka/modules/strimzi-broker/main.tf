@@ -19,7 +19,7 @@ resource "kubernetes_manifest" "kafka_node_pool_controller" {
         }
         limits = {
           cpu    = "500m"
-          memory = "768Mi"
+          memory = "1Gi"
         }
       }
       storage = {
@@ -58,7 +58,7 @@ resource "kubernetes_manifest" "kafka_node_pool_broker" {
         }
         limits = {
           cpu    = "500m"
-          memory = "768Mi"
+          memory = "1Gi"
         }
       }
       storage = {
