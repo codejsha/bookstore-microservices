@@ -32,6 +32,20 @@ resource "vault_kv_secret_v2" "admin" {
   })
 }
 
+resource "random_password" "kibanaserver" {
+  length  = 32
+  special = false
+}
+
+resource "vault_kv_secret_v2" "kibanaserver" {
+  name  = "opensearch/kibanaserver/credentials"
+  mount = "kv-infra"
+  data_json = jsonencode({
+    username = "kibanaserver"
+    password = random_password.kibanaserver.result
+  })
+}
+
 resource "vault_policy" "opensearch" {
   name   = "opensearch"
   policy = file("${path.module}/policy.hcl")
@@ -104,4 +118,39 @@ resource "kubernetes_manifest" "vaultstaticsecret_opensearch_admin" {
       }
     }
   }
+}
+
+resource "kubernetes_manifest" "vaultstaticsecret_opensearch_kibanaserver" {
+  manifest = {
+    apiVersion = "secrets.hashicorp.com/v1beta1"
+    kind       = "VaultStaticSecret"
+    metadata = {
+      name      = "opensearch-kibanaserver"
+      namespace = var.namespace
+    }
+    spec = {
+      type         = "kv-v2"
+      mount        = "kv-infra"
+      path         = "opensearch/kibanaserver/credentials"
+      refreshAfter = "1h"
+      vaultAuthRef = "opensearch"
+      destination = {
+        name   = "opensearch-dashboards-kibanaserver"
+        create = true
+        transformation = {
+          excludeRaw = true
+          excludes   = [".*"]
+          templates = {
+            OPENSEARCH_KIBANASERVER_PASSWORD = {
+              text = "{{ get .Secrets \"password\" }}"
+            }
+          }
+        }
+      }
+    }
+  }
+  depends_on = [
+    vault_kv_secret_v2.kibanaserver,
+    kubernetes_manifest.vaultauth_opensearch,
+  ]
 }

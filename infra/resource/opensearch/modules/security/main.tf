@@ -220,7 +220,7 @@ locals {
       description   = "Maps admin to all_access"
       backend_roles = ["admin", "ADMIN"]
     }
-    security_manager = {
+    security_rest_api_access = {
       description   = null
       backend_roles = ["ADMIN"]
     }

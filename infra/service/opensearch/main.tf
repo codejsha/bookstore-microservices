@@ -57,6 +57,7 @@ module "helm" {
   providers = {
     helm = helm
   }
+  depends_on = [module.secret]
 }
 
 module "route" {

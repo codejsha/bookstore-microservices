@@ -5,6 +5,8 @@ replicaCount: 1
 envFrom:
   - secretRef:
       name: opensearch-dashboards-oidc
+  - secretRef:
+      name: opensearch-dashboards-kibanaserver
 
 extraVolumes:
   - name: keycloak-ca
@@ -22,7 +24,7 @@ config:
     opensearch.hosts: [http://opensearch-cluster-master:9200]
     opensearch.ssl.verificationMode: none
     opensearch.username: kibanaserver
-    opensearch.password: kibanaserver
+    opensearch.password: ${OPENSEARCH_KIBANASERVER_PASSWORD}
     opensearch.requestHeadersWhitelist: [authorization, securitytenant]
     opensearch_security.multitenancy.enabled: true
     opensearch_security.multitenancy.tenants.preferred: [Private, Global]
