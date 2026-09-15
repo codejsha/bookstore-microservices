@@ -99,6 +99,10 @@ func GinResponseMapping() gin.HandlerFunc {
 				status = es.status
 				body = []byte(fmt.Sprintf(`{"title":%q,"status":%d,"detail":%q}`, http.StatusText(es.status), es.status, es.message))
 				orig.Header().Set("Content-Type", "application/problem+json")
+			case status >= http.StatusInternalServerError && errors.Is(c.Request.Context().Err(), context.DeadlineExceeded):
+				status = http.StatusGatewayTimeout
+				body = []byte(fmt.Sprintf(`{"title":%q,"status":%d,"detail":"request deadline exceeded"}`, http.StatusText(status), status))
+				orig.Header().Set("Content-Type", "application/problem+json")
 			case status >= http.StatusInternalServerError:
 				body = []byte(fmt.Sprintf(`{"title":%q,"status":%d,"detail":"internal server error"}`, http.StatusText(status), status))
 				orig.Header().Set("Content-Type", "application/problem+json")
