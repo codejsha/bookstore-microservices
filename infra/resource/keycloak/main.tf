@@ -64,6 +64,7 @@ module "master_admin" {
     module.mobile_client,
     module.oauth2_proxy_client,
     module.audience_scope,
+    module.temporal_worker_clients,
   ]
 }
 
@@ -81,6 +82,16 @@ module "realm_roles" {
   }
 }
 
+module "temporal_worker_clients" {
+  source   = "./modules/temporal-worker-clients"
+  realm_id = module.realm.realm_id
+  services = ["order", "payment", "inventory", "notification", "delivery"]
+  providers = {
+    keycloak = keycloak
+    vault    = vault
+  }
+}
+
 module "infra_realm" {
   source             = "./modules/infra-realm"
   realm_name         = var.infra_realm_name
@@ -89,6 +100,11 @@ module "infra_realm" {
     DEVELOPER = "Developer: develop, commit and deploy applications and view monitoring; no infrastructure changes"
     MANAGER   = "Platform manager: may change infrastructure"
     ADMIN     = "Platform administrator: full control of infrastructure tools"
+  }
+  role_composites = {
+    DEVELOPER = [module.temporal_oidc.permission_role_ids["bookstore:read"], module.temporal_oidc.permission_role_ids["temporal-system:read"]]
+    MANAGER   = [module.temporal_oidc.permission_role_ids["bookstore:write"], module.temporal_oidc.permission_role_ids["temporal-system:read"]]
+    ADMIN     = [module.temporal_oidc.permission_role_ids["temporal-system:admin"]]
   }
   providers = {
     keycloak = keycloak
