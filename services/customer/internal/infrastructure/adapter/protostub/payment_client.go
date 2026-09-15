@@ -1,12 +1,10 @@
 package protostub
 
 import (
-	"context"
 	"fmt"
 	"net"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -22,7 +20,6 @@ type PaymentGrpcClient struct {
 }
 
 func NewPaymentGrpcClient(
-	lc fx.Lifecycle,
 	grpcCfg *config.GrpcConfig,
 	telemetryManager *support.TelemetryManager,
 ) (*PaymentGrpcClient, error) {
@@ -38,15 +35,13 @@ func NewPaymentGrpcClient(
 		return nil, fmt.Errorf("create payment grpc client: %w", err)
 	}
 
-	lc.Append(fx.Hook{
-		OnStop: func(ctx context.Context) error {
-			return conn.Close()
-		},
-	})
-
 	return &PaymentGrpcClient{
 		grpcCfg: grpcCfg,
 		conn:    conn,
 		Client:  paymentpb.NewPaymentServiceClient(conn),
 	}, nil
+}
+
+func (c *PaymentGrpcClient) Close() error {
+	return c.conn.Close()
 }

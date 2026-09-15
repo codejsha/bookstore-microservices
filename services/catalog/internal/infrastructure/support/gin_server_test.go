@@ -3,6 +3,7 @@ package support
 import (
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -70,6 +71,81 @@ func TestGinServer_readyRoute_checkFails_returns503(t *testing.T) {
 
 	if code := getHealthPath(s, "/health/ready"); code != http.StatusServiceUnavailable {
 		t.Fatalf("GET /health/ready = %d, want %d", code, http.StatusServiceUnavailable)
+	}
+}
+
+func TestGinServer_draining_readyRouteUnavailableDespiteHealthyCheck(t *testing.T) {
+	s := newTestGinServer(t)
+	s.readyCheck = func(context.Context) error { return nil }
+
+	s.BeginDrain()
+
+	if code := getHealthPath(s, "/health/ready"); code != http.StatusServiceUnavailable {
+		t.Fatalf("GET /health/ready = %d, want %d", code, http.StatusServiceUnavailable)
+	}
+}
+
+func TestGinServer_draining_healthRouteStaysOK(t *testing.T) {
+	s := newTestGinServer(t)
+
+	s.BeginDrain()
+
+	if code := getHealthPath(s, "/health"); code != http.StatusOK {
+		t.Fatalf("GET /health = %d, want %d", code, http.StatusOK)
+	}
+}
+
+func TestGinServer_shutdownIdleServer_completesWithoutError(t *testing.T) {
+	s := newTestGinServer(t)
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	go func() { _ = s.server.Serve(ln) }()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if err := s.Shutdown(ctx); err != nil {
+		t.Fatalf("Shutdown() = %v, want nil", err)
+	}
+}
+
+func TestGinServer_inFlightRequestOutlastsShutdownBudget_forceClosesConnection(t *testing.T) {
+	s := newTestGinServer(t)
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	s.server.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		close(entered)
+		<-release
+	})
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	go func() { _ = s.server.Serve(ln) }()
+
+	reqErr := make(chan error, 1)
+	go func() {
+		resp, err := http.Get("http://" + ln.Addr().String())
+		if err == nil {
+			_ = resp.Body.Close()
+		}
+		reqErr <- err
+	}()
+	<-entered
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+	shutdownErr := s.Shutdown(ctx)
+
+	clientErr := <-reqErr
+	close(release)
+
+	if !errors.Is(shutdownErr, context.DeadlineExceeded) {
+		t.Fatalf("Shutdown() = %v, want %v", shutdownErr, context.DeadlineExceeded)
+	}
+	if clientErr == nil {
+		t.Fatal("in-flight request completed, want connection closed by fallback Close")
 	}
 }
 

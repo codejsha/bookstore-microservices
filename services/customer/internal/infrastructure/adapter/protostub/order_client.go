@@ -1,12 +1,10 @@
 package protostub
 
 import (
-	"context"
 	"fmt"
 	"net"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -22,7 +20,6 @@ type OrderGrpcClient struct {
 }
 
 func NewOrderGrpcClient(
-	lc fx.Lifecycle,
 	grpcCfg *config.GrpcConfig,
 	telemetryManager *support.TelemetryManager,
 ) (*OrderGrpcClient, error) {
@@ -38,15 +35,13 @@ func NewOrderGrpcClient(
 		return nil, fmt.Errorf("create order grpc client: %w", err)
 	}
 
-	lc.Append(fx.Hook{
-		OnStop: func(ctx context.Context) error {
-			return conn.Close()
-		},
-	})
-
 	return &OrderGrpcClient{
 		grpcCfg: grpcCfg,
 		conn:    conn,
 		Client:  orderpb.NewOrderServiceClient(conn),
 	}, nil
+}
+
+func (c *OrderGrpcClient) Close() error {
+	return c.conn.Close()
 }

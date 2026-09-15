@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -40,6 +41,7 @@ type GinServer struct {
 	logHelper    *logging.LogHelper
 	dataSource   *database.DataSource
 	readyCheck   func(ctx context.Context) error
+	draining     atomic.Bool
 	workAPI      openapi.WorkApi
 	editionAPI   openapi.EditionApi
 	authorAPI    openapi.AuthorApi
@@ -104,12 +106,24 @@ func NewGinServer(
 			}()
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
-			return s.server.Shutdown(ctx)
-		},
 	})
 
 	return s
+}
+
+func (s *GinServer) BeginDrain() {
+	s.draining.Store(true)
+}
+
+func (s *GinServer) Shutdown(ctx context.Context) error {
+	err := s.server.Shutdown(ctx)
+	if err == nil {
+		return nil
+	}
+	if closeErr := s.server.Close(); closeErr != nil {
+		return errors.Join(err, closeErr)
+	}
+	return err
 }
 
 func (s *GinServer) InitializeEngine() {
@@ -125,6 +139,10 @@ func (s *GinServer) InitializeEngine() {
 	s.engine.Use(httpx.GinResponseMapping())
 	s.engine.GET("/health", func(c *gin.Context) { c.Status(http.StatusOK) })
 	s.engine.GET("/health/ready", func(c *gin.Context) {
+		if s.draining.Load() {
+			c.Status(http.StatusServiceUnavailable)
+			return
+		}
 		ctx, cancel := context.WithTimeout(c.Request.Context(), readyCheckTimeout)
 		defer cancel()
 		if err := s.readyCheck(ctx); err != nil {

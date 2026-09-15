@@ -60,6 +60,7 @@ var Module = fx.Module("inventory",
 	fx.Decorate(support.WithOutboundTimeout),
 	fx.Invoke(support.ConfigureConnectionPool),
 	fx.Invoke(support.RegisterEventPublisher),
+	fx.Invoke(support.RegisterShutdownSequence),
 )
 
 func NewApp(preConfig *pkgconfig.PreConfig, metadata *pkgconfig.Metadata) *fx.App {
@@ -67,5 +68,6 @@ func NewApp(preConfig *pkgconfig.PreConfig, metadata *pkgconfig.Metadata) *fx.Ap
 		fx.Supply(preConfig, metadata),
 		Module,
 		fx.Invoke(func(*infrastructure.Infra) {}),
+		fx.StopTimeout(support.ShutdownStopTimeout),
 	)
 }
