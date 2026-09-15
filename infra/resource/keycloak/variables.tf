@@ -88,9 +88,15 @@ variable "web_web_origins" {
   type        = list(string)
 }
 
-variable "bookstore_manager_username" {
-  description = "Terraform-managed MANAGE account in the bookstore realm for the admin console"
-  type        = string
+variable "bookstore_admin_accounts" {
+  description = "Terraform-managed admin console accounts in the bookstore realm, keyed by their Vault path segment under kv-bookstore admin/"
+  type = map(object({
+    username   = string
+    email      = string
+    first_name = string
+    last_name  = string
+    role       = string
+  }))
 }
 
 variable "mobile_valid_redirect_uris" {

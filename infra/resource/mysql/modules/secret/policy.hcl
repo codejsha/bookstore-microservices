@@ -4,7 +4,6 @@ path "kv-bookstore/data/delivery/mysql*" { capabilities = ["read"] }
 path "kv-bookstore/data/notification/mysql*" { capabilities = ["read"] }
 path "kv-bookstore/data/support/mysql*" { capabilities = ["read"] }
 path "kv-bookstore/data/settlement/mysql*" { capabilities = ["read"] }
-path "kv-bookstore/data/identity/keycloak" { capabilities = ["read"] }
 
 path "kv-infra/data/hyperswitch/payment" { capabilities = ["read"] }
 

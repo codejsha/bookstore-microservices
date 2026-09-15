@@ -122,7 +122,7 @@ locals {
     ]
     keycloak-config = [
       { path = "kv-infra/data/keycloak/*", capabilities = ["create", "read", "update", "list"] },
-      { path = "kv-bookstore/data/identity/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-bookstore/data/admin/*", capabilities = ["create", "read", "update", "list"] },
       { path = "kv-bookstore/data/oauth2-proxy/*", capabilities = ["create", "read", "update", "list"] },
     ]
     kyverno-config = [
