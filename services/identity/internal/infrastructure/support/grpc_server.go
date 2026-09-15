@@ -72,23 +72,24 @@ func NewGrpcServer(
 			}()
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
-			stopped := make(chan struct{})
-			go func() {
-				s.server.GracefulStop()
-				close(stopped)
-			}()
-			select {
-			case <-stopped:
-				return nil
-			case <-ctx.Done():
-				s.server.Stop()
-				return ctx.Err()
-			}
-		},
 	})
 
 	return s
+}
+
+func (s *GrpcServer) Shutdown(ctx context.Context) error {
+	stopped := make(chan struct{})
+	go func() {
+		s.server.GracefulStop()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+		return nil
+	case <-ctx.Done():
+		s.server.Stop()
+		return ctx.Err()
+	}
 }
 
 func (s *GrpcServer) registerGrpcServers() {

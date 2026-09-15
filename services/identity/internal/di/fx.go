@@ -69,10 +69,12 @@ var Module = fx.Module("identity",
 	fx.Decorate(support.WithOutboundTimeout),
 	fx.Invoke(support.ConfigureConnectionPool),
 	fx.Invoke(support.RegisterEventPublisher),
+	fx.Invoke(support.RegisterShutdownSequence),
 )
 
 func NewApp(preConfig *pkgconfig.PreConfig, metadata *pkgconfig.Metadata) *fx.App {
 	return fx.New(
+		fx.StopTimeout(support.ShutdownStopTimeout),
 		fx.Supply(preConfig, metadata),
 		Module,
 		fx.Invoke(func(*infrastructure.Infra) {}),

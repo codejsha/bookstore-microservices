@@ -56,12 +56,15 @@ func NewTemporalWorker(
 			}
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
-			tw.worker.Stop()
-			tw.client.Close()
-			return nil
-		},
 	})
 
 	return tw, nil
+}
+
+func (tw *TemporalWorker) StopWorker() {
+	tw.worker.Stop()
+}
+
+func (tw *TemporalWorker) CloseClient() {
+	tw.client.Close()
 }

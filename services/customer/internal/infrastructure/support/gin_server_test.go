@@ -75,6 +75,20 @@ func TestGinServer_readyRoute_checkFails_returns503(t *testing.T) {
 	}
 }
 
+func TestGinServer_readyRoute_afterBeginDrain_serves503(t *testing.T) {
+	s := newTestGinServer(t)
+	s.readyCheck = func(context.Context) error { return nil }
+
+	s.BeginDrain()
+
+	if code := getHealthPath(s, "/health/ready"); code != http.StatusServiceUnavailable {
+		t.Fatalf("GET /health/ready = %d, want %d", code, http.StatusServiceUnavailable)
+	}
+	if code := getHealthPath(s, "/health"); code != http.StatusOK {
+		t.Fatalf("GET /health = %d, want %d", code, http.StatusOK)
+	}
+}
+
 func TestGinRequestDeadlineMiddleware_anyRequest_carriesDeadlineWithinTimeout(t *testing.T) {
 	engine := gin.New()
 	engine.Use(GinRequestDeadlineMiddleware(requestTimeout))

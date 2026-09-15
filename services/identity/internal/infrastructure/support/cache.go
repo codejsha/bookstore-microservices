@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
-	"go.uber.org/fx"
 
 	sharedconfig "github.com/codejsha/shared-library-go/pkg/config"
 )
@@ -23,17 +22,16 @@ type CacheClient struct {
 	client *redis.Client
 }
 
-func NewCacheClient(lc fx.Lifecycle, cacheCfg *sharedconfig.CacheConfig) *CacheClient {
+func NewCacheClient(cacheCfg *sharedconfig.CacheConfig) *CacheClient {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", cacheCfg.Host, cacheCfg.Port),
 		Password: cacheCfg.Password,
 	})
-	lc.Append(fx.Hook{
-		OnStop: func(context.Context) error {
-			return rdb.Close()
-		},
-	})
 	return &CacheClient{client: rdb}
+}
+
+func (c *CacheClient) Close() error {
+	return c.client.Close()
 }
 
 func (c *CacheClient) Get(ctx context.Context, key string, dest interface{}) error {

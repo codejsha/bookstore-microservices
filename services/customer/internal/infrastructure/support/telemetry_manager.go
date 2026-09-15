@@ -10,7 +10,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.30.0"
-	"go.uber.org/fx"
 
 	"github.com/codejsha/shared-library-go/pkg/config"
 	"github.com/codejsha/shared-library-go/pkg/telemetry"
@@ -26,7 +25,6 @@ type TelemetryManager struct {
 }
 
 func NewTelemetryManager(
-	lc fx.Lifecycle,
 	metadata *config.Metadata,
 	telemetryCfg *config.TelemetryConfig,
 ) (*TelemetryManager, error) {
@@ -54,13 +52,14 @@ func NewTelemetryManager(
 		return nil, fmt.Errorf("start runtime metrics: %w", err)
 	}
 
-	lc.Append(fx.Hook{
-		OnStop: func(ctx context.Context) error {
-			return m.shutdown(ctx)
-		},
-	})
-
 	return m, nil
+}
+
+func (m *TelemetryManager) Shutdown(ctx context.Context) error {
+	if m.shutdown == nil {
+		return nil
+	}
+	return m.shutdown(ctx)
 }
 
 func (m *TelemetryManager) createResource(ctx context.Context) (*resource.Resource, error) {

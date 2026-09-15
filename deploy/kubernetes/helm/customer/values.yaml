@@ -1,5 +1,6 @@
 replicaCount: 2
 revisionHistoryLimit: 0
+terminationGracePeriodSeconds: 60
 
 image:
   repository: harbor.example.com/bookstore/customer

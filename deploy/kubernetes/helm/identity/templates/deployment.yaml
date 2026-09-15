@@ -31,6 +31,7 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "identity.serviceAccountName" . }}
       automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

@@ -3,6 +3,7 @@ package support
 import (
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -144,5 +145,86 @@ func TestGinServer_httpServer_boundsReadWriteAndIdle(t *testing.T) {
 	}
 	if s.server.WriteTimeout <= requestTimeout {
 		t.Fatalf("write timeout %v must exceed request timeout %v", s.server.WriteTimeout, requestTimeout)
+	}
+}
+
+func TestGinServerBeginDrain_readyCheckSucceeds_readyIs503AndOtherRoutesServed(t *testing.T) {
+	s := newTestGinServer(t)
+	s.readyCheck = func(context.Context) error { return nil }
+
+	s.BeginDrain()
+
+	if code := getHealthPath(s, "/health/ready"); code != http.StatusServiceUnavailable {
+		t.Fatalf("GET /health/ready = %d, want %d", code, http.StatusServiceUnavailable)
+	}
+	if code := getHealthPath(s, "/health"); code != http.StatusOK {
+		t.Fatalf("GET /health = %d, want %d", code, http.StatusOK)
+	}
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/risk", nil)
+	req.Header.Set(HeaderUserID, "manager-1")
+	req.Header.Set(HeaderUserRoles, "MANAGER,STAFF,USER")
+	rec := httptest.NewRecorder()
+	s.engine.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /api/v1/risk = %d, want %d", rec.Code, http.StatusOK)
+	}
+}
+
+func TestGinServerShutdown_handlerOutlivesDeadline_closesConnections(t *testing.T) {
+	s := newTestGinServer(t)
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	defer close(release)
+	s.server.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		close(entered)
+		select {
+		case <-r.Context().Done():
+		case <-release:
+		}
+	})
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	go func() { _ = s.server.Serve(ln) }()
+
+	clientErr := make(chan error, 1)
+	go func() {
+		resp, err := http.Get("http://" + ln.Addr().String() + "/hang")
+		if err == nil {
+			_ = resp.Body.Close()
+		}
+		clientErr <- err
+	}()
+	<-entered
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+	if err := s.Shutdown(ctx); !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("Shutdown error = %v, want %v", err, context.DeadlineExceeded)
+	}
+
+	select {
+	case err := <-clientErr:
+		if err == nil {
+			t.Fatal("in-flight request completed, want connection closed")
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("in-flight request still open after forced close")
+	}
+}
+
+func TestGinServerShutdown_idleServer_completesWithoutError(t *testing.T) {
+	s := newTestGinServer(t)
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	go func() { _ = s.server.Serve(ln) }()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if err := s.Shutdown(ctx); err != nil {
+		t.Fatalf("Shutdown error = %v, want nil", err)
 	}
 }
