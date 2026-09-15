@@ -71,7 +71,7 @@ class OrderControllerTest {
         RequestContextHolder.setRequestAttributes(ServletRequestAttributes(request))
     }
 
-    private fun bindManager() = bindRoles("MANAGE,STAFF,USER")
+    private fun bindManager() = bindRoles("MANAGER,STAFF,USER")
 
     private fun bindStaff() = bindRoles("STAFF,USER")
 

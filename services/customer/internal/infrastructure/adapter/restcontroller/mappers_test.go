@@ -44,21 +44,21 @@ func TestToCustomerUpdateResponse_AggregateGiven_MapsEveryField(t *testing.T) {
 		Email:     "a@b.com",
 		FirstName: "A",
 		LastName:  "B",
-		Roles:     []constant.AuthRole{constant.AUTHROLE_MANAGE},
+		Roles:     []constant.AuthRole{constant.AUTHROLE_MANAGER},
 	}
 	got := toCustomerUpdateResponse(a)
 	if got.Uid != "u-1" || *got.Email != "a@b.com" {
 		t.Errorf("got = %+v", got)
 	}
-	if got.Roles == nil || len(*got.Roles) != 1 || (*got.Roles)[0] != openapi.AUTHROLE_MANAGE {
+	if got.Roles == nil || len(*got.Roles) != 1 || (*got.Roles)[0] != openapi.AUTHROLE_MANAGER {
 		t.Errorf("Roles = %v", got.Roles)
 	}
 }
 
 func TestAuthRoles_ConvertedBothWays_RoundTripUnchanged(t *testing.T) {
-	in := []openapi.AuthRole{openapi.AUTHROLE_USER, openapi.AUTHROLE_MANAGE}
+	in := []openapi.AuthRole{openapi.AUTHROLE_USER, openapi.AUTHROLE_MANAGER}
 	domain := toAuthRoles(&in)
-	if !reflect.DeepEqual(domain, []constant.AuthRole{constant.AUTHROLE_USER, constant.AUTHROLE_MANAGE}) {
+	if !reflect.DeepEqual(domain, []constant.AuthRole{constant.AUTHROLE_USER, constant.AUTHROLE_MANAGER}) {
 		t.Errorf("toAuthRoles = %v", domain)
 	}
 	rest := authRolesToRest(domain)

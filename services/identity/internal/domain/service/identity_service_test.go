@@ -340,7 +340,7 @@ func TestRegisterUser_WhenRolesRequested_BindsThemAfterCreate(t *testing.T) {
 }
 
 func TestRegisterUser_WhenRoleElevated_ReturnsErrElevatedRoleOnRegister(t *testing.T) {
-	for _, role := range []string{"STAFF", "MANAGE", "SYSTEM", "staff"} {
+	for _, role := range []string{"STAFF", "MANAGER", "SYSTEM", "staff"} {
 		t.Run(role, func(t *testing.T) {
 			created := false
 			users := &stubUsersClient{
@@ -826,11 +826,11 @@ func TestUpdateUserRoles_WhenRolesChanged_BindsInKeycloakAndUpdatesLocalRow(t *t
 		},
 	}
 	svc := newSvc(userRepo, usersClient)
-	roles := []string{"MANAGE", "STAFF"}
+	roles := []string{"MANAGER", "STAFF"}
 	if _, err := svc.UpdateUserRoles(context.Background(), "uid", command.UserRolesCommand{Roles: roles}); err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if got := usersClient.realmRoles[idpId]; len(got) != 2 || got[0] != "MANAGE" {
+	if got := usersClient.realmRoles[idpId]; len(got) != 2 || got[0] != "MANAGER" {
 		t.Errorf("Keycloak roles = %v", got)
 	}
 	if len(capturedDbRoles) != 2 || capturedDbRoles[1] != "STAFF" {
@@ -1251,7 +1251,7 @@ func TestUpdateUserRoles_WhenLocalWriteFails_CompensatesKeycloak(t *testing.T) {
 		},
 	}
 	_, err := newSvc(userRepo, usersClient).
-		UpdateUserRoles(context.Background(), "uid", command.UserRolesCommand{Roles: []string{"MANAGE", "STAFF"}})
+		UpdateUserRoles(context.Background(), "uid", command.UserRolesCommand{Roles: []string{"MANAGER", "STAFF"}})
 	if err == nil || !strings.Contains(err.Error(), "failed to update roles in local DB") {
 		t.Fatalf("err = %v, want local-DB wrap", err)
 	}

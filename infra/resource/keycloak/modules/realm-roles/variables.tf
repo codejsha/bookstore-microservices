@@ -4,12 +4,12 @@ variable "realm_id" {
 }
 
 variable "roles" {
-  description = "Descriptions of the application realm roles, keyed by role name (USER, STAFF, MANAGE, SYSTEM)"
+  description = "Descriptions of the application realm roles, keyed by role name (USER, STAFF, MANAGER, SYSTEM)"
   type        = map(string)
 
   validation {
-    condition     = toset(keys(var.roles)) == toset(["USER", "STAFF", "MANAGE", "SYSTEM"])
-    error_message = "roles must describe exactly USER, STAFF, MANAGE and SYSTEM."
+    condition     = toset(keys(var.roles)) == toset(["USER", "STAFF", "MANAGER", "SYSTEM"])
+    error_message = "roles must describe exactly USER, STAFF, MANAGER and SYSTEM."
   }
 }
 

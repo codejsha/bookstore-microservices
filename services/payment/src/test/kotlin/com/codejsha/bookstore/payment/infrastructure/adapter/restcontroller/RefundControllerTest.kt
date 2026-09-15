@@ -41,7 +41,7 @@ class RefundControllerTest {
 
     @BeforeEach
     fun bindPrincipal() {
-        bindPrincipal(roles = "MANAGE,STAFF,USER")
+        bindPrincipal(roles = "MANAGER,STAFF,USER")
     }
 
     private fun bindPrincipal(roles: String?) {

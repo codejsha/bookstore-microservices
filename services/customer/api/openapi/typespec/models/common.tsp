@@ -48,7 +48,7 @@ enum AuthRole {
   UNKNOWN,
   USER,
   STAFF,
-  MANAGE,
+  MANAGER,
   SYSTEM,
 }
 

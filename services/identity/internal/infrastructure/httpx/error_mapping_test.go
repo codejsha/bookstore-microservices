@@ -53,7 +53,7 @@ func TestGinResponseMapping_WhenHandlerWrapsUserAlreadyExists_Returns409ProblemD
 func TestGinResponseMapping_WhenHandlerWrapsElevatedRole_Returns400ProblemDetails(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
 		return 0, nil, MapError(c.Request.Context(),
-			fmt.Errorf("%w: %q", service.ErrElevatedRoleOnRegister, "MANAGE"))
+			fmt.Errorf("%w: %q", service.ErrElevatedRoleOnRegister, "MANAGER"))
 	})
 	w := do(r)
 	if w.Code != http.StatusBadRequest {

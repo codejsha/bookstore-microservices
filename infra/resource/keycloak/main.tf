@@ -71,10 +71,10 @@ module "realm_roles" {
   source   = "./modules/realm-roles"
   realm_id = module.realm.realm_id
   roles = {
-    USER   = "Signed-in customer: own profile, orders and public catalog"
-    STAFF  = "Operations staff: catalog, inventory, delivery and support handling"
-    MANAGE = "Full back-office access including users, payments and settlement"
-    SYSTEM = "Internal service-to-service automation"
+    USER    = "Signed-in customer: own profile, orders and public catalog"
+    STAFF   = "Operations staff: catalog, inventory, delivery and support handling"
+    MANAGER = "Full back-office access including users, payments and settlement"
+    SYSTEM  = "Internal service-to-service automation"
   }
   providers = {
     keycloak = keycloak

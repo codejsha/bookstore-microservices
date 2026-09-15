@@ -51,7 +51,7 @@ class AdminUserControllerTest {
         assertFailsWithForbidden { controller.adminUsersListUsers(null, null, null, null, null) }
         assertFailsWithForbidden { controller.adminUsersReadUser(TARGET_UID) }
         assertFailsWithForbidden {
-            controller.adminUsersUpdateUserRoles(TARGET_UID, AdminUserRolesRequest(roles = listOf("MANAGE")))
+            controller.adminUsersUpdateUserRoles(TARGET_UID, AdminUserRolesRequest(roles = listOf("MANAGER")))
         }
         assertFailsWithForbidden { controller.adminUsersSuspendUser(TARGET_UID) }
         assertFailsWithForbidden { controller.adminUsersReactivateUser(TARGET_UID) }
@@ -82,21 +82,21 @@ class AdminUserControllerTest {
 
     @Test
     fun `a write forwards the calling administrator as the actor`(): Unit = runBlocking {
-        bindPrincipal(roles = "MANAGE,STAFF,USER")
+        bindPrincipal(roles = "MANAGER,STAFF,USER")
         val useCase = mock(UserUseCase::class.java)
         val controller = AdminUserController(useCase, resolver)
-        given(useCase.updateRoles(TARGET_UID, listOf("MANAGE"), ACTOR_UID, controllerContext))
-            .willReturn(user(roles = listOf("MANAGE")))
+        given(useCase.updateRoles(TARGET_UID, listOf("MANAGER"), ACTOR_UID, controllerContext))
+            .willReturn(user(roles = listOf("MANAGER")))
         given(useCase.suspendUser(TARGET_UID, ACTOR_UID, controllerContext)).willReturn(user(status = "SUSPENDED"))
         given(useCase.deactivateUser(TARGET_UID, ACTOR_UID, controllerContext))
             .willReturn(user(status = "DEACTIVATED"))
 
-        val roles = controller.adminUsersUpdateUserRoles(TARGET_UID, AdminUserRolesRequest(roles = listOf("MANAGE")))
+        val roles = controller.adminUsersUpdateUserRoles(TARGET_UID, AdminUserRolesRequest(roles = listOf("MANAGER")))
         controller.adminUsersSuspendUser(TARGET_UID)
         controller.adminUsersDeactivateUser(TARGET_UID)
 
-        assertEquals(listOf("MANAGE"), roles.body!!.roles)
-        verify(useCase).updateRoles(TARGET_UID, listOf("MANAGE"), ACTOR_UID, controllerContext)
+        assertEquals(listOf("MANAGER"), roles.body!!.roles)
+        verify(useCase).updateRoles(TARGET_UID, listOf("MANAGER"), ACTOR_UID, controllerContext)
         verify(useCase).suspendUser(TARGET_UID, ACTOR_UID, controllerContext)
         verify(useCase).deactivateUser(TARGET_UID, ACTOR_UID, controllerContext)
     }
@@ -108,7 +108,7 @@ class AdminUserControllerTest {
         val controller = AdminUserController(useCase, resolver)
 
         assertFailsWithForbidden {
-            controller.adminUsersUpdateUserRoles(TARGET_UID, AdminUserRolesRequest(roles = listOf("MANAGE")))
+            controller.adminUsersUpdateUserRoles(TARGET_UID, AdminUserRolesRequest(roles = listOf("MANAGER")))
         }
         assertFailsWithForbidden { controller.adminUsersSuspendUser(TARGET_UID) }
         assertFailsWithForbidden { controller.adminUsersReactivateUser(TARGET_UID) }

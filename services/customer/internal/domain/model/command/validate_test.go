@@ -34,7 +34,7 @@ func TestCustomerUpdateCommand_Validate(t *testing.T) {
 		{"everyFieldSet_noError", func(c *CustomerUpdateCommand) {
 			c.Email = ptr("a@b.co")
 			c.FirstName = ptr("Jin")
-			c.Roles = []constant.AuthRole{constant.AUTHROLE_STAFF, constant.AUTHROLE_MANAGE}
+			c.Roles = []constant.AuthRole{constant.AUTHROLE_STAFF, constant.AUTHROLE_MANAGER}
 		}, false},
 		{"uidBlank_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Uid = " " }, true},
 		{"emailMalformed_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Email = ptr("not-an-email") }, true},

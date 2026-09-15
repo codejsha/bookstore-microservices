@@ -35,7 +35,7 @@ data class AdminUserResponse(
     val phone: String? = null,
 
     /**
-     * Realm role names: USER, STAFF, MANAGE, SYSTEM
+     * Realm role names: USER, STAFF, MANAGER, SYSTEM
      */
     @field:NotNull
     @field:JsonProperty("roles")

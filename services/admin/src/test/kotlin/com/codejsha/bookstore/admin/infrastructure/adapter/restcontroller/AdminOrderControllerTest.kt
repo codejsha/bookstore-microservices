@@ -123,7 +123,7 @@ class AdminOrderControllerTest {
 
     @Test
     fun `cancelOrder answers with the order as the order service left it`(): Unit = runBlocking {
-        bindPrincipal(roles = "MANAGE,STAFF,USER")
+        bindPrincipal(roles = "MANAGER,STAFF,USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)
         given(useCase.cancelOrder(ORDER_UID, controllerContext)).willReturn(order(status = "CANCELLED"))

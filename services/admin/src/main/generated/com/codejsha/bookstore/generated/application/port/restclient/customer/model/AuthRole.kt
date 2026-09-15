@@ -8,7 +8,7 @@ enum class AuthRole(@JsonValue val value: String) {
     UNKNOWN("UNKNOWN"),
     USER("USER"),
     STAFF("STAFF"),
-    MANAGE("MANAGE"),
+    MANAGER("MANAGER"),
     SYSTEM("SYSTEM");
 
     companion object {

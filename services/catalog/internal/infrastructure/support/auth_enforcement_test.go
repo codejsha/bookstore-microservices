@@ -42,7 +42,7 @@ var (
 	anonymous = map[string]string{}
 	shopper   = map[string]string{HeaderUserID: "u-1", HeaderUserRoles: "USER"}
 	curator   = map[string]string{HeaderUserID: "u-2", HeaderUserRoles: "STAFF"}
-	manager   = map[string]string{HeaderUserID: "u-3", HeaderUserRoles: "MANAGE,STAFF,USER"}
+	manager   = map[string]string{HeaderUserID: "u-3", HeaderUserRoles: "MANAGER,STAFF,USER"}
 	automaton = map[string]string{HeaderUserID: "u-4", HeaderUserRoles: "SYSTEM"}
 )
 

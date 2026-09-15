@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	RoleStaff  = "STAFF"
-	RoleManage = "MANAGE"
-	RoleSystem = "SYSTEM"
+	RoleStaff   = "STAFF"
+	RoleManager = "MANAGER"
+	RoleSystem  = "SYSTEM"
 )
 
 var ownerParamByRoute = map[string]string{
@@ -32,7 +32,7 @@ var staffOnlyRoutes = map[string]bool{
 	"/api/v1/customers": true,
 }
 
-var manageOnlyRoutes = map[string]bool{
+var managerOnlyRoutes = map[string]bool{
 	"/api/v1/customers/:uid/points/earn": true,
 }
 
@@ -45,8 +45,8 @@ func GinOwnershipMiddleware() gin.HandlerFunc {
 			c.Next()
 			return
 		}
-		if manageOnlyRoutes[c.FullPath()] {
-			if !requireManage(c) {
+		if managerOnlyRoutes[c.FullPath()] {
+			if !requireManager(c) {
 				return
 			}
 			c.Next()
@@ -77,13 +77,13 @@ func requireStaff(c *gin.Context) bool {
 	return false
 }
 
-func requireManage(c *gin.Context) bool {
+func requireManager(c *gin.Context) bool {
 	p := PrincipalFromContext(c)
 	if p == nil {
 		abortWithProblem(c, http.StatusUnauthorized, "authentication required")
 		return false
 	}
-	if hasAnyRole(p, RoleManage, RoleSystem) {
+	if hasAnyRole(p, RoleManager, RoleSystem) {
 		return true
 	}
 	abortWithProblem(c, http.StatusForbidden, "forbidden")

@@ -1,9 +1,9 @@
 locals {
   roles = {
-    USER   = keycloak_role.user
-    STAFF  = keycloak_role.staff
-    MANAGE = keycloak_role.manage
-    SYSTEM = keycloak_role.system
+    USER    = keycloak_role.user
+    STAFF   = keycloak_role.staff
+    MANAGER = keycloak_role.manager
+    SYSTEM  = keycloak_role.system
   }
 }
 

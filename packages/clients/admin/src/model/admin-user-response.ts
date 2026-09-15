@@ -13,7 +13,7 @@ export interface AdminUserResponse {
   last_login_at?: Date;
   last_name: string;
   phone?: string;
-  /** Realm role names: USER, STAFF, MANAGE, SYSTEM */
+  /** Realm role names: USER, STAFF, MANAGER, SYSTEM */
   roles: Array<string>;
   /** ACTIVE, SUSPENDED, or DEACTIVATED */
   status: string;

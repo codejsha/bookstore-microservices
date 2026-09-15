@@ -19,10 +19,10 @@ resource "keycloak_role" "staff" {
   composite_roles = [keycloak_role.user.id]
 }
 
-resource "keycloak_role" "manage" {
+resource "keycloak_role" "manager" {
   realm_id        = var.realm_id
-  name            = "MANAGE"
-  description     = var.roles["MANAGE"]
+  name            = "MANAGER"
+  description     = var.roles["MANAGER"]
   composite_roles = [keycloak_role.staff.id]
 }
 
@@ -39,7 +39,12 @@ resource "keycloak_default_roles" "realm" {
 
 moved {
   from = keycloak_role.app["MANAGE"]
-  to   = keycloak_role.manage
+  to   = keycloak_role.manager
+}
+
+moved {
+  from = keycloak_role.manage
+  to   = keycloak_role.manager
 }
 
 moved {
