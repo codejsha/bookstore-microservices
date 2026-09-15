@@ -2,5 +2,41 @@ opensearchHosts: "http://opensearch-cluster-master:9200"
 
 replicaCount: 1
 
+envFrom:
+  - secretRef:
+      name: opensearch-dashboards-oidc
+
+extraVolumes:
+  - name: keycloak-ca
+    configMap:
+      name: opensearch-keycloak-ca
+
+extraVolumeMounts:
+  - name: keycloak-ca
+    mountPath: /usr/share/opensearch-dashboards/config/keycloak-ca
+    readOnly: true
+
+config:
+  opensearch_dashboards.yml: |
+    server.host: '0.0.0.0'
+    opensearch.hosts: [http://opensearch-cluster-master:9200]
+    opensearch.ssl.verificationMode: none
+    opensearch.username: kibanaserver
+    opensearch.password: kibanaserver
+    opensearch.requestHeadersWhitelist: [authorization, securitytenant]
+    opensearch_security.multitenancy.enabled: true
+    opensearch_security.multitenancy.tenants.preferred: [Private, Global]
+    opensearch_security.readonly_mode.roles: [kibana_read_only]
+    opensearch_security.auth.type: [basicauth, openid]
+    opensearch_security.auth.multiple_auth_enabled: true
+    opensearch_security.openid.connect_url: https://keycloak.example.com/realms/platform-infra/.well-known/openid-configuration
+    opensearch_security.openid.client_id: ${OPENSEARCH_OIDC_CLIENT_ID}
+    opensearch_security.openid.client_secret: ${OPENSEARCH_OIDC_CLIENT_SECRET}
+    opensearch_security.openid.scope: openid profile email groups
+    opensearch_security.openid.base_redirect_url: https://opensearch.example.com
+    opensearch_security.openid.root_ca: /usr/share/opensearch-dashboards/config/keycloak-ca/ca.crt
+    opensearch_security.cookie.secure: true
+    opensearch_security.cookie.password: ${OPENSEARCH_COOKIE_PASSWORD}
+
 serviceMonitor:
   enabled: false

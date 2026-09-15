@@ -172,6 +172,19 @@ module "temporal_oidc" {
   }
 }
 
+module "opensearch_oidc" {
+  source            = "./modules/opensearch-oidc"
+  realm_id          = module.infra_realm.realm_id
+  groups_scope_name = module.infra_realm.groups_scope_name
+  opensearch_url    = var.opensearch_url
+  namespace         = var.opensearch_namespace
+  providers = {
+    keycloak   = keycloak
+    vault      = vault
+    kubernetes = kubernetes
+  }
+}
+
 module "gitea_oidc" {
   source            = "./modules/gitea-oidc"
   realm_id          = module.infra_realm.realm_id
