@@ -24,7 +24,14 @@ import (
 	"github.com/codejsha/bookstore-microservices/catalog/internal/infrastructure/httpx"
 )
 
-const readyCheckTimeout = 3 * time.Second
+const (
+	readyCheckTimeout = 3 * time.Second
+	requestTimeout    = 15 * time.Second
+	readHeaderTimeout = 5 * time.Second
+	readTimeout       = requestTimeout
+	writeTimeout      = requestTimeout + 5*time.Second
+	idleTimeout       = 60 * time.Second
+)
 
 type GinServer struct {
 	engine       *gin.Engine
@@ -76,8 +83,12 @@ func NewGinServer(
 
 	addr := net.JoinHostPort(s.serverCfg.Host, s.serverCfg.Port)
 	s.server = &http.Server{
-		Addr:    addr,
-		Handler: s.engine,
+		Addr:              addr,
+		Handler:           s.engine,
+		ReadHeaderTimeout: readHeaderTimeout,
+		ReadTimeout:       readTimeout,
+		WriteTimeout:      writeTimeout,
+		IdleTimeout:       idleTimeout,
 	}
 
 	lc.Append(fx.Hook{
@@ -110,6 +121,7 @@ func (s *GinServer) InitializeEngine() {
 	s.engine.Use(GinAccessLogMiddleware(s.logHelper))
 	s.engine.Use(gin.Recovery())
 	s.engine.Use(otelgin.Middleware(string(constant.TracerNameGinServer)))
+	s.engine.Use(GinRequestDeadlineMiddleware(requestTimeout))
 	s.engine.Use(httpx.GinResponseMapping())
 	s.engine.GET("/health", func(c *gin.Context) { c.Status(http.StatusOK) })
 	s.engine.GET("/health/ready", func(c *gin.Context) {
@@ -123,6 +135,15 @@ func (s *GinServer) InitializeEngine() {
 	})
 	s.engine.Use(GinPrincipalMiddleware())
 	s.engine.Use(GinAuthorizationMiddleware())
+}
+
+func GinRequestDeadlineMiddleware(timeout time.Duration) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
+		defer cancel()
+		c.Request = c.Request.WithContext(ctx)
+		c.Next()
+	}
 }
 
 func GinAccessLogMiddleware(logHelper *logging.LogHelper) gin.HandlerFunc {

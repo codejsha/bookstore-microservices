@@ -35,6 +35,7 @@ database:
     db_name: customer_db
     params:
       - sslmode=disable
+      - statement_timeout=15000
 
 telemetry:
   collector:
