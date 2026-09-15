@@ -5,7 +5,6 @@ import com.codejsha.bookstore.payment.application.usecase.WebhookUseCase
 import com.codejsha.bookstore.payment.domain.constant.WebhookOutcome
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito.mock
@@ -18,7 +17,7 @@ class HyperswitchWebhookControllerTest {
     private val systemContext = ActorContext(actorId = 0L, ActorType.SYSTEM)
 
     @Test
-    fun `receive_whenWebhookArrives_handsRawBodyAndSignatureToUsecaseAndAcksOutcome`(): Unit = runBlocking {
+    fun `receive_whenWebhookArrives_handsRawBodyAndSignatureToUsecaseAndAcksOutcome`() {
         val useCase = mock(WebhookUseCase::class.java)
         val payload = """{"event_id":"evt_1"}""".toByteArray()
         given(useCase.handleHyperswitchWebhook(payload, "abc", systemContext)).willReturn(WebhookOutcome.APPLIED)

@@ -52,5 +52,5 @@ class FakeIdempotencyService : IdempotencyService {
 }
 
 class FakeTransactionRunner : TransactionRunner {
-    override suspend fun <T> tx(block: () -> T): T = block()
+    override fun <T> tx(block: () -> T): T = block()
 }

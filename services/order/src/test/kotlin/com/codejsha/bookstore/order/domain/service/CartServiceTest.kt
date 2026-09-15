@@ -14,7 +14,6 @@ import com.codejsha.bookstore.order.support.FakeDistributedLock
 import com.codejsha.bookstore.order.support.FakeIdempotencyService
 import com.codejsha.bookstore.order.support.FakeTransactionRunner
 import com.codejsha.bookstore.order.support.OrderTestFixtures
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito.inOrder
@@ -44,7 +43,7 @@ class CartServiceTest {
             .willReturn(OrderTestFixtures.cartResult(id = 1L, userUid = userUid))
         given(cartItemRepo.findAllByCart(1L, ctx)).willReturn(emptyList())
 
-        val agg = runBlocking { service.getCart(userUid, ctx) }
+        val agg = service.getCart(userUid, ctx)
 
         assertEquals(userUid, agg.userUid)
         assertEquals(0, agg.items.size)
@@ -62,7 +61,7 @@ class CartServiceTest {
         given(cartItemRepo.findAllByCart(1L, ctx))
             .willReturn(listOf(OrderTestFixtures.cartItemResult(quantity = 3)))
 
-        val agg = runBlocking { service.getCart(userUid, ctx) }
+        val agg = service.getCart(userUid, ctx)
 
         assertEquals(1, agg.items.size)
         assertEquals(3, agg.items[0].quantity)
@@ -85,7 +84,7 @@ class CartServiceTest {
             productId = 200L, productName = "Book A",
             quantity = 3, currency = "KRW", price = BigDecimal("5000.00"),
         )
-        val item = runBlocking { service.addItem(userUid, command, ctx) }
+        val item = service.addItem(userUid, command, ctx)
 
         assertEquals(5, item.quantity)
         verify(cartItemRepo).updateQuantity(1L, OrderTestFixtures.CART_ITEM_UID, 5, ctx)
@@ -109,7 +108,7 @@ class CartServiceTest {
         given(cartItemRepo.create(1L, command, ctx))
             .willReturn(OrderTestFixtures.cartItemResult(quantity = 3))
 
-        val item = runBlocking { service.addItem(userUid, command, ctx) }
+        val item = service.addItem(userUid, command, ctx)
 
         assertEquals(3, item.quantity)
         verify(cartItemRepo).create(1L, command, ctx)
@@ -126,7 +125,7 @@ class CartServiceTest {
         given(cartItemRepo.findOne(1L, OrderTestFixtures.CART_ITEM_UID, ctx))
             .willReturn(OrderTestFixtures.cartItemResult(quantity = 5))
 
-        val item = runBlocking { service.updateItemQuantity(userUid, OrderTestFixtures.CART_ITEM_UID, 0, ctx) }
+        val item = service.updateItemQuantity(userUid, OrderTestFixtures.CART_ITEM_UID, 0, ctx)
 
         assertEquals(0, item.quantity)
         verify(cartItemRepo).delete(1L, OrderTestFixtures.CART_ITEM_UID, ctx)
@@ -144,7 +143,7 @@ class CartServiceTest {
         given(cartItemRepo.updateQuantity(1L, OrderTestFixtures.CART_ITEM_UID, 7, ctx))
             .willReturn(OrderTestFixtures.cartItemResult(quantity = 7))
 
-        val item = runBlocking { service.updateItemQuantity(userUid, OrderTestFixtures.CART_ITEM_UID, 7, ctx) }
+        val item = service.updateItemQuantity(userUid, OrderTestFixtures.CART_ITEM_UID, 7, ctx)
 
         assertEquals(7, item.quantity)
         verify(cartItemRepo, never()).delete(1L, OrderTestFixtures.CART_ITEM_UID, ctx)
@@ -158,7 +157,7 @@ class CartServiceTest {
 
         given(cartRepo.findByUser(userUid, ctx)).willReturn(null)
 
-        runBlocking { service.clearCart(userUid, ctx) }
+        service.clearCart(userUid, ctx)
 
         verifyNoInteractions(cartItemRepo)
     }
@@ -172,7 +171,7 @@ class CartServiceTest {
         given(cartRepo.findByUser(userUid, ctx))
             .willReturn(OrderTestFixtures.cartResult(id = 1L))
 
-        runBlocking { service.clearCart(userUid, ctx) }
+        service.clearCart(userUid, ctx)
 
         verify(cartItemRepo).deleteAllByCart(1L, ctx)
     }
@@ -193,7 +192,7 @@ class CartServiceTest {
             .willReturn(OrderTestFixtures.orderResult())
 
         val command = CartCheckoutCommand(currency = "KRW", idempotencyKey = "idem_001", shipping = null)
-        val agg = runBlocking { service.checkout(userUid, command, ctx) }
+        val agg = service.checkout(userUid, command, ctx)
 
         assertEquals(OrderTestFixtures.ORDER_UID, agg.uid)
         assertEquals(0, lock.invocationCount)
@@ -248,7 +247,7 @@ class CartServiceTest {
         }
 
         val command = CartCheckoutCommand(currency = "KRW", idempotencyKey = "idem_001", shipping = null)
-        val agg = runBlocking { service.checkout(userUid, command, ctx) }
+        val agg = service.checkout(userUid, command, ctx)
 
         assertEquals(2, agg.items.size)
         assertEquals(BigDecimal("13000.00"), agg.totalAmount)
@@ -277,7 +276,7 @@ class CartServiceTest {
         given(cartRepo.findByUser(userUid, ctx)).willReturn(null)
 
         val ex = assertFailsWith<CartStateConflictException> {
-            runBlocking { service.checkout(userUid, CartCheckoutCommand("KRW", "idem", null), ctx) }
+            service.checkout(userUid, CartCheckoutCommand("KRW", "idem", null), ctx)
         }
         assertNotNull(ex.message)
     }
@@ -299,7 +298,7 @@ class CartServiceTest {
         given(cartItemRepo.findAllByCart(1L, ctx)).willReturn(emptyList())
 
         val ex = assertFailsWith<CartStateConflictException> {
-            runBlocking { service.checkout(userUid, CartCheckoutCommand("KRW", "idem", null), ctx) }
+            service.checkout(userUid, CartCheckoutCommand("KRW", "idem", null), ctx)
         }
         assertEquals(true, ex.message?.contains("empty"))
     }

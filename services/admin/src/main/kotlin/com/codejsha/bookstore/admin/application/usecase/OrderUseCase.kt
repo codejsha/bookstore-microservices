@@ -7,9 +7,9 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
 interface OrderUseCase {
-    suspend fun findAllOrders(option: OrderQueryOption, pageable: Pageable, context: ActorContext): Page<Order>
+    fun findAllOrders(option: OrderQueryOption, pageable: Pageable, context: ActorContext): Page<Order>
 
-    suspend fun findOrder(uid: String, context: ActorContext): Order
+    fun findOrder(uid: String, context: ActorContext): Order
 
-    suspend fun cancelOrder(uid: String, context: ActorContext): Order
+    fun cancelOrder(uid: String, context: ActorContext): Order
 }

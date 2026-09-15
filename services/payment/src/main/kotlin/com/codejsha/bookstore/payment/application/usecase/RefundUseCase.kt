@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 interface RefundUseCase {
-    suspend fun findAllRefunds(option: RefundQueryOption, pageable: Pageable, context: ActorContext): Page<RefundAggregate>
-    suspend fun findRefund(uid: UUID, context: ActorContext): RefundAggregate
-    suspend fun createRefund(command: RefundCreateCommand, context: ActorContext): RefundAggregate
+    fun findAllRefunds(option: RefundQueryOption, pageable: Pageable, context: ActorContext): Page<RefundAggregate>
+    fun findRefund(uid: UUID, context: ActorContext): RefundAggregate
+    fun createRefund(command: RefundCreateCommand, context: ActorContext): RefundAggregate
 }

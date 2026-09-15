@@ -5,7 +5,6 @@ import com.codejsha.bookstore.payment.application.usecase.WebhookUseCase
 import com.codejsha.bookstore.payment.domain.constant.WebhookOutcome
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -26,10 +25,10 @@ class HyperswitchWebhookController(
     fun receive(
         @RequestBody payload: ByteArray,
         @RequestHeader(name = SIGNATURE_HEADER, required = false) signature: String?,
-    ): ResponseEntity<WebhookAckResponse> = runBlocking {
+    ): ResponseEntity<WebhookAckResponse> {
         val context = ActorContext(actorId = 0L, ActorType.SYSTEM)
         val outcome = webhookUseCase.handleHyperswitchWebhook(payload, signature, context)
-        ResponseEntity.ok(WebhookAckResponse(outcome.name.lowercase()))
+        return ResponseEntity.ok(WebhookAckResponse(outcome.name.lowercase()))
     }
 
     @ExceptionHandler(HyperswitchWebhookException::class)

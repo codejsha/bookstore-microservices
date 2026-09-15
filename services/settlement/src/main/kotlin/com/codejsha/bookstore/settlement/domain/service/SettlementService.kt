@@ -23,7 +23,7 @@ class SettlementService(
 ) : SettlementUseCase {
 
     @WithSpan
-    override suspend fun findAllSettlements(
+    override fun findAllSettlements(
         option: SettlementQueryOption,
         pageable: Pageable,
         context: ActorContext,
@@ -32,7 +32,7 @@ class SettlementService(
     }
 
     @WithSpan
-    override suspend fun findSettlement(uid: UUID, context: ActorContext): DailySettlement = txRunner.tx {
+    override fun findSettlement(uid: UUID, context: ActorContext): DailySettlement = txRunner.tx {
         val settlement = dailySettlementRepo.findOne(uid, context).toAggregate()
         val details = settlementDetailRepo.findAllByBucket(
             settlement.settlementDate,

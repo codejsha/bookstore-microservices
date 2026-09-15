@@ -18,7 +18,6 @@ import com.codejsha.bookstore.payment.infrastructure.support.auth.isStaff
 import com.codejsha.bookstore.payment.infrastructure.support.auth.assertPaymentOwner
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -39,7 +38,7 @@ class PaymentController(
         status: PaymentStatus?,
         connector: String?,
         pageable: Pageable?
-    ): ResponseEntity<PaymentFindAllResponse> = runBlocking {
+    ): ResponseEntity<PaymentFindAllResponse> {
         val principal = principalResolver.require()
         val ownerFilter = if (principal.isStaff()) customerId else principal.sub
         val option = PaymentQueryOption(customerId = ownerFilter, status = status?.value, connector = connector)
@@ -50,10 +49,10 @@ class PaymentController(
             total = result.totalElements,
             items = result.content.map { toPaymentFindResponse(it) }
         )
-        ResponseEntity.ok(response)
+        return ResponseEntity.ok(response)
     }
 
-    override fun paymentsCreate(requestBody: PaymentCreateRequest): ResponseEntity<Unit> = runBlocking {
+    override fun paymentsCreate(requestBody: PaymentCreateRequest): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         val context = buildContext()
         val ownerId = createOwnerOf(principal, requestBody.customerId)
@@ -73,20 +72,20 @@ class PaymentController(
             idempotencyKey = "$ownerId:${requestBody.idempotencyKey}",
         )
         val payment = paymentUseCase.createPayment(command, context)
-        ResponseEntity.created(URI.create("/api/v1/payments/${payment.uid}")).build()
+        return ResponseEntity.created(URI.create("/api/v1/payments/${payment.uid}")).build()
     }
 
-    override fun paymentsRead(uid: String): ResponseEntity<PaymentFindResponse> = runBlocking {
+    override fun paymentsRead(uid: String): ResponseEntity<PaymentFindResponse> {
         val principal = principalResolver.require()
         val context = buildContext()
         val payment = paymentUseCase.findPayment(UUID.fromString(uid), context)
         principal.assertPaymentOwner(payment.customerId)
-        ResponseEntity.ok(toPaymentFindResponse(payment))
+        return ResponseEntity.ok(toPaymentFindResponse(payment))
     }
 
     override fun paymentsUpdate(
         uid: String, requestBody: PaymentUpdateRequest
-    ): ResponseEntity<PaymentUpdateResponse> = runBlocking {
+    ): ResponseEntity<PaymentUpdateResponse> {
         val principal = principalResolver.require()
         val context = buildContext()
         principal.assertPaymentOwner(paymentUseCase.findPayment(UUID.fromString(uid), context).customerId)
@@ -105,7 +104,7 @@ class PaymentController(
             metadata = null,
         )
         val payment = paymentUseCase.updatePayment(UUID.fromString(uid), command, context)
-        ResponseEntity.ok(toPaymentUpdateResponse(payment))
+        return ResponseEntity.ok(toPaymentUpdateResponse(payment))
     }
 
     // ─── PaymentAttemptApi ──────────────────────────────────────────────────
@@ -114,7 +113,7 @@ class PaymentController(
         paymentUid: String,
         status: PaymentStatus?,
         pageable: Pageable?
-    ): ResponseEntity<PaymentAttemptFindAllResponse> = runBlocking {
+    ): ResponseEntity<PaymentAttemptFindAllResponse> {
         val principal = principalResolver.require()
         val context = buildContext()
         authorizePayment(paymentUid, principal, context)
@@ -125,17 +124,17 @@ class PaymentController(
             total = result.totalElements,
             items = result.content.map { toPaymentAttemptFindResponse(it) }
         )
-        ResponseEntity.ok(response)
+        return ResponseEntity.ok(response)
     }
 
     override fun paymentAttemptsRead(
         paymentUid: String, uid: String
-    ): ResponseEntity<PaymentAttemptFindResponse> = runBlocking {
+    ): ResponseEntity<PaymentAttemptFindResponse> {
         val principal = principalResolver.require()
         val context = buildContext()
         authorizePayment(paymentUid, principal, context)
         val attempt = paymentUseCase.findPaymentAttempt(UUID.fromString(paymentUid), UUID.fromString(uid), context)
-        ResponseEntity.ok(toPaymentAttemptFindResponse(attempt))
+        return ResponseEntity.ok(toPaymentAttemptFindResponse(attempt))
     }
 
     // ─── Mapping ────────────────────────────────────────────────────────────
@@ -206,7 +205,7 @@ class PaymentController(
         createdAt = entity.createdAt.atOffset(ZoneOffset.UTC),
     )
 
-    private suspend fun authorizePayment(paymentUid: String, principal: Principal, context: ActorContext) {
+    private fun authorizePayment(paymentUid: String, principal: Principal, context: ActorContext) {
         val payment = paymentUseCase.findPayment(UUID.fromString(paymentUid), context)
         principal.assertPaymentOwner(payment.customerId)
     }

@@ -19,7 +19,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 class FakeTransactionRunner : TransactionRunner {
-    override suspend fun <T> tx(block: () -> T): T = block()
+    override fun <T> tx(block: () -> T): T = block()
 }
 
 class FakeDailySettlementRepo(

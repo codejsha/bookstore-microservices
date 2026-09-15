@@ -15,12 +15,12 @@ class UserService(
     private val identityClient: IdentityClient,
 ) : UserUseCase {
 
-    override suspend fun findAllUsers(option: UserQueryOption, pageable: Pageable, context: ActorContext) =
+    override fun findAllUsers(option: UserQueryOption, pageable: Pageable, context: ActorContext) =
         identityClient.findAllUsers(option, pageable)
 
-    override suspend fun findUser(uid: String, context: ActorContext) = identityClient.findUser(uid)
+    override fun findUser(uid: String, context: ActorContext) = identityClient.findUser(uid)
 
-    override suspend fun updateRoles(
+    override fun updateRoles(
         uid: String,
         roles: List<String>,
         actorUid: String,
@@ -30,14 +30,14 @@ class UserService(
         return identityClient.updateRoles(uid, roles)
     }
 
-    override suspend fun suspendUser(uid: String, actorUid: String, context: ActorContext): User {
+    override fun suspendUser(uid: String, actorUid: String, context: ActorContext): User {
         assertNotSelf(uid, actorUid, "administrators cannot suspend their own account")
         return identityClient.suspendUser(uid)
     }
 
-    override suspend fun reactivateUser(uid: String, context: ActorContext) = identityClient.reactivateUser(uid)
+    override fun reactivateUser(uid: String, context: ActorContext) = identityClient.reactivateUser(uid)
 
-    override suspend fun deactivateUser(uid: String, actorUid: String, context: ActorContext): User {
+    override fun deactivateUser(uid: String, actorUid: String, context: ActorContext): User {
         assertNotSelf(uid, actorUid, "administrators cannot deactivate their own account")
         return identityClient.deactivateUser(uid)
     }
@@ -46,9 +46,9 @@ class UserService(
         if (uid.equals(actorUid, ignoreCase = true)) throw SelfManagementException(message)
     }
 
-    override suspend fun listRisk(context: ActorContext): List<RiskEntry> = identityClient.listRisk()
+    override fun listRisk(context: ActorContext): List<RiskEntry> = identityClient.listRisk()
 
-    override suspend fun flagRisk(
+    override fun flagRisk(
         uid: String,
         level: String,
         reason: String,
@@ -60,6 +60,6 @@ class UserService(
         return identityClient.flagRisk(uid, level, reason, ttlSeconds)
     }
 
-    override suspend fun unflagRisk(uid: String, context: ActorContext) = identityClient.unflagRisk(uid)
+    override fun unflagRisk(uid: String, context: ActorContext) = identityClient.unflagRisk(uid)
 
 }

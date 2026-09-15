@@ -19,7 +19,6 @@ import com.codejsha.bookstore.payment.infrastructure.support.auth.HttpPrincipalR
 import com.codejsha.bookstore.payment.support.PaymentTestFixtures
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -61,7 +60,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customersGetAll_whenFiltersGiven_forwardsThemAndMapsPage`(): Unit = runBlocking {
+    fun `customersGetAll_whenFiltersGiven_forwardsThemAndMapsPage`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
 
@@ -83,7 +82,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customersCreate_whenRequestValid_mapsBodyToCommandAndReturnsCreated`(): Unit = runBlocking {
+    fun `customersCreate_whenRequestValid_mapsBodyToCommandAndReturnsCreated`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
 
@@ -122,7 +121,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customersRead_whenCustomerExists_returnsMappedAggregate`(): Unit = runBlocking {
+    fun `customersRead_whenCustomerExists_returnsMappedAggregate`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
 
@@ -138,7 +137,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customersUpdate_whenRequestValid_mapsBodyAndReturnsOk`(): Unit = runBlocking {
+    fun `customersUpdate_whenRequestValid_mapsBodyAndReturnsOk`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
 
@@ -174,7 +173,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customersDelete_whenCustomerExists_returnsNoContent`(): Unit = runBlocking {
+    fun `customersDelete_whenCustomerExists_returnsNoContent`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
 
@@ -188,7 +187,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customerPaymentMethodsGetAll_whenFilterGiven_forwardsItAndMapsPage`(): Unit = runBlocking {
+    fun `customerPaymentMethodsGetAll_whenFilterGiven_forwardsItAndMapsPage`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
 
@@ -219,7 +218,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customerPaymentMethodsCreate_whenRequestValid_mapsBodyToCommand`(): Unit = runBlocking {
+    fun `customerPaymentMethodsCreate_whenRequestValid_mapsBodyToCommand`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
 
@@ -262,7 +261,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customerPaymentMethodsUpdate_whenRequestValid_forwardsUidsAndCommand`(): Unit = runBlocking {
+    fun `customerPaymentMethodsUpdate_whenRequestValid_forwardsUidsAndCommand`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
 
@@ -312,7 +311,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customerPaymentMethodsDelete_whenMethodExists_returnsNoContent`(): Unit = runBlocking {
+    fun `customerPaymentMethodsDelete_whenMethodExists_returnsNoContent`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
 
@@ -334,7 +333,7 @@ class CustomerControllerTest {
     // ─── Authorization ──────────────────────────────────────────────────────
 
     @Test
-    fun `customersGetAll_whenCallerNotAdmin_pinsFilterToCallersRecord`(): Unit = runBlocking {
+    fun `customersGetAll_whenCallerNotAdmin_pinsFilterToCallersRecord`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
         val unpaged = Pageable.unpaged()
@@ -350,7 +349,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customersRead_whenCustomerBelongsToAnotherCaller_throws`(): Unit = runBlocking {
+    fun `customersRead_whenCustomerBelongsToAnotherCaller_throws`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
         bindPrincipal(sub = "cus_intruder", roles = null)
@@ -365,7 +364,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customersDelete_whenCustomerBelongsToAnotherCaller_throwsWithoutDeleting`(): Unit = runBlocking {
+    fun `customersDelete_whenCustomerBelongsToAnotherCaller_throwsWithoutDeleting`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
         bindPrincipal(sub = "cus_intruder", roles = null)
@@ -381,7 +380,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `customerPaymentMethodsGetAll_whenCustomerBelongsToAnotherCaller_throws`(): Unit = runBlocking {
+    fun `customerPaymentMethodsGetAll_whenCustomerBelongsToAnotherCaller_throws`() {
         val useCase = mock(CustomerUseCase::class.java)
         val controller = CustomerController(useCase, resolver)
         bindPrincipal(sub = "cus_intruder", roles = null)

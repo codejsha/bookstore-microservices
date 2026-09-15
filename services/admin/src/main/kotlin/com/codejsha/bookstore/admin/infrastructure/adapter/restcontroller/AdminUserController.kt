@@ -12,7 +12,6 @@ import com.codejsha.bookstore.generated.application.port.openapi.model.AdminUser
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminUserRolesRequest
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -29,12 +28,12 @@ class AdminUserController(
         phone: String?,
         status: String?,
         pageable: Pageable?,
-    ): ResponseEntity<AdminUserFindAllResponse> = runBlocking {
+    ): ResponseEntity<AdminUserFindAllResponse> {
         val principal = requireStaff()
         val option = UserQueryOption(email = email, name = name, phone = phone, status = status)
         val context = buildContext(principal)
         val result = userUseCase.findAllUsers(option, pageable ?: Pageable.unpaged(), context)
-        ResponseEntity.ok(
+        return ResponseEntity.ok(
             AdminUserFindAllResponse(
                 total = result.totalElements,
                 items = result.content.map { toAdminUserResponse(it) },
@@ -42,38 +41,38 @@ class AdminUserController(
         )
     }
 
-    override fun adminUsersReadUser(uid: String): ResponseEntity<AdminUserResponse> = runBlocking {
+    override fun adminUsersReadUser(uid: String): ResponseEntity<AdminUserResponse> {
         val principal = requireStaff()
         val context = buildContext(principal)
-        ResponseEntity.ok(toAdminUserResponse(userUseCase.findUser(uid, context)))
+        return ResponseEntity.ok(toAdminUserResponse(userUseCase.findUser(uid, context)))
     }
 
     override fun adminUsersUpdateUserRoles(
         uid: String,
         requestBody: AdminUserRolesRequest,
-    ): ResponseEntity<AdminUserResponse> = runBlocking {
+    ): ResponseEntity<AdminUserResponse> {
         val principal = requireManager()
         val context = buildContext(principal)
         val user = userUseCase.updateRoles(uid, requestBody.roles, principal.sub, context)
-        ResponseEntity.ok(toAdminUserResponse(user))
+        return ResponseEntity.ok(toAdminUserResponse(user))
     }
 
-    override fun adminUsersSuspendUser(uid: String): ResponseEntity<AdminUserResponse> = runBlocking {
+    override fun adminUsersSuspendUser(uid: String): ResponseEntity<AdminUserResponse> {
         val principal = requireManager()
         val context = buildContext(principal)
-        ResponseEntity.ok(toAdminUserResponse(userUseCase.suspendUser(uid, principal.sub, context)))
+        return ResponseEntity.ok(toAdminUserResponse(userUseCase.suspendUser(uid, principal.sub, context)))
     }
 
-    override fun adminUsersReactivateUser(uid: String): ResponseEntity<AdminUserResponse> = runBlocking {
+    override fun adminUsersReactivateUser(uid: String): ResponseEntity<AdminUserResponse> {
         val principal = requireManager()
         val context = buildContext(principal)
-        ResponseEntity.ok(toAdminUserResponse(userUseCase.reactivateUser(uid, context)))
+        return ResponseEntity.ok(toAdminUserResponse(userUseCase.reactivateUser(uid, context)))
     }
 
-    override fun adminUsersDeactivateUser(uid: String): ResponseEntity<AdminUserResponse> = runBlocking {
+    override fun adminUsersDeactivateUser(uid: String): ResponseEntity<AdminUserResponse> {
         val principal = requireManager()
         val context = buildContext(principal)
-        ResponseEntity.ok(toAdminUserResponse(userUseCase.deactivateUser(uid, principal.sub, context)))
+        return ResponseEntity.ok(toAdminUserResponse(userUseCase.deactivateUser(uid, principal.sub, context)))
     }
 
     private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }

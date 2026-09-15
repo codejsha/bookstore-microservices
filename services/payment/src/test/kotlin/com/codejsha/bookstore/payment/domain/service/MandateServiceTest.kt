@@ -12,7 +12,6 @@ import com.codejsha.bookstore.payment.domain.model.external.HyperswitchSetupMand
 import com.codejsha.bookstore.payment.domain.model.option.MandateQueryOption
 import com.codejsha.bookstore.payment.support.FakeTransactionRunner
 import com.codejsha.bookstore.payment.support.PaymentTestFixtures
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito.mock
@@ -30,7 +29,7 @@ class MandateServiceTest {
         MandateService(repo, client, FakeTransactionRunner())
 
     @Test
-    fun `setupMandate_whenCommandGiven_keepsGatewayPaymentMethodIdOutOfLocalReference`(): Unit = runBlocking {
+    fun `setupMandate_whenCommandGiven_keepsGatewayPaymentMethodIdOutOfLocalReference`() {
         val repo = mock(MandateRepo::class.java)
         val client = mock(HyperswitchClient::class.java)
         val service = newService(repo, client)
@@ -75,7 +74,7 @@ class MandateServiceTest {
     }
 
     @Test
-    fun `findAllMandates_whenRepoReturnsPage_mapsEachRowWithEnumCoercion`(): Unit = runBlocking {
+    fun `findAllMandates_whenRepoReturnsPage_mapsEachRowWithEnumCoercion`() {
         val repo = mock(MandateRepo::class.java)
         val service = newService(repo)
 
@@ -95,7 +94,7 @@ class MandateServiceTest {
     }
 
     @Test
-    fun `findMandate_whenSetupFutureUsagePresent_mapsItToEnum`(): Unit = runBlocking {
+    fun `findMandate_whenSetupFutureUsagePresent_mapsItToEnum`() {
         val repo = mock(MandateRepo::class.java)
         val service = newService(repo)
 
@@ -110,7 +109,7 @@ class MandateServiceTest {
     }
 
     @Test
-    fun `findMandate_whenSetupFutureUsageNull_returnsNull`(): Unit = runBlocking {
+    fun `findMandate_whenSetupFutureUsageNull_returnsNull`() {
         val repo = mock(MandateRepo::class.java)
         val service = newService(repo)
 
@@ -123,7 +122,7 @@ class MandateServiceTest {
     }
 
     @Test
-    fun `revokeMandate_whenMandateExists_returnsRevokedAggregate`(): Unit = runBlocking {
+    fun `revokeMandate_whenMandateExists_returnsRevokedAggregate`() {
         val repo = mock(MandateRepo::class.java)
         val service = newService(repo)
 

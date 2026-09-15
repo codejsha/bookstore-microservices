@@ -25,7 +25,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito.mock
-import kotlinx.coroutines.runBlocking
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
@@ -74,7 +73,7 @@ class GrpcMetricsInterceptorTest {
         FindOrderRequest.newBuilder().setUid(OrderTestFixtures.ORDER_UID.toString()).build()
 
     @Test
-    fun `intercept_whenCallCompletes_recordsDurationTaggedWithServiceMethodAndStatus`(): Unit = runBlocking {
+    fun `intercept_whenCallCompletes_recordsDurationTaggedWithServiceMethodAndStatus`() {
         val ownerUid = OrderTestFixtures.USER_UID
         given(useCase.findOrder(OrderTestFixtures.ORDER_UID, ActorContext(actorId = 0L, actorType = ActorType.USER)))
             .willReturn(orderAggregate(ownerUid))

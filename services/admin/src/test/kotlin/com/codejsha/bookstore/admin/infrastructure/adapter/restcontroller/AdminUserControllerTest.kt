@@ -8,7 +8,6 @@ import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalRes
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminUserRolesRequest
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -60,7 +59,7 @@ class AdminUserControllerTest {
     }
 
     @Test
-    fun `list maps the filter and the user fields onto the response`(): Unit = runBlocking {
+    fun `list maps the filter and the user fields onto the response`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(UserUseCase::class.java)
         val controller = AdminUserController(useCase, resolver)
@@ -81,7 +80,7 @@ class AdminUserControllerTest {
     }
 
     @Test
-    fun `a write forwards the calling administrator as the actor`(): Unit = runBlocking {
+    fun `a write forwards the calling administrator as the actor`() {
         bindPrincipal(roles = "MANAGER,STAFF,USER")
         val useCase = mock(UserUseCase::class.java)
         val controller = AdminUserController(useCase, resolver)

@@ -8,21 +8,21 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
 interface UserUseCase {
-    suspend fun findAllUsers(option: UserQueryOption, pageable: Pageable, context: ActorContext): Page<User>
+    fun findAllUsers(option: UserQueryOption, pageable: Pageable, context: ActorContext): Page<User>
 
-    suspend fun findUser(uid: String, context: ActorContext): User
+    fun findUser(uid: String, context: ActorContext): User
 
-    suspend fun updateRoles(uid: String, roles: List<String>, actorUid: String, context: ActorContext): User
+    fun updateRoles(uid: String, roles: List<String>, actorUid: String, context: ActorContext): User
 
-    suspend fun suspendUser(uid: String, actorUid: String, context: ActorContext): User
+    fun suspendUser(uid: String, actorUid: String, context: ActorContext): User
 
-    suspend fun reactivateUser(uid: String, context: ActorContext): User
+    fun reactivateUser(uid: String, context: ActorContext): User
 
-    suspend fun deactivateUser(uid: String, actorUid: String, context: ActorContext): User
+    fun deactivateUser(uid: String, actorUid: String, context: ActorContext): User
 
-    suspend fun listRisk(context: ActorContext): List<RiskEntry>
+    fun listRisk(context: ActorContext): List<RiskEntry>
 
-    suspend fun flagRisk(
+    fun flagRisk(
         uid: String,
         level: String,
         reason: String,
@@ -31,5 +31,5 @@ interface UserUseCase {
         context: ActorContext,
     ): RiskEntry
 
-    suspend fun unflagRisk(uid: String, context: ActorContext)
+    fun unflagRisk(uid: String, context: ActorContext)
 }

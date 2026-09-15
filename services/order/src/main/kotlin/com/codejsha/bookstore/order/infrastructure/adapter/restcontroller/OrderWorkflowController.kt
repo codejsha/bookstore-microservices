@@ -28,7 +28,6 @@ import io.temporal.client.WorkflowClient
 import io.temporal.client.WorkflowExecutionAlreadyStarted
 import io.temporal.api.enums.v1.WorkflowIdReusePolicy
 import io.temporal.client.WorkflowOptions
-import kotlinx.coroutines.runBlocking
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -58,10 +57,8 @@ class OrderWorkflowController(
             if (actor.isStaff()) body.userUid
             else actor.subjectUserUid()?.toString()
                 ?: throw ForbiddenException("subject '${actor.sub}' is not a valid user uid")
-        val cartItems = runBlocking {
-            val context = ActorContext(actorId = 0L, ActorType.USER)
-            cartUseCase.getCart(UUID.fromString(ownerUserUid), context).items
-        }
+        val context = ActorContext(actorId = 0L, ActorType.USER)
+        val cartItems = cartUseCase.getCart(UUID.fromString(ownerUserUid), context).items
         val request = repriceFromCart(body.copy(userUid = ownerUserUid), cartItems)
         validatePlaceOrderRequest(request)
         val workflowId = "place-${request.idempotencyKey}"
@@ -126,9 +123,9 @@ class OrderWorkflowController(
         return acceptedOrExisting(workflowId) { WorkflowClient.start(stub::fulfillOrder, request) }
     }
 
-    private fun loadOrderOwner(uid: String, principal: Principal): UUID = runBlocking {
+    private fun loadOrderOwner(uid: String, principal: Principal): UUID {
         val context = ActorContext(actorId = 0L, ActorType.USER)
-        orderUseCase.findOrder(UUID.fromString(uid), context).userUid
+        return orderUseCase.findOrder(UUID.fromString(uid), context).userUid
     }
 
     private inline fun acceptedOrExisting(

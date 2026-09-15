@@ -18,7 +18,6 @@ import com.codejsha.bookstore.settlement.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.settlement.infrastructure.support.auth.isManager
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -37,12 +36,12 @@ class SettlementController(
         date: LocalDate?,
         status: SettlementStatus?,
         pageable: Pageable?,
-    ): ResponseEntity<SettlementFindAllResponse> = runBlocking {
+    ): ResponseEntity<SettlementFindAllResponse> {
         val principal = principalResolver.require().also { it.assertStaff() }
         val option = SettlementQueryOption(settlementDate = date, status = status?.value)
         val context = buildContext(principal)
         val result = settlementUseCase.findAllSettlements(option, pageable ?: Pageable.unpaged(), context)
-        ResponseEntity.ok(
+        return ResponseEntity.ok(
             SettlementFindAllResponse(
                 total = result.totalElements,
                 items = result.content.map { toSettlementFindResponse(it) },
@@ -50,11 +49,11 @@ class SettlementController(
         )
     }
 
-    override fun settlementsRead(settlementUid: String): ResponseEntity<SettlementFindResponse> = runBlocking {
+    override fun settlementsRead(settlementUid: String): ResponseEntity<SettlementFindResponse> {
         val principal = principalResolver.require().also { it.assertStaff() }
         val context = buildContext(principal)
         val settlement = settlementUseCase.findSettlement(UUID.fromString(settlementUid), context)
-        ResponseEntity.ok(toSettlementFindResponse(settlement))
+        return ResponseEntity.ok(toSettlementFindResponse(settlement))
     }
 
     override fun settlementRunsCreate(

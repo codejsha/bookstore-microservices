@@ -9,7 +9,6 @@ import com.codejsha.bookstore.admin.infrastructure.support.auth.ForbiddenExcepti
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -57,7 +56,7 @@ class AdminInventoryControllerTest {
     }
 
     @Test
-    fun `listWarehouses maps the name filter and the warehouse fields`(): Unit = runBlocking {
+    fun `listWarehouses maps the name filter and the warehouse fields`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(InventoryUseCase::class.java)
         val controller = AdminInventoryController(useCase, resolver)
@@ -75,7 +74,7 @@ class AdminInventoryControllerTest {
     }
 
     @Test
-    fun `listStocks maps the per-warehouse breakdown`(): Unit = runBlocking {
+    fun `listStocks maps the per-warehouse breakdown`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(InventoryUseCase::class.java)
         val controller = AdminInventoryController(useCase, resolver)
@@ -94,7 +93,7 @@ class AdminInventoryControllerTest {
     }
 
     @Test
-    fun `an edition held in no warehouse keeps an empty breakdown`(): Unit = runBlocking {
+    fun `an edition held in no warehouse keeps an empty breakdown`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(InventoryUseCase::class.java)
         val controller = AdminInventoryController(useCase, resolver)

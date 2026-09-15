@@ -17,7 +17,6 @@ import com.codejsha.bookstore.generated.application.port.openapi.model.AdminWork
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminWorkUpdateRequest
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -34,12 +33,12 @@ class AdminCatalogController(
         authorUid: String?,
         subjectUid: String?,
         pageable: Pageable?,
-    ): ResponseEntity<AdminWorkFindAllResponse> = runBlocking {
+    ): ResponseEntity<AdminWorkFindAllResponse> {
         val principal = requireStaff()
         val option = WorkQueryOption(title = title, authorUid = authorUid, subjectUid = subjectUid)
         val context = buildContext(principal)
         val result = catalogUseCase.findAllWorks(option, pageable ?: Pageable.unpaged(), context)
-        ResponseEntity.ok(
+        return ResponseEntity.ok(
             AdminWorkFindAllResponse(
                 total = result.totalElements,
                 items = result.content.map { toAdminWorkResponse(it) },
@@ -47,13 +46,13 @@ class AdminCatalogController(
         )
     }
 
-    override fun adminCatalogReadWork(uid: String): ResponseEntity<AdminWorkResponse> = runBlocking {
+    override fun adminCatalogReadWork(uid: String): ResponseEntity<AdminWorkResponse> {
         val principal = requireStaff()
         val context = buildContext(principal)
-        ResponseEntity.ok(toAdminWorkResponse(catalogUseCase.findWork(uid, context)))
+        return ResponseEntity.ok(toAdminWorkResponse(catalogUseCase.findWork(uid, context)))
     }
 
-    override fun adminCatalogCreateWork(requestBody: AdminWorkCreateRequest): ResponseEntity<Unit> = runBlocking {
+    override fun adminCatalogCreateWork(requestBody: AdminWorkCreateRequest): ResponseEntity<Unit> {
         val principal = requireManager()
         val context = buildContext(principal)
         val command = WorkCreateCommand(
@@ -65,13 +64,13 @@ class AdminCatalogController(
             subjectNames = requestBody.subjectNames,
         )
         catalogUseCase.createWork(command, context)
-        ResponseEntity.status(HttpStatus.CREATED).build()
+        return ResponseEntity.status(HttpStatus.CREATED).build()
     }
 
     override fun adminCatalogUpdateWork(
         uid: String,
         requestBody: AdminWorkUpdateRequest,
-    ): ResponseEntity<AdminWorkResponse> = runBlocking {
+    ): ResponseEntity<AdminWorkResponse> {
         val principal = requireManager()
         val context = buildContext(principal)
         val command = WorkUpdateCommand(
@@ -82,17 +81,17 @@ class AdminCatalogController(
             authorUids = requestBody.authorUids,
             subjectNames = requestBody.subjectNames,
         )
-        ResponseEntity.ok(toAdminWorkResponse(catalogUseCase.updateWork(uid, command, context)))
+        return ResponseEntity.ok(toAdminWorkResponse(catalogUseCase.updateWork(uid, command, context)))
     }
 
     override fun adminCatalogListAuthors(
         name: String?,
         pageable: Pageable?,
-    ): ResponseEntity<AdminAuthorFindAllResponse> = runBlocking {
+    ): ResponseEntity<AdminAuthorFindAllResponse> {
         val principal = requireStaff()
         val context = buildContext(principal)
         val result = catalogUseCase.findAllAuthors(name, pageable ?: Pageable.unpaged(), context)
-        ResponseEntity.ok(
+        return ResponseEntity.ok(
             AdminAuthorFindAllResponse(
                 total = result.totalElements,
                 items = result.content.map { toAdminAuthorItem(it) },
@@ -103,11 +102,11 @@ class AdminCatalogController(
     override fun adminCatalogListSubjects(
         name: String?,
         pageable: Pageable?,
-    ): ResponseEntity<AdminSubjectFindAllResponse> = runBlocking {
+    ): ResponseEntity<AdminSubjectFindAllResponse> {
         val principal = requireStaff()
         val context = buildContext(principal)
         val result = catalogUseCase.findAllSubjects(name, pageable ?: Pageable.unpaged(), context)
-        ResponseEntity.ok(
+        return ResponseEntity.ok(
             AdminSubjectFindAllResponse(
                 total = result.totalElements,
                 items = result.content.map { toAdminSubjectItem(it) },

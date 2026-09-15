@@ -15,16 +15,16 @@ import java.util.UUID
 
 interface CustomerUseCase {
     // ─── Customer (Aggregate Root) ──────────────────────────────────────────
-    suspend fun findAllCustomers(option: CustomerQueryOption, pageable: Pageable, context: ActorContext): Page<CustomerAggregate>
-    suspend fun findCustomer(uid: UUID, context: ActorContext): CustomerAggregate
-    suspend fun createCustomer(command: CustomerCreateCommand, context: ActorContext): CustomerAggregate
-    suspend fun updateCustomer(uid: UUID, command: CustomerUpdateCommand, context: ActorContext): CustomerAggregate
-    suspend fun deleteCustomer(uid: UUID, context: ActorContext)
+    fun findAllCustomers(option: CustomerQueryOption, pageable: Pageable, context: ActorContext): Page<CustomerAggregate>
+    fun findCustomer(uid: UUID, context: ActorContext): CustomerAggregate
+    fun createCustomer(command: CustomerCreateCommand, context: ActorContext): CustomerAggregate
+    fun updateCustomer(uid: UUID, command: CustomerUpdateCommand, context: ActorContext): CustomerAggregate
+    fun deleteCustomer(uid: UUID, context: ActorContext)
 
     // ─── PaymentMethod (Internal Entity) ────────────────────────────────────
-    suspend fun findAllPaymentMethods(customerUid: UUID, option: PaymentMethodQueryOption, pageable: Pageable, context: ActorContext): Page<PaymentMethodEntity>
-    suspend fun findPaymentMethod(customerUid: UUID, uid: UUID, context: ActorContext): PaymentMethodEntity
-    suspend fun createPaymentMethod(customerUid: UUID, command: PaymentMethodCreateCommand, context: ActorContext): PaymentMethodEntity
-    suspend fun updatePaymentMethod(customerUid: UUID, uid: UUID, command: PaymentMethodUpdateCommand, context: ActorContext): PaymentMethodEntity
-    suspend fun deletePaymentMethod(customerUid: UUID, uid: UUID, context: ActorContext)
+    fun findAllPaymentMethods(customerUid: UUID, option: PaymentMethodQueryOption, pageable: Pageable, context: ActorContext): Page<PaymentMethodEntity>
+    fun findPaymentMethod(customerUid: UUID, uid: UUID, context: ActorContext): PaymentMethodEntity
+    fun createPaymentMethod(customerUid: UUID, command: PaymentMethodCreateCommand, context: ActorContext): PaymentMethodEntity
+    fun updatePaymentMethod(customerUid: UUID, uid: UUID, command: PaymentMethodUpdateCommand, context: ActorContext): PaymentMethodEntity
+    fun deletePaymentMethod(customerUid: UUID, uid: UUID, context: ActorContext)
 }

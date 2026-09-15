@@ -27,14 +27,14 @@ class OrderService(
     // ─── Query ──────────────────────────────────────────────────────────────
 
     @WithSpan
-    override suspend fun findAllOrders(
+    override fun findAllOrders(
         option: OrderQueryOption, pageable: Pageable, context: ActorContext
     ): Page<OrderAggregate> = txRunner.tx {
         orderRepo.findAll(option, pageable, context).map { it.toAggregate() }
     }
 
     @WithSpan
-    override suspend fun findOrder(uid: UUID, context: ActorContext): OrderAggregate = txRunner.tx {
+    override fun findOrder(uid: UUID, context: ActorContext): OrderAggregate = txRunner.tx {
         val order = orderRepo.findOne(uid, context).toAggregate()
         val items = orderItemRepo.findAllByOrder(uid, Pageable.unpaged(), context)
             .content.map { it.toEntity() }
@@ -48,7 +48,7 @@ class OrderService(
     // ─── Order lifecycle ────────────────────────────────────────────────────
 
     @WithSpan
-    override suspend fun placeOrder(
+    override fun placeOrder(
         command: OrderCreateCommand,
         items: List<OrderItemCreateCommand>,
         shipping: OrderShippingCreateCommand?,
@@ -86,7 +86,7 @@ class OrderService(
     }
 
     @WithSpan
-    override suspend fun cancelOrder(uid: UUID, context: ActorContext): OrderAggregate = txRunner.tx {
+    override fun cancelOrder(uid: UUID, context: ActorContext): OrderAggregate = txRunner.tx {
         val order = orderRepo.findOne(uid, context)
         requirePending(order.status)
 
@@ -111,7 +111,7 @@ class OrderService(
     // ─── Item management ────────────────────────────────────────────────────
 
     @WithSpan
-    override suspend fun addItem(
+    override fun addItem(
         orderUid: UUID, command: OrderItemCreateCommand, context: ActorContext
     ): OrderItemEntity = txRunner.tx {
         requirePending(orderRepo.findOne(orderUid, context).status)
@@ -119,7 +119,7 @@ class OrderService(
     }
 
     @WithSpan
-    override suspend fun updateItem(
+    override fun updateItem(
         orderUid: UUID, itemUid: UUID, command: OrderItemUpdateCommand, context: ActorContext
     ): OrderItemEntity = txRunner.tx {
         requirePending(orderRepo.findOne(orderUid, context).status)
@@ -127,7 +127,7 @@ class OrderService(
     }
 
     @WithSpan
-    override suspend fun removeItem(orderUid: UUID, itemUid: UUID, context: ActorContext) {
+    override fun removeItem(orderUid: UUID, itemUid: UUID, context: ActorContext) {
         txRunner.tx {
             requirePending(orderRepo.findOne(orderUid, context).status)
             orderItemRepo.delete(orderUid, itemUid, context)
@@ -137,7 +137,7 @@ class OrderService(
     // ─── Shipping ───────────────────────────────────────────────────────────
 
     @WithSpan
-    override suspend fun setShipping(
+    override fun setShipping(
         orderUid: UUID, command: OrderShippingCreateCommand, context: ActorContext
     ): OrderShippingEntity = txRunner.tx {
         requirePending(orderRepo.findOne(orderUid, context).status)
@@ -164,7 +164,7 @@ class OrderService(
     }
 
     @WithSpan
-    override suspend fun updateShipping(
+    override fun updateShipping(
         orderUid: UUID, command: OrderShippingUpdateCommand, context: ActorContext
     ): OrderShippingEntity = txRunner.tx {
         requirePending(orderRepo.findOne(orderUid, context).status)
@@ -174,7 +174,7 @@ class OrderService(
     // ─── Adjustments ────────────────────────────────────────────────────────
 
     @WithSpan
-    override suspend fun applyAdjustment(
+    override fun applyAdjustment(
         orderUid: UUID, command: OrderAdjustmentCreateCommand, context: ActorContext
     ): OrderAdjustmentEntity = txRunner.tx {
         requirePending(orderRepo.findOne(orderUid, context).status)
@@ -182,7 +182,7 @@ class OrderService(
     }
 
     @WithSpan
-    override suspend fun removeAdjustment(orderUid: UUID, adjustmentUid: UUID, context: ActorContext) {
+    override fun removeAdjustment(orderUid: UUID, adjustmentUid: UUID, context: ActorContext) {
         txRunner.tx {
             requirePending(orderRepo.findOne(orderUid, context).status)
             orderAdjustmentRepo.delete(orderUid, adjustmentUid, context)

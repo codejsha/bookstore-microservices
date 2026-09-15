@@ -12,7 +12,6 @@ import com.codejsha.bookstore.generated.application.port.openapi.model.AdminWork
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminWorkUpdateRequest
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -67,7 +66,7 @@ class AdminCatalogControllerTest {
     }
 
     @Test
-    fun `an absent pageable is forwarded as unpaged`(): Unit = runBlocking {
+    fun `an absent pageable is forwarded as unpaged`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(CatalogUseCase::class.java)
         val controller = AdminCatalogController(useCase, resolver)
@@ -81,7 +80,7 @@ class AdminCatalogControllerTest {
     }
 
     @Test
-    fun `a sorted page is forwarded as the caller requested it`(): Unit = runBlocking {
+    fun `a sorted page is forwarded as the caller requested it`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(CatalogUseCase::class.java)
         val controller = AdminCatalogController(useCase, resolver)
@@ -111,7 +110,7 @@ class AdminCatalogControllerTest {
     }
 
     @Test
-    fun `updateWork forwards absent fields as null so the catalog leaves them alone`(): Unit = runBlocking {
+    fun `updateWork forwards absent fields as null so the catalog leaves them alone`() {
         bindPrincipal(roles = "MANAGER,STAFF,USER")
         val useCase = mock(CatalogUseCase::class.java)
         val controller = AdminCatalogController(useCase, resolver)

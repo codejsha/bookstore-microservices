@@ -9,11 +9,11 @@ import java.util.UUID
 
 interface SettlementUseCase {
     // ─── Query ──────────────────────────────────────────────────────────────
-    suspend fun findAllSettlements(
+    fun findAllSettlements(
         option: SettlementQueryOption,
         pageable: Pageable,
         context: ActorContext,
     ): Page<DailySettlement>
 
-    suspend fun findSettlement(uid: UUID, context: ActorContext): DailySettlement
+    fun findSettlement(uid: UUID, context: ActorContext): DailySettlement
 }

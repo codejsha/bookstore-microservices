@@ -11,7 +11,6 @@ import com.codejsha.bookstore.payment.infrastructure.support.auth.HttpPrincipalR
 import com.codejsha.bookstore.payment.support.PaymentTestFixtures
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -53,7 +52,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesGetAll_whenFiltersGiven_forwardsThemAndMapsPage`(): Unit = runBlocking {
+    fun `mandatesGetAll_whenFiltersGiven_forwardsThemAndMapsPage`() {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
 
@@ -78,7 +77,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesRead_whenMandateExists_returnsMappedMandate`(): Unit = runBlocking {
+    fun `mandatesRead_whenMandateExists_returnsMappedMandate`() {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
 
@@ -97,7 +96,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesRevoke_whenMandateActive_returnsRevokedMandate`(): Unit = runBlocking {
+    fun `mandatesRevoke_whenMandateActive_returnsRevokedMandate`() {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
 
@@ -141,7 +140,7 @@ class MandateControllerTest {
     // ─── Authorization ──────────────────────────────────────────────────────
 
     @Test
-    fun `mandatesGetAll_whenCallerNotAdmin_pinsFilterToCallersMandates`(): Unit = runBlocking {
+    fun `mandatesGetAll_whenCallerNotAdmin_pinsFilterToCallersMandates`() {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
         val unpaged = Pageable.unpaged()
@@ -157,7 +156,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesRevoke_whenMandateBelongsToAnotherCustomer_throwsWithoutRevoking`(): Unit = runBlocking {
+    fun `mandatesRevoke_whenMandateBelongsToAnotherCustomer_throwsWithoutRevoking`() {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
         bindPrincipal(sub = "cus_intruder", roles = null)
@@ -174,7 +173,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesRead_whenMandateBelongsToAnotherCustomer_throws`(): Unit = runBlocking {
+    fun `mandatesRead_whenMandateBelongsToAnotherCustomer_throws`() {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
         bindPrincipal(sub = "cus_intruder", roles = null)
@@ -189,7 +188,7 @@ class MandateControllerTest {
     }
 
     @Test
-    fun `mandatesSetup_whenBodyNamesAnotherCustomer_registersInstrumentAgainstCaller`(): Unit = runBlocking {
+    fun `mandatesSetup_whenBodyNamesAnotherCustomer_registersInstrumentAgainstCaller`() {
         val useCase = mock(MandateUseCase::class.java)
         val controller = MandateController(useCase, resolver)
 

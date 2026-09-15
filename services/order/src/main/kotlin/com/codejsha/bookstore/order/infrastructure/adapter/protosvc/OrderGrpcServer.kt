@@ -11,7 +11,6 @@ import com.codejsha.platform.shared.data.buildPageRequest
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.StreamObserver
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import java.util.UUID
 import com.codejsha.bookstore.order.domain.constant.OrderStatus as DomainOrderStatus
@@ -39,7 +38,7 @@ class OrderGrpcServer(
         val context = ActorContext(actorId = 0L, ActorType.USER)
 
         try {
-            val orders = runBlocking { orderUseCase.findAllOrders(option, pageable, context) }
+            val orders = orderUseCase.findAllOrders(option, pageable, context)
             val responseBuilder = ListOrdersResponse.newBuilder()
                 .addAllOrders(orders.content.map { it.toOrderProto() })
                 .setTotalSize(orders.totalElements.toInt())
@@ -62,7 +61,7 @@ class OrderGrpcServer(
             val actor = currentGrpcActor()
             val context = ActorContext(actorId = 0L, ActorType.USER)
             val orderUid = UUID.fromString(request.uid)
-            val order = runBlocking { orderUseCase.findOrder(orderUid, context) }
+            val order = orderUseCase.findOrder(orderUid, context)
             if (!actor.isAdmin && order.userUid != actor.uid) {
                 throw NoSuchElementException("Order with uid $orderUid not found")
             }

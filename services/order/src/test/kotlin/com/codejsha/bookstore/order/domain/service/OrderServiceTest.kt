@@ -16,7 +16,6 @@ import com.codejsha.bookstore.order.domain.model.command.OrderUpdateCommand
 import com.codejsha.bookstore.order.domain.model.option.OrderQueryOption
 import com.codejsha.bookstore.order.support.FakeTransactionRunner
 import com.codejsha.bookstore.order.support.OrderTestFixtures
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito.mock
@@ -58,7 +57,7 @@ class OrderServiceTest {
         given(orderRepo.findAll(option, pageable, ctx))
             .willReturn(PageImpl(results, pageable, 2L))
 
-        val page = runBlocking { service.findAllOrders(option, pageable, ctx) }
+        val page = service.findAllOrders(option, pageable, ctx)
 
         assertEquals(2, page.content.size)
         assertEquals(OrderStatus.PENDING, page.content[0].status)
@@ -82,7 +81,7 @@ class OrderServiceTest {
         given(shipRepo.findByOrder(OrderTestFixtures.ORDER_UID, ctx))
             .willReturn(OrderTestFixtures.orderShippingResult())
 
-        val agg = runBlocking { service.findOrder(OrderTestFixtures.ORDER_UID, ctx) }
+        val agg = service.findOrder(OrderTestFixtures.ORDER_UID, ctx)
 
         assertEquals(1, agg.items.size)
         assertEquals(1, agg.adjustments.size)
@@ -106,7 +105,7 @@ class OrderServiceTest {
             .willReturn(PageImpl(emptyList()))
         given(shipRepo.findByOrder(OrderTestFixtures.ORDER_UID, ctx)).willReturn(null)
 
-        val agg = runBlocking { service.findOrder(OrderTestFixtures.ORDER_UID, ctx) }
+        val agg = service.findOrder(OrderTestFixtures.ORDER_UID, ctx)
 
         assertNull(agg.shipping)
     }
@@ -149,7 +148,7 @@ class OrderServiceTest {
         given(shipRepo.create(OrderTestFixtures.ORDER_UID, shippingCmd, ctx))
             .willReturn(OrderTestFixtures.orderShippingResult())
 
-        val agg = runBlocking { service.placeOrder(command, listOf(itemCmd1, itemCmd2), shippingCmd, ctx) }
+        val agg = service.placeOrder(command, listOf(itemCmd1, itemCmd2), shippingCmd, ctx)
 
         assertEquals(2, agg.items.size)
         assertNotNull(agg.shipping)
@@ -175,7 +174,7 @@ class OrderServiceTest {
         )
         given(orderRepo.create(command, ctx)).willReturn(OrderTestFixtures.orderResult())
 
-        val agg = runBlocking { service.placeOrder(command, emptyList(), shipping = null, context = ctx) }
+        val agg = service.placeOrder(command, emptyList(), shipping = null, context = ctx)
 
         assertNull(agg.shipping)
         assertEquals(0, agg.items.size)
@@ -202,7 +201,7 @@ class OrderServiceTest {
         given(orderRepo.update(OrderTestFixtures.ORDER_UID, expectedUpdate, ctx))
             .willReturn(OrderTestFixtures.orderResult(status = OrderStatus.CANCELLED.value))
 
-        val agg = runBlocking { service.cancelOrder(OrderTestFixtures.ORDER_UID, ctx) }
+        val agg = service.cancelOrder(OrderTestFixtures.ORDER_UID, ctx)
 
         assertEquals(OrderStatus.CANCELLED, agg.status)
         verify(orderRepo).update(OrderTestFixtures.ORDER_UID, expectedUpdate, ctx)
@@ -220,7 +219,7 @@ class OrderServiceTest {
             .willReturn(OrderTestFixtures.orderResult(status = OrderStatus.PAID.value))
 
         val ex = assertFailsWith<OrderStateConflictException> {
-            runBlocking { service.cancelOrder(OrderTestFixtures.ORDER_UID, ctx) }
+            service.cancelOrder(OrderTestFixtures.ORDER_UID, ctx)
         }
         assertEquals(true, ex.message?.contains("PENDING"))
     }
@@ -241,7 +240,7 @@ class OrderServiceTest {
             quantity = 1, currency = "KRW", price = BigDecimal.ONE, taxRate = BigDecimal.ZERO,
         )
         assertFailsWith<OrderStateConflictException> {
-            runBlocking { service.addItem(OrderTestFixtures.ORDER_UID, cmd, ctx) }
+            service.addItem(OrderTestFixtures.ORDER_UID, cmd, ctx)
         }
     }
 
@@ -263,7 +262,7 @@ class OrderServiceTest {
         given(itemRepo.create(OrderTestFixtures.ORDER_UID, cmd, ctx))
             .willReturn(OrderTestFixtures.orderItemResult())
 
-        val item = runBlocking { service.addItem(OrderTestFixtures.ORDER_UID, cmd, ctx) }
+        val item = service.addItem(OrderTestFixtures.ORDER_UID, cmd, ctx)
 
         assertEquals(OrderTestFixtures.ORDER_ITEM_UID, item.uid)
     }
@@ -286,10 +285,10 @@ class OrderServiceTest {
         )
 
         assertFailsWith<OrderStateConflictException> {
-            runBlocking { service.updateItem(OrderTestFixtures.ORDER_UID, OrderTestFixtures.ORDER_ITEM_UID, updateCmd, ctx) }
+            service.updateItem(OrderTestFixtures.ORDER_UID, OrderTestFixtures.ORDER_ITEM_UID, updateCmd, ctx)
         }
         assertFailsWith<OrderStateConflictException> {
-            runBlocking { service.removeItem(OrderTestFixtures.ORDER_UID, OrderTestFixtures.ORDER_ITEM_UID, ctx) }
+            service.removeItem(OrderTestFixtures.ORDER_UID, OrderTestFixtures.ORDER_ITEM_UID, ctx)
         }
     }
 
@@ -313,7 +312,7 @@ class OrderServiceTest {
         given(shipRepo.create(OrderTestFixtures.ORDER_UID, cmd, ctx))
             .willReturn(OrderTestFixtures.orderShippingResult())
 
-        val shipping = runBlocking { service.setShipping(OrderTestFixtures.ORDER_UID, cmd, ctx) }
+        val shipping = service.setShipping(OrderTestFixtures.ORDER_UID, cmd, ctx)
 
         assertEquals(OrderTestFixtures.ORDER_SHIPPING_UID, shipping.uid)
         verify(shipRepo).create(OrderTestFixtures.ORDER_UID, cmd, ctx)
@@ -352,7 +351,7 @@ class OrderServiceTest {
         given(shipRepo.update(OrderTestFixtures.ORDER_UID, expectedUpdate, ctx))
             .willReturn(OrderTestFixtures.orderShippingResult())
 
-        runBlocking { service.setShipping(OrderTestFixtures.ORDER_UID, cmd, ctx) }
+        service.setShipping(OrderTestFixtures.ORDER_UID, cmd, ctx)
 
         verify(shipRepo).update(OrderTestFixtures.ORDER_UID, expectedUpdate, ctx)
     }
@@ -375,10 +374,10 @@ class OrderServiceTest {
         given(adjRepo.create(OrderTestFixtures.ORDER_UID, cmd, ctx))
             .willReturn(OrderTestFixtures.orderAdjustmentResult())
 
-        val adjustment = runBlocking { service.applyAdjustment(OrderTestFixtures.ORDER_UID, cmd, ctx) }
+        val adjustment = service.applyAdjustment(OrderTestFixtures.ORDER_UID, cmd, ctx)
         assertEquals(OrderTestFixtures.ORDER_ADJUSTMENT_UID, adjustment.uid)
 
-        runBlocking { service.removeAdjustment(OrderTestFixtures.ORDER_UID, OrderTestFixtures.ORDER_ADJUSTMENT_UID, ctx) }
+        service.removeAdjustment(OrderTestFixtures.ORDER_UID, OrderTestFixtures.ORDER_ADJUSTMENT_UID, ctx)
         verify(adjRepo).delete(OrderTestFixtures.ORDER_UID, OrderTestFixtures.ORDER_ADJUSTMENT_UID, ctx)
     }
 }

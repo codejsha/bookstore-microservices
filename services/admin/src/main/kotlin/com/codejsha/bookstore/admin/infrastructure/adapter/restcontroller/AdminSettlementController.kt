@@ -14,7 +14,6 @@ import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSett
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSettlementRunResponse
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -31,12 +30,12 @@ class AdminSettlementController(
         date: LocalDate?,
         status: String?,
         pageable: Pageable?,
-    ): ResponseEntity<AdminSettlementFindAllResponse> = runBlocking {
+    ): ResponseEntity<AdminSettlementFindAllResponse> {
         val principal = requireStaff()
         val option = SettlementQueryOption(settlementDate = date, status = status)
         val context = buildContext(principal)
         val result = settlementUseCase.findAllSettlements(option, pageable ?: Pageable.unpaged(), context)
-        ResponseEntity.ok(
+        return ResponseEntity.ok(
             AdminSettlementFindAllResponse(
                 total = result.totalElements,
                 items = result.content.map { toAdminSettlementItem(it) },
@@ -44,15 +43,15 @@ class AdminSettlementController(
         )
     }
 
-    override fun adminSettlementsReadSettlement(uid: String): ResponseEntity<AdminSettlementResponse> = runBlocking {
+    override fun adminSettlementsReadSettlement(uid: String): ResponseEntity<AdminSettlementResponse> {
         val principal = requireStaff()
         val context = buildContext(principal)
-        ResponseEntity.ok(toAdminSettlementResponse(settlementUseCase.findSettlement(uid, context)))
+        return ResponseEntity.ok(toAdminSettlementResponse(settlementUseCase.findSettlement(uid, context)))
     }
 
     override fun adminSettlementsTriggerRun(
         requestBody: AdminSettlementRunRequest,
-    ): ResponseEntity<AdminSettlementRunResponse> = runBlocking {
+    ): ResponseEntity<AdminSettlementRunResponse> {
         val principal = requireManager()
         val context = buildContext(principal)
         val command = TriggerSettlementRunCommand(
@@ -60,7 +59,7 @@ class AdminSettlementController(
             rerun = requestBody.rerun ?: false,
         )
         val ack = settlementUseCase.triggerSettlementRun(command, context)
-        ResponseEntity.status(HttpStatus.ACCEPTED).body(toAdminSettlementRunResponse(ack))
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(toAdminSettlementRunResponse(ack))
     }
 
     private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }

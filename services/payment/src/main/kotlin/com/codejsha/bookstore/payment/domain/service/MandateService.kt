@@ -33,19 +33,19 @@ class MandateService(
     }
 
     @WithSpan
-    override suspend fun findAllMandates(
+    override fun findAllMandates(
         option: MandateQueryOption, pageable: Pageable, context: ActorContext
     ): Page<MandateAggregate> = txRunner.tx {
         mandateRepo.findAll(option, pageable, context).map { toMandateAggregate(it) }
     }
 
     @WithSpan
-    override suspend fun findMandate(uid: UUID, context: ActorContext): MandateAggregate = txRunner.tx {
+    override fun findMandate(uid: UUID, context: ActorContext): MandateAggregate = txRunner.tx {
         toMandateAggregate(mandateRepo.findOne(uid, context))
     }
 
     @WithSpan
-    override suspend fun setupMandate(command: MandateSetupCommand, context: ActorContext): MandateAggregate {
+    override fun setupMandate(command: MandateSetupCommand, context: ActorContext): MandateAggregate {
         val hyperswitchResult = hyperswitchClient.setupMandate(
             HyperswitchSetupMandateCommand(
                 idempotencyKey = "mandate:${command.customerId}:${command.paymentMethodToken}",
@@ -79,7 +79,7 @@ class MandateService(
     }
 
     @WithSpan
-    override suspend fun revokeMandate(uid: UUID, context: ActorContext): MandateAggregate = txRunner.tx {
+    override fun revokeMandate(uid: UUID, context: ActorContext): MandateAggregate = txRunner.tx {
         toMandateAggregate(mandateRepo.revoke(uid, context))
     }
 

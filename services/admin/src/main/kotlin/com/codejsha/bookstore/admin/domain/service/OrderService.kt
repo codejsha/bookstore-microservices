@@ -12,10 +12,10 @@ class OrderService(
     private val orderClient: OrderClient,
 ) : OrderUseCase {
 
-    override suspend fun findAllOrders(option: OrderQueryOption, pageable: Pageable, context: ActorContext) =
+    override fun findAllOrders(option: OrderQueryOption, pageable: Pageable, context: ActorContext) =
         orderClient.findAllOrders(option, pageable)
 
-    override suspend fun findOrder(uid: String, context: ActorContext) = orderClient.findOrder(uid)
+    override fun findOrder(uid: String, context: ActorContext) = orderClient.findOrder(uid)
 
-    override suspend fun cancelOrder(uid: String, context: ActorContext) = orderClient.cancelOrder(uid)
+    override fun cancelOrder(uid: String, context: ActorContext) = orderClient.cancelOrder(uid)
 }

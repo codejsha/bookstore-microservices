@@ -38,26 +38,26 @@ class PaymentService(
 ) : PaymentUseCase {
 
     @WithSpan
-    override suspend fun findAllPayments(
+    override fun findAllPayments(
         option: PaymentQueryOption, pageable: Pageable, context: ActorContext
     ): Page<PaymentAggregate> = txRunner.tx {
         paymentRepo.findAll(option, pageable, context).map { toPaymentAggregate(it) }
     }
 
     @WithSpan
-    override suspend fun findPayment(uid: UUID, context: ActorContext): PaymentAggregate = txRunner.tx {
+    override fun findPayment(uid: UUID, context: ActorContext): PaymentAggregate = txRunner.tx {
         toPaymentAggregate(paymentRepo.findOne(uid, context))
     }
 
     @WithSpan
-    override suspend fun findPaymentByPaymentId(
+    override fun findPaymentByPaymentId(
         paymentId: String, context: ActorContext
     ): PaymentAggregate? = txRunner.tx {
         paymentRepo.findByPaymentId(paymentId, context)?.let { toPaymentAggregate(it) }
     }
 
     @WithSpan
-    override suspend fun createPayment(
+    override fun createPayment(
         command: PaymentCreateCommand, context: ActorContext
     ): PaymentAggregate {
         val idempotencyKey = requireNotNull(command.idempotencyKey) { "idempotencyKey is required to create a payment" }
@@ -89,21 +89,21 @@ class PaymentService(
     }
 
     @WithSpan
-    override suspend fun updatePayment(
+    override fun updatePayment(
         uid: UUID, command: PaymentUpdateCommand, context: ActorContext
     ): PaymentAggregate = txRunner.tx {
         toPaymentAggregate(paymentRepo.update(uid, command, context))
     }
 
     @WithSpan
-    override suspend fun findAllPaymentAttempts(
+    override fun findAllPaymentAttempts(
         paymentUid: UUID, pageable: Pageable, context: ActorContext
     ): Page<PaymentAttemptEntity> = txRunner.tx {
         paymentAttemptRepo.findAllByPayment(paymentUid, pageable, context).map { toPaymentAttemptEntity(it) }
     }
 
     @WithSpan
-    override suspend fun findPaymentAttempt(
+    override fun findPaymentAttempt(
         paymentUid: UUID, uid: UUID, context: ActorContext
     ): PaymentAttemptEntity = txRunner.tx {
         toPaymentAttemptEntity(paymentAttemptRepo.findOne(paymentUid, uid, context))

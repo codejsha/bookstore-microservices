@@ -11,7 +11,6 @@ import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalRes
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSettlementRunRequest
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -62,7 +61,7 @@ class AdminSettlementControllerTest {
     }
 
     @Test
-    fun `readSettlement maps the bucket and its detail lines onto the response`(): Unit = runBlocking {
+    fun `readSettlement maps the bucket and its detail lines onto the response`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(SettlementUseCase::class.java)
         val controller = AdminSettlementController(useCase, resolver)
@@ -84,7 +83,7 @@ class AdminSettlementControllerTest {
     }
 
     @Test
-    fun `list maps buckets without detail lines`(): Unit = runBlocking {
+    fun `list maps buckets without detail lines`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(SettlementUseCase::class.java)
         val controller = AdminSettlementController(useCase, resolver)
@@ -101,7 +100,7 @@ class AdminSettlementControllerTest {
     }
 
     @Test
-    fun `triggerRun answers 202 with the run acknowledgement`(): Unit = runBlocking {
+    fun `triggerRun answers 202 with the run acknowledgement`() {
         bindPrincipal(roles = "MANAGER,STAFF,USER")
         val useCase = mock(SettlementUseCase::class.java)
         val controller = AdminSettlementController(useCase, resolver)
@@ -124,7 +123,7 @@ class AdminSettlementControllerTest {
     }
 
     @Test
-    fun `triggerRun defaults rerun to false when absent`(): Unit = runBlocking {
+    fun `triggerRun defaults rerun to false when absent`() {
         bindPrincipal(roles = "MANAGER,STAFF,USER")
         val useCase = mock(SettlementUseCase::class.java)
         val controller = AdminSettlementController(useCase, resolver)

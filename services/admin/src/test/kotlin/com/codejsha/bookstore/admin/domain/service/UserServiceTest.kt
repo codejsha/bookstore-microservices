@@ -7,7 +7,6 @@ import com.codejsha.bookstore.admin.domain.model.external.User
 import com.codejsha.bookstore.admin.domain.model.option.UserQueryOption
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -71,7 +70,7 @@ class UserServiceTest {
     }
 
     @Test
-    fun `a management action on another account reaches identity`(): Unit = runBlocking {
+    fun `a management action on another account reaches identity`() {
         val client = RecordingIdentityClient()
         val service = UserService(client)
 
@@ -83,7 +82,7 @@ class UserServiceTest {
     }
 
     @Test
-    fun `an administrator cannot manage their own account`(): Unit = runBlocking {
+    fun `an administrator cannot manage their own account`() {
         val client = RecordingIdentityClient()
         val service = UserService(client)
 
@@ -101,7 +100,7 @@ class UserServiceTest {
     }
 
     @Test
-    fun `the self guard ignores uid casing`(): Unit = runBlocking {
+    fun `the self guard ignores uid casing`() {
         val client = RecordingIdentityClient()
         val service = UserService(client)
 
@@ -111,7 +110,7 @@ class UserServiceTest {
     }
 
     @Test
-    fun `reactivating oneself is allowed`(): Unit = runBlocking {
+    fun `reactivating oneself is allowed`() {
         val client = RecordingIdentityClient()
         val service = UserService(client)
 
@@ -126,9 +125,7 @@ class UserServiceTest {
         val service = UserService(client)
 
         assertFailsWith<SelfManagementException> {
-            runBlocking {
-                service.flagRisk(ACTOR_UID, "block", "abuse", null, actorUid = ACTOR_UID, context = context)
-            }
+            service.flagRisk(ACTOR_UID, "block", "abuse", null, actorUid = ACTOR_UID, context = context)
         }
         assertTrue(client.calls.isEmpty())
     }
@@ -138,9 +135,7 @@ class UserServiceTest {
         val client = RecordingIdentityClient()
         val service = UserService(client)
 
-        val entry = runBlocking {
-            service.flagRisk(TARGET_UID, "restrict", "probing", 3600, actorUid = ACTOR_UID, context = context)
-        }
+        val entry = service.flagRisk(TARGET_UID, "restrict", "probing", 3600, actorUid = ACTOR_UID, context = context)
 
         assertEquals(listOf("flagRisk"), client.calls)
         assertEquals("restrict", entry.level)

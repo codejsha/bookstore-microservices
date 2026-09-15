@@ -14,7 +14,6 @@ import com.codejsha.bookstore.payment.support.FakeDistributedLock
 import com.codejsha.bookstore.payment.support.FakeTransactionRunner
 import com.codejsha.bookstore.payment.support.PaymentTestFixtures
 import com.codejsha.platform.shared.data.ActorContext
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito.mock
@@ -85,7 +84,7 @@ class WebhookServiceTest {
     ) = WebhookService(eventRepo, paymentRepo, refundRepo, client, lock, FakeTransactionRunner())
 
     @Test
-    fun `handle_whenSignatureInvalid_throwsWithoutTouchingStorage`(): Unit = runBlocking {
+    fun `handle_whenSignatureInvalid_throwsWithoutTouchingStorage`() {
         val client = mock(HyperswitchClient::class.java)
         given(client.verifyWebhookSignature(payload, "bad")).willReturn(false)
         val eventRepo = FakeWebhookEventRepo()
@@ -101,7 +100,7 @@ class WebhookServiceTest {
     }
 
     @Test
-    fun `handle_whenPaymentEventNew_appliesItUnderEventLockAndMarksProcessed`(): Unit = runBlocking {
+    fun `handle_whenPaymentEventNew_appliesItUnderEventLockAndMarksProcessed`() {
         val client = mock(HyperswitchClient::class.java)
         given(client.verifyWebhookSignature(payload, "sig")).willReturn(true)
         given(client.parseWebhookEvent(payload)).willReturn(paymentEvent())
@@ -132,7 +131,7 @@ class WebhookServiceTest {
     }
 
     @Test
-    fun `handle_whenEventIdReplayed_returnsDuplicateWithoutReapplying`(): Unit = runBlocking {
+    fun `handle_whenEventIdReplayed_returnsDuplicateWithoutReapplying`() {
         val client = mock(HyperswitchClient::class.java)
         given(client.verifyWebhookSignature(payload, "sig")).willReturn(true)
         given(client.parseWebhookEvent(payload)).willReturn(paymentEvent())
@@ -150,7 +149,7 @@ class WebhookServiceTest {
     }
 
     @Test
-    fun `handle_whenPaymentUnknown_recordsEventAndReturnsIgnored`(): Unit = runBlocking {
+    fun `handle_whenPaymentUnknown_recordsEventAndReturnsIgnored`() {
         val client = mock(HyperswitchClient::class.java)
         given(client.verifyWebhookSignature(payload, "sig")).willReturn(true)
         given(client.parseWebhookEvent(payload)).willReturn(paymentEvent())
@@ -167,7 +166,7 @@ class WebhookServiceTest {
     }
 
     @Test
-    fun `handle_whenRefundEventNew_syncsMatchingRefundRow`(): Unit = runBlocking {
+    fun `handle_whenRefundEventNew_syncsMatchingRefundRow`() {
         val client = mock(HyperswitchClient::class.java)
         val event = HyperswitchWebhookEvent(
             eventId = "evt_2",

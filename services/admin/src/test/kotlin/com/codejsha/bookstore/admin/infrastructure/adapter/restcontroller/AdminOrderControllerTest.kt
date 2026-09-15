@@ -9,7 +9,6 @@ import com.codejsha.bookstore.admin.infrastructure.support.auth.ForbiddenExcepti
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -59,7 +58,7 @@ class AdminOrderControllerTest {
     }
 
     @Test
-    fun `an unfiltered list forwards no owner and no paging`(): Unit = runBlocking {
+    fun `an unfiltered list forwards no owner and no paging`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)
@@ -77,7 +76,7 @@ class AdminOrderControllerTest {
     }
 
     @Test
-    fun `a filtered page forwards the owner, the status and the requested page`(): Unit = runBlocking {
+    fun `a filtered page forwards the owner, the status and the requested page`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)
@@ -92,7 +91,7 @@ class AdminOrderControllerTest {
     }
 
     @Test
-    fun `readOrder maps the lines and the shipping destination`(): Unit = runBlocking {
+    fun `readOrder maps the lines and the shipping destination`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)
@@ -109,7 +108,7 @@ class AdminOrderControllerTest {
     }
 
     @Test
-    fun `an order without lines maps items to null`(): Unit = runBlocking {
+    fun `an order without lines maps items to null`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)
@@ -122,7 +121,7 @@ class AdminOrderControllerTest {
     }
 
     @Test
-    fun `cancelOrder answers with the order as the order service left it`(): Unit = runBlocking {
+    fun `cancelOrder answers with the order as the order service left it`() {
         bindPrincipal(roles = "MANAGER,STAFF,USER")
         val useCase = mock(OrderUseCase::class.java)
         val controller = AdminOrderController(useCase, resolver)

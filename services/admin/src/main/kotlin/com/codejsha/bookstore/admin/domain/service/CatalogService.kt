@@ -14,20 +14,20 @@ class CatalogService(
     private val catalogClient: CatalogClient,
 ) : CatalogUseCase {
 
-    override suspend fun findAllWorks(option: WorkQueryOption, pageable: Pageable, context: ActorContext) =
+    override fun findAllWorks(option: WorkQueryOption, pageable: Pageable, context: ActorContext) =
         catalogClient.findAllWorks(option, pageable)
 
-    override suspend fun findWork(uid: String, context: ActorContext) = catalogClient.findWork(uid)
+    override fun findWork(uid: String, context: ActorContext) = catalogClient.findWork(uid)
 
-    override suspend fun createWork(command: WorkCreateCommand, context: ActorContext) =
+    override fun createWork(command: WorkCreateCommand, context: ActorContext) =
         catalogClient.createWork(command)
 
-    override suspend fun updateWork(uid: String, command: WorkUpdateCommand, context: ActorContext) =
+    override fun updateWork(uid: String, command: WorkUpdateCommand, context: ActorContext) =
         catalogClient.updateWork(uid, command)
 
-    override suspend fun findAllAuthors(name: String?, pageable: Pageable, context: ActorContext) =
+    override fun findAllAuthors(name: String?, pageable: Pageable, context: ActorContext) =
         catalogClient.findAllAuthors(name, pageable)
 
-    override suspend fun findAllSubjects(name: String?, pageable: Pageable, context: ActorContext) =
+    override fun findAllSubjects(name: String?, pageable: Pageable, context: ActorContext) =
         catalogClient.findAllSubjects(name, pageable)
 }

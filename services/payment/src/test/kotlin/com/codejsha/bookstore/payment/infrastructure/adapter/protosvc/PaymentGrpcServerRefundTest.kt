@@ -51,7 +51,7 @@ class PaymentGrpcServerRefundTest {
         var capturedPageable: Pageable? = null
         var findRefundError: Throwable? = null
 
-        override suspend fun findAllRefunds(
+        override fun findAllRefunds(
             option: RefundQueryOption,
             pageable: Pageable,
             context: ActorContext,
@@ -61,13 +61,13 @@ class PaymentGrpcServerRefundTest {
             return findAllResult
         }
 
-        override suspend fun findRefund(uid: UUID, context: ActorContext): RefundAggregate {
+        override fun findRefund(uid: UUID, context: ActorContext): RefundAggregate {
             capturedFindUid = uid
             findRefundError?.let { throw it }
             return findRefundResult ?: error("findRefundResult not seeded")
         }
 
-        override suspend fun createRefund(
+        override fun createRefund(
             command: RefundCreateCommand,
             context: ActorContext,
         ): RefundAggregate = error("not used in these tests")
@@ -77,19 +77,19 @@ class PaymentGrpcServerRefundTest {
         var ownerResult: PaymentAggregate? = null
         var capturedPaymentId: String? = null
 
-        override suspend fun findPaymentByPaymentId(paymentId: String, context: ActorContext): PaymentAggregate? {
+        override fun findPaymentByPaymentId(paymentId: String, context: ActorContext): PaymentAggregate? {
             capturedPaymentId = paymentId
             return ownerResult
         }
 
-        override suspend fun findAllPayments(option: PaymentQueryOption, pageable: Pageable, context: ActorContext): Page<PaymentAggregate> =
+        override fun findAllPayments(option: PaymentQueryOption, pageable: Pageable, context: ActorContext): Page<PaymentAggregate> =
             error("not used")
-        override suspend fun findPayment(uid: UUID, context: ActorContext): PaymentAggregate = error("not used")
-        override suspend fun createPayment(command: PaymentCreateCommand, context: ActorContext): PaymentAggregate = error("not used")
-        override suspend fun updatePayment(uid: UUID, command: PaymentUpdateCommand, context: ActorContext): PaymentAggregate = error("not used")
-        override suspend fun findAllPaymentAttempts(paymentUid: UUID, pageable: Pageable, context: ActorContext): Page<PaymentAttemptEntity> =
+        override fun findPayment(uid: UUID, context: ActorContext): PaymentAggregate = error("not used")
+        override fun createPayment(command: PaymentCreateCommand, context: ActorContext): PaymentAggregate = error("not used")
+        override fun updatePayment(uid: UUID, command: PaymentUpdateCommand, context: ActorContext): PaymentAggregate = error("not used")
+        override fun findAllPaymentAttempts(paymentUid: UUID, pageable: Pageable, context: ActorContext): Page<PaymentAttemptEntity> =
             error("not used")
-        override suspend fun findPaymentAttempt(paymentUid: UUID, uid: UUID, context: ActorContext): PaymentAttemptEntity = error("not used")
+        override fun findPaymentAttempt(paymentUid: UUID, uid: UUID, context: ActorContext): PaymentAttemptEntity = error("not used")
     }
 
     private class CapturingObserver<T> : io.grpc.stub.StreamObserver<T> {

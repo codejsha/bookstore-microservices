@@ -9,10 +9,10 @@ import com.codejsha.platform.shared.data.ActorContext
 import java.util.UUID
 
 interface CartUseCase {
-    suspend fun getCart(userUid: UUID, context: ActorContext): CartAggregate
-    suspend fun addItem(userUid: UUID, command: CartAddItemCommand, context: ActorContext): CartItemEntity
-    suspend fun updateItemQuantity(userUid: UUID, itemUid: UUID, quantity: Int, context: ActorContext): CartItemEntity
-    suspend fun removeItem(userUid: UUID, itemUid: UUID, context: ActorContext)
-    suspend fun clearCart(userUid: UUID, context: ActorContext)
-    suspend fun checkout(userUid: UUID, command: CartCheckoutCommand, context: ActorContext): OrderAggregate
+    fun getCart(userUid: UUID, context: ActorContext): CartAggregate
+    fun addItem(userUid: UUID, command: CartAddItemCommand, context: ActorContext): CartItemEntity
+    fun updateItemQuantity(userUid: UUID, itemUid: UUID, quantity: Int, context: ActorContext): CartItemEntity
+    fun removeItem(userUid: UUID, itemUid: UUID, context: ActorContext)
+    fun clearCart(userUid: UUID, context: ActorContext)
+    fun checkout(userUid: UUID, command: CartCheckoutCommand, context: ActorContext): OrderAggregate
 }

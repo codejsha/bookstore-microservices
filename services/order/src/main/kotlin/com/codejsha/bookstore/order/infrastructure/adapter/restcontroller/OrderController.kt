@@ -21,7 +21,6 @@ import com.codejsha.bookstore.order.infrastructure.support.auth.isStaff
 import com.codejsha.bookstore.order.infrastructure.support.auth.subjectUserUid
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -40,7 +39,7 @@ class OrderController(
 
     override fun ordersGetAll(
         userUid: String?, status: OrderStatus?, pageable: Pageable?
-    ): ResponseEntity<OrderFindAllResponse> = runBlocking {
+    ): ResponseEntity<OrderFindAllResponse> {
         val principal = principalResolver.require()
         val ownerFilter: UUID? =
             if (principal.isStaff()) userUid?.let { UUID.fromString(it) }
@@ -48,7 +47,7 @@ class OrderController(
         val option = OrderQueryOption(userUid = ownerFilter, status = status?.value)
         val context = buildContext(principal)
         val result = orderUseCase.findAllOrders(option, pageable ?: Pageable.unpaged(), context)
-        ResponseEntity.ok(
+        return ResponseEntity.ok(
             OrderFindAllResponse(
                 total = result.totalElements,
                 items = result.content.map { toOrderFindResponse(it) }
@@ -56,7 +55,7 @@ class OrderController(
         )
     }
 
-    override fun ordersPlace(requestBody: PlaceOrderRequest): ResponseEntity<Unit> = runBlocking {
+    override fun ordersPlace(requestBody: PlaceOrderRequest): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         val context = buildContext(principal)
         if (!principal.isManager()) {
@@ -105,28 +104,28 @@ class OrderController(
         }
 
         val order = orderUseCase.placeOrder(command, items, shipping, context)
-        ResponseEntity.created(URI.create("/api/v1/orders/${order.uid}")).build()
+        return ResponseEntity.created(URI.create("/api/v1/orders/${order.uid}")).build()
     }
 
-    override fun ordersRead(uid: String): ResponseEntity<OrderFindResponse> = runBlocking {
+    override fun ordersRead(uid: String): ResponseEntity<OrderFindResponse> {
         val principal = principalResolver.require()
         val context = buildContext(principal)
         val order = orderUseCase.findOrder(UUID.fromString(uid), context)
         principal.assertOrderOwner(order.userUid)
-        ResponseEntity.ok(toOrderFindResponse(order))
+        return ResponseEntity.ok(toOrderFindResponse(order))
     }
 
-    override fun ordersCancel(uid: String): ResponseEntity<OrderFindResponse> = runBlocking {
+    override fun ordersCancel(uid: String): ResponseEntity<OrderFindResponse> {
         val principal = principalResolver.require()
         val context = buildContext(principal)
         principal.assertOrderOwner(orderUseCase.findOrder(UUID.fromString(uid), context).userUid)
         val order = orderUseCase.cancelOrder(UUID.fromString(uid), context)
-        ResponseEntity.ok(toOrderFindResponse(order))
+        return ResponseEntity.ok(toOrderFindResponse(order))
     }
 
     // ─── OrderItemApi ───────────────────────────────────────────────────────
 
-    override fun orderItemsAdd(orderUid: String, requestBody: OrderItemCreateRequest): ResponseEntity<Unit> = runBlocking {
+    override fun orderItemsAdd(orderUid: String, requestBody: OrderItemCreateRequest): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         val context = buildContext(principal)
         authorizeOrder(orderUid, principal, context)
@@ -141,14 +140,14 @@ class OrderController(
             taxRate = requestBody.taxRate?.toBigDecimal() ?: BigDecimal.ZERO,
         )
         val item = orderUseCase.addItem(UUID.fromString(orderUid), command, context)
-        ResponseEntity.created(URI.create("/api/v1/orders/$orderUid/items/${item.uid}")).build()
+        return ResponseEntity.created(URI.create("/api/v1/orders/$orderUid/items/${item.uid}")).build()
     }
 
     override fun orderItemsUpdate(
         orderUid: String,
         uid: String,
         requestBody: OrderItemUpdateRequest
-    ): ResponseEntity<OrderItemFindResponse> = runBlocking {
+    ): ResponseEntity<OrderItemFindResponse> {
         val principal = principalResolver.require()
         val context = buildContext(principal)
         authorizeOrder(orderUid, principal, context)
@@ -163,15 +162,15 @@ class OrderController(
             taxRate = requestBody.taxRate?.toBigDecimal(),
         )
         val item = orderUseCase.updateItem(UUID.fromString(orderUid), UUID.fromString(uid), command, context)
-        ResponseEntity.ok(toOrderItemFindResponse(item))
+        return ResponseEntity.ok(toOrderItemFindResponse(item))
     }
 
-    override fun orderItemsRemove(orderUid: String, uid: String): ResponseEntity<Unit> = runBlocking {
+    override fun orderItemsRemove(orderUid: String, uid: String): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         val context = buildContext(principal)
         authorizeOrder(orderUid, principal, context)
         orderUseCase.removeItem(UUID.fromString(orderUid), UUID.fromString(uid), context)
-        ResponseEntity.noContent().build()
+        return ResponseEntity.noContent().build()
     }
 
     // ─── OrderShippingApi ───────────────────────────────────────────────────
@@ -179,7 +178,7 @@ class OrderController(
     override fun orderShippingSet(
         orderUid: String,
         requestBody: OrderShippingCreateRequest
-    ): ResponseEntity<OrderShippingFindResponse> = runBlocking {
+    ): ResponseEntity<OrderShippingFindResponse> {
         val principal = principalResolver.require()
         val context = buildContext(principal)
         authorizeOrder(orderUid, principal, context)
@@ -195,13 +194,13 @@ class OrderController(
             shippingMethod = requestBody.shippingMethod,
         )
         val shipping = orderUseCase.setShipping(UUID.fromString(orderUid), command, context)
-        ResponseEntity.ok(toOrderShippingFindResponse(shipping))
+        return ResponseEntity.ok(toOrderShippingFindResponse(shipping))
     }
 
     override fun orderShippingUpdate(
         orderUid: String,
         requestBody: OrderShippingUpdateRequest
-    ): ResponseEntity<OrderShippingFindResponse> = runBlocking {
+    ): ResponseEntity<OrderShippingFindResponse> {
         val principal = principalResolver.require()
         val context = buildContext(principal)
         authorizeOrder(orderUid, principal, context)
@@ -217,7 +216,7 @@ class OrderController(
             shippingMethod = requestBody.shippingMethod,
         )
         val shipping = orderUseCase.updateShipping(UUID.fromString(orderUid), command, context)
-        ResponseEntity.ok(toOrderShippingFindResponse(shipping))
+        return ResponseEntity.ok(toOrderShippingFindResponse(shipping))
     }
 
     // ─── OrderAdjustmentApi ─────────────────────────────────────────────────
@@ -225,7 +224,7 @@ class OrderController(
     override fun orderAdjustmentsApply(
         orderUid: String,
         requestBody: OrderAdjustmentCreateRequest
-    ): ResponseEntity<Unit> = runBlocking {
+    ): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         val context = buildContext(principal)
         authorizeOrder(orderUid, principal, context)
@@ -236,18 +235,18 @@ class OrderController(
             meta = null,
         )
         val adj = orderUseCase.applyAdjustment(UUID.fromString(orderUid), command, context)
-        ResponseEntity.created(URI.create("/api/v1/orders/$orderUid/adjustments/${adj.uid}")).build()
+        return ResponseEntity.created(URI.create("/api/v1/orders/$orderUid/adjustments/${adj.uid}")).build()
     }
 
-    override fun orderAdjustmentsRemove(orderUid: String, uid: String): ResponseEntity<Unit> = runBlocking {
+    override fun orderAdjustmentsRemove(orderUid: String, uid: String): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         val context = buildContext(principal)
         authorizeOrder(orderUid, principal, context)
         orderUseCase.removeAdjustment(UUID.fromString(orderUid), UUID.fromString(uid), context)
-        ResponseEntity.noContent().build()
+        return ResponseEntity.noContent().build()
     }
 
-    private suspend fun authorizeOrder(orderUid: String, principal: Principal, context: ActorContext) {
+    private fun authorizeOrder(orderUid: String, principal: Principal, context: ActorContext) {
         val order = orderUseCase.findOrder(UUID.fromString(orderUid), context)
         principal.assertOrderOwner(order.userUid)
     }

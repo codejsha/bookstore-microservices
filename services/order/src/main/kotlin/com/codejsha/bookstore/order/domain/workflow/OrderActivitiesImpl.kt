@@ -12,7 +12,6 @@ import com.codejsha.bookstore.order.domain.model.command.OrderShippingCreateComm
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
 import io.temporal.failure.ApplicationFailure
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -26,8 +25,8 @@ class OrderActivitiesImpl(
     private val txRunner: TransactionRunner,
 ) : OrderActivities {
 
-    override fun createOrder(request: CreateOrderRequest): CreateOrderResult = runBlocking {
-        try {
+    override fun createOrder(request: CreateOrderRequest): CreateOrderResult {
+        return try {
             createOrderInternal(request)
         } catch (e: InvalidCommandException) {
             throw ApplicationFailure.newNonRetryableFailure(e.message, "InvalidCommand")
@@ -36,7 +35,7 @@ class OrderActivitiesImpl(
         }
     }
 
-    private suspend fun createOrderInternal(request: CreateOrderRequest): CreateOrderResult {
+    private fun createOrderInternal(request: CreateOrderRequest): CreateOrderResult {
         val context = ActorContext(actorId = 0L, ActorType.USER)
         return txRunner.tx {
             orderRepo.findByIdempotencyKey(request.idempotencyKey, context)?.let { existing ->

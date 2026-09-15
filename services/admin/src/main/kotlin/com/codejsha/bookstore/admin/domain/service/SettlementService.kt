@@ -13,14 +13,14 @@ class SettlementService(
     private val settlementClient: SettlementClient,
 ) : SettlementUseCase {
 
-    override suspend fun findAllSettlements(
+    override fun findAllSettlements(
         option: SettlementQueryOption,
         pageable: Pageable,
         context: ActorContext,
     ) = settlementClient.findAllSettlements(option, pageable)
 
-    override suspend fun findSettlement(uid: String, context: ActorContext) = settlementClient.findSettlement(uid)
+    override fun findSettlement(uid: String, context: ActorContext) = settlementClient.findSettlement(uid)
 
-    override suspend fun triggerSettlementRun(command: TriggerSettlementRunCommand, context: ActorContext) =
+    override fun triggerSettlementRun(command: TriggerSettlementRunCommand, context: ActorContext) =
         settlementClient.triggerSettlementRun(command)
 }

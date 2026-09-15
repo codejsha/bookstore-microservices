@@ -21,7 +21,6 @@ import com.codejsha.bookstore.payment.infrastructure.support.auth.HttpPrincipalR
 import com.codejsha.bookstore.payment.support.PaymentTestFixtures
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -68,7 +67,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentsGetAll_whenPagingNull_usesUnpagedAndMapsPage`(): Unit = runBlocking {
+    fun `paymentsGetAll_whenPagingNull_usesUnpagedAndMapsPage`() {
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
 
@@ -85,7 +84,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentsGetAll_whenFiltersGiven_forwardsThemAsPaymentQueryOption`(): Unit = runBlocking {
+    fun `paymentsGetAll_whenFiltersGiven_forwardsThemAsPaymentQueryOption`() {
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
 
@@ -109,7 +108,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentsCreate_whenRequestValid_mapsRequestToCommandAndReturnsCreatedWithLocation`(): Unit = runBlocking {
+    fun `paymentsCreate_whenRequestValid_mapsRequestToCommandAndReturnsCreatedWithLocation`() {
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
 
@@ -155,7 +154,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentsRead_whenPaymentExists_mapsConnectorAndMoney`(): Unit = runBlocking {
+    fun `paymentsRead_whenPaymentExists_mapsConnectorAndMoney`() {
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
 
@@ -181,7 +180,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentsCreate_whenBodyNamesCustomerId_usesSubjectInstead`(): Unit = runBlocking {
+    fun `paymentsCreate_whenBodyNamesCustomerId_usesSubjectInstead`() {
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
 
@@ -195,7 +194,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentsCreate_whenIdempotencyKeyGiven_scopesItToOwningCustomer`(): Unit = runBlocking {
+    fun `paymentsCreate_whenIdempotencyKeyGiven_scopesItToOwningCustomer`() {
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
 
@@ -209,7 +208,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentsCreate_staffCaller_usesNamedCustomer`(): Unit = runBlocking {
+    fun `paymentsCreate_staffCaller_usesNamedCustomer`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
@@ -235,7 +234,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentsUpdate_whenBodyReassignsCustomer_throws`(): Unit = runBlocking {
+    fun `paymentsUpdate_whenBodyReassignsCustomer_throws`() {
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
         given(useCase.findPayment(PaymentTestFixtures.PAYMENT_UID, controllerContext))
@@ -252,7 +251,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentsUpdate_whenRequestValid_forwardsUidAndCommandToUsecase`(): Unit = runBlocking {
+    fun `paymentsUpdate_whenRequestValid_forwardsUidAndCommandToUsecase`() {
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
 
@@ -291,7 +290,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentAttemptsGetAll_whenAttemptsExist_mapsEachAttemptToResponse`(): Unit = runBlocking {
+    fun `paymentAttemptsGetAll_whenAttemptsExist_mapsEachAttemptToResponse`() {
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
 
@@ -314,7 +313,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    fun `paymentAttemptsRead_whenAttemptExists_returnsMappedAttempt`(): Unit = runBlocking {
+    fun `paymentAttemptsRead_whenAttemptExists_returnsMappedAttempt`() {
         val useCase = mock(PaymentUseCase::class.java)
         val controller = PaymentController(useCase, resolver)
 
