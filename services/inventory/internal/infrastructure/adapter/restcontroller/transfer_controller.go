@@ -79,7 +79,7 @@ func (c *transferController) TransfersCreate(ctx context.Context, req openapi.Tr
 		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "transfer", transfer.Uid, "created", logrus.Fields{
+	dispatchSideEffects(context.WithoutCancel(ctx), "transfer", transfer.Uid, "created", logrus.Fields{
 		"edition_uid":          req.EditionUid,
 		"source_warehouse_uid": req.SourceWarehouseUid,
 		"target_warehouse_uid": req.TargetWarehouseUid,
@@ -117,7 +117,7 @@ func (c *transferController) TransfersComplete(ctx context.Context, uid string) 
 	if transfer == nil {
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
-	go runSideEffects(context.WithoutCancel(ctx), "transfer", uid, "completed", logrus.Fields{})
+	dispatchSideEffects(context.WithoutCancel(ctx), "transfer", uid, "completed", logrus.Fields{})
 	resp := toTransferFindResponse(transfer)
 	return &resp, nil
 }
@@ -134,7 +134,7 @@ func (c *transferController) TransfersCancel(ctx context.Context, uid string) (*
 	if transfer == nil {
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
-	go runSideEffects(context.WithoutCancel(ctx), "transfer", uid, "cancelled", logrus.Fields{})
+	dispatchSideEffects(context.WithoutCancel(ctx), "transfer", uid, "cancelled", logrus.Fields{})
 	resp := toTransferFindResponse(transfer)
 	return &resp, nil
 }

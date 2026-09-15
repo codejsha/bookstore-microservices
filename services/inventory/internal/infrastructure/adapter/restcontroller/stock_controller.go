@@ -71,7 +71,7 @@ func (c *stockController) StocksReceive(ctx context.Context, req openapi.StockRe
 		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "stock", stock.Uid, "received", logrus.Fields{
+	dispatchSideEffects(context.WithoutCancel(ctx), "stock", stock.Uid, "received", logrus.Fields{
 		"edition_uid":   req.EditionUid,
 		"warehouse_uid": req.WarehouseUid,
 		"quantity":      req.Quantity,
@@ -93,7 +93,7 @@ func (c *stockController) StocksRelease(ctx context.Context, req openapi.StockRe
 		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "stock", stock.Uid, "released", logrus.Fields{
+	dispatchSideEffects(context.WithoutCancel(ctx), "stock", stock.Uid, "released", logrus.Fields{
 		"edition_uid":   req.EditionUid,
 		"warehouse_uid": req.WarehouseUid,
 		"quantity":      req.Quantity,
@@ -115,7 +115,7 @@ func (c *stockController) StocksAdjust(ctx context.Context, req openapi.StockAdj
 		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "stock", stock.Uid, "adjusted", logrus.Fields{
+	dispatchSideEffects(context.WithoutCancel(ctx), "stock", stock.Uid, "adjusted", logrus.Fields{
 		"edition_uid":   req.EditionUid,
 		"warehouse_uid": req.WarehouseUid,
 		"quantity":      req.Quantity,
@@ -138,7 +138,7 @@ func (c *stockController) StocksReserve(ctx context.Context, req openapi.StockRe
 		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "stock", stock.Uid, "reserved", logrus.Fields{
+	dispatchSideEffects(context.WithoutCancel(ctx), "stock", stock.Uid, "reserved", logrus.Fields{
 		"edition_uid":   req.EditionUid,
 		"warehouse_uid": req.WarehouseUid,
 		"quantity":      req.Quantity,
