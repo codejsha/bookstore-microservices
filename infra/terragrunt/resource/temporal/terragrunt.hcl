@@ -14,7 +14,7 @@ dependencies {
 
 inputs = {
   namespace           = "temporal"
-  temporal_address    = "temporal-frontend.temporal.svc.cluster.local:7233"
+  temporal_address    = "temporal-internal-frontend.temporal.svc.cluster.local:7236"
   temporal_namespaces = ["bookstore"]
   retention           = "72h"
 }

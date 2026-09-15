@@ -8,6 +8,12 @@ variable "temporal_address" {
   type        = string
 }
 
+variable "temporal_authorization_enabled" {
+  description = "Enforce JWT authorization (Keycloak JWKS, permissions claim, audience temporal) on the public frontend; enable only after every worker presents tokens"
+  type        = bool
+  default     = false
+}
+
 variable "vault_url" {
   description = "Vault address for the kubernetes-auth provider login"
   type        = string
