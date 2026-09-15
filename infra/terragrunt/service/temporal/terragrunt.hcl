@@ -47,7 +47,7 @@ inputs = {
   mysql_db_user            = "root"
 
   mysql_resources = {
-    requests = { cpu = "50m", memory = "1280Mi" }
+    requests = { cpu = "50m", memory = "2304Mi" }
     limits   = { cpu = "1", memory = "3Gi" }
   }
   mysql_router_resources = {

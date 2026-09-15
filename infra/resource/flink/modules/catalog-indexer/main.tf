@@ -87,6 +87,8 @@ resource "kubernetes_manifest" "catalog_indexer" {
 
       flinkConfiguration = {
         "taskmanager.numberOfTaskSlots"                        = "2"
+        "kubernetes.jobmanager.cpu.limit-factor"               = "5"
+        "kubernetes.taskmanager.cpu.limit-factor"              = "5"
         "execution.checkpointing.interval"                     = "120s"
         "execution.checkpointing.mode"                         = "EXACTLY_ONCE"
         "execution.checkpointing.timeout"                      = "30min"
@@ -180,13 +182,13 @@ resource "kubernetes_manifest" "catalog_indexer" {
       jobManager = {
         resource = {
           memory = "1024m"
-          cpu    = 0.5
+          cpu    = 0.1
         }
       }
       taskManager = {
         resource = {
-          memory = "2048m"
-          cpu    = 0.5
+          memory = "1536m"
+          cpu    = 0.1
         }
       }
 

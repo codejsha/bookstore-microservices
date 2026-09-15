@@ -48,7 +48,7 @@ nginx:
   replicas: 1
   resources:
     requests:
-      memory: 256Mi
+      memory: 64Mi
       cpu: 10m
 
 portal:
@@ -91,7 +91,7 @@ registry:
     resources:
       requests:
         cpu: 10m
-        memory: 256Mi
+        memory: 128Mi
       limits:
         cpu: 500m
         memory: 768Mi
@@ -132,7 +132,7 @@ database:
     automountServiceAccountToken: true
     resources:
       requests:
-        memory: 256Mi
+        memory: 128Mi
         cpu: 10m
     initContainer:
       migrator:
@@ -152,7 +152,7 @@ redis:
     automountServiceAccountToken: true
     resources:
       requests:
-        memory: 256Mi
+        memory: 64Mi
         cpu: 10m
 
 metrics:
@@ -167,5 +167,5 @@ exporter:
   replicas: 1
   resources:
     requests:
-      memory: 256Mi
+      memory: 64Mi
       cpu: 10m
