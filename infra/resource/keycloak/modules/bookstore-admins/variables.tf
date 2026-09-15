@@ -4,7 +4,7 @@ variable "realm_id" {
 }
 
 variable "accounts" {
-  description = "Terraform-managed admin console accounts, keyed by their Vault path segment under kv-bookstore admin/"
+  description = "Terraform-managed admin console accounts, keyed by a stable account key"
   type = map(object({
     username   = string
     email      = string

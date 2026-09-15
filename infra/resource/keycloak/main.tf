@@ -196,7 +196,6 @@ module "bookstore_admins" {
   role_ids = module.realm_roles.role_ids
   providers = {
     keycloak = keycloak
-    vault    = vault
   }
 }
 
@@ -265,11 +264,6 @@ moved {
 moved {
   from = module.identity_client.keycloak_user_roles.manager
   to   = module.bookstore_admins.keycloak_user_roles.account["devopsadmin"]
-}
-
-moved {
-  from = module.identity_client.vault_kv_secret_v2.manager
-  to   = module.bookstore_admins.vault_kv_secret_v2.account["devopsadmin"]
 }
 
 removed {

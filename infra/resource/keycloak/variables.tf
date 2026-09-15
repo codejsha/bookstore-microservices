@@ -89,7 +89,7 @@ variable "web_web_origins" {
 }
 
 variable "bookstore_admin_accounts" {
-  description = "Terraform-managed admin console accounts in the bookstore realm, keyed by their Vault path segment under kv-bookstore admin/"
+  description = "Terraform-managed admin console accounts in the bookstore realm, keyed by a stable account key"
   type = map(object({
     username   = string
     email      = string
@@ -148,7 +148,7 @@ variable "harbor_url" {
 }
 
 variable "infra_bootstrap_accounts" {
-  description = "Terraform-managed break-glass accounts in the infra realm, keyed by their Vault path segment"
+  description = "Terraform-managed break-glass accounts in the infra realm, keyed by a stable account key"
   type = map(object({
     username   = string
     email      = string
