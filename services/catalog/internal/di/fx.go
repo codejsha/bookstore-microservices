@@ -58,6 +58,8 @@ var Module = fx.Module("catalog",
 		infrastructure.NewInfra,
 	),
 	fx.Decorate(cache.NewCachingWorkRepo),
+	fx.Decorate(support.WithOutboundTimeout),
+	fx.Invoke(support.ConfigureConnectionPool),
 	fx.Invoke(support.RegisterEventPublisher),
 	fx.Invoke(support.RegisterCacheInvalidator),
 )

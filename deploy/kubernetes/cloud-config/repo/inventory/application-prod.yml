@@ -25,6 +25,7 @@ database:
     db_name: inventory_db
     params:
       - sslmode=disable
+      - statement_timeout=15000
 
 telemetry:
   collector:

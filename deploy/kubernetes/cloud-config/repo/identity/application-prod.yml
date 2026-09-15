@@ -38,6 +38,7 @@ database:
     db_name: identity_db
     params:
       - sslmode=disable
+      - statement_timeout=15000
 
 telemetry:
   collector:

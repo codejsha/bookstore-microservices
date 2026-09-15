@@ -60,6 +60,8 @@ var Module = fx.Module("customer",
 		support.NewKafkaPublisher,
 		infrastructure.NewInfra,
 	),
+	fx.Decorate(support.WithOutboundTimeout),
+	fx.Invoke(support.ConfigureConnectionPool),
 	fx.Invoke(support.RegisterEventPublisher),
 )
 
