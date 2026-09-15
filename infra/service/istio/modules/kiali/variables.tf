@@ -19,3 +19,21 @@ variable "grafana_password" {
   type        = string
   sensitive   = true
 }
+
+variable "oidc_group_prefix" {
+  description = "Prefix the API server AuthenticationConfiguration adds to OIDC groups claim values"
+  type        = string
+  default     = "oidc:"
+}
+
+variable "viewer_roles" {
+  description = "Platform realm roles granted read-only mesh access through Kiali"
+  type        = list(string)
+  default     = ["DEVELOPER", "MANAGER", "ADMIN"]
+}
+
+variable "editor_roles" {
+  description = "Platform realm roles granted cluster-wide mesh write access and pod port-forwarding through Kiali"
+  type        = list(string)
+  default     = ["MANAGER", "ADMIN"]
+}

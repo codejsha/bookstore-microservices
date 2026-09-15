@@ -20,7 +20,8 @@ auth:
       - openid
       - profile
       - email
-    disable_rbac: true
+      - groups
+    disable_rbac: false
 
 external_services:
   prometheus:

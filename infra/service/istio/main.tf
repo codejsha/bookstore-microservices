@@ -33,7 +33,8 @@ module "kiali" {
   grafana_username    = var.grafana_username
   grafana_password    = var.grafana_password
   providers = {
-    helm = helm
+    helm       = helm
+    kubernetes = kubernetes
   }
 }
 

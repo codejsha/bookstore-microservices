@@ -27,6 +27,14 @@ resource "keycloak_openid_client" "kiali" {
   ]
   web_origins = [var.kiali_url]
   root_url    = var.kiali_url
+
+  access_token_lifespan = var.token_lifespan
+}
+
+resource "keycloak_openid_client_default_scopes" "kiali" {
+  realm_id       = var.realm_id
+  client_id      = keycloak_openid_client.kiali.id
+  default_scopes = concat(var.builtin_default_scopes, [var.groups_scope_name])
 }
 
 resource "vault_kv_secret_v2" "kiali_oidc_secret" {
