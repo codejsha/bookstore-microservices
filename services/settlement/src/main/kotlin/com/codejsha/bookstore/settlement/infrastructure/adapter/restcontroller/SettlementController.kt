@@ -13,7 +13,7 @@ import com.codejsha.bookstore.settlement.domain.model.option.SettlementQueryOpti
 import com.codejsha.bookstore.settlement.infrastructure.support.auth.ForbiddenException
 import com.codejsha.bookstore.settlement.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.settlement.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.settlement.infrastructure.support.auth.ROLE_MANAGE
+import com.codejsha.bookstore.settlement.infrastructure.support.auth.ROLE_MANAGER
 import com.codejsha.bookstore.settlement.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.settlement.infrastructure.support.auth.isManager
 import com.codejsha.platform.shared.data.ActorContext
@@ -62,7 +62,7 @@ class SettlementController(
     ): ResponseEntity<SettlementRunResponse> {
         val principal = principalResolver.require()
         if (!principal.isManager()) {
-            throw ForbiddenException("triggering a settlement run requires the $ROLE_MANAGE role")
+            throw ForbiddenException("triggering a settlement run requires the $ROLE_MANAGER role")
         }
         val context = buildContext(principal)
         val command = TriggerSettlementRunCommand(

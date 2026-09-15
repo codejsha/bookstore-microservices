@@ -102,7 +102,7 @@ class AdminSettlementControllerTest {
 
     @Test
     fun `triggerRun answers 202 with the run acknowledgement`(): Unit = runBlocking {
-        bindPrincipal(roles = "MANAGE,STAFF,USER")
+        bindPrincipal(roles = "MANAGER,STAFF,USER")
         val useCase = mock(SettlementUseCase::class.java)
         val controller = AdminSettlementController(useCase, resolver)
         val ack = SettlementRunAck(
@@ -125,7 +125,7 @@ class AdminSettlementControllerTest {
 
     @Test
     fun `triggerRun defaults rerun to false when absent`(): Unit = runBlocking {
-        bindPrincipal(roles = "MANAGE,STAFF,USER")
+        bindPrincipal(roles = "MANAGER,STAFF,USER")
         val useCase = mock(SettlementUseCase::class.java)
         val controller = AdminSettlementController(useCase, resolver)
         val ack = SettlementRunAck(uid = RUN_UID, targetDate = DATE, status = "RUNNING", startedAt = TS)

@@ -87,7 +87,7 @@ func requireKnownRoles(field string, roles []constant.AuthRole) error {
 
 func isKnownRole(role constant.AuthRole) bool {
 	switch role {
-	case constant.AUTHROLE_USER, constant.AUTHROLE_STAFF, constant.AUTHROLE_MANAGE, constant.AUTHROLE_SYSTEM:
+	case constant.AUTHROLE_USER, constant.AUTHROLE_STAFF, constant.AUTHROLE_MANAGER, constant.AUTHROLE_SYSTEM:
 		return true
 	default:
 		return false

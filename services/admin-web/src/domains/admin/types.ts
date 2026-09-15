@@ -3,4 +3,4 @@ export type { AdminIdentityResponse as AdminIdentity } from "@bookstore/admin-cl
 export type { AdminMetric as Metric } from "@bookstore/admin-client/model/admin-metric";
 
 export const ROLE_STAFF = "STAFF";
-export const ROLE_MANAGE = "MANAGE";
+export const ROLE_MANAGER = "MANAGER";

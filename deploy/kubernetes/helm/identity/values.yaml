@@ -29,11 +29,11 @@ podAnnotations:
     db.username={{ .Data.username }}
     db.password={{ .Data.password }}
     {{- end -}}
-  vault.hashicorp.com/agent-inject-secret-env-keycloak: "kv-bookstore/data/identity/keycloak"
+  vault.hashicorp.com/agent-inject-secret-env-keycloak: "kv-infra/data/keycloak/admin/identity-admin/credentials"
   vault.hashicorp.com/secret-volume-path-env-keycloak: "/vault/secrets"
   vault.hashicorp.com/agent-inject-file-env-keycloak: "env-keycloak"
   vault.hashicorp.com/agent-inject-template-env-keycloak: |
-    {{- with secret "kv-bookstore/data/identity/keycloak" -}}
+    {{- with secret "kv-infra/data/keycloak/admin/identity-admin/credentials" -}}
     export KEYCLOAK_CLIENT_ID="{{ .Data.data.client_id }}"
     export KEYCLOAK_CLIENT_SECRET="{{ .Data.data.client_secret }}"
     export KEYCLOAK_ADMIN_USERNAME="{{ .Data.data.admin_username }}"

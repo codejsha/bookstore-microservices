@@ -224,12 +224,12 @@ func TestUsersUpdateRoles_WhenRequestValid_PassesRolesToUsecase(t *testing.T) {
 	}
 	ctrl := NewUserController(use)
 	_, err := ctrl.UsersUpdateRoles(context.Background(), "uid-1", openapi.UserRolesRequest{
-		Roles: []openapi.AuthRole{openapi.AUTHROLE_MANAGE, openapi.AUTHROLE_USER},
+		Roles: []openapi.AuthRole{openapi.AUTHROLE_MANAGER, openapi.AUTHROLE_USER},
 	})
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if len(captured.Roles) != 2 || captured.Roles[0] != "MANAGE" || captured.Roles[1] != "USER" {
+	if len(captured.Roles) != 2 || captured.Roles[0] != "MANAGER" || captured.Roles[1] != "USER" {
 		t.Errorf("Roles = %+v", captured.Roles)
 	}
 }

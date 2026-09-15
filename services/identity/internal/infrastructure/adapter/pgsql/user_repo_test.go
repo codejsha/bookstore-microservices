@@ -47,7 +47,7 @@ func TestParseRoles(t *testing.T) {
 	}{
 		{"whenInputEmpty_returnsNil", "", nil},
 		{"whenJsonMalformed_returnsNil", "not json", nil},
-		{"whenRolesPresent_returnsRoles", `{"values":["STAFF","MANAGE"]}`, []string{"STAFF", "MANAGE"}},
+		{"whenRolesPresent_returnsRoles", `{"values":["STAFF","MANAGER"]}`, []string{"STAFF", "MANAGER"}},
 		{"whenValuesEmpty_returnsEmptySlice", `{"values":[]}`, []string{}},
 	}
 	for _, c := range cases {

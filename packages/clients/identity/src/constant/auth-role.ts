@@ -6,7 +6,7 @@ export enum AuthRole {
   AuthRoleUnknown = 'UNKNOWN',
   AuthRoleUser = 'USER',
   AuthRoleStaff = 'STAFF',
-  AuthRoleManage = 'MANAGE',
+  AuthRoleManager = 'MANAGER',
   AuthRoleSystem = 'SYSTEM',
 }
 
@@ -14,7 +14,7 @@ export const AuthRoleSchema = z.enum([
   'UNKNOWN',
   'USER',
   'STAFF',
-  'MANAGE',
+  'MANAGER',
   'SYSTEM',
 ]);
 

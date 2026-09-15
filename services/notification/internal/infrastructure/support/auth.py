@@ -84,7 +84,7 @@ def get_principal(request: Request) -> Principal | None:
 
 
 STAFF_ROLES: tuple[str, ...] = ("STAFF", "SYSTEM")
-MANAGE_ROLES: tuple[str, ...] = ("MANAGE", "SYSTEM")
+MANAGER_ROLES: tuple[str, ...] = ("MANAGER", "SYSTEM")
 
 
 def require_principal(principal: Principal | None = Depends(get_principal)) -> Principal:
@@ -98,7 +98,7 @@ def is_staff(principal: Principal) -> bool:
 
 
 def is_manager(principal: Principal) -> bool:
-    return any(principal.has_role(role) for role in MANAGE_ROLES)
+    return any(principal.has_role(role) for role in MANAGER_ROLES)
 
 
 def require_staff(principal: Principal = Depends(require_principal)) -> Principal:

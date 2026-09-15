@@ -100,7 +100,7 @@ class AdminCatalogControllerTest {
 
     @Test
     fun `createWork answers 201 without a body`() {
-        bindPrincipal(roles = "MANAGE,STAFF,USER")
+        bindPrincipal(roles = "MANAGER,STAFF,USER")
         val useCase = mock(CatalogUseCase::class.java)
         val controller = AdminCatalogController(useCase, resolver)
 
@@ -112,7 +112,7 @@ class AdminCatalogControllerTest {
 
     @Test
     fun `updateWork forwards absent fields as null so the catalog leaves them alone`(): Unit = runBlocking {
-        bindPrincipal(roles = "MANAGE,STAFF,USER")
+        bindPrincipal(roles = "MANAGER,STAFF,USER")
         val useCase = mock(CatalogUseCase::class.java)
         val controller = AdminCatalogController(useCase, resolver)
 

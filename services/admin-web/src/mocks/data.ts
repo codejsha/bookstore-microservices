@@ -5,7 +5,7 @@ export const identity: AdminIdentity = {
   uid: "11111111-1111-1111-1111-111111111111",
   email: "admin@example.com",
   name: "root",
-  roles: ["MANAGE", "STAFF", "USER"],
+  roles: ["MANAGER", "STAFF", "USER"],
 };
 
 export const dashboard: Dashboard = {

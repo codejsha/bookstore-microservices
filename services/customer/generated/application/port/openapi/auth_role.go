@@ -10,7 +10,7 @@ const (
 	AUTHROLE_UNKNOWN AuthRole = "UNKNOWN"
 	AUTHROLE_USER    AuthRole = "USER"
 	AUTHROLE_STAFF   AuthRole = "STAFF"
-	AUTHROLE_MANAGE  AuthRole = "MANAGE"
+	AUTHROLE_MANAGER AuthRole = "MANAGER"
 	AUTHROLE_SYSTEM  AuthRole = "SYSTEM"
 )
 
@@ -24,8 +24,8 @@ func ParseAuthRole(value string) (AuthRole, error) {
 		return AUTHROLE_USER, nil
 	case AUTHROLE_STAFF:
 		return AUTHROLE_STAFF, nil
-	case AUTHROLE_MANAGE:
-		return AUTHROLE_MANAGE, nil
+	case AUTHROLE_MANAGER:
+		return AUTHROLE_MANAGER, nil
 	case AUTHROLE_SYSTEM:
 		return AUTHROLE_SYSTEM, nil
 	}
@@ -41,7 +41,7 @@ func (v AuthRole) IsValid() bool {
 		return true
 	case AUTHROLE_STAFF:
 		return true
-	case AUTHROLE_MANAGE:
+	case AUTHROLE_MANAGER:
 		return true
 	case AUTHROLE_SYSTEM:
 		return true

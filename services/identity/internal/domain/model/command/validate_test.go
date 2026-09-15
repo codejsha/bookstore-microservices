@@ -78,7 +78,7 @@ func TestUserUpdateCommand_WhenFieldBlankOrOverLimit_ReturnsErrInvalidCommand(t 
 // One pass over the role rules: a known set passes, an empty set, an unknown role and
 // a duplicated role are each rejected.
 func TestUserRolesCommand_WhenRolesEmptyUnknownOrDuplicated_ReturnsErrInvalidCommand(t *testing.T) {
-	if err := (UserRolesCommand{Roles: []string{"STAFF", "MANAGE"}}).Validate(); err != nil {
+	if err := (UserRolesCommand{Roles: []string{"STAFF", "MANAGER"}}).Validate(); err != nil {
 		t.Fatalf("want nil, got %v", err)
 	}
 	if err := (UserRolesCommand{}).Validate(); !errors.Is(err, ErrInvalidCommand) {

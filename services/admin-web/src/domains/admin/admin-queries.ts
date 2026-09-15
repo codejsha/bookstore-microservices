@@ -2,7 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { api } from "@/shared/api/client";
 import { paths } from "@/shared/api/paths";
 import type { AdminIdentity, Dashboard } from "./types";
-import { ROLE_MANAGE, ROLE_STAFF } from "./types";
+import { ROLE_MANAGER, ROLE_STAFF } from "./types";
 
 export const adminMeQueryOptions = () =>
   queryOptions({
@@ -23,5 +23,5 @@ export function isStaff(identity: AdminIdentity | undefined): boolean {
 }
 
 export function isManager(identity: AdminIdentity | undefined): boolean {
-  return identity?.roles.includes(ROLE_MANAGE) ?? false;
+  return identity?.roles.includes(ROLE_MANAGER) ?? false;
 }

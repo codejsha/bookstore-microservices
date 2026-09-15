@@ -47,7 +47,7 @@ var (
 	anonymous = map[string]string{}
 	shopper   = map[string]string{HeaderUserID: "u-1", HeaderUserRoles: "USER"}
 	clerk     = map[string]string{HeaderUserID: "u-2", HeaderUserRoles: "STAFF,USER"}
-	manager   = map[string]string{HeaderUserID: "u-3", HeaderUserRoles: "MANAGE,STAFF,USER"}
+	manager   = map[string]string{HeaderUserID: "u-3", HeaderUserRoles: "MANAGER,STAFF,USER"}
 	automaton = map[string]string{HeaderUserID: "u-4", HeaderUserRoles: "SYSTEM"}
 )
 
@@ -105,7 +105,7 @@ func TestGinAuthorizationMiddleware_StaffRouteAsStaff_Allowed(t *testing.T) {
 	}
 }
 
-func TestGinAuthorizationMiddleware_ManageRouteAsStaff_Forbidden(t *testing.T) {
+func TestGinAuthorizationMiddleware_ManagerRouteAsStaff_Forbidden(t *testing.T) {
 	e := newAuthedEngine()
 
 	for _, r := range manageRequests {

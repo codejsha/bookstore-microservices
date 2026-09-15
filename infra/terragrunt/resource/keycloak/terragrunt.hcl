@@ -59,7 +59,10 @@ inputs = {
   web_valid_post_logout_redirect_uris = ["http://localhost:5173/*", "https://bookstore.example.com/*"]
   web_web_origins                     = ["http://localhost:5173", "https://bookstore.example.com"]
 
-  bookstore_manager_username = "devopsadmin@example.com"
+  bookstore_admin_accounts = {
+    devopsadmin = { username = "devopsadmin@example.com", email = "devopsadmin@example.com", first_name = "DevOps", last_name = "Admin", role = "MANAGER" }
+    devadmin    = { username = "devadmin@example.com", email = "devadmin@example.com", first_name = "Dev", last_name = "Admin", role = "MANAGER" }
+  }
 
   mobile_valid_redirect_uris = [
     "bookstore://callback",

@@ -7,15 +7,15 @@ import (
 )
 
 const (
-	roleStaff  = "STAFF"
-	roleManage = "MANAGE"
-	roleSystem = "SYSTEM"
+	roleStaff   = "STAFF"
+	roleManager = "MANAGER"
+	roleSystem  = "SYSTEM"
 )
 
 var writeRoutes = map[string]string{
 	"POST /api/v1/audits":                  roleStaff,
 	"POST /api/v1/audits/:uid/complete":    roleStaff,
-	"POST /api/v1/closings":                roleManage,
+	"POST /api/v1/closings":                roleManager,
 	"POST /api/v1/stocks/adjust":           roleStaff,
 	"POST /api/v1/stocks/receive":          roleStaff,
 	"POST /api/v1/stocks/release":          roleStaff,
@@ -23,8 +23,8 @@ var writeRoutes = map[string]string{
 	"POST /api/v1/transfers":               roleStaff,
 	"POST /api/v1/transfers/:uid/cancel":   roleStaff,
 	"POST /api/v1/transfers/:uid/complete": roleStaff,
-	"POST /api/v1/warehouses":              roleManage,
-	"PUT /api/v1/warehouses/:uid":          roleManage,
+	"POST /api/v1/warehouses":              roleManager,
+	"PUT /api/v1/warehouses/:uid":          roleManager,
 }
 
 func GinAuthorizationMiddleware() gin.HandlerFunc {

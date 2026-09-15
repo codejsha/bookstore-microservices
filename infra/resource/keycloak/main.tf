@@ -21,7 +21,7 @@ terraform {
 
 ephemeral "vault_kv_secret_v2" "keycloak" {
   mount = "kv-infra"
-  name  = "keycloak/admin/credentials"
+  name  = "keycloak/admin/master-admin/credentials"
 }
 
 provider "keycloak" {
@@ -59,6 +59,7 @@ module "master_admin" {
     module.realm_roles,
     module.argocd_oidc,
     module.identity_client,
+    module.bookstore_admins,
     module.web_client,
     module.mobile_client,
     module.oauth2_proxy_client,
@@ -70,10 +71,10 @@ module "realm_roles" {
   source   = "./modules/realm-roles"
   realm_id = module.realm.realm_id
   roles = {
-    USER   = "Signed-in customer: own profile, orders and public catalog"
-    STAFF  = "Operations staff: catalog, inventory, delivery and support handling"
-    MANAGE = "Full back-office access including users, payments and settlement"
-    SYSTEM = "Internal service-to-service automation"
+    USER    = "Signed-in customer: own profile, orders and public catalog"
+    STAFF   = "Operations staff: catalog, inventory, delivery and support handling"
+    MANAGER = "Full back-office access including users, payments and settlement"
+    SYSTEM  = "Internal service-to-service automation"
   }
   providers = {
     keycloak = keycloak
@@ -180,10 +181,19 @@ module "grafana_oidc" {
 }
 
 module "identity_client" {
-  source           = "./modules/identity-client"
-  realm_id         = module.realm.realm_id
-  manager_username = var.bookstore_manager_username
-  manage_role_id   = module.realm_roles.role_ids["MANAGE"]
+  source   = "./modules/identity-client"
+  realm_id = module.realm.realm_id
+  providers = {
+    keycloak = keycloak
+    vault    = vault
+  }
+}
+
+module "bookstore_admins" {
+  source   = "./modules/bookstore-admins"
+  realm_id = module.realm.realm_id
+  accounts = var.bookstore_admin_accounts
+  role_ids = module.realm_roles.role_ids
   providers = {
     keycloak = keycloak
     vault    = vault
@@ -239,5 +249,33 @@ module "audience_scope" {
   service_account_clients = ["identity"]
   providers = {
     keycloak = keycloak
+  }
+}
+
+moved {
+  from = module.identity_client.random_password.manager
+  to   = module.bookstore_admins.random_password.account["devopsadmin"]
+}
+
+moved {
+  from = module.identity_client.keycloak_user.manager
+  to   = module.bookstore_admins.keycloak_user.account["devopsadmin"]
+}
+
+moved {
+  from = module.identity_client.keycloak_user_roles.manager
+  to   = module.bookstore_admins.keycloak_user_roles.account["devopsadmin"]
+}
+
+moved {
+  from = module.identity_client.vault_kv_secret_v2.manager
+  to   = module.bookstore_admins.vault_kv_secret_v2.account["devopsadmin"]
+}
+
+removed {
+  from = module.identity_client.vault_kv_secret_v2.identity_keycloak
+
+  lifecycle {
+    destroy = false
   }
 }

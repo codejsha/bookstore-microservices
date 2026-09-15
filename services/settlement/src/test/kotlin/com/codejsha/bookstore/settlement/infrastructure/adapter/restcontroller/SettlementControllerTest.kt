@@ -88,7 +88,7 @@ class SettlementControllerTest {
 
     @Test
     fun `settlementRunsCreate_managerCaller_answersAccepted`() {
-        bindPrincipal(roles = "MANAGE,STAFF,USER")
+        bindPrincipal(roles = "MANAGER,STAFF,USER")
         val settlementUseCase = mock(SettlementUseCase::class.java)
         val triggerUseCase = mock(TriggerSettlementRunUseCase::class.java)
         val controller = SettlementController(settlementUseCase, triggerUseCase, resolver)

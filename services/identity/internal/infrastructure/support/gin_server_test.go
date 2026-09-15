@@ -46,7 +46,7 @@ func TestNewGinServer_riskRoute_servesInjectedRiskApi(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/risk", nil)
 	req.Header.Set(HeaderUserID, "manager-1")
-	req.Header.Set(HeaderUserRoles, "MANAGE,STAFF,USER")
+	req.Header.Set(HeaderUserRoles, "MANAGER,STAFF,USER")
 	rec := httptest.NewRecorder()
 	s.engine.ServeHTTP(rec, req)
 

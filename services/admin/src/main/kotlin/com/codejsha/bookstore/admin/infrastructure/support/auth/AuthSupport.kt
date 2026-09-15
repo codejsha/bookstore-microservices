@@ -10,7 +10,7 @@ import org.springframework.web.context.request.ServletRequestAttributes
 import tools.jackson.databind.ObjectMapper
 
 const val ROLE_STAFF = "STAFF"
-const val ROLE_MANAGE = "MANAGE"
+const val ROLE_MANAGER = "MANAGER"
 const val ROLE_SYSTEM = "SYSTEM"
 
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
@@ -34,7 +34,7 @@ class HttpPrincipalResolver(
 
 fun Principal.isStaff(): Boolean = hasRole(ROLE_STAFF) || hasRole(ROLE_SYSTEM)
 
-fun Principal.isManager(): Boolean = hasRole(ROLE_MANAGE) || hasRole(ROLE_SYSTEM)
+fun Principal.isManager(): Boolean = hasRole(ROLE_MANAGER) || hasRole(ROLE_SYSTEM)
 
 fun Principal.assertStaff() {
     if (!isStaff()) throw ForbiddenException("staff role required")

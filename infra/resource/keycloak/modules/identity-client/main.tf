@@ -53,56 +53,6 @@ resource "keycloak_user_roles" "identity_admin" {
   role_ids = [data.keycloak_role.realm_admin.id]
 }
 
-resource "random_password" "manager" {
-  length  = 32
-  special = false
-}
-
-resource "keycloak_user" "manager" {
-  realm_id       = var.realm_id
-  username       = var.manager_username
-  email          = var.manager_username
-  email_verified = true
-  first_name     = var.manager_first_name
-  last_name      = var.manager_last_name
-  enabled        = true
-
-  initial_password {
-    value     = random_password.manager.result
-    temporary = false
-  }
-}
-
-resource "keycloak_user_roles" "manager" {
-  realm_id = var.realm_id
-  user_id  = keycloak_user.manager.id
-  role_ids = [var.manage_role_id]
-}
-
-resource "vault_kv_secret_v2" "manager" {
-  mount = "kv-infra"
-  name  = "keycloak/bookstore/manager/credentials"
-  data_json = jsonencode({
-    username = keycloak_user.manager.username
-    password = random_password.manager.result
-  })
-}
-
-moved {
-  from = random_password.realm_admin
-  to   = random_password.manager
-}
-
-moved {
-  from = keycloak_user.realm_admin
-  to   = keycloak_user.manager
-}
-
-moved {
-  from = keycloak_user_roles.realm_admin_roles
-  to   = keycloak_user_roles.manager
-}
-
 data "keycloak_role" "realm_admin" {
   realm_id  = var.realm_id
   name      = "realm-admin"
@@ -114,9 +64,9 @@ data "keycloak_openid_client" "realm_management" {
   client_id = "realm-management"
 }
 
-resource "vault_kv_secret_v2" "identity_keycloak" {
-  mount = "kv-bookstore"
-  name  = "identity/keycloak"
+resource "vault_kv_secret_v2" "identity_admin" {
+  mount = "kv-infra"
+  name  = "keycloak/admin/identity-admin/credentials"
   data_json = jsonencode({
     client_id      = keycloak_openid_client.identity.client_id
     client_secret  = keycloak_openid_client.identity.client_secret
