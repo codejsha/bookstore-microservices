@@ -68,6 +68,7 @@ dependencyManagement {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 
