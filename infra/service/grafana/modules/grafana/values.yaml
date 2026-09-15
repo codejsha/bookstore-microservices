@@ -143,7 +143,7 @@ grafana.ini:
     login_attribute_path: preferred_username
     name_attribute_path: name
     email_attribute_path: email
-    role_attribute_path: "contains(roles[*], 'ADMIN') && 'GrafanaAdmin' || contains(roles[*], 'OPERATOR') && 'Editor' || contains(roles[*], 'DEVELOPER') && 'Viewer'"
+    role_attribute_path: "contains(roles[*], 'ADMIN') && 'GrafanaAdmin' || contains(roles[*], 'MANAGER') && 'Editor' || contains(roles[*], 'DEVELOPER') && 'Viewer'"
     role_attribute_strict: true
     allow_assign_grafana_admin: true
 

@@ -54,24 +54,27 @@ resource "keycloak_role" "developer" {
   description = var.roles["DEVELOPER"]
 }
 
-resource "keycloak_role" "operator" {
-  realm_id        = keycloak_realm.infra.id
-  name            = "OPERATOR"
-  description     = var.roles["OPERATOR"]
-  composite_roles = [keycloak_role.developer.id]
+resource "keycloak_role" "manager" {
+  realm_id    = keycloak_realm.infra.id
+  name        = "MANAGER"
+  description = var.roles["MANAGER"]
 }
 
 resource "keycloak_role" "admin" {
-  realm_id        = keycloak_realm.infra.id
-  name            = "ADMIN"
-  description     = var.roles["ADMIN"]
-  composite_roles = [keycloak_role.operator.id]
+  realm_id    = keycloak_realm.infra.id
+  name        = "ADMIN"
+  description = var.roles["ADMIN"]
+}
+
+moved {
+  from = keycloak_role.operator
+  to   = keycloak_role.manager
 }
 
 locals {
   role_ids = {
     DEVELOPER = keycloak_role.developer.id
-    OPERATOR  = keycloak_role.operator.id
+    MANAGER   = keycloak_role.manager.id
     ADMIN     = keycloak_role.admin.id
   }
 }

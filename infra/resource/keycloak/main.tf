@@ -86,8 +86,8 @@ module "infra_realm" {
   realm_name         = var.infra_realm_name
   bootstrap_accounts = var.infra_bootstrap_accounts
   roles = {
-    DEVELOPER = "Developer: read and sync deployments, view dashboards and the mesh console"
-    OPERATOR  = "Platform operator: manage deployments and edit dashboards"
+    DEVELOPER = "Developer: develop, commit and deploy applications and view monitoring; no infrastructure changes"
+    MANAGER   = "Platform manager: may change infrastructure"
     ADMIN     = "Platform administrator: full control of infrastructure tools"
   }
   providers = {
