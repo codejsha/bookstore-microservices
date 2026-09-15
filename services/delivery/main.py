@@ -44,7 +44,11 @@ def create_app() -> FastAPI:
 
     container = Container(settings)
 
-    temporal_runner = TemporalWorkerRunner(settings.temporal, container.temporal_activities())
+    temporal_runner = TemporalWorkerRunner(
+        settings.temporal,
+        container.temporal_activities(),
+        container.temporal_token_provider(),
+    )
     grpc_runner = _build_grpc_runner(settings, container)
 
     @asynccontextmanager

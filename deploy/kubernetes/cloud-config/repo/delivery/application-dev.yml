@@ -20,3 +20,6 @@ temporal:
   enabled: true
   host: temporal-frontend.temporal.svc.cluster.local:7233
   namespace: bookstore
+  auth:
+    enabled: true
+    token_url: http://keycloak-service.keycloak.svc.cluster.local:8080/realms/bookstore/protocol/openid-connect/token

@@ -9,6 +9,9 @@ temporal:
   host: temporal-frontend.temporal.svc.cluster.local:7233
   namespace: bookstore
   taskQueue: inventory-task-queue
+  auth:
+    enabled: true
+    tokenUrl: http://keycloak-service.keycloak.svc.cluster.local:8080/realms/bookstore/protocol/openid-connect/token
 
 kafka:
   broker:

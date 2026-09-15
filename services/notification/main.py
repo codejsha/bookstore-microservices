@@ -31,6 +31,7 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
+        await container.temporal_worker.prepare()
         worker_task = asyncio.create_task(container.temporal_worker.run())
         try:
             yield

@@ -5,7 +5,7 @@ extraEnv:
   - name: SPRING_PROFILES_ACTIVE
     value: prod
   - name: SPRING_CONFIG_IMPORT
-    value: "configserver:http://config-server.cloud-config.svc.cluster.local:8888,optional:file:/vault/secrets/db.properties"
+    value: "configserver:http://config-server.cloud-config.svc.cluster.local:8888,optional:file:/vault/secrets/db.properties,optional:file:/vault/secrets/temporal.properties"
 
 service:
   grpc:

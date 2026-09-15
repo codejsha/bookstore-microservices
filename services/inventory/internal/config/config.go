@@ -1,9 +1,14 @@
 package config
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
+	"os"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -11,7 +16,12 @@ import (
 	"github.com/codejsha/shared-library-go/pkg/config"
 )
 
-const vaultSecretsFile = "/vault/secrets/db.properties"
+const (
+	vaultSecretsFile         = "/vault/secrets/db.properties"
+	vaultTemporalSecretsFile = "/vault/secrets/temporal.properties"
+	vaultTemporalClientIDKey = "temporal.auth.clientId"
+	vaultTemporalSecretKey   = "temporal.auth.clientSecret"
+)
 
 type Config struct {
 	App       *config.AppConfig       `mapstructure:"app"`
@@ -25,7 +35,15 @@ type Config struct {
 type TemporalConfig struct {
 	Host      string `json:"host" mapstructure:"host"`
 	Namespace string `json:"namespace" mapstructure:"namespace"`
-	TaskQueue string `json:"taskQueue" mapstructure:"taskQueue"`
+	TaskQueue string              `json:"taskQueue" mapstructure:"taskQueue"`
+	Auth      *TemporalAuthConfig `json:"auth" mapstructure:"auth"`
+}
+
+type TemporalAuthConfig struct {
+	Enabled      bool   `json:"enabled" mapstructure:"enabled"`
+	TokenURL     string `json:"tokenUrl" mapstructure:"tokenUrl"`
+	ClientID     string `json:"clientId" mapstructure:"clientId"`
+	ClientSecret string `json:"clientSecret" mapstructure:"clientSecret"`
 }
 
 func NewConfig(
@@ -35,6 +53,7 @@ func NewConfig(
 	cfg, err := fetchConfig(*preConfig, *cloudConfigHelper)
 	if err == nil {
 		config.ApplyVaultDBCredentials(cfg.Database, vaultSecretsFile)
+		applyVaultTemporalCredentials(cfg, vaultTemporalSecretsFile)
 		return cfg
 	}
 	logrus.Errorf("failed to fetch config from config service: %v", err)
@@ -42,6 +61,7 @@ func NewConfig(
 	cfg, err = readConfig(preConfig.Profile)
 	if err == nil {
 		config.ApplyVaultDBCredentials(cfg.Database, vaultSecretsFile)
+		applyVaultTemporalCredentials(cfg, vaultTemporalSecretsFile)
 		return cfg
 	}
 	logrus.Errorf("failed to read config from local config files: %v", err)
@@ -101,6 +121,52 @@ func readConfig(
 	}
 	cfg.App.Logging.UpdateFlags()
 	return cfg, nil
+}
+
+func applyVaultTemporalCredentials(cfg *Config, path string) {
+	props, err := readProperties(path)
+	if err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			logrus.Warnf("vault: could not read %s: %v", path, err)
+		}
+		return
+	}
+	if cfg.Temporal == nil {
+		cfg.Temporal = &TemporalConfig{}
+	}
+	if cfg.Temporal.Auth == nil {
+		cfg.Temporal.Auth = &TemporalAuthConfig{}
+	}
+	if v := props[vaultTemporalClientIDKey]; v != "" {
+		cfg.Temporal.Auth.ClientID = v
+	}
+	if v := props[vaultTemporalSecretKey]; v != "" {
+		cfg.Temporal.Auth.ClientSecret = v
+	}
+	logrus.Infof("vault: applied temporal credentials from %s", path)
+}
+
+func readProperties(path string) (map[string]string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	props := make(map[string]string)
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "!") {
+			continue
+		}
+		key, value, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		props[strings.TrimSpace(key)] = strings.TrimSpace(value)
+	}
+	return props, scanner.Err()
 }
 
 func ProvideAppConfig(cfg *Config) *config.AppConfig {

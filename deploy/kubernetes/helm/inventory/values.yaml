@@ -30,6 +30,12 @@ podAnnotations:
     db.username={{ .Data.username }}
     db.password={{ .Data.password }}
     {{- end -}}
+  vault.hashicorp.com/agent-inject-secret-temporal.properties: "kv-bookstore/data/inventory/temporal"
+  vault.hashicorp.com/agent-inject-template-temporal.properties: |
+    {{- with secret "kv-bookstore/data/inventory/temporal" -}}
+    temporal.auth.clientId={{ .Data.data.client_id }}
+    temporal.auth.clientSecret={{ .Data.data.client_secret }}
+    {{- end -}}
 podLabels:
   app.kubernetes.io/group: bookstore
 

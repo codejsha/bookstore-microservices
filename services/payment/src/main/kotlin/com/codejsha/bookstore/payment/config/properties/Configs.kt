@@ -35,3 +35,14 @@ class HyperswitchConfig(
     val connectTimeout: Duration = Duration.ofSeconds(2),
     val readTimeout: Duration = Duration.ofSeconds(15),
 )
+
+@ConfigurationProperties(prefix = "temporal.auth")
+class TemporalAuthConfig(
+    val enabled: Boolean = false,
+    val tokenUrl: String = "",
+    val clientId: String = "",
+    val clientSecret: String = "",
+    val refreshRatio: Double = 0.75,
+    val connectTimeout: Duration = Duration.ofSeconds(2),
+    val readTimeout: Duration = Duration.ofSeconds(5),
+)
