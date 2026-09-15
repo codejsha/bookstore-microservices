@@ -29,19 +29,19 @@ class RefundService(
 ) : RefundUseCase {
 
     @WithSpan
-    override suspend fun findAllRefunds(
+    override fun findAllRefunds(
         option: RefundQueryOption, pageable: Pageable, context: ActorContext
     ): Page<RefundAggregate> = txRunner.tx {
         refundRepo.findAll(option, pageable, context).map { toRefundAggregate(it) }
     }
 
     @WithSpan
-    override suspend fun findRefund(uid: UUID, context: ActorContext): RefundAggregate = txRunner.tx {
+    override fun findRefund(uid: UUID, context: ActorContext): RefundAggregate = txRunner.tx {
         toRefundAggregate(refundRepo.findOne(uid, context))
     }
 
     @WithSpan
-    override suspend fun createRefund(
+    override fun createRefund(
         command: RefundCreateCommand, context: ActorContext
     ): RefundAggregate {
         val idempotencyKey = requireNotNull(command.idempotencyKey) { "idempotencyKey is required to create a refund" }

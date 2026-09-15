@@ -31,19 +31,19 @@ class CustomerService(
 ) : CustomerUseCase {
 
     @WithSpan
-    override suspend fun findAllCustomers(
+    override fun findAllCustomers(
         option: CustomerQueryOption, pageable: Pageable, context: ActorContext
     ): Page<CustomerAggregate> = txRunner.tx {
         customerRepo.findAll(option, pageable, context).map { toCustomerAggregate(it) }
     }
 
     @WithSpan
-    override suspend fun findCustomer(uid: UUID, context: ActorContext): CustomerAggregate = txRunner.tx {
+    override fun findCustomer(uid: UUID, context: ActorContext): CustomerAggregate = txRunner.tx {
         toCustomerAggregate(customerRepo.findOne(uid, context))
     }
 
     @WithSpan
-    override suspend fun createCustomer(
+    override fun createCustomer(
         command: CustomerCreateCommand, context: ActorContext
     ): CustomerAggregate = txRunner.tx {
         customerRepo.findByCustomerId(command.customerId, context)
@@ -58,49 +58,49 @@ class CustomerService(
     }
 
     @WithSpan
-    override suspend fun updateCustomer(
+    override fun updateCustomer(
         uid: UUID, command: CustomerUpdateCommand, context: ActorContext
     ): CustomerAggregate = txRunner.tx {
         toCustomerAggregate(customerRepo.update(uid, command, context))
     }
 
     @WithSpan
-    override suspend fun deleteCustomer(uid: UUID, context: ActorContext) {
+    override fun deleteCustomer(uid: UUID, context: ActorContext) {
         txRunner.tx {
             customerRepo.delete(uid, context)
         }
     }
 
     @WithSpan
-    override suspend fun findAllPaymentMethods(
+    override fun findAllPaymentMethods(
         customerUid: UUID, option: PaymentMethodQueryOption, pageable: Pageable, context: ActorContext
     ): Page<PaymentMethodEntity> = txRunner.tx {
         paymentMethodRepo.findAllByCustomer(customerUid, option, pageable, context).map { toPaymentMethodEntity(it) }
     }
 
     @WithSpan
-    override suspend fun findPaymentMethod(
+    override fun findPaymentMethod(
         customerUid: UUID, uid: UUID, context: ActorContext
     ): PaymentMethodEntity = txRunner.tx {
         toPaymentMethodEntity(paymentMethodRepo.findOne(customerUid, uid, context))
     }
 
     @WithSpan
-    override suspend fun createPaymentMethod(
+    override fun createPaymentMethod(
         customerUid: UUID, command: PaymentMethodCreateCommand, context: ActorContext
     ): PaymentMethodEntity = txRunner.tx {
         toPaymentMethodEntity(paymentMethodRepo.create(customerUid, command, context))
     }
 
     @WithSpan
-    override suspend fun updatePaymentMethod(
+    override fun updatePaymentMethod(
         customerUid: UUID, uid: UUID, command: PaymentMethodUpdateCommand, context: ActorContext
     ): PaymentMethodEntity = txRunner.tx {
         toPaymentMethodEntity(paymentMethodRepo.update(customerUid, uid, command, context))
     }
 
     @WithSpan
-    override suspend fun deletePaymentMethod(customerUid: UUID, uid: UUID, context: ActorContext) {
+    override fun deletePaymentMethod(customerUid: UUID, uid: UUID, context: ActorContext) {
         txRunner.tx {
             paymentMethodRepo.delete(customerUid, uid, context)
         }

@@ -13,7 +13,6 @@ import com.codejsha.bookstore.payment.infrastructure.support.auth.HttpPrincipalR
 import com.codejsha.bookstore.payment.support.PaymentTestFixtures
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -85,7 +84,7 @@ class RefundControllerTest {
     }
 
     @Test
-    fun `refundsGetAll_whenUsecaseReturnsPage_mapsPageToResponse`(): Unit = runBlocking {
+    fun `refundsGetAll_whenUsecaseReturnsPage_mapsPageToResponse`() {
         val useCase = mock(RefundUseCase::class.java)
         val controller = RefundController(useCase, resolver)
 
@@ -106,7 +105,7 @@ class RefundControllerTest {
     }
 
     @Test
-    fun `refundsCreate_whenRequestValid_mapsBodyToCommandAndReturnsCreated`(): Unit = runBlocking {
+    fun `refundsCreate_whenRequestValid_mapsBodyToCommandAndReturnsCreated`() {
         val useCase = mock(RefundUseCase::class.java)
         val controller = RefundController(useCase, resolver)
 
@@ -140,7 +139,7 @@ class RefundControllerTest {
     }
 
     @Test
-    fun `refundsCreate_whenIdempotencyKeyGiven_scopesItToPayment`(): Unit = runBlocking {
+    fun `refundsCreate_whenIdempotencyKeyGiven_scopesItToPayment`() {
         val useCase = mock(RefundUseCase::class.java)
         val controller = RefundController(useCase, resolver)
 
@@ -162,7 +161,7 @@ class RefundControllerTest {
     }
 
     @Test
-    fun `refundsRead_whenRefundExists_returnsOkWithMappedAggregate`(): Unit = runBlocking {
+    fun `refundsRead_whenRefundExists_returnsOkWithMappedAggregate`() {
         val useCase = mock(RefundUseCase::class.java)
         val controller = RefundController(useCase, resolver)
 

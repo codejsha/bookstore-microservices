@@ -9,7 +9,6 @@ import com.codejsha.bookstore.admin.infrastructure.support.auth.ForbiddenExcepti
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -58,7 +57,7 @@ class AdminPaymentControllerTest {
     }
 
     @Test
-    fun `list maps the filter and the captured amounts onto the response`(): Unit = runBlocking {
+    fun `list maps the filter and the captured amounts onto the response`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(PaymentUseCase::class.java)
         val controller = AdminPaymentController(useCase, resolver)
@@ -80,7 +79,7 @@ class AdminPaymentControllerTest {
     }
 
     @Test
-    fun `readPayment maps a failure without capture timestamps`(): Unit = runBlocking {
+    fun `readPayment maps a failure without capture timestamps`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(PaymentUseCase::class.java)
         val controller = AdminPaymentController(useCase, resolver)
@@ -97,7 +96,7 @@ class AdminPaymentControllerTest {
     }
 
     @Test
-    fun `refunds are listed for a single payment`(): Unit = runBlocking {
+    fun `refunds are listed for a single payment`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(PaymentUseCase::class.java)
         val controller = AdminPaymentController(useCase, resolver)

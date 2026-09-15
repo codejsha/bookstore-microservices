@@ -11,7 +11,6 @@ import com.codejsha.bookstore.payment.infrastructure.support.auth.assertManager
 import com.codejsha.bookstore.payment.infrastructure.support.auth.assertStaff
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -29,7 +28,7 @@ class RefundController(
         paymentId: String?,
         status: RefundStatus?,
         pageable: Pageable?
-    ): ResponseEntity<RefundFindAllResponse> = runBlocking {
+    ): ResponseEntity<RefundFindAllResponse> {
         principalResolver.require().assertStaff()
         val option = RefundQueryOption(paymentId = paymentId, status = status?.value)
         val context = buildContext()
@@ -39,10 +38,10 @@ class RefundController(
             total = result.totalElements,
             items = result.content.map { toRefundFindResponse(it) }
         )
-        ResponseEntity.ok(response)
+        return ResponseEntity.ok(response)
     }
 
-    override fun refundsCreate(requestBody: RefundCreateRequest): ResponseEntity<Unit> = runBlocking {
+    override fun refundsCreate(requestBody: RefundCreateRequest): ResponseEntity<Unit> {
         principalResolver.require().assertManager()
         val context = buildContext()
         val command = RefundCreateCommand(
@@ -55,14 +54,14 @@ class RefundController(
             idempotencyKey = "${requestBody.paymentId}:${requestBody.idempotencyKey}",
         )
         val refund = refundUseCase.createRefund(command, context)
-        ResponseEntity.created(URI.create("/api/v1/refunds/${refund.uid}")).build()
+        return ResponseEntity.created(URI.create("/api/v1/refunds/${refund.uid}")).build()
     }
 
-    override fun refundsRead(uid: String): ResponseEntity<RefundFindResponse> = runBlocking {
+    override fun refundsRead(uid: String): ResponseEntity<RefundFindResponse> {
         principalResolver.require().assertStaff()
         val context = buildContext()
         val refund = refundUseCase.findRefund(UUID.fromString(uid), context)
-        ResponseEntity.ok(toRefundFindResponse(refund))
+        return ResponseEntity.ok(toRefundFindResponse(refund))
     }
 
     // ─── Mapping ────────────────────────────────────────────────────────────

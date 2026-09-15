@@ -10,7 +10,6 @@ import com.codejsha.bookstore.admin.domain.model.option.StockQueryOption
 import com.codejsha.bookstore.admin.domain.model.option.WorkQueryOption
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Pageable
 import org.springframework.web.client.RestClientException
@@ -75,7 +74,7 @@ class DashboardServiceTest {
     )
 
     @Test
-    fun `collects a count from each downstream`(): Unit = runBlocking {
+    fun `collects a count from each downstream`() {
         val dashboard = service().loadDashboard(context)
 
         assertEquals(1, dashboard.works.count)
@@ -85,7 +84,7 @@ class DashboardServiceTest {
     }
 
     @Test
-    fun `one unreachable downstream degrades only its own metric`(): Unit = runBlocking {
+    fun `one unreachable downstream degrades only its own metric`() {
         val dashboard =
             service(orders = { throw RestClientException("connection refused") }).loadDashboard(context)
 
@@ -97,13 +96,13 @@ class DashboardServiceTest {
     }
 
     @Test
-    fun `an Error is not swallowed as an unavailable metric`(): Unit = runBlocking {
+    fun `an Error is not swallowed as an unavailable metric`() {
         val svc = service(works = { throw OutOfMemoryError("heap") })
 
         assertFailsWithOutOfMemory { svc.loadDashboard(context) }
     }
 
-    private suspend fun assertFailsWithOutOfMemory(block: suspend () -> Unit) {
+    private fun assertFailsWithOutOfMemory(block: () -> Unit) {
         try {
             block()
         } catch (_: OutOfMemoryError) {

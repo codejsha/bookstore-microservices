@@ -36,7 +36,7 @@ class WebhookService(
     private val log = LoggerFactory.getLogger(WebhookService::class.java)
 
     @WithSpan
-    override suspend fun handleHyperswitchWebhook(
+    override fun handleHyperswitchWebhook(
         payload: ByteArray, signature: String?, context: ActorContext
     ): WebhookOutcome {
         if (!hyperswitchClient.verifyWebhookSignature(payload, signature)) {
@@ -68,7 +68,7 @@ class WebhookService(
         }
     }
 
-    private suspend fun apply(
+    private fun apply(
         event: HyperswitchWebhookEvent, stored: WebhookEventResult, context: ActorContext
     ): WebhookOutcome {
         val applied = txRunner.tx {

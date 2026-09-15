@@ -14,7 +14,6 @@ import com.codejsha.bookstore.payment.domain.model.option.PaymentQueryOption
 import com.codejsha.bookstore.payment.support.FakeDistributedLock
 import com.codejsha.bookstore.payment.support.FakeTransactionRunner
 import com.codejsha.bookstore.payment.support.PaymentTestFixtures
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito.mock
@@ -62,7 +61,7 @@ class PaymentServiceTest {
     )
 
     @Test
-    fun `findAllPayments_whenRepoReturnsPage_mapsEachRowAndKeepsTotalCount`(): Unit = runBlocking {
+    fun `findAllPayments_whenRepoReturnsPage_mapsEachRowAndKeepsTotalCount`() {
         val repo = mock(PaymentRepo::class.java)
         val attemptRepo = mock(PaymentAttemptRepo::class.java)
         val service = newService(repo, attemptRepo)
@@ -86,7 +85,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    fun `findPayment_whenPaymentExists_mapsValueObjects`(): Unit = runBlocking {
+    fun `findPayment_whenPaymentExists_mapsValueObjects`() {
         val repo = mock(PaymentRepo::class.java)
         val attemptRepo = mock(PaymentAttemptRepo::class.java)
         val service = newService(repo, attemptRepo)
@@ -119,7 +118,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    fun `findPayment_whenOptionalColumnsNull_leavesFieldsNull`(): Unit = runBlocking {
+    fun `findPayment_whenOptionalColumnsNull_leavesFieldsNull`() {
         val repo = mock(PaymentRepo::class.java)
         val attemptRepo = mock(PaymentAttemptRepo::class.java)
         val service = newService(repo, attemptRepo)
@@ -139,7 +138,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    fun `createPayment_whenIdempotencyKeyMissing_throwsIllegalArgumentExceptionWithoutLockingOrWriting`(): Unit = runBlocking {
+    fun `createPayment_whenIdempotencyKeyMissing_throwsIllegalArgumentExceptionWithoutLockingOrWriting`() {
         val repo = mock(PaymentRepo::class.java)
         val lock = FakeDistributedLock()
         val service = newService(repo, mock(PaymentAttemptRepo::class.java), lock)
@@ -151,7 +150,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    fun `createPayment_whenNoPriorPayment_createsUnderLock`(): Unit = runBlocking {
+    fun `createPayment_whenNoPriorPayment_createsUnderLock`() {
         val repo = mock(PaymentRepo::class.java)
         val lock = FakeDistributedLock()
         val service = newService(repo, mock(PaymentAttemptRepo::class.java), lock)
@@ -168,7 +167,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    fun `createPayment_whenPaymentAlreadyExists_returnsItWithoutLockingOrCreating`(): Unit = runBlocking {
+    fun `createPayment_whenPaymentAlreadyExists_returnsItWithoutLockingOrCreating`() {
         val repo = mock(PaymentRepo::class.java)
         val lock = FakeDistributedLock()
         val service = newService(repo, mock(PaymentAttemptRepo::class.java), lock)
@@ -184,7 +183,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    fun `createPayment_whenUniqueKeyRaces_returnsTheWinnerRow`(): Unit = runBlocking {
+    fun `createPayment_whenUniqueKeyRaces_returnsTheWinnerRow`() {
         val repo = mock(PaymentRepo::class.java)
         val service = newService(repo, mock(PaymentAttemptRepo::class.java))
         val command = createCommand(idempotencyKey = "cus_1:idem_1")
@@ -198,7 +197,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    fun `createPayment_whenCustomerHasNoLocalRecord_throwsNoSuchElementException`(): Unit = runBlocking {
+    fun `createPayment_whenCustomerHasNoLocalRecord_throwsNoSuchElementException`() {
         val repo = mock(PaymentRepo::class.java)
         val lock = FakeDistributedLock()
         val customerRepo = mock(CustomerRepo::class.java)
@@ -212,7 +211,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    fun `updatePayment_whenCommandGiven_delegatesUidAndCommandToRepo`(): Unit = runBlocking {
+    fun `updatePayment_whenCommandGiven_delegatesUidAndCommandToRepo`() {
         val repo = mock(PaymentRepo::class.java)
         val attemptRepo = mock(PaymentAttemptRepo::class.java)
         val service = newService(repo, attemptRepo)
@@ -241,7 +240,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    fun `findAllPaymentAttempts_whenRepoReturnsPage_mapsEachEntry`(): Unit = runBlocking {
+    fun `findAllPaymentAttempts_whenRepoReturnsPage_mapsEachEntry`() {
         val repo = mock(PaymentRepo::class.java)
         val attemptRepo = mock(PaymentAttemptRepo::class.java)
         val service = newService(repo, attemptRepo)
@@ -262,7 +261,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    fun `findPaymentAttempt_whenAttemptExists_returnsMappedAttempt`(): Unit = runBlocking {
+    fun `findPaymentAttempt_whenAttemptExists_returnsMappedAttempt`() {
         val repo = mock(PaymentRepo::class.java)
         val attemptRepo = mock(PaymentAttemptRepo::class.java)
         val service = newService(repo, attemptRepo)

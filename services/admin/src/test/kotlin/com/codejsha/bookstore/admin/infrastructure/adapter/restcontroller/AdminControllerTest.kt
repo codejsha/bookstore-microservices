@@ -8,7 +8,6 @@ import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalRes
 import com.codejsha.bookstore.admin.infrastructure.support.auth.UnauthorizedException
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -78,7 +77,7 @@ class AdminControllerTest {
     }
 
     @Test
-    fun `adminDashboard maps an unavailable downstream to an unavailable metric`(): Unit = runBlocking {
+    fun `adminDashboard maps an unavailable downstream to an unavailable metric`() {
         bindPrincipal(roles = "STAFF,USER")
         val useCase = mock(DashboardUseCase::class.java)
         given(useCase.loadDashboard(controllerContext)).willReturn(

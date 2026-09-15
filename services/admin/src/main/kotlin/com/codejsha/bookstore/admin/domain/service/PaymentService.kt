@@ -13,13 +13,13 @@ class PaymentService(
     private val paymentClient: PaymentClient,
 ) : PaymentUseCase {
 
-    override suspend fun findAllPayments(option: PaymentQueryOption, pageable: Pageable, context: ActorContext) =
+    override fun findAllPayments(option: PaymentQueryOption, pageable: Pageable, context: ActorContext) =
         paymentClient.findAllPayments(option, pageable)
 
-    override suspend fun findPayment(uid: String, context: ActorContext) = paymentClient.findPayment(uid)
+    override fun findPayment(uid: String, context: ActorContext) = paymentClient.findPayment(uid)
 
-    override suspend fun findAllRefunds(option: RefundQueryOption, pageable: Pageable, context: ActorContext) =
+    override fun findAllRefunds(option: RefundQueryOption, pageable: Pageable, context: ActorContext) =
         paymentClient.findAllRefunds(option, pageable)
 
-    override suspend fun findRefund(uid: String, context: ActorContext) = paymentClient.findRefund(uid)
+    override fun findRefund(uid: String, context: ActorContext) = paymentClient.findRefund(uid)
 }

@@ -9,7 +9,6 @@ import com.codejsha.bookstore.payment.domain.model.option.RefundQueryOption
 import com.codejsha.bookstore.payment.support.FakeDistributedLock
 import com.codejsha.bookstore.payment.support.FakeTransactionRunner
 import com.codejsha.bookstore.payment.support.PaymentTestFixtures
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito.mock
@@ -36,7 +35,7 @@ class RefundServiceTest {
     }
 
     @Test
-    fun `findAllRefunds_whenRepoReturnsPage_mapsStatusEnumAndMoney`(): Unit = runBlocking {
+    fun `findAllRefunds_whenRepoReturnsPage_mapsStatusEnumAndMoney`() {
         val repo = mock(RefundRepo::class.java)
         val service = newService(repo)
 
@@ -60,7 +59,7 @@ class RefundServiceTest {
     }
 
     @Test
-    fun `findRefund_whenRefundExists_returnsMappedAggregate`(): Unit = runBlocking {
+    fun `findRefund_whenRefundExists_returnsMappedAggregate`() {
         val repo = mock(RefundRepo::class.java)
         val service = newService(repo)
 
@@ -77,7 +76,7 @@ class RefundServiceTest {
     }
 
     @Test
-    fun `createRefund_whenIdempotencyKeyMissing_throwsIllegalArgumentExceptionWithoutLockingOrWriting`(): Unit = runBlocking {
+    fun `createRefund_whenIdempotencyKeyMissing_throwsIllegalArgumentExceptionWithoutLockingOrWriting`() {
         val repo = mock(RefundRepo::class.java)
         val lock = FakeDistributedLock()
         val service = newService(repo, lock)
@@ -98,7 +97,7 @@ class RefundServiceTest {
     }
 
     @Test
-    fun `createRefund_whenNoPriorRefund_createsUnderLock`(): Unit = runBlocking {
+    fun `createRefund_whenNoPriorRefund_createsUnderLock`() {
         val repo = mock(RefundRepo::class.java)
         val lock = FakeDistributedLock()
         val service = newService(repo, lock)
@@ -122,7 +121,7 @@ class RefundServiceTest {
     }
 
     @Test
-    fun `createRefund_whenPaymentHasNoLocalRecord_throwsNoSuchElementException`(): Unit = runBlocking {
+    fun `createRefund_whenPaymentHasNoLocalRecord_throwsNoSuchElementException`() {
         val repo = mock(RefundRepo::class.java)
         val lock = FakeDistributedLock()
         val service = newService(repo, lock, mock(PaymentRepo::class.java))
@@ -143,7 +142,7 @@ class RefundServiceTest {
     }
 
     @Test
-    fun `createRefund_whenRefundAlreadyExists_returnsItWithoutLockingOrCreating`(): Unit = runBlocking {
+    fun `createRefund_whenRefundAlreadyExists_returnsItWithoutLockingOrCreating`() {
         val repo = mock(RefundRepo::class.java)
         val lock = FakeDistributedLock()
         val service = newService(repo, lock)

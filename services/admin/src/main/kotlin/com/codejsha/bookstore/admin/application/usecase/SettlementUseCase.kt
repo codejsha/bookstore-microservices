@@ -9,13 +9,13 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
 interface SettlementUseCase {
-    suspend fun findAllSettlements(
+    fun findAllSettlements(
         option: SettlementQueryOption,
         pageable: Pageable,
         context: ActorContext,
     ): Page<SettlementBucket>
 
-    suspend fun findSettlement(uid: String, context: ActorContext): SettlementBucket
+    fun findSettlement(uid: String, context: ActorContext): SettlementBucket
 
-    suspend fun triggerSettlementRun(command: TriggerSettlementRunCommand, context: ActorContext): SettlementRunAck
+    fun triggerSettlementRun(command: TriggerSettlementRunCommand, context: ActorContext): SettlementRunAck
 }

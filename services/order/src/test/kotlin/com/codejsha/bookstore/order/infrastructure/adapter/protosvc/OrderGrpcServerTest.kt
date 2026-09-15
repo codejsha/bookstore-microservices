@@ -23,7 +23,6 @@ import io.grpc.StatusRuntimeException
 import io.grpc.inprocess.InProcessChannelBuilder
 import io.grpc.inprocess.InProcessServerBuilder
 import io.grpc.stub.MetadataUtils
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -78,7 +77,7 @@ class OrderGrpcServerTest {
     // ─── findOrder ─────────────────────────────────────────────────────────────
 
     @Test
-    fun `findOrder_whenOrderOwnedByActor_returnsOrder`(): Unit = runBlocking {
+    fun `findOrder_whenOrderOwnedByActor_returnsOrder`() {
         given(useCase.findOrder(OrderTestFixtures.ORDER_UID, auditContext))
             .willReturn(orderAggregate(userUid = ownerUid))
 
@@ -89,7 +88,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `findOrder_whenActorIsAdmin_returnsAnotherUsersOrder`(): Unit = runBlocking {
+    fun `findOrder_whenActorIsAdmin_returnsAnotherUsersOrder`() {
         given(useCase.findOrder(OrderTestFixtures.ORDER_UID, auditContext))
             .willReturn(orderAggregate(userUid = ownerUid))
 
@@ -99,7 +98,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `findOrder_whenOrderOwnedByAnotherUser_returnsNotFound`(): Unit = runBlocking {
+    fun `findOrder_whenOrderOwnedByAnotherUser_returnsNotFound`() {
         given(useCase.findOrder(OrderTestFixtures.ORDER_UID, auditContext))
             .willReturn(orderAggregate(userUid = ownerUid))
         val foreign = assertFailsWith<StatusRuntimeException> {
@@ -117,7 +116,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `findOrder_whenActorMetadataMissing_returnsUnauthenticated`(): Unit = runBlocking {
+    fun `findOrder_whenActorMetadataMissing_returnsUnauthenticated`() {
         val ex = assertFailsWith<StatusRuntimeException> {
             stub(actorUid = null).findOrder(findRequest())
         }
@@ -126,7 +125,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `findOrder_whenActorUidNotUuid_returnsUnauthenticated`(): Unit = runBlocking {
+    fun `findOrder_whenActorUidNotUuid_returnsUnauthenticated`() {
         val ex = assertFailsWith<StatusRuntimeException> {
             stub("not-a-uuid").findOrder(findRequest())
         }
@@ -137,7 +136,7 @@ class OrderGrpcServerTest {
     // ─── listOrders ─────────────────────────────────────────────────────────────
 
     @Test
-    fun `listOrders_whenActorIsNotAdmin_pinsFilterToActor`(): Unit = runBlocking {
+    fun `listOrders_whenActorIsNotAdmin_pinsFilterToActor`() {
         given(useCase.findAllOrders(OrderQueryOption(userUid = ownerUid), expectedPageable, auditContext))
             .willReturn(PageImpl(listOf(orderAggregate(userUid = ownerUid)), expectedPageable, 1L))
 
@@ -148,7 +147,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `listOrders_whenActorIsAdmin_honorsRequestFilter`(): Unit = runBlocking {
+    fun `listOrders_whenActorIsAdmin_honorsRequestFilter`() {
         given(useCase.findAllOrders(OrderQueryOption(userUid = otherUid), expectedPageable, auditContext))
             .willReturn(PageImpl(listOf(orderAggregate(userUid = otherUid)), expectedPageable, 1L))
 
@@ -160,7 +159,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `listOrders_whenActorIsAdminAndUserUidOmitted_returnsEveryOwnersOrders`(): Unit = runBlocking {
+    fun `listOrders_whenActorIsAdminAndUserUidOmitted_returnsEveryOwnersOrders`() {
         given(useCase.findAllOrders(OrderQueryOption(userUid = null), expectedPageable, auditContext))
             .willReturn(PageImpl(emptyList(), expectedPageable, 0L))
 
@@ -170,7 +169,7 @@ class OrderGrpcServerTest {
     }
 
     @Test
-    fun `listOrders_whenActorMetadataMissing_returnsUnauthenticated`(): Unit = runBlocking {
+    fun `listOrders_whenActorMetadataMissing_returnsUnauthenticated`() {
         val ex = assertFailsWith<StatusRuntimeException> {
             stub(actorUid = null).listOrders(listRequest(userUid = ""))
         }

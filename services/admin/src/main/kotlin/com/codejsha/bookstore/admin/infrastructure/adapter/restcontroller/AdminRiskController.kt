@@ -13,7 +13,6 @@ import com.codejsha.bookstore.generated.application.port.openapi.model.AdminRisk
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminRiskLevel
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
@@ -23,16 +22,16 @@ class AdminRiskController(
     private val principalResolver: HttpPrincipalResolver,
 ) : AdminRiskApi {
 
-    override fun adminRiskListRisk(): ResponseEntity<AdminRiskEntryListResponse> = runBlocking {
+    override fun adminRiskListRisk(): ResponseEntity<AdminRiskEntryListResponse> {
         val principal = requireStaff()
         val entries = userUseCase.listRisk(buildContext(principal))
-        ResponseEntity.ok(AdminRiskEntryListResponse(entries = entries.map { it.toResponse() }))
+        return ResponseEntity.ok(AdminRiskEntryListResponse(entries = entries.map { it.toResponse() }))
     }
 
     override fun adminRiskFlagRisk(
         uid: String,
         requestBody: AdminRiskFlagRequest,
-    ): ResponseEntity<AdminRiskEntryResponse> = runBlocking {
+    ): ResponseEntity<AdminRiskEntryResponse> {
         val principal = requireManager()
         val entry = userUseCase.flagRisk(
             uid = uid,
@@ -42,13 +41,13 @@ class AdminRiskController(
             actorUid = principal.sub,
             context = buildContext(principal),
         )
-        ResponseEntity.ok(entry.toResponse())
+        return ResponseEntity.ok(entry.toResponse())
     }
 
-    override fun adminRiskUnflagRisk(uid: String): ResponseEntity<Unit> = runBlocking {
+    override fun adminRiskUnflagRisk(uid: String): ResponseEntity<Unit> {
         val principal = requireManager()
         userUseCase.unflagRisk(uid, buildContext(principal))
-        ResponseEntity.noContent().build()
+        return ResponseEntity.noContent().build()
     }
 
     private fun RiskEntry.toResponse() = AdminRiskEntryResponse(

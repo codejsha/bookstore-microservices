@@ -16,7 +16,6 @@ import com.codejsha.platform.shared.data.buildPageRequest
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.StreamObserver
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import java.util.UUID
 import com.codejsha.bookstore.generated.application.port.pb.paymentpb.PaymentStatus as ProtoPaymentStatus
@@ -43,7 +42,7 @@ class PaymentGrpcServer(
             val option = PaymentQueryOption(customerId = customerUid)
             val pageable = buildPageRequest(request.pageSize.takeIf { it > 0 }, 0, request.orderBy)
 
-            val payments = runBlocking { paymentUseCase.findAllPayments(option, pageable, context) }
+            val payments = paymentUseCase.findAllPayments(option, pageable, context)
             val response = ListPaymentsResponse.newBuilder()
                 .addAllPayments(payments.content.map { it.toPaymentProto() })
                 .setTotalSize(payments.totalElements.toInt())
@@ -64,7 +63,7 @@ class PaymentGrpcServer(
         try {
             val actor = ActorIdentity.require()
             val uid = UUID.fromString(request.uid)
-            val payment = runBlocking { paymentUseCase.findPayment(uid, context) }
+            val payment = paymentUseCase.findPayment(uid, context)
             if (!actor.admin && payment.customerId != actor.customerUid) {
                 throw NoSuchElementException("Payment with uid $uid not found")
             }
@@ -107,7 +106,7 @@ class PaymentGrpcServer(
             )
             val pageable = buildPageRequest(request.pageSize.takeIf { it > 0 }, 0, request.orderBy)
 
-            val refunds = runBlocking { refundUseCase.findAllRefunds(option, pageable, context) }
+            val refunds = refundUseCase.findAllRefunds(option, pageable, context)
             val response = ListRefundsResponse.newBuilder()
                 .addAllRefunds(refunds.content.map { it.toRefundProto() })
                 .setTotalSize(refunds.totalElements.toInt())
@@ -128,9 +127,9 @@ class PaymentGrpcServer(
         try {
             val actor = ActorIdentity.require()
             val uid = UUID.fromString(request.uid)
-            val refund = runBlocking { refundUseCase.findRefund(uid, context) }
+            val refund = refundUseCase.findRefund(uid, context)
             if (!actor.admin) {
-                val owner = runBlocking { paymentUseCase.findPaymentByPaymentId(refund.paymentId, context) }
+                val owner = paymentUseCase.findPaymentByPaymentId(refund.paymentId, context)
                 if (owner == null || owner.customerId != actor.customerUid) {
                     throw NoSuchElementException("Refund with uid $uid not found")
                 }
@@ -147,7 +146,7 @@ class PaymentGrpcServer(
     }
 
     private fun assertOwnedPayment(paymentId: String, actor: ActorIdentity, context: ActorContext) {
-        val owner = runBlocking { paymentUseCase.findPaymentByPaymentId(paymentId, context) }
+        val owner = paymentUseCase.findPaymentByPaymentId(paymentId, context)
         if (owner == null || owner.customerId != actor.customerUid) {
             throw StatusRuntimeException(
                 Status.NOT_FOUND.withDescription("Payment with payment_id $paymentId not found"),

@@ -9,7 +9,6 @@ import com.codejsha.bookstore.generated.application.port.openapi.model.AdminDash
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminIdentityResponse
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
@@ -19,17 +18,17 @@ class AdminController(
     private val principalResolver: HttpPrincipalResolver,
 ) : AdminApi {
 
-    override fun adminMe(): ResponseEntity<AdminIdentityResponse> = runBlocking {
+    override fun adminMe(): ResponseEntity<AdminIdentityResponse> {
         val principal = principalResolver.require()
         principal.assertStaff()
-        ResponseEntity.ok(toAdminIdentityResponse(principal))
+        return ResponseEntity.ok(toAdminIdentityResponse(principal))
     }
 
-    override fun adminDashboard(): ResponseEntity<AdminDashboardResponse> = runBlocking {
+    override fun adminDashboard(): ResponseEntity<AdminDashboardResponse> {
         val principal = principalResolver.require()
         principal.assertStaff()
         val context = buildContext(principal)
-        ResponseEntity.ok(toAdminDashboardResponse(dashboardUseCase.loadDashboard(context)))
+        return ResponseEntity.ok(toAdminDashboardResponse(dashboardUseCase.loadDashboard(context)))
     }
 
     private fun buildContext(principal: Principal) =

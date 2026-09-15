@@ -12,14 +12,14 @@ import java.util.UUID
 
 interface PaymentUseCase {
     // ─── Payment (Aggregate Root) ───────────────────────────────────────────
-    suspend fun findAllPayments(option: PaymentQueryOption, pageable: Pageable, context: ActorContext): Page<PaymentAggregate>
-    suspend fun findPayment(uid: UUID, context: ActorContext): PaymentAggregate
+    fun findAllPayments(option: PaymentQueryOption, pageable: Pageable, context: ActorContext): Page<PaymentAggregate>
+    fun findPayment(uid: UUID, context: ActorContext): PaymentAggregate
 
-    suspend fun findPaymentByPaymentId(paymentId: String, context: ActorContext): PaymentAggregate?
-    suspend fun createPayment(command: PaymentCreateCommand, context: ActorContext): PaymentAggregate
-    suspend fun updatePayment(uid: UUID, command: PaymentUpdateCommand, context: ActorContext): PaymentAggregate
+    fun findPaymentByPaymentId(paymentId: String, context: ActorContext): PaymentAggregate?
+    fun createPayment(command: PaymentCreateCommand, context: ActorContext): PaymentAggregate
+    fun updatePayment(uid: UUID, command: PaymentUpdateCommand, context: ActorContext): PaymentAggregate
 
     // ─── PaymentAttempt (Internal Entity) ───────────────────────────────────
-    suspend fun findAllPaymentAttempts(paymentUid: UUID, pageable: Pageable, context: ActorContext): Page<PaymentAttemptEntity>
-    suspend fun findPaymentAttempt(paymentUid: UUID, uid: UUID, context: ActorContext): PaymentAttemptEntity
+    fun findAllPaymentAttempts(paymentUid: UUID, pageable: Pageable, context: ActorContext): Page<PaymentAttemptEntity>
+    fun findPaymentAttempt(paymentUid: UUID, uid: UUID, context: ActorContext): PaymentAttemptEntity
 }

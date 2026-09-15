@@ -11,7 +11,6 @@ import com.codejsha.bookstore.payment.infrastructure.support.auth.Principal
 import com.codejsha.bookstore.payment.infrastructure.support.auth.isStaff
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -30,7 +29,7 @@ class MandateController(
         customerId: String?,
         mandateStatus: MandateStatus?,
         pageable: Pageable?
-    ): ResponseEntity<MandateFindAllResponse> = runBlocking {
+    ): ResponseEntity<MandateFindAllResponse> {
         val principal = principalResolver.require()
         val ownerFilter = if (principal.isStaff()) customerId else principal.sub
         val option = MandateQueryOption(customerId = ownerFilter, mandateStatus = mandateStatus?.value)
@@ -41,10 +40,10 @@ class MandateController(
             total = result.totalElements,
             items = result.content.map { toMandateFindResponse(it) }
         )
-        ResponseEntity.ok(response)
+        return ResponseEntity.ok(response)
     }
 
-    override fun mandatesSetup(body: MandateSetupRequest): ResponseEntity<MandateFindResponse> = runBlocking {
+    override fun mandatesSetup(body: MandateSetupRequest): ResponseEntity<MandateFindResponse> {
         val principal = principalResolver.require()
         val command = MandateSetupCommand(
             customerId = principal.sub,
@@ -53,22 +52,22 @@ class MandateController(
             mandateAmountMinor = body.mandateAmount,
         )
         val mandate = mandateUseCase.setupMandate(command, buildContext())
-        ResponseEntity.ok(toMandateFindResponse(mandate))
+        return ResponseEntity.ok(toMandateFindResponse(mandate))
     }
 
-    override fun mandatesRead(uid: String): ResponseEntity<MandateFindResponse> = runBlocking {
+    override fun mandatesRead(uid: String): ResponseEntity<MandateFindResponse> {
         val principal = principalResolver.require()
         val mandate = mandateUseCase.findMandate(UUID.fromString(uid), buildContext())
         assertOwnerOrStaff(principal, mandate)
-        ResponseEntity.ok(toMandateFindResponse(mandate))
+        return ResponseEntity.ok(toMandateFindResponse(mandate))
     }
 
-    override fun mandatesRevoke(uid: String): ResponseEntity<MandateFindResponse> = runBlocking {
+    override fun mandatesRevoke(uid: String): ResponseEntity<MandateFindResponse> {
         val principal = principalResolver.require()
         val context = buildContext()
         assertOwnerOrStaff(principal, mandateUseCase.findMandate(UUID.fromString(uid), context))
         val mandate = mandateUseCase.revokeMandate(UUID.fromString(uid), context)
-        ResponseEntity.ok(toMandateFindResponse(mandate))
+        return ResponseEntity.ok(toMandateFindResponse(mandate))
     }
 
     // ─── Authorization ──────────────────────────────────────────────────────

@@ -10,7 +10,6 @@ import com.codejsha.bookstore.settlement.support.FakeSettlementDetailRepo
 import com.codejsha.bookstore.settlement.support.FakeTransactionRunner
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -56,7 +55,7 @@ class SettlementServiceTest {
     )
 
     @Test
-    fun `findSettlement composes matching bucket details onto the aggregate`(): Unit = runBlocking {
+    fun `findSettlement composes matching bucket details onto the aggregate`() {
         val settlementUid = UUID.randomUUID()
         val service = SettlementService(
             dailySettlementRepo = FakeDailySettlementRepo(listOf(settlementRow(settlementUid))),
@@ -73,7 +72,7 @@ class SettlementServiceTest {
     }
 
     @Test
-    fun `findAllSettlements maps rows to aggregates and honours the status filter`(): Unit = runBlocking {
+    fun `findAllSettlements maps rows to aggregates and honours the status filter`() {
         val service = SettlementService(
             dailySettlementRepo = FakeDailySettlementRepo(listOf(settlementRow(UUID.randomUUID()))),
             settlementDetailRepo = FakeSettlementDetailRepo(emptyList()),

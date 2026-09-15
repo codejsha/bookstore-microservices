@@ -17,7 +17,6 @@ import com.codejsha.bookstore.payment.infrastructure.support.auth.Principal
 import com.codejsha.bookstore.payment.infrastructure.support.auth.isStaff
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -39,7 +38,7 @@ class CustomerController(
         customerId: String?,
         email: String?,
         pageable: Pageable?
-    ): ResponseEntity<CustomerFindAllResponse> = runBlocking {
+    ): ResponseEntity<CustomerFindAllResponse> {
         val principal = principalResolver.require()
         val ownerFilter = if (principal.isStaff()) customerId else principal.sub
         val option = CustomerQueryOption(customerId = ownerFilter, email = email)
@@ -50,10 +49,10 @@ class CustomerController(
             total = result.totalElements,
             items = result.content.map { toCustomerFindResponse(it) }
         )
-        ResponseEntity.ok(response)
+        return ResponseEntity.ok(response)
     }
 
-    override fun customersCreate(requestBody: CustomerCreateRequest): ResponseEntity<Unit> = runBlocking {
+    override fun customersCreate(requestBody: CustomerCreateRequest): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         val context = buildContext()
         val ownerCustomerId = if (principal.isStaff()) requestBody.customerId else principal.sub
@@ -69,21 +68,21 @@ class CustomerController(
             defaultShippingAddress = null,
         )
         val customer = customerUseCase.createCustomer(command, context)
-        ResponseEntity.created(URI.create("/api/v1/customers/${customer.uid}")).build()
+        return ResponseEntity.created(URI.create("/api/v1/customers/${customer.uid}")).build()
     }
 
-    override fun customersRead(uid: String): ResponseEntity<CustomerFindResponse> = runBlocking {
+    override fun customersRead(uid: String): ResponseEntity<CustomerFindResponse> {
         val principal = principalResolver.require()
         val context = buildContext()
         val customer = customerUseCase.findCustomer(UUID.fromString(uid), context)
         assertOwnerOrStaff(principal, customer)
-        ResponseEntity.ok(toCustomerFindResponse(customer))
+        return ResponseEntity.ok(toCustomerFindResponse(customer))
     }
 
     override fun customersUpdate(
         uid: String,
         requestBody: CustomerUpdateRequest
-    ): ResponseEntity<CustomerUpdateResponse> = runBlocking {
+    ): ResponseEntity<CustomerUpdateResponse> {
         val principal = principalResolver.require()
         val context = buildContext()
         assertOwnerOrStaff(principal, customerUseCase.findCustomer(UUID.fromString(uid), context))
@@ -98,15 +97,15 @@ class CustomerController(
             defaultShippingAddress = null,
         )
         val customer = customerUseCase.updateCustomer(UUID.fromString(uid), command, context)
-        ResponseEntity.ok(toCustomerUpdateResponse(customer))
+        return ResponseEntity.ok(toCustomerUpdateResponse(customer))
     }
 
-    override fun customersDelete(uid: String): ResponseEntity<Unit> = runBlocking {
+    override fun customersDelete(uid: String): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         val context = buildContext()
         assertOwnerOrStaff(principal, customerUseCase.findCustomer(UUID.fromString(uid), context))
         customerUseCase.deleteCustomer(UUID.fromString(uid), context)
-        ResponseEntity.noContent().build()
+        return ResponseEntity.noContent().build()
     }
 
     // ─── CustomerPaymentMethodApi ───────────────────────────────────────────
@@ -115,7 +114,7 @@ class CustomerController(
         customerUid: String,
         paymentMethod: PaymentMethodEnum?,
         pageable: Pageable?
-    ): ResponseEntity<PaymentMethodFindAllResponse> = runBlocking {
+    ): ResponseEntity<PaymentMethodFindAllResponse> {
         val principal = principalResolver.require()
         val option = PaymentMethodQueryOption(paymentMethod = paymentMethod?.value)
         val context = buildContext()
@@ -131,13 +130,13 @@ class CustomerController(
             total = result.totalElements,
             items = result.content.map { toPaymentMethodFindResponse(it) }
         )
-        ResponseEntity.ok(response)
+        return ResponseEntity.ok(response)
     }
 
     override fun customerPaymentMethodsCreate(
         customerUid: String,
         requestBody: PaymentMethodCreateRequest
-    ): ResponseEntity<Unit> = runBlocking {
+    ): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         val context = buildContext()
         authorizeCustomer(customerUid, principal, context)
@@ -154,25 +153,25 @@ class CustomerController(
             metadata = null,
         )
         val pm = customerUseCase.createPaymentMethod(UUID.fromString(customerUid), command, context)
-        ResponseEntity.created(URI.create("/api/v1/customers/$customerUid/payment-methods/${pm.uid}")).build()
+        return ResponseEntity.created(URI.create("/api/v1/customers/$customerUid/payment-methods/${pm.uid}")).build()
     }
 
     override fun customerPaymentMethodsRead(
         customerUid: String,
         uid: String
-    ): ResponseEntity<PaymentMethodFindResponse> = runBlocking {
+    ): ResponseEntity<PaymentMethodFindResponse> {
         val principal = principalResolver.require()
         val context = buildContext()
         authorizeCustomer(customerUid, principal, context)
         val pm = customerUseCase.findPaymentMethod(UUID.fromString(customerUid), UUID.fromString(uid), context)
-        ResponseEntity.ok(toPaymentMethodFindResponse(pm))
+        return ResponseEntity.ok(toPaymentMethodFindResponse(pm))
     }
 
     override fun customerPaymentMethodsUpdate(
         customerUid: String,
         uid: String,
         requestBody: PaymentMethodUpdateRequest
-    ): ResponseEntity<PaymentMethodUpdateResponse> = runBlocking {
+    ): ResponseEntity<PaymentMethodUpdateResponse> {
         val principal = principalResolver.require()
         val context = buildContext()
         authorizeCustomer(customerUid, principal, context)
@@ -194,20 +193,20 @@ class CustomerController(
             command,
             context,
         )
-        ResponseEntity.ok(toPaymentMethodUpdateResponse(pm))
+        return ResponseEntity.ok(toPaymentMethodUpdateResponse(pm))
     }
 
-    override fun customerPaymentMethodsDelete(customerUid: String, uid: String): ResponseEntity<Unit> = runBlocking {
+    override fun customerPaymentMethodsDelete(customerUid: String, uid: String): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         val context = buildContext()
         authorizeCustomer(customerUid, principal, context)
         customerUseCase.deletePaymentMethod(UUID.fromString(customerUid), UUID.fromString(uid), context)
-        ResponseEntity.noContent().build()
+        return ResponseEntity.noContent().build()
     }
 
     // ─── Authorization ──────────────────────────────────────────────────────
 
-    private suspend fun authorizeCustomer(customerUid: String, principal: Principal, context: ActorContext) {
+    private fun authorizeCustomer(customerUid: String, principal: Principal, context: ActorContext) {
         assertOwnerOrStaff(principal, customerUseCase.findCustomer(UUID.fromString(customerUid), context))
     }
 

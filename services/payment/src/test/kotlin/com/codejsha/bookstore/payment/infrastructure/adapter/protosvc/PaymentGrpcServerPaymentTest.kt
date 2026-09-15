@@ -43,28 +43,28 @@ class PaymentGrpcServerPaymentTest {
     ) : PaymentUseCase {
         var capturedListOption: PaymentQueryOption? = null
 
-        override suspend fun findAllPayments(option: PaymentQueryOption, pageable: Pageable, context: ActorContext): Page<PaymentAggregate> {
+        override fun findAllPayments(option: PaymentQueryOption, pageable: Pageable, context: ActorContext): Page<PaymentAggregate> {
             capturedListOption = option
             listError?.let { throw it }
             return PageImpl(listOfNotNull(findResult))
         }
 
-        override suspend fun findPayment(uid: UUID, context: ActorContext): PaymentAggregate {
+        override fun findPayment(uid: UUID, context: ActorContext): PaymentAggregate {
             findError?.let { throw it }
             return findResult ?: error("findResult not seeded")
         }
 
-        override suspend fun findPaymentByPaymentId(paymentId: String, context: ActorContext): PaymentAggregate? = error("not used")
-        override suspend fun createPayment(command: PaymentCreateCommand, context: ActorContext): PaymentAggregate = error("not used")
-        override suspend fun updatePayment(uid: UUID, command: PaymentUpdateCommand, context: ActorContext): PaymentAggregate = error("not used")
-        override suspend fun findAllPaymentAttempts(paymentUid: UUID, pageable: Pageable, context: ActorContext): Page<PaymentAttemptEntity> = error("not used")
-        override suspend fun findPaymentAttempt(paymentUid: UUID, uid: UUID, context: ActorContext): PaymentAttemptEntity = error("not used")
+        override fun findPaymentByPaymentId(paymentId: String, context: ActorContext): PaymentAggregate? = error("not used")
+        override fun createPayment(command: PaymentCreateCommand, context: ActorContext): PaymentAggregate = error("not used")
+        override fun updatePayment(uid: UUID, command: PaymentUpdateCommand, context: ActorContext): PaymentAggregate = error("not used")
+        override fun findAllPaymentAttempts(paymentUid: UUID, pageable: Pageable, context: ActorContext): Page<PaymentAttemptEntity> = error("not used")
+        override fun findPaymentAttempt(paymentUid: UUID, uid: UUID, context: ActorContext): PaymentAttemptEntity = error("not used")
     }
 
     private class UnusedRefundUseCase : RefundUseCase {
-        override suspend fun findAllRefunds(option: RefundQueryOption, pageable: Pageable, context: ActorContext): Page<RefundAggregate> = error("not used")
-        override suspend fun findRefund(uid: UUID, context: ActorContext): RefundAggregate = error("not used")
-        override suspend fun createRefund(command: com.codejsha.bookstore.payment.domain.model.command.RefundCreateCommand, context: ActorContext): RefundAggregate = error("not used")
+        override fun findAllRefunds(option: RefundQueryOption, pageable: Pageable, context: ActorContext): Page<RefundAggregate> = error("not used")
+        override fun findRefund(uid: UUID, context: ActorContext): RefundAggregate = error("not used")
+        override fun createRefund(command: com.codejsha.bookstore.payment.domain.model.command.RefundCreateCommand, context: ActorContext): RefundAggregate = error("not used")
     }
 
     private class CapturingObserver<T> : StreamObserver<T> {

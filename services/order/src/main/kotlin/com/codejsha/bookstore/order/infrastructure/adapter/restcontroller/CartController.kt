@@ -14,7 +14,6 @@ import com.codejsha.bookstore.order.infrastructure.support.auth.Principal
 import com.codejsha.bookstore.order.infrastructure.support.auth.subjectUserUid
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
@@ -26,13 +25,13 @@ class CartController(
     private val principalResolver: HttpPrincipalResolver,
 ) : CartApi {
 
-    override fun cartGet(): ResponseEntity<CartFindResponse> = runBlocking {
+    override fun cartGet(): ResponseEntity<CartFindResponse> {
         val principal = principalResolver.require()
         val cart = cartUseCase.getCart(principal.cartOwner(), buildContext())
-        ResponseEntity.ok(toCartFindResponse(cart))
+        return ResponseEntity.ok(toCartFindResponse(cart))
     }
 
-    override fun cartAddItem(requestBody: CartAddItemRequest): ResponseEntity<Unit> = runBlocking {
+    override fun cartAddItem(requestBody: CartAddItemRequest): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         val command = CartAddItemCommand(
             productId = requestBody.productId,
@@ -42,13 +41,13 @@ class CartController(
             price = BigDecimal.valueOf(requestBody.price),
         )
         cartUseCase.addItem(principal.cartOwner(), command, buildContext())
-        ResponseEntity.noContent().build()
+        return ResponseEntity.noContent().build()
     }
 
     override fun cartUpdateItem(
         uid: String,
         requestBody: CartUpdateItemRequest,
-    ): ResponseEntity<CartItemFindResponse> = runBlocking {
+    ): ResponseEntity<CartItemFindResponse> {
         val principal = principalResolver.require()
         if (requestBody.quantity < 0) {
             throw BadRequestException("cart item quantity must be zero or positive")
@@ -59,22 +58,22 @@ class CartController(
             requestBody.quantity,
             buildContext(),
         )
-        ResponseEntity.ok(toCartItemFindResponse(item))
+        return ResponseEntity.ok(toCartItemFindResponse(item))
     }
 
-    override fun cartRemoveItem(uid: String): ResponseEntity<Unit> = runBlocking {
+    override fun cartRemoveItem(uid: String): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         cartUseCase.removeItem(principal.cartOwner(), UUID.fromString(uid), buildContext())
-        ResponseEntity.noContent().build()
+        return ResponseEntity.noContent().build()
     }
 
-    override fun cartClear(): ResponseEntity<Unit> = runBlocking {
+    override fun cartClear(): ResponseEntity<Unit> {
         val principal = principalResolver.require()
         cartUseCase.clearCart(principal.cartOwner(), buildContext())
-        ResponseEntity.noContent().build()
+        return ResponseEntity.noContent().build()
     }
 
-    override fun cartCheckout(requestBody: CartCheckoutRequest): ResponseEntity<OrderFindResponse> = runBlocking {
+    override fun cartCheckout(requestBody: CartCheckoutRequest): ResponseEntity<OrderFindResponse> {
         val principal = principalResolver.require()
         val command = CartCheckoutCommand(
             currency = requestBody.currency,
@@ -82,7 +81,7 @@ class CartController(
             shipping = requestBody.shipping?.toCommand(),
         )
         val order = cartUseCase.checkout(principal.cartOwner(), command, buildContext())
-        ResponseEntity.ok(toOrderFindResponse(order))
+        return ResponseEntity.ok(toOrderFindResponse(order))
     }
 
     private fun Principal.cartOwner(): UUID =

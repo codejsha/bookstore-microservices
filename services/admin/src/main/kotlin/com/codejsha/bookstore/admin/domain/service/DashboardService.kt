@@ -19,7 +19,7 @@ class DashboardService(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override suspend fun loadDashboard(context: ActorContext) = Dashboard(
+    override fun loadDashboard(context: ActorContext) = Dashboard(
         works = metric("catalog") { catalogClient.countWorks() },
         orders = metric("order") { orderClient.countOrders() },
         warehouses = metric("inventory") { inventoryClient.countWarehouses() },

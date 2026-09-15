@@ -9,10 +9,10 @@ import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 interface MandateUseCase {
-    suspend fun findAllMandates(option: MandateQueryOption, pageable: Pageable, context: ActorContext): Page<MandateAggregate>
-    suspend fun findMandate(uid: UUID, context: ActorContext): MandateAggregate
+    fun findAllMandates(option: MandateQueryOption, pageable: Pageable, context: ActorContext): Page<MandateAggregate>
+    fun findMandate(uid: UUID, context: ActorContext): MandateAggregate
 
-    suspend fun setupMandate(command: MandateSetupCommand, context: ActorContext): MandateAggregate
+    fun setupMandate(command: MandateSetupCommand, context: ActorContext): MandateAggregate
 
-    suspend fun revokeMandate(uid: UUID, context: ActorContext): MandateAggregate
+    fun revokeMandate(uid: UUID, context: ActorContext): MandateAggregate
 }

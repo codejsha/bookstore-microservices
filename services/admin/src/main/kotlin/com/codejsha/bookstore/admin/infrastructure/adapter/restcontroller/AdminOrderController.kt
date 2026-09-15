@@ -11,7 +11,6 @@ import com.codejsha.bookstore.generated.application.port.openapi.model.AdminOrde
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminOrderResponse
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -26,12 +25,12 @@ class AdminOrderController(
         userUid: String?,
         status: String?,
         pageable: Pageable?,
-    ): ResponseEntity<AdminOrderFindAllResponse> = runBlocking {
+    ): ResponseEntity<AdminOrderFindAllResponse> {
         val principal = requireStaff()
         val option = OrderQueryOption(userUid = userUid, status = status)
         val context = buildContext(principal)
         val result = orderUseCase.findAllOrders(option, pageable ?: Pageable.unpaged(), context)
-        ResponseEntity.ok(
+        return ResponseEntity.ok(
             AdminOrderFindAllResponse(
                 total = result.totalElements,
                 items = result.content.map { toAdminOrderItem(it) },
@@ -39,16 +38,16 @@ class AdminOrderController(
         )
     }
 
-    override fun adminOrdersReadOrder(uid: String): ResponseEntity<AdminOrderResponse> = runBlocking {
+    override fun adminOrdersReadOrder(uid: String): ResponseEntity<AdminOrderResponse> {
         val principal = requireStaff()
         val context = buildContext(principal)
-        ResponseEntity.ok(toAdminOrderResponse(orderUseCase.findOrder(uid, context)))
+        return ResponseEntity.ok(toAdminOrderResponse(orderUseCase.findOrder(uid, context)))
     }
 
-    override fun adminOrdersCancelOrder(uid: String): ResponseEntity<AdminOrderResponse> = runBlocking {
+    override fun adminOrdersCancelOrder(uid: String): ResponseEntity<AdminOrderResponse> {
         val principal = requireManager()
         val context = buildContext(principal)
-        ResponseEntity.ok(toAdminOrderResponse(orderUseCase.cancelOrder(uid, context)))
+        return ResponseEntity.ok(toAdminOrderResponse(orderUseCase.cancelOrder(uid, context)))
     }
 
     private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }

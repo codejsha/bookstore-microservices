@@ -11,7 +11,6 @@ import com.codejsha.bookstore.generated.application.port.openapi.model.AdminWare
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminWarehouseResponse
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -25,11 +24,11 @@ class AdminInventoryController(
     override fun adminInventoryListWarehouses(
         name: String?,
         pageable: Pageable?,
-    ): ResponseEntity<AdminWarehouseFindAllResponse> = runBlocking {
+    ): ResponseEntity<AdminWarehouseFindAllResponse> {
         val principal = requireStaff()
         val context = buildContext(principal)
         val result = inventoryUseCase.findAllWarehouses(name, pageable ?: Pageable.unpaged(), context)
-        ResponseEntity.ok(
+        return ResponseEntity.ok(
             AdminWarehouseFindAllResponse(
                 total = result.totalElements,
                 items = result.content.map { toAdminWarehouseResponse(it) },
@@ -37,22 +36,22 @@ class AdminInventoryController(
         )
     }
 
-    override fun adminInventoryReadWarehouse(uid: String): ResponseEntity<AdminWarehouseResponse> = runBlocking {
+    override fun adminInventoryReadWarehouse(uid: String): ResponseEntity<AdminWarehouseResponse> {
         val principal = requireStaff()
         val context = buildContext(principal)
-        ResponseEntity.ok(toAdminWarehouseResponse(inventoryUseCase.findWarehouse(uid, context)))
+        return ResponseEntity.ok(toAdminWarehouseResponse(inventoryUseCase.findWarehouse(uid, context)))
     }
 
     override fun adminInventoryListStocks(
         editionUid: String?,
         warehouseUid: String?,
         pageable: Pageable?,
-    ): ResponseEntity<AdminStockFindAllResponse> = runBlocking {
+    ): ResponseEntity<AdminStockFindAllResponse> {
         val principal = requireStaff()
         val option = StockQueryOption(editionUid = editionUid, warehouseUid = warehouseUid)
         val context = buildContext(principal)
         val result = inventoryUseCase.findAllStocks(option, pageable ?: Pageable.unpaged(), context)
-        ResponseEntity.ok(
+        return ResponseEntity.ok(
             AdminStockFindAllResponse(
                 total = result.totalElements,
                 items = result.content.map { toAdminStockResponse(it) },

@@ -35,7 +35,7 @@ class CartService(
     // ─── Query ──────────────────────────────────────────────────────────────
 
     @WithSpan
-    override suspend fun getCart(userUid: UUID, context: ActorContext): CartAggregate {
+    override fun getCart(userUid: UUID, context: ActorContext): CartAggregate {
         val cart = getOrCreateCart(userUid, context)
         return txRunner.tx {
             val items = cartItemRepo.findAllByCart(cart.id, context).map { it.toEntity() }
@@ -46,7 +46,7 @@ class CartService(
     // ─── Item management ────────────────────────────────────────────────────
 
     @WithSpan
-    override suspend fun addItem(
+    override fun addItem(
         userUid: UUID, command: CartAddItemCommand, context: ActorContext
     ): CartItemEntity {
         val cart = getOrCreateCart(userUid, context)
@@ -62,7 +62,7 @@ class CartService(
     }
 
     @WithSpan
-    override suspend fun updateItemQuantity(
+    override fun updateItemQuantity(
         userUid: UUID, itemUid: UUID, quantity: Int, context: ActorContext
     ): CartItemEntity {
         if (quantity < 0) {
@@ -81,7 +81,7 @@ class CartService(
     }
 
     @WithSpan
-    override suspend fun removeItem(userUid: UUID, itemUid: UUID, context: ActorContext) {
+    override fun removeItem(userUid: UUID, itemUid: UUID, context: ActorContext) {
         val cart = getOrCreateCart(userUid, context)
         txRunner.tx {
             cartItemRepo.delete(cart.id, itemUid, context)
@@ -89,7 +89,7 @@ class CartService(
     }
 
     @WithSpan
-    override suspend fun clearCart(userUid: UUID, context: ActorContext) {
+    override fun clearCart(userUid: UUID, context: ActorContext) {
         txRunner.tx {
             val cart = cartRepo.findByUser(userUid, context) ?: return@tx
             cartItemRepo.deleteAllByCart(cart.id, context)
@@ -99,7 +99,7 @@ class CartService(
     // ─── Checkout ────────────────────────────────────────────────────────────
 
     @WithSpan
-    override suspend fun checkout(
+    override fun checkout(
         userUid: UUID, command: CartCheckoutCommand, context: ActorContext
     ): OrderAggregate {
         val idempotencyKey = "$userUid:${command.idempotencyKey}"
@@ -193,7 +193,7 @@ class CartService(
         return order.toAggregate()
     }
 
-    private suspend fun getOrCreateCart(userUid: UUID, context: ActorContext): CartResult {
+    private fun getOrCreateCart(userUid: UUID, context: ActorContext): CartResult {
         txRunner.tx { cartRepo.findByUser(userUid, context) }?.let { return it }
         return try {
             txRunner.tx { cartRepo.createForUser(userUid, context) }
