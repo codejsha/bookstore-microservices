@@ -14,8 +14,8 @@ resource "helm_release" "reflector" {
   values = [
     yamlencode({
       resources = {
-        requests = { cpu = "10m", memory = "64Mi" }
-        limits   = { cpu = "200m", memory = "256Mi" }
+        requests = { cpu = "10m", memory = "192Mi" }
+        limits   = { cpu = "200m", memory = "384Mi" }
       }
     })
   ]

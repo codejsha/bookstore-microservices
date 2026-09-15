@@ -31,8 +31,8 @@ resource "helm_release" "cert_manager" {
       }
       cainjector = {
         resources = {
-          requests = { cpu = "10m", memory = "64Mi" }
-          limits   = { cpu = "200m", memory = "256Mi" }
+          requests = { cpu = "10m", memory = "128Mi" }
+          limits   = { cpu = "200m", memory = "384Mi" }
         }
       }
     })

@@ -4,12 +4,13 @@ image:
 envs:
   imagesPullPolicy: IfNotPresent
 
-resources:
-  limits:
-    cpu: 500m
-    memory: 256Mi
-  requests:
-    cpu: 50m
-    memory: 64Mi
+deployment:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 50m
+      memory: 512Mi
 
 replicaCount: 1

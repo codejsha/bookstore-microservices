@@ -75,11 +75,11 @@ resource "kubernetes_manifest" "kafka_connect" {
       resources = {
         requests = {
           cpu    = "100m"
-          memory = "512Mi"
+          memory = "1Gi"
         }
         limits = {
           cpu    = "1"
-          memory = "1Gi"
+          memory = "1536Mi"
         }
       }
 

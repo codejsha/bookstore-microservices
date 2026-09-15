@@ -35,6 +35,12 @@ resource "kubernetes_manifest" "schema_registry" {
         application = "confluentinc/cp-schema-registry:8.1.0"
         init        = "confluentinc/confluent-init-container:3.1.0"
       }
+      podTemplate = {
+        resources = {
+          requests = { cpu = "10m", memory = "1Gi" }
+          limits   = { memory = "1536Mi" }
+        }
+      }
       dependencies = {
         kafka = {
           bootstrapEndpoint = "${var.kafka_cluster_name}-kafka-bootstrap.${var.namespace}.svc.cluster.local:9093"

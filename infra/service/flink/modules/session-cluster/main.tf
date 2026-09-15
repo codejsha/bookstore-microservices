@@ -15,7 +15,7 @@ resource "kubernetes_manifest" "flink_session_cluster" {
       serviceAccount = "flink-operator"
       jobManager = {
         resource = {
-          memory = "1024m"
+          memory = "768m"
           cpu    = 0.1
         }
       }

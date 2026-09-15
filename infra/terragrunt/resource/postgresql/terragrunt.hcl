@@ -59,7 +59,7 @@ inputs = {
       debezium_secret_name = "catalog-postgres-debezium"
       resources = {
         limits   = { cpu = "1", memory = "2Gi" }
-        requests = { cpu = "100m", memory = "512Mi" }
+        requests = { cpu = "100m", memory = "256Mi" }
       }
     }
     customer = {

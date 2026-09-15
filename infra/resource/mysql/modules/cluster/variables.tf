@@ -71,7 +71,7 @@ variable "mysql_resources" {
     limits   = object({ cpu = string, memory = string })
   })
   default = {
-    requests = { cpu = "50m", memory = "768Mi" }
+    requests = { cpu = "50m", memory = "1280Mi" }
     limits   = { cpu = "1", memory = "2Gi" }
   }
 }
