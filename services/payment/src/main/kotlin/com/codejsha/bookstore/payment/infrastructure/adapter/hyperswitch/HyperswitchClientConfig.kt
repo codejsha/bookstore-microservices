@@ -7,9 +7,11 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.support.RestClientAdapter
 import org.springframework.web.service.invoker.HttpServiceProxyFactory
+import java.net.http.HttpClient
 
 @Configuration
 class HyperswitchClientConfig {
@@ -20,6 +22,11 @@ class HyperswitchClientConfig {
     ): RestClient {
         return RestClient.builder()
             .baseUrl(config.baseUrl)
+            .requestFactory(
+                JdkClientHttpRequestFactory(
+                    HttpClient.newBuilder().connectTimeout(config.connectTimeout).build(),
+                ).apply { setReadTimeout(config.readTimeout) },
+            )
             .defaultHeader(HYPERSWITCH_API_KEY_HEADER, config.apiKey)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

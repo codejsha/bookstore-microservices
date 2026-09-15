@@ -1,6 +1,7 @@
 package com.codejsha.bookstore.payment.config.properties
 
 import org.springframework.boot.context.properties.ConfigurationProperties
+import java.time.Duration
 
 @ConfigurationProperties(prefix = "app")
 class AppConfig
@@ -31,4 +32,6 @@ class HyperswitchConfig(
     val apiKey: String = "",
     val profileId: String? = null,
     val webhookSecret: String = "",
+    val connectTimeout: Duration = Duration.ofSeconds(2),
+    val readTimeout: Duration = Duration.ofSeconds(15),
 )
