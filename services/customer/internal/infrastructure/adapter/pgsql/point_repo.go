@@ -27,7 +27,8 @@ var (
 )
 
 type pointRepository struct {
-	q *dao.Query
+	q  *dao.Query
+	db *gorm.DB
 	genrepo.CustomerPointRepo
 }
 
@@ -35,6 +36,7 @@ func NewPointRepository(dataSource *database.DataSource) repo.PointRepo {
 	db := dataSource.DB()
 	return &pointRepository{
 		q:                 dao.Use(db),
+		db:                db,
 		CustomerPointRepo: genrepo.NewCustomerPointRepo(db),
 	}
 }
@@ -84,7 +86,7 @@ func (r *pointRepository) ApplyPointChange(
 	reason *string,
 ) (*repo.PointResult, error) {
 	var result *repo.PointResult
-	err := r.q.Transaction(func(tx *dao.Query) error {
+	err := dao.Use(r.db.WithContext(ctx)).Transaction(func(tx *dao.Query) error {
 		p := tx.CustomerPointEntity
 		e, err := p.WithContext(ctx).
 			Clauses(clause.Locking{Strength: "UPDATE"}).
