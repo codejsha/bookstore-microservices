@@ -141,7 +141,7 @@ locals {
       { path = "kv-infra/data/nexus/publisher", capabilities = ["create", "read", "update", "list"] },
     ]
     mysql-config = [
-      { path = "kv-bookstore/data/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-bookstore/data/+/mysql", capabilities = ["create", "read", "update", "list"] },
       { path = "sys/policies/acl/bookstore-mysql", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/bookstore-mysql-role", capabilities = ["create", "read", "update", "delete"] },
       { path = "database/config/*", capabilities = ["create", "read", "update", "delete"] },
@@ -154,7 +154,8 @@ locals {
       { path = "kv-infra/data/opensearch/admin/credentials", capabilities = ["read"] },
     ]
     postgresql-config = [
-      { path = "kv-bookstore/data/*", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-bookstore/data/+/postgres", capabilities = ["create", "read", "update", "list"] },
+      { path = "kv-bookstore/data/catalog/postgres-debezium", capabilities = ["create", "read", "update", "list"] },
       { path = "sys/policies/acl/bookstore-postgres", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/bookstore-postgres-role", capabilities = ["create", "read", "update", "delete"] },
       { path = "sys/policies/acl/bookstore-identity", capabilities = ["create", "read", "update", "delete"] },

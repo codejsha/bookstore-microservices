@@ -98,6 +98,10 @@ resource "keycloak_user" "bootstrap" {
     value     = random_password.bootstrap[each.key].result
     temporary = false
   }
+
+  lifecycle {
+    ignore_changes = [required_actions]
+  }
 }
 
 resource "keycloak_user_roles" "bootstrap" {
@@ -110,8 +114,8 @@ resource "keycloak_user_roles" "bootstrap" {
 
 resource "vault_kv_secret_v2" "bootstrap" {
   for_each = var.bootstrap_accounts
-  mount    = "kv-infra"
-  name     = "keycloak/platform/${each.key}/credentials"
+  mount    = "kv-bookstore"
+  name     = "admin/${each.value.username}/credentials"
   data_json = jsonencode({
     username = keycloak_user.bootstrap[each.key].username
     password = random_password.bootstrap[each.key].result

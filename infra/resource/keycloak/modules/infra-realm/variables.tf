@@ -9,7 +9,7 @@ variable "roles" {
 }
 
 variable "bootstrap_accounts" {
-  description = "Terraform-managed break-glass accounts, keyed by their Vault path segment under keycloak/platform/"
+  description = "Terraform-managed break-glass accounts, keyed by a stable account key"
   type = map(object({
     username   = string
     email      = string
