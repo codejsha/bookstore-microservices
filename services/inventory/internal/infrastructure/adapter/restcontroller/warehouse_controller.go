@@ -61,7 +61,7 @@ func (c *warehouseController) WarehousesCreate(ctx context.Context, req openapi.
 		return httpx.MapBusinessError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "warehouse", warehouse.Uid, "created", logrus.Fields{"name": req.Name})
+	dispatchSideEffects(context.WithoutCancel(ctx), "warehouse", warehouse.Uid, "created", logrus.Fields{"name": req.Name})
 	return nil
 }
 
@@ -104,7 +104,7 @@ func (c *warehouseController) WarehousesUpdate(
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "warehouse", uid, "updated", logrus.Fields{})
+	dispatchSideEffects(context.WithoutCancel(ctx), "warehouse", uid, "updated", logrus.Fields{})
 
 	return &openapi.WarehouseUpdateResponse{
 		Uid:       warehouse.Uid,

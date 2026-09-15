@@ -74,7 +74,7 @@ func (c *auditController) AuditsCreate(ctx context.Context, req openapi.AuditCre
 		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "audit", audit.Uid, "created", logrus.Fields{
+	dispatchSideEffects(context.WithoutCancel(ctx), "audit", audit.Uid, "created", logrus.Fields{
 		"warehouse_uid": req.WarehouseUid,
 		"item_count":    len(req.Items),
 	})
@@ -110,7 +110,7 @@ func (c *auditController) AuditsComplete(ctx context.Context, uid string) (*open
 	if audit == nil {
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
-	go runSideEffects(context.WithoutCancel(ctx), "audit", uid, "completed", logrus.Fields{})
+	dispatchSideEffects(context.WithoutCancel(ctx), "audit", uid, "completed", logrus.Fields{})
 	resp := toAuditFindResponse(audit)
 	return &resp, nil
 }

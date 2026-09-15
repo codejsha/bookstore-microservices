@@ -72,7 +72,7 @@ func (c *userController) UsersRegister(
 		return nil, httpx.MapError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "user", user.Email(), "registered", logrus.Fields{})
+	dispatchSideEffects(context.WithoutCancel(ctx), "user", user.Email(), "registered", logrus.Fields{})
 
 	resp := toUserFindResponse(user)
 	return &resp, nil
@@ -99,7 +99,7 @@ func (c *userController) UsersSyncFromIdp(
 		return nil, httpx.MapError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "user", idpUid, "synced", logrus.Fields{})
+	dispatchSideEffects(context.WithoutCancel(ctx), "user", idpUid, "synced", logrus.Fields{})
 
 	resp := toUserFindResponse(user)
 	return &resp, nil
@@ -133,7 +133,7 @@ func (c *userController) UsersUpdate(
 		return nil, httpx.MapError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "user", uid, "updated", logrus.Fields{})
+	dispatchSideEffects(context.WithoutCancel(ctx), "user", uid, "updated", logrus.Fields{})
 
 	resp := toUserFindResponse(user)
 	return &resp, nil
@@ -148,7 +148,7 @@ func (c *userController) UsersDeactivate(
 		return nil, httpx.MapError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "user", uid, "deactivated", logrus.Fields{})
+	dispatchSideEffects(context.WithoutCancel(ctx), "user", uid, "deactivated", logrus.Fields{})
 
 	resp := toUserFindResponseWithStatus(user, openapi.USERSTATUS_DEACTIVATED)
 	return &resp, nil
@@ -163,7 +163,7 @@ func (c *userController) UsersReactivate(
 		return nil, httpx.MapError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "user", uid, "reactivated", logrus.Fields{})
+	dispatchSideEffects(context.WithoutCancel(ctx), "user", uid, "reactivated", logrus.Fields{})
 
 	resp := toUserFindResponseWithStatus(user, openapi.USERSTATUS_ACTIVE)
 	return &resp, nil
@@ -181,7 +181,7 @@ func (c *userController) UsersUpdateRoles(
 		return nil, httpx.MapError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "user", uid, "roles_updated", logrus.Fields{"roles": req.Roles})
+	dispatchSideEffects(context.WithoutCancel(ctx), "user", uid, "roles_updated", logrus.Fields{"roles": req.Roles})
 
 	resp := toUserFindResponse(user)
 	return &resp, nil
@@ -196,7 +196,7 @@ func (c *userController) UsersSuspend(
 		return nil, httpx.MapError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "user", uid, "suspended", logrus.Fields{})
+	dispatchSideEffects(context.WithoutCancel(ctx), "user", uid, "suspended", logrus.Fields{})
 
 	resp := toUserFindResponseWithStatus(user, openapi.USERSTATUS_SUSPENDED)
 	return &resp, nil

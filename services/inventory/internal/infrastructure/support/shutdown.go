@@ -11,6 +11,8 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/codejsha/shared-library-go/pkg/message"
+
+	"github.com/codejsha/bookstore-microservices/inventory/internal/infrastructure/adapter/restcontroller"
 )
 
 const (
@@ -18,6 +20,7 @@ const (
 	httpShutdownTimeout      = writeTimeout
 	temporalStopTimeout      = 10 * time.Second
 	temporalCloseTimeout     = 5 * time.Second
+	sideEffectsDrainTimeout  = 10 * time.Second
 	kafkaCloseTimeout        = 5 * time.Second
 	telemetryShutdownTimeout = 5 * time.Second
 	ShutdownStopTimeout      = 55 * time.Second
@@ -64,6 +67,14 @@ func RegisterShutdownSequence(
 						},
 					},
 				),
+				{
+					name:   "side-effects-drain",
+					budget: sideEffectsDrainTimeout,
+					run: func(ctx context.Context) error {
+						restcontroller.WaitForSideEffects(ctx)
+						return nil
+					},
+				},
 				{
 					name:   "kafka-publisher",
 					budget: kafkaCloseTimeout,

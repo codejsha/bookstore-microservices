@@ -71,7 +71,7 @@ func (c *closingController) ClosingsCreate(ctx context.Context, req openapi.Clos
 		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
-	go runSideEffects(context.WithoutCancel(ctx), "closing", closing.Uid, "created", logrus.Fields{
+	dispatchSideEffects(context.WithoutCancel(ctx), "closing", closing.Uid, "created", logrus.Fields{
 		"warehouse_uid": req.WarehouseUid,
 		"year":          req.Year,
 		"month":         req.Month,

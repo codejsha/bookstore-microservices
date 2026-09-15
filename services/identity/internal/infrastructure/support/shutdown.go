@@ -11,12 +11,15 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/codejsha/shared-library-go/pkg/message"
+
+	"github.com/codejsha/bookstore-microservices/identity/internal/infrastructure/adapter/restcontroller"
 )
 
 const (
 	shutdownDrainDelay       = 5 * time.Second
 	httpShutdownTimeout      = writeTimeout
 	grpcShutdownTimeout      = 10 * time.Second
+	sideEffectsDrainTimeout  = 10 * time.Second
 	kafkaCloseTimeout        = 5 * time.Second
 	cacheCloseTimeout        = 5 * time.Second
 	telemetryShutdownTimeout = 5 * time.Second
@@ -55,6 +58,14 @@ func RegisterShutdownSequence(
 					parallel: []shutdownStep{
 						{name: "http server shutdown", budget: httpShutdownTimeout, run: ginServer.Shutdown},
 						{name: "grpc server shutdown", budget: grpcShutdownTimeout, run: grpcServer.Shutdown},
+					},
+				},
+				{
+					name:   "side effects drain",
+					budget: sideEffectsDrainTimeout,
+					run: func(ctx context.Context) error {
+						restcontroller.WaitForSideEffects(ctx)
+						return nil
 					},
 				},
 				{
