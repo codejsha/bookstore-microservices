@@ -90,7 +90,7 @@ func TestRunShutdownSteps_slowEarlierStep_laterStepKeepsFullBudget(t *testing.T)
 }
 
 func TestShutdownSequence_catalogComponents_stopsInDependencyOrder(t *testing.T) {
-	steps := shutdownSequence(nil, nil, nil, nil)
+	steps := shutdownSequence(nil, nil, nil, nil, nil)
 
 	names := make([]string, 0, len(steps))
 	var total time.Duration
@@ -99,7 +99,7 @@ func TestShutdownSequence_catalogComponents_stopsInDependencyOrder(t *testing.T)
 		total += step.budget
 	}
 
-	want := []string{"http-drain-delay", "http-shutdown", "side-effects-drain", "kafka-close", "valkey-close", "telemetry-shutdown"}
+	want := []string{"http-drain-delay", "http-shutdown", "side-effects-drain", "kafka-close", "valkey-close", "readiness-db-close", "telemetry-shutdown"}
 	if !slices.Equal(names, want) {
 		t.Fatalf("shutdown order = %v, want %v", names, want)
 	}

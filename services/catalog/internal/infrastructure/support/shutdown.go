@@ -21,6 +21,7 @@ const (
 	sideEffectsDrainTimeout  = 10 * time.Second
 	kafkaCloseTimeout        = 5 * time.Second
 	cacheCloseTimeout        = 2 * time.Second
+	readinessCloseTimeout    = 2 * time.Second
 	telemetryShutdownTimeout = 5 * time.Second
 	ShutdownStopTimeout      = 55 * time.Second
 )
@@ -36,11 +37,12 @@ func RegisterShutdownSequence(
 	ginServer *GinServer,
 	pub *message.KafkaAsyncPublisher,
 	cacheCloser *CacheClientCloser,
+	readinessDataSource *ReadinessDataSource,
 	telemetryManager *TelemetryManager,
 ) {
 	lc.Append(fx.Hook{
 		OnStop: func(context.Context) error {
-			runShutdownSteps(shutdownSequence(ginServer, pub, cacheCloser, telemetryManager))
+			runShutdownSteps(shutdownSequence(ginServer, pub, cacheCloser, readinessDataSource, telemetryManager))
 			return nil
 		},
 	})
@@ -50,6 +52,7 @@ func shutdownSequence(
 	ginServer *GinServer,
 	pub *message.KafkaAsyncPublisher,
 	cacheCloser *CacheClientCloser,
+	readinessDataSource *ReadinessDataSource,
 	telemetryManager *TelemetryManager,
 ) []shutdownStep {
 	return []shutdownStep{
@@ -95,6 +98,13 @@ func shutdownSequence(
 			budget: cacheCloseTimeout,
 			run: func(context.Context) error {
 				return cacheCloser.Close()
+			},
+		},
+		{
+			name:   "readiness-db-close",
+			budget: readinessCloseTimeout,
+			run: func(context.Context) error {
+				return readinessDataSource.Close()
 			},
 		},
 		{

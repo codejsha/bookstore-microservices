@@ -40,6 +40,7 @@ var Module = fx.Module("identity",
 		service.NewIdentityService,
 
 		database.NewVaultAwareDataSource,
+		support.NewReadinessDataSource,
 		pgsql.NewUserRepository,
 
 		protosvc.NewUserGrpcServer,

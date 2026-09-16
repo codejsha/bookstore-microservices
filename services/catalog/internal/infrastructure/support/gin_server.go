@@ -17,7 +17,6 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/codejsha/shared-library-go/pkg/config"
-	"github.com/codejsha/shared-library-go/pkg/database"
 	"github.com/codejsha/shared-library-go/pkg/logging"
 
 	"github.com/codejsha/bookstore-microservices/catalog/generated/application/port/openapi"
@@ -39,7 +38,7 @@ type GinServer struct {
 	server       *http.Server
 	serverCfg    *config.ServerConfig
 	logHelper    *logging.LogHelper
-	dataSource   *database.DataSource
+	readiness    *ReadinessDataSource
 	readyCheck   func(ctx context.Context) error
 	draining     atomic.Bool
 	workAPI      openapi.WorkApi
@@ -53,7 +52,7 @@ func NewGinServer(
 	lc fx.Lifecycle,
 	serverCfg *config.ServerConfig,
 	logHelper *logging.LogHelper,
-	dataSource *database.DataSource,
+	readiness *ReadinessDataSource,
 	workAPI openapi.WorkApi,
 	editionAPI openapi.EditionApi,
 	authorAPI openapi.AuthorApi,
@@ -63,7 +62,7 @@ func NewGinServer(
 	s := &GinServer{
 		serverCfg:    serverCfg,
 		logHelper:    logHelper,
-		dataSource:   dataSource,
+		readiness:    readiness,
 		workAPI:      workAPI,
 		editionAPI:   editionAPI,
 		authorAPI:    authorAPI,
@@ -71,14 +70,7 @@ func NewGinServer(
 		subjectAPI:   subjectAPI,
 	}
 	s.readyCheck = func(ctx context.Context) error {
-		if s.dataSource == nil {
-			return errors.New("datasource is not configured")
-		}
-		sqlDB, err := s.dataSource.DB().DB()
-		if err != nil {
-			return err
-		}
-		return sqlDB.PingContext(ctx)
+		return s.readiness.Ping(ctx)
 	}
 	s.InitializeEngine()
 	s.RegisterRoutes()

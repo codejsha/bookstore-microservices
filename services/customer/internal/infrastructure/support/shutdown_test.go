@@ -121,7 +121,7 @@ func TestRunShutdownSteps_slowEarlierStep_laterStepKeepsFullBudget(t *testing.T)
 }
 
 func TestShutdownSequence_customerComponents_ordersStepsAndBudgets(t *testing.T) {
-	steps := shutdownSequence(newTestGinServer(t), &fakeCloser{}, &TelemetryManager{}, &fakeCloser{})
+	steps := shutdownSequence(newTestGinServer(t), &fakeCloser{}, nil, &TelemetryManager{}, &fakeCloser{})
 
 	type spec struct {
 		name   string
@@ -133,6 +133,7 @@ func TestShutdownSequence_customerComponents_ordersStepsAndBudgets(t *testing.T)
 		{"side-effects-drain", sideEffectsDrainTimeout},
 		{"kafka-publisher-close", kafkaCloseTimeout},
 		{"grpc-clients-close", grpcClientCloseTimeout},
+		{"readiness-db-close", readinessCloseTimeout},
 		{"telemetry-shutdown", telemetryShutdownTimeout},
 	}
 	got := make([]spec, len(steps))
@@ -161,7 +162,7 @@ func TestShutdownSequence_stepsAfterDrain_closeEveryComponent(t *testing.T) {
 		return nil
 	}}
 
-	steps := shutdownSequence(newTestGinServer(t), publisher, telemetry,
+	steps := shutdownSequence(newTestGinServer(t), publisher, nil, telemetry,
 		grpcClients[0], grpcClients[1], grpcClients[2], grpcClients[3])
 	runShutdownSteps(steps[1:])
 

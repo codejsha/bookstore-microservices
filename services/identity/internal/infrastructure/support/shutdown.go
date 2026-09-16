@@ -22,6 +22,7 @@ const (
 	sideEffectsDrainTimeout  = 10 * time.Second
 	kafkaCloseTimeout        = 5 * time.Second
 	cacheCloseTimeout        = 5 * time.Second
+	readinessCloseTimeout    = 2 * time.Second
 	telemetryShutdownTimeout = 5 * time.Second
 	ShutdownStopTimeout      = 55 * time.Second
 )
@@ -39,6 +40,7 @@ func RegisterShutdownSequence(
 	grpcServer *GrpcServer,
 	publisher *message.KafkaAsyncPublisher,
 	cacheClient *CacheClient,
+	readinessDataSource *ReadinessDataSource,
 	telemetryManager *TelemetryManager,
 ) {
 	lc.Append(fx.Hook{
@@ -77,6 +79,11 @@ func RegisterShutdownSequence(
 					name:   "valkey client close",
 					budget: cacheCloseTimeout,
 					run:    func(context.Context) error { return cacheClient.Close() },
+				},
+				{
+					name:   "readiness db close",
+					budget: readinessCloseTimeout,
+					run:    func(context.Context) error { return readinessDataSource.Close() },
 				},
 				{
 					name:   "telemetry shutdown",
