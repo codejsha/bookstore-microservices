@@ -38,6 +38,8 @@ inputs = {
   namespace        = "temporal"
   temporal_address = "temporal.example.com"
 
+  temporal_authorization_enabled = true
+
   mysql_cluster_name       = "temporal-mysql"
   mysql_instances          = 1
   mysql_router_instances   = 1
