@@ -2,6 +2,7 @@ package support
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/fx"
 
+	"github.com/codejsha/shared-library-go/pkg/database"
 	"github.com/codejsha/shared-library-go/pkg/message"
 
 	"github.com/codejsha/bookstore-microservices/catalog/internal/infrastructure/adapter/restcontroller"
@@ -19,6 +21,7 @@ const (
 	shutdownDrainStepTimeout = shutdownDrainDelay + time.Second
 	httpShutdownTimeout      = writeTimeout
 	sideEffectsDrainTimeout  = 10 * time.Second
+	databaseCloseTimeout     = 3 * time.Second
 	kafkaCloseTimeout        = 5 * time.Second
 	cacheCloseTimeout        = 2 * time.Second
 	readinessCloseTimeout    = 2 * time.Second
@@ -37,12 +40,13 @@ func RegisterShutdownSequence(
 	ginServer *GinServer,
 	pub *message.KafkaAsyncPublisher,
 	cacheCloser *CacheClientCloser,
+	dataSource *database.DataSource,
 	readinessDataSource *ReadinessDataSource,
 	telemetryManager *TelemetryManager,
 ) {
 	lc.Append(fx.Hook{
 		OnStop: func(context.Context) error {
-			runShutdownSteps(shutdownSequence(ginServer, pub, cacheCloser, readinessDataSource, telemetryManager))
+			runShutdownSteps(shutdownSequence(ginServer, pub, cacheCloser, dataSource, readinessDataSource, telemetryManager))
 			return nil
 		},
 	})
@@ -52,6 +56,7 @@ func shutdownSequence(
 	ginServer *GinServer,
 	pub *message.KafkaAsyncPublisher,
 	cacheCloser *CacheClientCloser,
+	dataSource *database.DataSource,
 	readinessDataSource *ReadinessDataSource,
 	telemetryManager *TelemetryManager,
 ) []shutdownStep {
@@ -84,6 +89,13 @@ func shutdownSequence(
 					return errors.New("side-effect goroutines still running")
 				}
 				return nil
+			},
+		},
+		{
+			name:   "database-close",
+			budget: databaseCloseTimeout,
+			run: func(context.Context) error {
+				return closeDataSourcePool(dataSource)
 			},
 		},
 		{
@@ -156,4 +168,22 @@ func runShutdownStep(step shutdownStep) {
 	default:
 		entry.Info("shutdown step completed")
 	}
+}
+
+func closeDataSourcePool(dataSource *database.DataSource) error {
+	if dataSource == nil {
+		return nil
+	}
+	sqlDB, err := dataSource.DB().DB()
+	if err != nil {
+		return fmt.Errorf("resolve database handle: %w", err)
+	}
+	return closeConnectionPool(sqlDB)
+}
+
+func closeConnectionPool(sqlDB *sql.DB) error {
+	if sqlDB == nil {
+		return nil
+	}
+	return sqlDB.Close()
 }

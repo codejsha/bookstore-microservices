@@ -2,6 +2,7 @@ package support
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -11,6 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/fx"
 
+	"github.com/codejsha/shared-library-go/pkg/database"
+
 	"github.com/codejsha/bookstore-microservices/customer/internal/infrastructure/adapter/restcontroller"
 )
 
@@ -19,8 +22,9 @@ const (
 	drainStepBudget          = shutdownDrainDelay + time.Second
 	httpShutdownTimeout      = writeTimeout
 	sideEffectsDrainTimeout  = 10 * time.Second
+	databaseCloseTimeout     = 3 * time.Second
 	kafkaCloseTimeout        = 5 * time.Second
-	grpcClientCloseTimeout   = 5 * time.Second
+	grpcClientCloseTimeout   = 2 * time.Second
 	readinessCloseTimeout    = 2 * time.Second
 	telemetryShutdownTimeout = 5 * time.Second
 	ShutdownStopTimeout      = 55 * time.Second
@@ -38,9 +42,10 @@ func RegisterShutdownSequence(
 	publisher io.Closer,
 	readinessDataSource *ReadinessDataSource,
 	telemetryManager *TelemetryManager,
+	dataSource *database.DataSource,
 	grpcClients ...io.Closer,
 ) {
-	steps := shutdownSequence(ginServer, publisher, readinessDataSource, telemetryManager, grpcClients...)
+	steps := shutdownSequence(ginServer, publisher, readinessDataSource, telemetryManager, dataSource, grpcClients...)
 	lc.Append(fx.Hook{
 		OnStop: func(context.Context) error {
 			runShutdownSteps(steps)
@@ -54,6 +59,7 @@ func shutdownSequence(
 	publisher io.Closer,
 	readinessDataSource *ReadinessDataSource,
 	telemetryManager *TelemetryManager,
+	dataSource *database.DataSource,
 	grpcClients ...io.Closer,
 ) []shutdownStep {
 	return []shutdownStep{
@@ -83,6 +89,13 @@ func shutdownSequence(
 			run: func(ctx context.Context) error {
 				restcontroller.WaitForSideEffects(ctx)
 				return nil
+			},
+		},
+		{
+			name:   "database-close",
+			budget: databaseCloseTimeout,
+			run: func(context.Context) error {
+				return closeDataSourcePool(dataSource)
 			},
 		},
 		{
@@ -167,4 +180,22 @@ func closeAll(closers []io.Closer) error {
 	}
 	wg.Wait()
 	return errors.Join(errs...)
+}
+
+func closeDataSourcePool(dataSource *database.DataSource) error {
+	if dataSource == nil {
+		return nil
+	}
+	sqlDB, err := dataSource.DB().DB()
+	if err != nil {
+		return fmt.Errorf("resolve database handle: %w", err)
+	}
+	return closeConnectionPool(sqlDB)
+}
+
+func closeConnectionPool(sqlDB *sql.DB) error {
+	if sqlDB == nil {
+		return nil
+	}
+	return sqlDB.Close()
 }
