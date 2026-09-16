@@ -8,6 +8,12 @@ variable "roles" {
   type        = map(string)
 }
 
+variable "role_composites" {
+  description = "Role IDs (such as tool client roles) each platform realm role includes, keyed by role name"
+  type        = map(list(string))
+  default     = {}
+}
+
 variable "bootstrap_accounts" {
   description = "Terraform-managed break-glass accounts, keyed by a stable account key"
   type = map(object({

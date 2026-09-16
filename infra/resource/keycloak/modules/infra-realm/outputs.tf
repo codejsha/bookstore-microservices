@@ -7,7 +7,7 @@ output "role_ids" {
   description = "IDs of the platform realm roles, keyed by role name"
   value = {
     DEVELOPER = keycloak_role.developer.id
-    OPERATOR  = keycloak_role.operator.id
+    MANAGER   = keycloak_role.manager.id
     ADMIN     = keycloak_role.admin.id
   }
 }

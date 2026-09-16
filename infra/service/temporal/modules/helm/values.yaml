@@ -13,6 +13,18 @@ server:
       cpu: 500m
       memory: 512Mi
   config:
+%{ if authorization_enabled ~}
+    authorization:
+      jwtKeyProvider:
+        keySourceURIs:
+          - http://keycloak-service.keycloak.svc.cluster.local:8080/realms/bookstore/protocol/openid-connect/certs
+          - http://keycloak-service.keycloak.svc.cluster.local:8080/realms/platform-infra/protocol/openid-connect/certs
+        refreshInterval: 1m
+      permissionsClaimName: permissions
+      authorizer: default
+      claimMapper: default
+      audience: temporal
+%{ endif ~}
     persistence:
       defaultStore: default
       visibilityStore: visibility
@@ -54,6 +66,20 @@ server:
     service:
       type: ClusterIP
       port: 7233
+    resources:
+      requests:
+        cpu: 25m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  internal-frontend:
+    enabled: true
+    replicaCount: 1
+    service:
+      type: ClusterIP
+      port: 7236
     resources:
       requests:
         cpu: 25m
@@ -121,6 +147,8 @@ web:
   ingress:
     enabled: false
   additionalEnv:
+    - name: TEMPORAL_DEFAULT_NAMESPACE
+      value: bookstore
     - name: TEMPORAL_AUTH_ENABLED
       value: "true"
     - name: TEMPORAL_AUTH_TYPE

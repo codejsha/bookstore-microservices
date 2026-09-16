@@ -5,9 +5,9 @@ variable "namespace" {
 }
 
 variable "temporal_address" {
-  description = "Temporal frontend gRPC address the admin-tools CLI connects to."
+  description = "Temporal internal-frontend gRPC address the admin-tools CLI connects to (bypasses JWT authorization)."
   type        = string
-  default     = "temporal-frontend.temporal.svc.cluster.local:7233"
+  default     = "temporal-internal-frontend.temporal.svc.cluster.local:7236"
 }
 
 variable "temporal_namespaces" {

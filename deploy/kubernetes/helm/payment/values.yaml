@@ -69,6 +69,12 @@ podAnnotations:
     hyperswitch.api-key={{ .Data.data.api_key }}
     hyperswitch.webhook-secret={{ .Data.data.webhook_secret }}
     {{- end -}}
+  vault.hashicorp.com/agent-inject-secret-temporal.properties: "kv-bookstore/data/payment/temporal"
+  vault.hashicorp.com/agent-inject-template-temporal.properties: |
+    {{- with secret "kv-bookstore/data/payment/temporal" -}}
+    temporal.auth.client-id={{ .Data.data.client_id }}
+    temporal.auth.client-secret={{ .Data.data.client_secret }}
+    {{- end -}}
 podLabels:
   app.kubernetes.io/group: bookstore
 

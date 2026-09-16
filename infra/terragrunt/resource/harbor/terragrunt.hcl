@@ -32,7 +32,7 @@ inputs = {
       project_name = "bookstore"
       is_public    = false
       groups = [
-        { group_name = "OPERATOR", role = "maintainer" },
+        { group_name = "MANAGER", role = "maintainer" },
         { group_name = "DEVELOPER", role = "developer" },
       ]
     }
@@ -40,7 +40,7 @@ inputs = {
       project_name = "bookstore-helm-charts"
       is_public    = false
       groups = [
-        { group_name = "OPERATOR", role = "maintainer" },
+        { group_name = "MANAGER", role = "maintainer" },
         { group_name = "DEVELOPER", role = "developer" },
       ]
     }

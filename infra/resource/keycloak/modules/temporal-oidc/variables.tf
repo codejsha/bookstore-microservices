@@ -18,6 +18,24 @@ variable "groups_scope_name" {
   type        = string
 }
 
+variable "permissions" {
+  description = "Temporal server permissions (namespace:role) created as client roles on the Temporal client"
+  type        = list(string)
+  default     = ["bookstore:read", "bookstore:write", "temporal-system:read", "temporal-system:admin"]
+}
+
+variable "permissions_claim_name" {
+  description = "Access token claim carrying the Temporal client roles; must match the server's permissionsClaimName"
+  type        = string
+  default     = "permissions"
+}
+
+variable "audience" {
+  description = "Audience stamped into access tokens; must match the Temporal server's authorization audience"
+  type        = string
+  default     = "temporal"
+}
+
 variable "builtin_default_scopes" {
   description = "Keycloak built-in client scopes kept as defaults on the Temporal client alongside groups"
   type        = list(string)

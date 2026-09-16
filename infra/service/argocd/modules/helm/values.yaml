@@ -18,7 +18,7 @@ configs:
       p, role:ops, clusters, get, *, allow
       p, role:ops, repositories, get, *, allow
       p, role:ops, projects, get, *, allow
-      g, OPERATOR, role:ops
+      g, MANAGER, role:ops
 
       p, role:developer, applications, get, */*, allow
       p, role:developer, applications, sync, */*, allow

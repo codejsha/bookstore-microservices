@@ -3,6 +3,7 @@ spring:
     import:
       - "optional:file:/vault/secrets/db.properties"
       - "optional:file:/vault/secrets/hyperswitch.properties"
+      - "optional:file:/vault/secrets/temporal.properties"
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.zaxxer.hikari.HikariDataSource
@@ -25,6 +26,11 @@ spring:
     connection:
       target: temporal-frontend.temporal.svc.cluster.local:7233
     namespace: bookstore
+
+temporal:
+  auth:
+    enabled: true
+    token-url: http://keycloak-service.keycloak.svc.cluster.local:8080/realms/bookstore/protocol/openid-connect/token
 
 grpc:
   server:

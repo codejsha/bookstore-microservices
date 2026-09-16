@@ -5,6 +5,11 @@ path "kv-bookstore/data/notification/mysql*" { capabilities = ["read"] }
 path "kv-bookstore/data/support/mysql*" { capabilities = ["read"] }
 path "kv-bookstore/data/settlement/mysql*" { capabilities = ["read"] }
 
+path "kv-bookstore/data/order/temporal" { capabilities = ["read"] }
+path "kv-bookstore/data/payment/temporal" { capabilities = ["read"] }
+path "kv-bookstore/data/delivery/temporal" { capabilities = ["read"] }
+path "kv-bookstore/data/notification/temporal" { capabilities = ["read"] }
+
 path "kv-infra/data/hyperswitch/payment" { capabilities = ["read"] }
 
 path "database/creds/order-mysql-dynamic" { capabilities = ["read"] }

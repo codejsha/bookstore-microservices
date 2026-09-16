@@ -69,8 +69,42 @@ module "temporal" {
   db_connect_addr = module.mysql.connect_addr
   db_secret_name  = module.mysql.db_secret_name
   db_user         = var.mysql_db_user
+
+  authorization_enabled = var.temporal_authorization_enabled
   providers = {
     helm = helm
+  }
+}
+
+resource "kubernetes_manifest" "internal_frontend_authz" {
+  manifest = {
+    apiVersion = "security.istio.io/v1"
+    kind       = "AuthorizationPolicy"
+    metadata = {
+      name      = "temporal-internal-frontend-authz"
+      namespace = kubernetes_namespace_v1.temporal.metadata[0].name
+    }
+    spec = {
+      selector = {
+        matchLabels = {
+          "app.kubernetes.io/instance"  = "temporal"
+          "app.kubernetes.io/component" = "internal-frontend"
+        }
+      }
+      action = "ALLOW"
+      rules = [
+        {
+          from = [
+            { source = { namespaces = [kubernetes_namespace_v1.temporal.metadata[0].name] } }
+          ]
+        },
+        {
+          to = [
+            { operation = { ports = ["9090"] } }
+          ]
+        }
+      ]
+    }
   }
 }
 

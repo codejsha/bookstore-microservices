@@ -48,7 +48,7 @@ gitea:
       scopes: "openid profile email groups"
       groupClaimName: groups
       adminGroup: ADMIN
-      groupTeamMap: '{"OPERATOR":{"example-corp":["devops-team"]},"DEVELOPER":{"example-corp":["dev-team"]}}'
+      groupTeamMap: '{"MANAGER":{"example-corp":["devops-team"]},"DEVELOPER":{"example-corp":["dev-team"]}}'
 
   metrics:
     enabled: true

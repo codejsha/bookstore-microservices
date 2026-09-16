@@ -20,11 +20,21 @@ class GrpcConfig(BaseModel):
     port: int = 9090
 
 
+class TemporalAuthConfig(BaseModel):
+    enabled: bool = False
+    token_url: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+    refresh_ratio: float = 0.75
+    request_timeout_seconds: float = 5.0
+
+
 class TemporalConfig(BaseModel):
     enabled: bool = True
     host: str = "localhost:7233"
     namespace: str = "default"
     task_queue: str = "delivery-task-queue"
+    auth: TemporalAuthConfig = TemporalAuthConfig()
 
 
 class DatabaseConfig(BaseModel):
@@ -54,7 +64,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="DELIVERY__",
         env_nested_delimiter="__",
-        env_file="/vault/secrets/db.env",
+        env_file=("/vault/secrets/db.env", "/vault/secrets/temporal.env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )

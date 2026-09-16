@@ -8,6 +8,7 @@ from internal.domain.service.notification_service import NotificationService
 from internal.infrastructure.adapter.mysql.notification_repo import MySQLNotificationRepository
 from internal.infrastructure.adapter.mysql.template_repo import MySQLTemplateRepository
 from internal.infrastructure.adapter.temporal.activities import NotificationActivities
+from internal.infrastructure.adapter.temporal.temporal_auth import build_temporal_token_provider
 from internal.infrastructure.adapter.temporal.worker import TemporalWorker
 from internal.infrastructure.support.database import create_session_factory
 
@@ -28,7 +29,11 @@ class Container:
         )
 
         self.notification_activities = NotificationActivities(self.notification_service)
-        self.temporal_worker = TemporalWorker(settings.temporal, self.notification_activities)
+        self.temporal_worker = TemporalWorker(
+            settings.temporal,
+            self.notification_activities,
+            build_temporal_token_provider(settings.temporal.auth),
+        )
 
     async def ping_db(self) -> bool:
         async def _run() -> None:

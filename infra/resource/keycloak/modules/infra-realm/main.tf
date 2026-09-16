@@ -49,29 +49,35 @@ resource "keycloak_required_action" "configure_totp" {
 }
 
 resource "keycloak_role" "developer" {
-  realm_id    = keycloak_realm.infra.id
-  name        = "DEVELOPER"
-  description = var.roles["DEVELOPER"]
+  realm_id        = keycloak_realm.infra.id
+  name            = "DEVELOPER"
+  description     = var.roles["DEVELOPER"]
+  composite_roles = lookup(var.role_composites, "DEVELOPER", [])
 }
 
-resource "keycloak_role" "operator" {
+resource "keycloak_role" "manager" {
   realm_id        = keycloak_realm.infra.id
-  name            = "OPERATOR"
-  description     = var.roles["OPERATOR"]
-  composite_roles = [keycloak_role.developer.id]
+  name            = "MANAGER"
+  description     = var.roles["MANAGER"]
+  composite_roles = lookup(var.role_composites, "MANAGER", [])
 }
 
 resource "keycloak_role" "admin" {
   realm_id        = keycloak_realm.infra.id
   name            = "ADMIN"
   description     = var.roles["ADMIN"]
-  composite_roles = [keycloak_role.operator.id]
+  composite_roles = lookup(var.role_composites, "ADMIN", [])
+}
+
+moved {
+  from = keycloak_role.operator
+  to   = keycloak_role.manager
 }
 
 locals {
   role_ids = {
     DEVELOPER = keycloak_role.developer.id
-    OPERATOR  = keycloak_role.operator.id
+    MANAGER   = keycloak_role.manager.id
     ADMIN     = keycloak_role.admin.id
   }
 }

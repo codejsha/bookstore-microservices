@@ -35,6 +35,37 @@ resource "keycloak_openid_client_default_scopes" "temporal" {
   default_scopes = concat(var.builtin_default_scopes, [var.groups_scope_name])
 }
 
+resource "keycloak_role" "permission" {
+  for_each    = toset(var.permissions)
+  realm_id    = var.realm_id
+  client_id   = keycloak_openid_client.temporal.id
+  name        = each.key
+  description = "Temporal server permission ${each.key}, emitted in the ${var.permissions_claim_name} claim"
+}
+
+resource "keycloak_openid_user_client_role_protocol_mapper" "permissions" {
+  realm_id  = var.realm_id
+  client_id = keycloak_openid_client.temporal.id
+  name      = "temporal-permissions"
+
+  claim_name                  = var.permissions_claim_name
+  client_id_for_role_mappings = keycloak_openid_client.temporal.client_id
+  multivalued                 = true
+  add_to_id_token             = false
+  add_to_access_token         = true
+  add_to_userinfo             = false
+}
+
+resource "keycloak_openid_audience_protocol_mapper" "temporal" {
+  realm_id  = var.realm_id
+  client_id = keycloak_openid_client.temporal.id
+  name      = "temporal-audience"
+
+  included_custom_audience = var.audience
+  add_to_access_token      = true
+  add_to_id_token          = false
+}
+
 resource "vault_kv_secret_v2" "temporal_oidc_secret" {
   mount = "kv-infra"
   name  = "keycloak/temporal-oidc/client-secret"

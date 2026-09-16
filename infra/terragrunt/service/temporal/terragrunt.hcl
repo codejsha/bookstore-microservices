@@ -20,6 +20,7 @@ dependencies {
     "../../service/mysql",
     "../../service/gateway-api",
     "../../service/prometheus-crds",
+    "../../service/istio",
   ]
 }
 

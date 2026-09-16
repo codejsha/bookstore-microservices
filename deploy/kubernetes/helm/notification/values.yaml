@@ -29,6 +29,12 @@ podAnnotations:
     NOTIFICATION__DATABASE__USERNAME={{ .Data.username }}
     NOTIFICATION__DATABASE__PASSWORD={{ .Data.password }}
     {{- end -}}
+  vault.hashicorp.com/agent-inject-secret-temporal.env: "kv-bookstore/data/notification/temporal"
+  vault.hashicorp.com/agent-inject-template-temporal.env: |
+    {{- with secret "kv-bookstore/data/notification/temporal" -}}
+    NOTIFICATION__TEMPORAL__AUTH__CLIENT_ID={{ .Data.data.client_id }}
+    NOTIFICATION__TEMPORAL__AUTH__CLIENT_SECRET={{ .Data.data.client_secret }}
+    {{- end -}}
 podLabels:
   app.kubernetes.io/group: bookstore
 

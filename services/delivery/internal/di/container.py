@@ -16,6 +16,7 @@ from internal.infrastructure.adapter.mysql.stats_repo import MySQLStatsRepositor
 from internal.infrastructure.adapter.mysql.tracking_repo import MySQLTrackingRepository
 from internal.infrastructure.adapter.temporal.shipment_activities import ShipmentActivities
 from internal.infrastructure.support.database import create_session_factory
+from internal.infrastructure.support.temporal_auth import TemporalTokenProvider, build_temporal_token_provider
 
 _PING_TIMEOUT = 3.0
 
@@ -51,6 +52,9 @@ class Container:
         except Exception:
             return False
         return True
+
+    def temporal_token_provider(self) -> TemporalTokenProvider | None:
+        return build_temporal_token_provider(self.settings.temporal.auth)
 
     def temporal_activities(self) -> list:
         return [self.shipment_activities.create_shipment]
