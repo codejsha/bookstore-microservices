@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from datetime import UTC, datetime
 from uuid import UUID, uuid7
 
@@ -68,15 +69,7 @@ class ShipmentService:
             created_at=now,
             updated_at=now,
         )
-        initial_tracking = TrackingAggregate(
-            uid=uuid7(),
-            shipment_uid=shipment.uid,
-            status=ShipmentStatus.PLANNED,
-            location="",
-            description="Shipment planned",
-            occurred_at=now,
-            created_at=now,
-        )
+        initial_tracking = _make_tracking(shipment.uid, ShipmentStatus.PLANNED, "", "Shipment planned", now=now)
         return await self._shipment_repo.create_with_initial_tracking(shipment, initial_tracking)
 
     async def get_shipment(self, uid: UUID) -> ShipmentAggregate | None:
@@ -104,17 +97,20 @@ class ShipmentService:
 
         return await self._shipment_repo.update(uid, _mutate)
 
-    async def dispatch_shipment(self, uid: UUID) -> ShipmentAggregate | None:
+    async def dispatch_shipment(self, uid: UUID, tracking_number: str | None = None) -> ShipmentAggregate | None:
         def _mutate(s: ShipmentAggregate) -> ShipmentAggregate:
             s.status = ShipmentStatus.DISPATCHED
+            if tracking_number is not None and not s.tracking_number:
+                s.tracking_number = tracking_number
             s.updated_at = datetime.now(UTC)
             return s
 
-        shipment = await self._shipment_repo.transition(uid, ShipmentAggregate.can_dispatch, _mutate)
-        if shipment is None:
-            return None
-        await self._add_tracking(shipment.uid, ShipmentStatus.DISPATCHED, "", "Shipment dispatched")
-        return shipment
+        return await self._shipment_repo.transition_with_tracking(
+            uid,
+            ShipmentAggregate.can_dispatch,
+            _mutate,
+            _tracking_event(ShipmentStatus.DISPATCHED, "", "Shipment dispatched"),
+        )
 
     async def pick_up_shipment(self, uid: UUID) -> ShipmentAggregate | None:
         def _mutate(s: ShipmentAggregate) -> ShipmentAggregate:
@@ -124,11 +120,12 @@ class ShipmentService:
             s.updated_at = now
             return s
 
-        shipment = await self._shipment_repo.transition(uid, ShipmentAggregate.can_pick_up, _mutate)
-        if shipment is None:
-            return None
-        await self._add_tracking(shipment.uid, ShipmentStatus.PICKED_UP, "", "Package picked up")
-        return shipment
+        return await self._shipment_repo.transition_with_tracking(
+            uid,
+            ShipmentAggregate.can_pick_up,
+            _mutate,
+            _tracking_event(ShipmentStatus.PICKED_UP, "", "Package picked up"),
+        )
 
     async def deliver_shipment(self, uid: UUID) -> ShipmentAggregate | None:
         def _mutate(s: ShipmentAggregate) -> ShipmentAggregate:
@@ -138,11 +135,12 @@ class ShipmentService:
             s.updated_at = now
             return s
 
-        shipment = await self._shipment_repo.transition(uid, ShipmentAggregate.can_deliver, _mutate)
-        if shipment is None:
-            return None
-        await self._add_tracking(shipment.uid, ShipmentStatus.DELIVERED, "", "Package delivered")
-        return shipment
+        return await self._shipment_repo.transition_with_tracking(
+            uid,
+            ShipmentAggregate.can_deliver,
+            _mutate,
+            _tracking_event(ShipmentStatus.DELIVERED, "", "Package delivered"),
+        )
 
     async def cancel_shipment(self, uid: UUID) -> ShipmentAggregate | None:
         def _mutate(s: ShipmentAggregate) -> ShipmentAggregate:
@@ -150,11 +148,12 @@ class ShipmentService:
             s.updated_at = datetime.now(UTC)
             return s
 
-        shipment = await self._shipment_repo.transition(uid, ShipmentAggregate.can_cancel, _mutate)
-        if shipment is None:
-            return None
-        await self._add_tracking(shipment.uid, ShipmentStatus.CANCELLED, "", "Shipment cancelled")
-        return shipment
+        return await self._shipment_repo.transition_with_tracking(
+            uid,
+            ShipmentAggregate.can_cancel,
+            _mutate,
+            _tracking_event(ShipmentStatus.CANCELLED, "", "Shipment cancelled"),
+        )
 
     async def add_tracking(self, command: AddTrackingCommand) -> TrackingAggregate:
         shipment = await self._shipment_repo.find_by_uid(command.shipment_uid)
@@ -168,17 +167,35 @@ class ShipmentService:
     async def _add_tracking(
         self, shipment_uid: UUID, status: ShipmentStatus, location: str, description: str
     ) -> TrackingAggregate:
-        now = datetime.now(UTC)
-        tracking = TrackingAggregate(
-            uid=uuid7(),
-            shipment_uid=shipment_uid,
-            status=status,
-            location=location,
-            description=description,
-            occurred_at=now,
-            created_at=now,
-        )
-        return await self._tracking_repo.save(tracking)
+        return await self._tracking_repo.save(_make_tracking(shipment_uid, status, location, description))
+
+
+def _make_tracking(
+    shipment_uid: UUID,
+    status: ShipmentStatus,
+    location: str,
+    description: str,
+    now: datetime | None = None,
+) -> TrackingAggregate:
+    occurred_at = now or datetime.now(UTC)
+    return TrackingAggregate(
+        uid=uuid7(),
+        shipment_uid=shipment_uid,
+        status=status,
+        location=location,
+        description=description,
+        occurred_at=occurred_at,
+        created_at=occurred_at,
+    )
+
+
+def _tracking_event(
+    status: ShipmentStatus, location: str, description: str
+) -> Callable[[ShipmentAggregate], TrackingAggregate]:
+    def _build(shipment: ShipmentAggregate) -> TrackingAggregate:
+        return _make_tracking(shipment.uid, status, location, description)
+
+    return _build
 
 
 class CarrierService:

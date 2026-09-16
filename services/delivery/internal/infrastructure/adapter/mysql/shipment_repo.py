@@ -9,7 +9,8 @@ from internal.domain.aggregate.shipment_aggregate import ShipmentAggregate
 from internal.domain.aggregate.tracking_aggregate import TrackingAggregate
 from internal.domain.constant.shipment_status import ShipmentStatus
 from internal.domain.model.option.delivery_option import ShipmentFilterOption
-from internal.infrastructure.adapter.mysql.models import ShipmentEntity, TrackingEntity
+from internal.infrastructure.adapter.mysql.models import ShipmentEntity
+from internal.infrastructure.adapter.mysql.tracking_repo import to_tracking_entity
 from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
 
 
@@ -46,12 +47,7 @@ class MySQLShipmentRepository(ShipmentRepository):
                 )
                 session.add(entity)
             else:
-                entity.carrier_uid = uuid_to_bytes(shipment.carrier_uid) if shipment.carrier_uid else None
-                entity.status = shipment.status
-                entity.tracking_number = shipment.tracking_number
-                entity.actual_pickup_at = shipment.actual_pickup_at
-                entity.actual_delivery_at = shipment.actual_delivery_at
-                entity.updated_at = shipment.updated_at
+                self._apply_updates(entity, shipment)
 
             await session.commit()
             await session.refresh(entity)
@@ -81,15 +77,7 @@ class MySQLShipmentRepository(ShipmentRepository):
                 created_at=shipment.created_at,
                 updated_at=shipment.updated_at,
             )
-            tracking_entity = TrackingEntity(
-                uid=uuid_to_bytes(tracking.uid),
-                shipment_uid=uuid_to_bytes(tracking.shipment_uid),
-                status=tracking.status,
-                location=tracking.location,
-                description=tracking.description,
-                occurred_at=tracking.occurred_at,
-                created_at=tracking.created_at,
-            )
+            tracking_entity = to_tracking_entity(tracking)
             session.add(shipment_entity)
             session.add(tracking_entity)
             await session.commit()
@@ -171,21 +159,17 @@ class MySQLShipmentRepository(ShipmentRepository):
             if entity is None:
                 return None
             updated = mutator(self._to_aggregate(entity))
-            entity.carrier_uid = uuid_to_bytes(updated.carrier_uid) if updated.carrier_uid else None
-            entity.status = updated.status
-            entity.tracking_number = updated.tracking_number
-            entity.actual_pickup_at = updated.actual_pickup_at
-            entity.actual_delivery_at = updated.actual_delivery_at
-            entity.updated_at = updated.updated_at
+            self._apply_updates(entity, updated)
             await session.commit()
             await session.refresh(entity)
             return self._to_aggregate(entity)
 
-    async def transition(
+    async def transition_with_tracking(
         self,
         uid: UUID,
         guard: Callable[[ShipmentAggregate], bool],
         mutator: Callable[[ShipmentAggregate], ShipmentAggregate],
+        tracking_factory: Callable[[ShipmentAggregate], TrackingAggregate],
     ) -> ShipmentAggregate | None:
         async with self._session_factory() as session:
             entity = (
@@ -204,15 +188,20 @@ class MySQLShipmentRepository(ShipmentRepository):
             if not guard(aggregate):
                 raise ValueError(f"Cannot transition shipment from status {aggregate.status}")
             updated = mutator(aggregate)
-            entity.carrier_uid = uuid_to_bytes(updated.carrier_uid) if updated.carrier_uid else None
-            entity.status = updated.status
-            entity.tracking_number = updated.tracking_number
-            entity.actual_pickup_at = updated.actual_pickup_at
-            entity.actual_delivery_at = updated.actual_delivery_at
-            entity.updated_at = updated.updated_at
+            self._apply_updates(entity, updated)
+            session.add(to_tracking_entity(tracking_factory(updated)))
             await session.commit()
             await session.refresh(entity)
             return self._to_aggregate(entity)
+
+    @staticmethod
+    def _apply_updates(entity: ShipmentEntity, updated: ShipmentAggregate) -> None:
+        entity.carrier_uid = uuid_to_bytes(updated.carrier_uid) if updated.carrier_uid else None
+        entity.status = updated.status
+        entity.tracking_number = updated.tracking_number
+        entity.actual_pickup_at = updated.actual_pickup_at
+        entity.actual_delivery_at = updated.actual_delivery_at
+        entity.updated_at = updated.updated_at
 
     @staticmethod
     def _to_aggregate(entity: ShipmentEntity) -> ShipmentAggregate:
