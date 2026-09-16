@@ -175,6 +175,9 @@ func (r stockRepository) ApplyChange(ctx context.Context, p repo.ApplyChangePara
 			return nil
 		}
 		if retry {
+			if werr := waitBeforeOptimisticRetry(ctx, attempt); werr != nil {
+				return werr
+			}
 			continue
 		}
 		return err

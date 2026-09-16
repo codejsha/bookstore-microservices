@@ -175,6 +175,9 @@ func (r *stockTransferRepository) Create(ctx context.Context, p repo.TransferCre
 		case err == nil:
 			return out, nil
 		case retry:
+			if werr := waitBeforeOptimisticRetry(ctx, attempt); werr != nil {
+				return nil, werr
+			}
 			continue
 		default:
 			return nil, err
@@ -262,6 +265,9 @@ func (r *stockTransferRepository) finalize(
 		case err == nil:
 			return out, nil
 		case retry:
+			if werr := waitBeforeOptimisticRetry(ctx, attempt); werr != nil {
+				return nil, werr
+			}
 			continue
 		default:
 			return nil, err

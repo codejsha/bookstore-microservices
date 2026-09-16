@@ -28,6 +28,7 @@ database:
     db_name: inventory_db
     params:
       - sslmode=disable
+      - connect_timeout=5
       - statement_timeout=15000
 
 telemetry:

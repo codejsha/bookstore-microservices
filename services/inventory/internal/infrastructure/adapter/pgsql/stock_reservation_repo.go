@@ -183,6 +183,9 @@ func (r *stockReservationRepository) Reserve(ctx context.Context, p repo.Reserve
 		case err == nil:
 			return out, nil
 		case retry:
+			if werr := waitBeforeOptimisticRetry(ctx, attempt); werr != nil {
+				return nil, werr
+			}
 			continue
 		case errors.Is(err, errReservationConflict):
 			var existing []stockReservationEntity
@@ -291,6 +294,9 @@ func (r *stockReservationRepository) Release(ctx context.Context, p repo.Release
 		case err == nil:
 			return out, nil
 		case retry:
+			if werr := waitBeforeOptimisticRetry(ctx, attempt); werr != nil {
+				return nil, werr
+			}
 			continue
 		default:
 			return nil, err

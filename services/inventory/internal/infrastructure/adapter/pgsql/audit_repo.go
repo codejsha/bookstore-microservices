@@ -243,6 +243,9 @@ func (r *stockAuditRepository) Complete(ctx context.Context, uid string) (*repo.
 		case err == nil:
 			return out, nil
 		case retry:
+			if werr := waitBeforeOptimisticRetry(ctx, attempt); werr != nil {
+				return nil, werr
+			}
 			continue
 		default:
 			return nil, err
