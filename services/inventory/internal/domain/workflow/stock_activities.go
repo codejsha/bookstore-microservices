@@ -31,6 +31,20 @@ func classifyReservationError(err error) error {
 	}
 }
 
+func aggregateReservationItems(items []StockReservationItem) []StockReservationItem {
+	merged := make([]StockReservationItem, 0, len(items))
+	position := make(map[int64]int, len(items))
+	for _, item := range items {
+		if i, seen := position[item.ProductID]; seen {
+			merged[i].Quantity += item.Quantity
+			continue
+		}
+		position[item.ProductID] = len(merged)
+		merged = append(merged, item)
+	}
+	return merged
+}
+
 type StockActivities struct {
 	inventoryUC usecase.InventoryUseCase
 }
@@ -44,7 +58,7 @@ func (a *StockActivities) ReserveStock(ctx context.Context, req ReserveStockRequ
 	reason := "temporal-saga-reserve"
 	orderRef := a.orderRef(ctx, req)
 
-	for _, item := range req.Items {
+	for _, item := range aggregateReservationItems(req.Items) {
 		if _, err := a.inventoryUC.ReserveStockForOrder(ctx, command.StockOrderReserveCommand{
 			OrderUid:  orderRef,
 			EditionId: item.ProductID,
@@ -64,7 +78,7 @@ func (a *StockActivities) ReleaseStock(ctx context.Context, req ReleaseStockRequ
 	reason := "temporal-saga-compensation"
 	orderRef := a.orderRef(ctx, req)
 
-	for _, item := range req.Items {
+	for _, item := range aggregateReservationItems(req.Items) {
 		if _, err := a.inventoryUC.ReleaseStockForOrder(ctx, command.StockOrderReleaseCommand{
 			OrderUid:  orderRef,
 			EditionId: item.ProductID,
