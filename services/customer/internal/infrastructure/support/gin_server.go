@@ -36,6 +36,7 @@ const (
 type GinServer struct {
 	engine      *gin.Engine
 	server      *http.Server
+	shutdowner  fx.Shutdowner
 	serverCfg   *config.ServerConfig
 	logHelper   *logging.LogHelper
 	readiness   *ReadinessDataSource
@@ -52,6 +53,7 @@ type GinServer struct {
 
 func NewGinServer(
 	lc fx.Lifecycle,
+	shutdowner fx.Shutdowner,
 	serverCfg *config.ServerConfig,
 	logHelper *logging.LogHelper,
 	readiness *ReadinessDataSource,
@@ -64,6 +66,7 @@ func NewGinServer(
 	wishlistAPI openapi.WishlistApi,
 ) *GinServer {
 	s := &GinServer{
+		shutdowner:  shutdowner,
 		serverCfg:   serverCfg,
 		logHelper:   logHelper,
 		readiness:   readiness,
@@ -97,11 +100,7 @@ func NewGinServer(
 			if err != nil {
 				return fmt.Errorf("listen http on %s: %w", addr, err)
 			}
-			go func() {
-				if err := s.server.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
-					logrus.Errorf("http server stopped: %v", err)
-				}
-			}()
+			go s.serve(listener)
 			return nil
 		},
 	})
@@ -122,6 +121,22 @@ func (s *GinServer) Shutdown(ctx context.Context) error {
 		return errors.Join(err, closeErr)
 	}
 	return err
+}
+
+func (s *GinServer) serve(listener net.Listener) {
+	if err := s.server.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logrus.Errorf("http server stopped: %v", err)
+		s.signalShutdown()
+	}
+}
+
+func (s *GinServer) signalShutdown() {
+	if s.shutdowner == nil {
+		return
+	}
+	if err := s.shutdowner.Shutdown(fx.ExitCode(1)); err != nil {
+		logrus.Errorf("failed to signal application shutdown: %v", err)
+	}
 }
 
 func (s *GinServer) InitializeEngine() {
