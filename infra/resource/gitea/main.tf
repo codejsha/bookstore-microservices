@@ -116,11 +116,12 @@ module "dev_team" {
 }
 
 module "devops_team" {
-  depends_on = [module.organization, module.repos]
-  source     = "./modules/team"
-  org_name   = var.org_name
-  team_name  = "devops-team"
-  user_repos = var.devops_repos
+  depends_on               = [module.organization, module.repos]
+  source                   = "./modules/team"
+  org_name                 = var.org_name
+  team_name                = "devops-team"
+  user_repos               = var.devops_repos
+  include_all_repositories = true
   providers = {
     gitea = gitea
   }

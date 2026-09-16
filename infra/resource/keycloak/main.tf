@@ -126,10 +126,11 @@ module "argocd_oidc" {
 }
 
 module "kiali_oidc" {
-  source    = "./modules/kiali-oidc"
-  realm_id  = module.infra_realm.realm_id
-  kiali_url = var.kiali_url
-  namespace = var.kiali_namespace
+  source            = "./modules/kiali-oidc"
+  realm_id          = module.infra_realm.realm_id
+  groups_scope_name = module.infra_realm.groups_scope_name
+  kiali_url         = var.kiali_url
+  namespace         = var.kiali_namespace
   providers = {
     keycloak   = keycloak
     vault      = vault

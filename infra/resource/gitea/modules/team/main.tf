@@ -11,6 +11,6 @@ resource "gitea_team" "team" {
   organisation             = var.org_name
   permission               = "write"
   repositories             = var.user_repos
-  include_all_repositories = false
+  include_all_repositories = var.include_all_repositories
 }
 
