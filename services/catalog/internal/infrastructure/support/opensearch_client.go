@@ -20,6 +20,9 @@ const (
 	opensearchResponseHeaderTimeout = 10 * time.Second
 	opensearchIdleConnTimeout       = 90 * time.Second
 	opensearchMaxIdleConnsPerHost   = 16
+	opensearchMaxRetries            = 2
+	opensearchRetryBaseBackoff      = 200 * time.Millisecond
+	opensearchRetryMaxBackoff       = 2 * time.Second
 )
 
 type OpensearchClient struct {
@@ -30,20 +33,45 @@ func NewOpensearchClient(cfg *config.OpensearchConfig) (*OpensearchClient, error
 	if cfg == nil {
 		return nil, fmt.Errorf("opensearch config is nil")
 	}
-	addr := fmt.Sprintf("%s://%s:%d", cfg.Scheme, cfg.Host, cfg.Port)
-	clientCfg := opensearchapi.Config{
-		Client: opensearchgo.Config{
-			Addresses: []string{addr},
-			Username:  cfg.Username,
-			Password:  cfg.Password,
-			Transport: newOpensearchTransport(cfg.Insecure),
-		},
-	}
-	c, err := opensearchapi.NewClient(clientCfg)
+	c, err := opensearchapi.NewClient(newOpensearchConfig(cfg))
 	if err != nil {
 		return nil, err
 	}
 	return &OpensearchClient{Client: c}, nil
+}
+
+func newOpensearchConfig(cfg *config.OpensearchConfig) opensearchapi.Config {
+	addr := fmt.Sprintf("%s://%s:%d", cfg.Scheme, cfg.Host, cfg.Port)
+	return opensearchapi.Config{
+		Client: opensearchgo.Config{
+			Addresses:     []string{addr},
+			Username:      cfg.Username,
+			Password:      cfg.Password,
+			Transport:     newOpensearchTransport(cfg.Insecure),
+			MaxRetries:    opensearchMaxRetries,
+			RetryOnStatus: opensearchRetryStatuses(),
+			RetryBackoff:  opensearchRetryBackoff,
+		},
+	}
+}
+
+func opensearchRetryStatuses() []int {
+	return []int{
+		http.StatusBadGateway,
+		http.StatusServiceUnavailable,
+		http.StatusGatewayTimeout,
+	}
+}
+
+func opensearchRetryBackoff(attempt int) time.Duration {
+	if attempt < 1 {
+		attempt = 1
+	}
+	backoff := opensearchRetryBaseBackoff << (attempt - 1)
+	if backoff <= 0 || backoff > opensearchRetryMaxBackoff {
+		return opensearchRetryMaxBackoff
+	}
+	return backoff
 }
 
 func newOpensearchTransport(insecure bool) *http.Transport {

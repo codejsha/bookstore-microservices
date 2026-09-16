@@ -6,10 +6,12 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
 
 	"github.com/codejsha/shared-library-go/pkg/config"
@@ -22,6 +24,7 @@ func newTestGinServer(t *testing.T) *GinServer {
 	serverCfg := &config.ServerConfig{Host: "127.0.0.1", Port: "0", Mode: gin.TestMode}
 	return NewGinServer(
 		fxtest.NewLifecycle(t),
+		nil,
 		serverCfg,
 		logging.NewLogHelper(appCfg),
 		nil,
@@ -181,5 +184,74 @@ func TestGinServer_httpServer_boundsReadWriteAndIdle(t *testing.T) {
 	}
 	if s.server.WriteTimeout <= requestTimeout {
 		t.Fatalf("write timeout %v must exceed request timeout %v", s.server.WriteTimeout, requestTimeout)
+	}
+}
+
+type stubShutdowner struct {
+	mu    sync.Mutex
+	calls int
+}
+
+func (s *stubShutdowner) Shutdown(...fx.ShutdownOption) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.calls++
+	return nil
+}
+
+func (s *stubShutdowner) Calls() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.calls
+}
+
+func TestGinServer_serve_listenerBroken_signalsApplicationShutdown(t *testing.T) {
+	s := newTestGinServer(t)
+	stub := &stubShutdowner{}
+	s.shutdowner = stub
+
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	if err := listener.Close(); err != nil {
+		t.Fatalf("close listener: %v", err)
+	}
+
+	s.serve(listener)
+
+	if calls := stub.Calls(); calls != 1 {
+		t.Fatalf("shutdown signals = %d, want 1: a dead listener must terminate the app", calls)
+	}
+}
+
+func TestGinServer_serve_gracefulShutdown_appKeptRunning(t *testing.T) {
+	s := newTestGinServer(t)
+	stub := &stubShutdowner{}
+	s.shutdowner = stub
+
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	done := make(chan struct{})
+	go func() {
+		s.serve(listener)
+		close(done)
+	}()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := s.server.Shutdown(ctx); err != nil {
+		t.Fatalf("shutdown: %v", err)
+	}
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("serve did not return after a graceful shutdown")
+	}
+	if calls := stub.Calls(); calls != 0 {
+		t.Fatalf("shutdown signals = %d, want 0 for a graceful close", calls)
 	}
 }
