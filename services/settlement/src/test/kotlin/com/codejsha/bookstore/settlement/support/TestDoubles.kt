@@ -3,6 +3,7 @@ package com.codejsha.bookstore.settlement.support
 import com.codejsha.bookstore.settlement.application.SettlementRunConflictException
 import com.codejsha.bookstore.settlement.application.port.LaunchedRun
 import com.codejsha.bookstore.settlement.application.port.SettlementJobLauncher
+import com.codejsha.bookstore.settlement.application.port.SettlementRunLock
 import com.codejsha.bookstore.settlement.application.port.repo.DailySettlementRepo
 import com.codejsha.bookstore.settlement.application.port.repo.DailySettlementResult
 import com.codejsha.bookstore.settlement.application.port.repo.SettlementDetailRepo
@@ -17,6 +18,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 class FakeTransactionRunner : TransactionRunner {
     override fun <T> tx(block: () -> T): T = block()
@@ -61,6 +63,26 @@ class FakeSettlementJobLauncher(
 
 fun conflictingLauncher(message: String = "already running"): FakeSettlementJobLauncher =
     FakeSettlementJobLauncher(launchError = SettlementRunConflictException(message))
+
+class FakeSettlementRunLock(
+    heldBy: Map<LocalDate, String> = emptyMap(),
+) : SettlementRunLock {
+
+    private val holders = ConcurrentHashMap<LocalDate, String>().apply { putAll(heldBy) }
+
+    override fun tryAcquire(targetDate: LocalDate, ownerToken: String): Boolean =
+        holders.putIfAbsent(targetDate, ownerToken) == null
+
+    override fun isHeldBy(targetDate: LocalDate, ownerToken: String): Boolean =
+        holders[targetDate] == ownerToken
+
+    override fun release(targetDate: LocalDate, ownerToken: String): Boolean =
+        holders.remove(targetDate, ownerToken)
+
+    fun isHeld(targetDate: LocalDate): Boolean = holders.containsKey(targetDate)
+
+    fun holderOf(targetDate: LocalDate): String? = holders[targetDate]
+}
 
 class FakeSettlementDetailRepo(
     private val rows: List<SettlementDetailResult>,

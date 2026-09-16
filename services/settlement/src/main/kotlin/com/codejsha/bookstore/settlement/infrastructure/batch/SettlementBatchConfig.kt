@@ -50,6 +50,8 @@ class SettlementBatchConfig(
     fun dailySettlementJob(
         jobRepository: JobRepository,
         listener: SettlementJobListener,
+        lockListener: SettlementRunLockListener,
+        lockGuardStep: Step,
         cleanupStep: Step,
         extractPaymentsStep: Step,
         extractRefundsStep: Step,
@@ -57,15 +59,42 @@ class SettlementBatchConfig(
         reconcileStep: Step,
     ): Job =
         JobBuilder("dailySettlementJob", jobRepository)
+            .listener(lockListener)
             .listener(listener)
-            .start(cleanupStep)
+            .start(lockGuardStep)
+            .next(cleanupStep)
             .next(extractPaymentsStep)
             .next(extractRefundsStep)
             .next(aggregateStep)
             .next(reconcileStep)
             .build()
 
-    // ─── Step 0: cleanup / idempotency (delete-insert) ─────────────────────────
+    // ─── Step 0: run-lock ownership guard ──────────────────────────────────────
+
+    @Bean
+    fun lockGuardStep(
+        jobRepository: JobRepository,
+        transactionManager: PlatformTransactionManager,
+        lockGuardTasklet: Tasklet,
+    ): Step =
+        StepBuilder("lockGuardStep", jobRepository)
+            .tasklet(lockGuardTasklet, transactionManager)
+            .allowStartIfComplete(true)
+            .build()
+
+    @Bean
+    @StepScope
+    fun lockGuardTasklet(
+        lockGuard: SettlementRunLockGuard,
+        @Value("#{jobParameters['targetDate']}") targetDate: LocalDate,
+        @Value("#{jobParameters['runUid']}") runUid: String?,
+    ): Tasklet =
+        Tasklet { _, _ ->
+            lockGuard.verifyOwnership(targetDate, runUid)
+            RepeatStatus.FINISHED
+        }
+
+    // ─── Step 1: cleanup / idempotency (delete-insert) ─────────────────────────
 
     @Bean
     fun cleanupStep(

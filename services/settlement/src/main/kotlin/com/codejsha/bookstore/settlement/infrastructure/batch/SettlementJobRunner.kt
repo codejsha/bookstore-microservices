@@ -1,5 +1,6 @@
 package com.codejsha.bookstore.settlement.infrastructure.batch
 
+import com.codejsha.bookstore.settlement.application.port.SettlementRunLock
 import com.codejsha.bookstore.settlement.config.properties.SettlementBatchProperties
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.BatchStatus
@@ -21,6 +22,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 import kotlin.system.exitProcess
+import kotlin.uuid.Uuid
+import kotlin.uuid.toJavaUuid
 
 @Component
 @Profile("batch")
@@ -29,6 +32,7 @@ class SettlementJobRunner(
     private val dailySettlementJob: Job,
     private val jobRepository: JobRepository,
     private val staleExecutionRecovery: StaleExecutionRecovery,
+    private val runLock: SettlementRunLock,
     private val applicationContext: ConfigurableApplicationContext,
     private val properties: SettlementBatchProperties,
 ) : ApplicationRunner {
@@ -41,11 +45,14 @@ class SettlementJobRunner(
             ?.let { LocalDate.parse(it) }
             ?: LocalDate.now(ZoneId.of(properties.timezone)).minusDays(1)
 
-        val builder = JobParametersBuilder().addLocalDate("targetDate", targetDate, true)
+        val runUid = Uuid.generateV7().toJavaUuid().toString()
+        val builder = JobParametersBuilder()
+            .addLocalDate("targetDate", targetDate, true)
+            .addString("runUid", runUid, false)
         args.getOptionValues("rerun.id")?.firstOrNull()?.let { builder.addString("rerun.id", it, true) }
 
         val code = try {
-            launch(targetDate, builder.toJobParameters())
+            launch(targetDate, runUid, builder.toJobParameters())
         } catch (e: Exception) {
             log.error("Settlement run for {} failed to launch", targetDate, e)
             1
@@ -54,40 +61,49 @@ class SettlementJobRunner(
         exitProcess(exitCode)
     }
 
-    private fun launch(targetDate: LocalDate, baseParameters: JobParameters): Int {
-        staleExecutionRecovery.abandonStaleFor(dailySettlementJob.name, targetDate)
-
-        if (staleExecutionRecovery.hasLiveExecution(dailySettlementJob.name, targetDate)) {
-            log.warn("A live settlement execution for {} is already running; exiting", targetDate)
+    private fun launch(targetDate: LocalDate, runUid: String, baseParameters: JobParameters): Int {
+        if (!runLock.tryAcquire(targetDate, runUid)) {
+            log.warn("Another settlement run holds the lock for {}; exiting", targetDate)
             return 1
         }
 
-        val last = jobRepository.getLastJobExecution(dailySettlementJob.name, baseParameters)
-        val parameters = when {
-            last == null -> baseParameters
-            last.status == BatchStatus.COMPLETED -> {
-                log.info("Settlement for {} is already complete; nothing to do", targetDate)
-                return 0
-            }
-            else -> {
-                log.warn(
-                    "Prior settlement execution for {} ended {}; rebuilding as a new instance",
-                    targetDate, last.status,
-                )
-                JobParametersBuilder(baseParameters)
-                    .addString("recovery.id", UUID.randomUUID().toString(), true)
-                    .toJobParameters()
-            }
-        }
+        try {
+            staleExecutionRecovery.abandonStaleFor(dailySettlementJob.name, targetDate)
 
-        return try {
-            val execution = jobOperator.start(dailySettlementJob, parameters)
-            if (execution.status == BatchStatus.COMPLETED) 0 else 1
-        } catch (e: JobInstanceAlreadyCompleteException) {
-            0
-        } catch (e: JobExecutionAlreadyRunningException) {
-            log.warn("Settlement for {} started concurrently elsewhere; exiting", targetDate)
-            1
+            if (staleExecutionRecovery.hasLiveExecution(dailySettlementJob.name, targetDate)) {
+                log.warn("A live settlement execution for {} is already running; exiting", targetDate)
+                return 1
+            }
+
+            val last = jobRepository.getLastJobExecution(dailySettlementJob.name, baseParameters)
+            val parameters = when {
+                last == null -> baseParameters
+                last.status == BatchStatus.COMPLETED -> {
+                    log.info("Settlement for {} is already complete; nothing to do", targetDate)
+                    return 0
+                }
+                else -> {
+                    log.warn(
+                        "Prior settlement execution for {} ended {}; rebuilding as a new instance",
+                        targetDate, last.status,
+                    )
+                    JobParametersBuilder(baseParameters)
+                        .addString("recovery.id", UUID.randomUUID().toString(), true)
+                        .toJobParameters()
+                }
+            }
+
+            return try {
+                val execution = jobOperator.start(dailySettlementJob, parameters)
+                if (execution.status == BatchStatus.COMPLETED) 0 else 1
+            } catch (e: JobInstanceAlreadyCompleteException) {
+                0
+            } catch (e: JobExecutionAlreadyRunningException) {
+                log.warn("Settlement for {} started concurrently elsewhere; exiting", targetDate)
+                1
+            }
+        } finally {
+            runLock.release(targetDate, runUid)
         }
     }
 }

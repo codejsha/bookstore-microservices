@@ -1,5 +1,6 @@
 package com.codejsha.bookstore.settlement.infrastructure.batch
 
+import com.codejsha.bookstore.settlement.application.port.SettlementRunLock
 import com.codejsha.bookstore.settlement.config.properties.SettlementBatchProperties
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.BatchStatus
@@ -18,6 +19,7 @@ import javax.sql.DataSource
 class StaleExecutionRecovery(
     private val jobRepository: JobRepository,
     private val properties: SettlementBatchProperties,
+    private val runLock: SettlementRunLock,
     dataSource: DataSource,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -41,11 +43,18 @@ class StaleExecutionRecovery(
     }
 
     fun isStale(execution: JobExecution): Boolean {
+        if (isLockOrphaned(execution)) return true
         val lastActivity = (
             execution.stepExecutions.mapNotNull { it.lastUpdated } +
                 listOfNotNull(execution.lastUpdated, execution.startTime)
             ).maxOrNull() ?: return true
         return Duration.between(lastActivity, LocalDateTime.now()) > properties.staleExecutionTimeout
+    }
+
+    private fun isLockOrphaned(execution: JobExecution): Boolean {
+        val targetDate = execution.jobParameters.getLocalDate("targetDate") ?: return false
+        val ownerToken = execution.jobParameters.getString("runUid") ?: return false
+        return !runLock.isHeldBy(targetDate, ownerToken)
     }
 
     private fun abandon(execution: JobExecution) {
@@ -75,9 +84,15 @@ class StaleExecutionRecovery(
             """.trimIndent(),
             nowUtc, nowUtc, description, execution.id,
         )
+
+        val targetDate = execution.jobParameters.getLocalDate("targetDate")
+        val ownerToken = execution.jobParameters.getString("runUid")
+        if (targetDate != null && ownerToken != null) {
+            runLock.release(targetDate, ownerToken)
+        }
         log.warn(
             "Abandoned stale settlement execution {} (targetDate={}): {}",
-            execution.id, execution.jobParameters.getLocalDate("targetDate"), description,
+            execution.id, targetDate, description,
         )
     }
 }

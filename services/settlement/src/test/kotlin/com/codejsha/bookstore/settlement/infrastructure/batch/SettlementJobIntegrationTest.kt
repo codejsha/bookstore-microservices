@@ -1,6 +1,12 @@
 package com.codejsha.bookstore.settlement.infrastructure.batch
 
+import com.codejsha.bookstore.settlement.application.SettlementRunConflictException
+import com.codejsha.bookstore.settlement.application.port.SettlementRunLock
+import com.codejsha.bookstore.settlement.application.usecase.TriggerSettlementRunUseCase
+import com.codejsha.bookstore.settlement.domain.model.command.TriggerSettlementRunCommand
 import com.codejsha.bookstore.settlement.infrastructure.support.utils.uuidToBytes
+import com.codejsha.platform.shared.data.ActorContext
+import com.codejsha.platform.shared.data.ActorType
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -26,6 +32,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
+import kotlin.test.assertFailsWith
 import javax.sql.DataSource
 
 @SpringBootTest(
@@ -53,13 +60,21 @@ class SettlementJobIntegrationTest {
     @Autowired
     private lateinit var dataSource: DataSource
 
+    @Autowired
+    private lateinit var runLock: SettlementRunLock
+
+    @Autowired
+    private lateinit var triggerSettlementRunUseCase: TriggerSettlementRunUseCase
+
     private val settlementJdbc: JdbcTemplate by lazy { JdbcTemplate(dataSource) }
+
+    private val actorContext = ActorContext(actorId = 0L, actorType = ActorType.USER)
 
     private val kst = ZoneId.of("Asia/Seoul")
 
     @BeforeEach
     fun cleanTables() {
-        listOf("settlement_detail", "daily_settlement", "settlement_job_run")
+        listOf("settlement_detail", "daily_settlement", "settlement_job_run", "settlement_run_lock")
             .forEach { settlementJdbc.execute("DELETE FROM $it") }
         listOf("payments", "refunds").forEach { paymentJdbc.execute("DELETE FROM $it") }
     }
@@ -213,15 +228,99 @@ class SettlementJobIntegrationTest {
         assertEquals(1_000L, bucket(date, "KRW", "card").gross)
     }
 
+    @Test
+    fun `runLock_dateAlreadyLocked_secondAcquireIsRejected`() {
+        val date = LocalDate.of(2026, 7, 21)
+
+        assertEquals(true, runLock.tryAcquire(date, "run-1"))
+        assertEquals(false, runLock.tryAcquire(date, "run-2"))
+        assertEquals(true, runLock.tryAcquire(date.minusDays(1), "run-2"))
+    }
+
+    @Test
+    fun `triggerSettlementRun_dateLockedByAnotherPod_rejectsEvenARerunRequest`() {
+        val date = LocalDate.now(kst).minusDays(2)
+        assertEquals(true, runLock.tryAcquire(date, "other-pod-run"))
+
+        assertFailsWith<SettlementRunConflictException> {
+            triggerSettlementRunUseCase.triggerSettlementRun(
+                TriggerSettlementRunCommand(targetDate = date, rerun = true),
+                actorContext,
+            )
+        }
+        assertEquals(true, runLock.isHeldBy(date, "other-pod-run"))
+    }
+
+    @Test
+    fun `settlementJob_runLockLostBeforeStart_failsWithoutMutatingSettlementData`() {
+        val date = LocalDate.of(2026, 7, 19)
+        insertPayment("pay_guard", amount = 1_000, captured = 1_000, "KRW", "card", "succeeded", kstAt(date, 10, 0))
+        seedDetail(date, "PAYMENT", "det_guard", amount = 7_000, "KRW", "card", kstAt(date, 9, 0))
+
+        val runUid = UUID.randomUUID().toString()
+        assertEquals(true, runLock.tryAcquire(date, runUid))
+        assertEquals(true, runLock.release(date, runUid))
+
+        val execution = jobLauncherTestUtils.launchJob(jobParameters(date, runUid = runUid))
+
+        assertEquals(BatchStatus.FAILED, execution.status)
+        assertEquals(listOf("det_guard"), detailSourceIds(date))
+        assertEquals(0, bucketCount(date))
+    }
+
+    @Test
+    fun `settlementJob_completedRun_releasesTheDateLock`() {
+        val date = LocalDate.of(2026, 7, 22)
+        insertPayment("pay_ok", amount = 1_000, captured = 1_000, "KRW", "card", "succeeded", kstAt(date, 10, 0))
+
+        assertEquals(BatchStatus.COMPLETED, runJob(date))
+
+        assertEquals(false, lockHeld(date))
+        assertEquals(true, runLock.tryAcquire(date, "next-run"))
+    }
+
+    @Test
+    fun `settlementJob_failedRun_releasesTheDateLock`() {
+        val date = LocalDate.of(2026, 7, 23)
+        insertPayment("pay_dup", amount = 1_000, captured = 1_000, "KRW", "card", "succeeded", kstAt(date, 10, 0))
+        seedDetail(date.minusDays(5), "PAYMENT", "pay_dup", amount = 1_000, "KRW", "card", kstAt(date, 10, 0))
+
+        assertEquals(BatchStatus.FAILED, runJob(date))
+
+        assertEquals(false, lockHeld(date))
+        assertEquals(true, runLock.tryAcquire(date, "next-run"))
+    }
+
+    @Test
+    fun `runLock_lapsedLease_isTakenOverByTheNextRun`() {
+        val date = LocalDate.of(2026, 7, 24)
+        assertEquals(true, runLock.tryAcquire(date, "crashed-run"))
+
+        val lapsed = LocalDateTime.now(ZoneOffset.UTC).minusMinutes(10)
+        settlementJdbc.update(
+            "UPDATE settlement_run_lock SET heartbeat_at = ?, expires_at = ? WHERE target_date = ?",
+            lapsed, lapsed, date,
+        )
+
+        assertEquals(false, runLock.isHeldBy(date, "crashed-run"))
+        assertEquals(true, runLock.tryAcquire(date, "recovering-run"))
+        assertEquals(true, runLock.isHeldBy(date, "recovering-run"))
+        assertEquals(false, runLock.tryAcquire(date, "yet-another-run"))
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
-    private fun runJob(date: LocalDate, rerunId: String? = null): BatchStatus =
-        jobLauncherTestUtils.launchJob(jobParameters(date, rerunId)).status
+    private fun runJob(date: LocalDate, rerunId: String? = null): BatchStatus {
+        val runUid = UUID.randomUUID().toString()
+        check(runLock.tryAcquire(date, runUid)) { "the settlement run lock for $date must be free" }
+        return jobLauncherTestUtils.launchJob(jobParameters(date, rerunId, runUid)).status
+    }
 
-    private fun jobParameters(date: LocalDate, rerunId: String? = null) =
+    private fun jobParameters(date: LocalDate, rerunId: String? = null, runUid: String? = null) =
         JobParametersBuilder()
             .addLocalDate("targetDate", date, true)
             .also { if (rerunId != null) it.addString("rerun.id", rerunId, true) }
+            .also { if (runUid != null) it.addString("runUid", runUid, false) }
             .toJobParameters()
 
     private fun kstAt(date: LocalDate, hour: Int, minute: Int): LocalDateTime =
@@ -337,6 +436,21 @@ class SettlementJobIntegrationTest {
             "SELECT COUNT(*) FROM settlement_detail WHERE settlement_date = ?", Int::class.java, date,
         )!!
 
+    private fun detailSourceIds(date: LocalDate): List<String> =
+        settlementJdbc.query(
+            "SELECT source_id FROM settlement_detail WHERE settlement_date = ? ORDER BY source_id",
+            { rs, _ -> rs.getString("source_id") }, date,
+        )
+
+    private fun lockHeld(date: LocalDate): Boolean =
+        settlementJdbc.queryForObject(
+            """
+            SELECT COUNT(*) FROM settlement_run_lock
+             WHERE target_date = ? AND released_at IS NULL AND deleted_at IS NULL AND expires_at > ?
+            """.trimIndent(),
+            Int::class.java, date, LocalDateTime.now(ZoneOffset.UTC),
+        )!! > 0
+
     private fun bucketCount(date: LocalDate): Int =
         settlementJdbc.queryForObject(
             "SELECT COUNT(*) FROM daily_settlement WHERE settlement_date = ?", Int::class.java, date,
@@ -441,6 +555,8 @@ class SettlementJobIntegrationTest {
             registry.add("settlement.timezone") { "Asia/Seoul" }
             registry.add("settlement.chunk-size") { 2 }
             registry.add("settlement.stale-execution-timeout") { "PT5M" }
+            registry.add("settlement.lock.ttl") { "PT5M" }
+            registry.add("settlement.lock.heartbeat-interval") { "PT1H" }
             registry.add("settlement.payment-db.host") { mysql.host }
             registry.add("settlement.payment-db.port") { mysql.getMappedPort(3306) }
             registry.add("settlement.payment-db.params") { "allowPublicKeyRetrieval=true&useSSL=false" }
