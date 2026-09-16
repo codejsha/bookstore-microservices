@@ -42,6 +42,13 @@ func (c *CacheClient) Get(ctx context.Context, key string, dest interface{}) err
 	return json.Unmarshal([]byte(val), dest)
 }
 
+func (c *CacheClient) MGet(ctx context.Context, keys ...string) ([]any, error) {
+	if len(keys) == 0 {
+		return nil, nil
+	}
+	return c.client.MGet(ctx, keys...).Result()
+}
+
 func (c *CacheClient) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
 	data, err := json.Marshal(value)
 	if err != nil {

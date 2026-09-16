@@ -2,7 +2,9 @@ package support
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -16,12 +18,19 @@ func riskKey(sub string) string { return "identity:risk:" + sub }
 
 func autoRiskKey(sub string) string { return "identity:risk:auto:" + sub }
 
+type riskBatchStore interface {
+	SMembers(ctx context.Context, key string) ([]string, error)
+	MGet(ctx context.Context, keys ...string) ([]any, error)
+	SRem(ctx context.Context, key string, members ...string) error
+}
+
 type RiskCache struct {
 	*CacheClient
+	batch riskBatchStore
 }
 
 func NewRiskCache(c *CacheClient) *RiskCache {
-	return &RiskCache{CacheClient: c}
+	return &RiskCache{CacheClient: c, batch: c}
 }
 
 func (r *RiskCache) Flag(ctx context.Context, entry security.RiskEntry, ttl time.Duration) error {
@@ -59,23 +68,76 @@ func (r *RiskCache) getEntry(ctx context.Context, key string) (*security.RiskEnt
 }
 
 func (r *RiskCache) List(ctx context.Context) ([]security.RiskEntry, error) {
-	subs, err := r.SMembers(ctx, riskIndexKey)
+	subs, err := r.batch.SMembers(ctx, riskIndexKey)
 	if err != nil {
 		return nil, err
 	}
-	entries := make([]security.RiskEntry, 0, len(subs))
-	for _, sub := range subs {
-		entry, err := r.Check(ctx, sub)
-		if err != nil {
-			return nil, err
-		}
-		if entry == nil {
-			_ = r.SRem(ctx, riskIndexKey, sub)
-			continue
-		}
-		entries = append(entries, *entry)
+	if len(subs) == 0 {
+		return []security.RiskEntry{}, nil
 	}
+
+	values, err := r.batch.MGet(ctx, riskKeysFor(subs, riskKey)...)
+	if err != nil {
+		return nil, err
+	}
+	entries, missing, err := decodeRiskValues(subs, values)
+	if err != nil {
+		return nil, err
+	}
+	if len(missing) == 0 {
+		return entries, nil
+	}
+
+	autoValues, err := r.batch.MGet(ctx, riskKeysFor(missing, autoRiskKey)...)
+	if err != nil {
+		return nil, err
+	}
+	autoEntries, stale, err := decodeRiskValues(missing, autoValues)
+	if err != nil {
+		return nil, err
+	}
+	entries = append(entries, autoEntries...)
+	if len(stale) > 0 {
+		_ = r.batch.SRem(ctx, riskIndexKey, stale...)
+	}
+
 	return entries, nil
+}
+
+func riskKeysFor(subs []string, keyFn func(string) string) []string {
+	keys := make([]string, len(subs))
+	for i, sub := range subs {
+		keys[i] = keyFn(sub)
+	}
+	return keys
+}
+
+func decodeRiskValues(subs []string, values []any) ([]security.RiskEntry, []string, error) {
+	if len(values) != len(subs) {
+		return nil, nil, fmt.Errorf("risk cache: got %d values for %d subjects", len(values), len(subs))
+	}
+	entries := make([]security.RiskEntry, 0, len(subs))
+	missing := make([]string, 0, len(subs))
+	for i, value := range values {
+		var raw []byte
+		switch v := value.(type) {
+		case nil:
+			missing = append(missing, subs[i])
+			continue
+		case string:
+			raw = []byte(v)
+		case []byte:
+			raw = v
+		default:
+			return nil, nil, fmt.Errorf("risk cache: unexpected value type %T for subject %s", value, subs[i])
+		}
+		var entry security.RiskEntry
+		if err := json.Unmarshal(raw, &entry); err != nil {
+			return nil, nil, fmt.Errorf("risk cache: decode entry for subject %s: %w", subs[i], err)
+		}
+		entries = append(entries, entry)
+	}
+	return entries, missing, nil
 }
 
 func ProvideRiskStore(r *RiskCache) security.RiskStore     { return r }
