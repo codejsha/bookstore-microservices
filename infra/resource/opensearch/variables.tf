@@ -3,6 +3,16 @@ variable "opensearch_api_url" {
   type        = string
 }
 
+variable "keycloak_issuer_url" {
+  description = "Keycloak platform-infra realm issuer URL as published in its OIDC discovery document"
+  type        = string
+}
+
+variable "oidc_client_id" {
+  description = "Keycloak client ID of OpenSearch Dashboards, required as the ID token audience"
+  type        = string
+}
+
 variable "vault_url" {
   description = "Vault URL"
   type        = string

@@ -3,6 +3,8 @@ replicas: 3
 extraEnvs:
   - name: plugins.security.ssl.http.enabled
     value: "false"
+  - name: plugins.security.unsupported.restapi.allow_securityconfig_modification
+    value: "true"
   - name: BASH_ENV
     value: "/vault/secrets/env-admin"
 

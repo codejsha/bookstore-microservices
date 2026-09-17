@@ -52,6 +52,8 @@ inputs = {
   gitea_namespace    = "gitea"
   temporal_url       = "https://temporal.example.com"
   temporal_namespace = "temporal"
+  opensearch_url       = "https://opensearch.example.com"
+  opensearch_namespace = "opensearch"
   grafana_namespace = "grafana"
 
   web_root_url                        = "http://localhost:5173"

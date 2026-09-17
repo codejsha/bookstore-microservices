@@ -177,3 +177,13 @@ variable "temporal_namespace" {
   description = "Temporal namespace"
   type        = string
 }
+
+variable "opensearch_url" {
+  description = "OpenSearch Dashboards external URL"
+  type        = string
+}
+
+variable "opensearch_namespace" {
+  description = "OpenSearch namespace"
+  type        = string
+}
