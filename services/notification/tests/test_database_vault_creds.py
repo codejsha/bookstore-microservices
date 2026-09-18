@@ -76,3 +76,40 @@ class TestCreateSessionFactory:
     def test_create_session_factory_empty_prefix_raises(self) -> None:
         with pytest.raises(ValueError):
             database.create_session_factory(DatabaseConfig(), "")
+
+
+class TestCreateReadinessEngine:
+    def test_create_readiness_engine_empty_prefix_raises(self) -> None:
+        with pytest.raises(ValueError):
+            database.create_readiness_engine(DatabaseConfig(), "")
+
+    async def test_create_readiness_engine_pool_smaller_than_application_pool(self) -> None:
+        app_engine = database.create_session_factory(DatabaseConfig(), ENV_PREFIX).kw["bind"]
+        readiness_engine = database.create_readiness_engine(DatabaseConfig(), ENV_PREFIX)
+        try:
+            assert database._READINESS_POOL_SIZE < database._APP_POOL_SIZE
+            assert database._READINESS_MAX_OVERFLOW < database._APP_MAX_OVERFLOW
+            assert readiness_engine.pool.size() == database._READINESS_POOL_SIZE
+            assert readiness_engine.pool.size() < app_engine.pool.size()
+        finally:
+            await readiness_engine.dispose()
+            await app_engine.dispose()
+
+    async def test_create_readiness_engine_vault_file_present_overrides_credentials(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        env_file = tmp_path / "db.env"
+        _write_env_file(env_file, "vault-user", "vault-pass")
+        monkeypatch.setattr(database, "_VAULT_ENV_FILE", str(env_file))
+
+        engine = database.create_readiness_engine(DatabaseConfig(), ENV_PREFIX)
+        try:
+            listeners = list(engine.sync_engine.dialect.dispatch.do_connect)
+            assert len(listeners) == 1
+
+            cparams = {"user": "static-user", "password": "static-pass"}
+            listeners[0](None, None, [], cparams)
+
+            assert cparams == {"user": "vault-user", "password": "vault-pass"}
+        finally:
+            await engine.dispose()

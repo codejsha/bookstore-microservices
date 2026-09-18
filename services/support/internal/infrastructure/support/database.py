@@ -9,6 +9,11 @@ from internal.config.config import DatabaseConfig
 
 _VAULT_ENV_FILE = "/vault/secrets/db.env"
 
+_APP_POOL_SIZE = 10
+_APP_MAX_OVERFLOW = 20
+_READINESS_POOL_SIZE = 1
+_READINESS_MAX_OVERFLOW = 1
+
 
 @dataclass
 class _CredsCache:
@@ -63,17 +68,19 @@ def _make_do_connect(prefix: str, cache: _CredsCache):
     return do_connect
 
 
-def create_engine_and_session_factory(
+def _create_engine(
     config: DatabaseConfig,
     vault_env_prefix: str,
-) -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
+    pool_size: int,
+    max_overflow: int,
+) -> AsyncEngine:
     if not vault_env_prefix:
         raise ValueError("vault_env_prefix must not be empty")
 
     engine = create_async_engine(
         config.url,
-        pool_size=10,
-        max_overflow=20,
+        pool_size=pool_size,
+        max_overflow=max_overflow,
         pool_timeout=30,
         pool_recycle=1800,
         pool_pre_ping=True,
@@ -88,7 +95,19 @@ def create_engine_and_session_factory(
         _make_do_connect(vault_env_prefix, _cache),
     )
 
+    return engine
+
+
+def create_engine_and_session_factory(
+    config: DatabaseConfig,
+    vault_env_prefix: str,
+) -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
+    engine = _create_engine(config, vault_env_prefix, _APP_POOL_SIZE, _APP_MAX_OVERFLOW)
     return engine, async_sessionmaker(bind=engine, expire_on_commit=False)
+
+
+def create_readiness_engine(config: DatabaseConfig, vault_env_prefix: str) -> AsyncEngine:
+    return _create_engine(config, vault_env_prefix, _READINESS_POOL_SIZE, _READINESS_MAX_OVERFLOW)
 
 
 def create_session_factory(config: DatabaseConfig, vault_env_prefix: str) -> async_sessionmaker[AsyncSession]:

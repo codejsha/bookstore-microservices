@@ -65,6 +65,7 @@ def create_app() -> FastAPI:
             if grpc_runner is not None:
                 await grpc_runner.stop()
             await temporal_runner.stop()
+            await container.close_readiness()
 
     app = FastAPI(
         title="Delivery Service",

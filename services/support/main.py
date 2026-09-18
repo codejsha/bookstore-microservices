@@ -36,6 +36,7 @@ def create_app() -> FastAPI:
             yield
         finally:
             await container.engine.dispose()
+            await container.close_readiness()
 
     app = FastAPI(title="Support Service", version="1.0.0", lifespan=lifespan)
     register_problem_handlers(app)
