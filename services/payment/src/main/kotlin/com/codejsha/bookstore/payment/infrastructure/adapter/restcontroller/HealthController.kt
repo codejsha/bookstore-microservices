@@ -1,5 +1,6 @@
 package com.codejsha.bookstore.payment.infrastructure.adapter.restcontroller
 
+import com.codejsha.bookstore.payment.infrastructure.support.ReadinessDataSource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -7,10 +8,9 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import javax.sql.DataSource
 
 @RestController
-class HealthController(private val dataSources: List<DataSource>) {
+class HealthController(private val readinessDataSource: ReadinessDataSource) {
 
     private val readinessExecutor: ExecutorService =
         Executors.newCachedThreadPool { r -> Thread(r, "health-ready").apply { isDaemon = true } }
@@ -20,15 +20,15 @@ class HealthController(private val dataSources: List<DataSource>) {
 
     @GetMapping("/health/ready")
     fun ready(): ResponseEntity<Void> =
-        if (dataSources.all { isReachable(it) }) {
+        if (isReachable()) {
             ResponseEntity.ok().build()
         } else {
             ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build()
         }
 
-    private fun isReachable(dataSource: DataSource): Boolean {
+    private fun isReachable(): Boolean {
         val probe = readinessExecutor.submit<Boolean> {
-            dataSource.connection.use { it.isValid(VALIDATION_TIMEOUT_SECONDS) }
+            readinessDataSource.isReachable(VALIDATION_TIMEOUT_SECONDS)
         }
         return try {
             probe.get(READINESS_TIMEOUT_SECONDS, TimeUnit.SECONDS)
