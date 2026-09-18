@@ -10,7 +10,10 @@ from internal.infrastructure.adapter.mysql.template_repo import MySQLTemplateRep
 from internal.infrastructure.adapter.temporal.activities import NotificationActivities
 from internal.infrastructure.adapter.temporal.temporal_auth import build_temporal_token_provider
 from internal.infrastructure.adapter.temporal.worker import TemporalWorker
-from internal.infrastructure.support.database import create_readiness_engine, create_session_factory
+from internal.infrastructure.support.database import (
+    create_engine_and_session_factory,
+    create_readiness_engine,
+)
 
 _PING_TIMEOUT = 3.0
 
@@ -18,7 +21,7 @@ _PING_TIMEOUT = 3.0
 class Container:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self._session_factory = create_session_factory(settings.database, vault_env_prefix())
+        self.engine, self._session_factory = create_engine_and_session_factory(settings.database, vault_env_prefix())
         self._readiness_engine = create_readiness_engine(settings.database, vault_env_prefix())
 
         self.notification_repo: NotificationRepository = MySQLNotificationRepository(self._session_factory)
@@ -49,3 +52,7 @@ class Container:
 
     async def close_readiness(self) -> None:
         await self._readiness_engine.dispose()
+
+    async def dispose(self) -> None:
+        await self.engine.dispose()
+        await self.close_readiness()

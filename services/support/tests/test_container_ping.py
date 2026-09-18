@@ -11,9 +11,19 @@ from internal.di.container import Container
 class _StubContainer:
     ping_db = Container.ping_db
     close_readiness = Container.close_readiness
+    dispose = Container.dispose
 
-    def __init__(self, readiness_engine: AsyncEngine) -> None:
+    def __init__(self, readiness_engine: AsyncEngine, engine: object | None = None) -> None:
         self._readiness_engine = readiness_engine
+        self.engine = engine
+
+
+class _CountingEngine:
+    def __init__(self) -> None:
+        self.dispose_calls = 0
+
+    async def dispose(self) -> None:
+        self.dispose_calls += 1
 
 
 @pytest_asyncio.fixture
@@ -49,3 +59,14 @@ async def test_ping_db_readiness_engine_disposed_false(readiness_engine: AsyncEn
     shutil.rmtree(tmp_path / "readiness")
 
     assert await container.ping_db() is False
+
+
+async def test_dispose_application_and_readiness_engines_disposed_once() -> None:
+    application = _CountingEngine()
+    readiness = _CountingEngine()
+    container = _StubContainer(readiness, application)
+
+    await container.dispose()
+
+    assert application.dispose_calls == 1
+    assert readiness.dispose_calls == 1

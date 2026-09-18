@@ -18,6 +18,8 @@ from internal.infrastructure.support.telemetry import instrument_fastapi, setup_
 
 logger = structlog.get_logger()
 
+_GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS = 30
+
 
 def create_app() -> FastAPI:
     settings = Settings()
@@ -35,8 +37,7 @@ def create_app() -> FastAPI:
         try:
             yield
         finally:
-            await container.engine.dispose()
-            await container.close_readiness()
+            await container.dispose()
 
     app = FastAPI(title="Support Service", version="1.0.0", lifespan=lifespan)
     register_problem_handlers(app)
@@ -66,4 +67,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=settings.server.port,
         reload=settings.server.mode == "debug",
+        timeout_graceful_shutdown=_GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS,
     )

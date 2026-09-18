@@ -11,8 +11,10 @@ _VAULT_ENV_FILE = "/vault/secrets/db.env"
 
 _APP_POOL_SIZE = 10
 _APP_MAX_OVERFLOW = 20
+_APP_POOL_TIMEOUT_SECONDS = 5
 _READINESS_POOL_SIZE = 1
 _READINESS_MAX_OVERFLOW = 1
+_READINESS_POOL_TIMEOUT_SECONDS = 30
 
 
 @dataclass
@@ -73,6 +75,7 @@ def _create_engine(
     vault_env_prefix: str,
     pool_size: int,
     max_overflow: int,
+    pool_timeout: int,
 ) -> AsyncEngine:
     if not vault_env_prefix:
         raise ValueError("vault_env_prefix must not be empty")
@@ -81,7 +84,7 @@ def _create_engine(
         config.url,
         pool_size=pool_size,
         max_overflow=max_overflow,
-        pool_timeout=30,
+        pool_timeout=pool_timeout,
         pool_recycle=1800,
         pool_pre_ping=True,
         connect_args={"connect_timeout": 10},
@@ -102,12 +105,14 @@ def create_engine_and_session_factory(
     config: DatabaseConfig,
     vault_env_prefix: str,
 ) -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
-    engine = _create_engine(config, vault_env_prefix, _APP_POOL_SIZE, _APP_MAX_OVERFLOW)
+    engine = _create_engine(config, vault_env_prefix, _APP_POOL_SIZE, _APP_MAX_OVERFLOW, _APP_POOL_TIMEOUT_SECONDS)
     return engine, async_sessionmaker(bind=engine, expire_on_commit=False)
 
 
 def create_readiness_engine(config: DatabaseConfig, vault_env_prefix: str) -> AsyncEngine:
-    return _create_engine(config, vault_env_prefix, _READINESS_POOL_SIZE, _READINESS_MAX_OVERFLOW)
+    return _create_engine(
+        config, vault_env_prefix, _READINESS_POOL_SIZE, _READINESS_MAX_OVERFLOW, _READINESS_POOL_TIMEOUT_SECONDS
+    )
 
 
 def create_session_factory(config: DatabaseConfig, vault_env_prefix: str) -> async_sessionmaker[AsyncSession]:

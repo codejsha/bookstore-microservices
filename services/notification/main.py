@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 
 import structlog
@@ -16,6 +17,7 @@ from internal.infrastructure.support.problem import register_problem_handlers
 from internal.infrastructure.support.telemetry import instrument_fastapi, setup_telemetry
 
 _WORKER_SHUTDOWN_TIMEOUT = 10.0
+_GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS = 30
 
 
 def create_app() -> FastAPI:
@@ -45,7 +47,7 @@ def create_app() -> FastAPI:
                 worker_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await worker_task
-            await container.close_readiness()
+            await container.dispose()
 
     app = FastAPI(
         title="Notification Service",
@@ -56,7 +58,10 @@ def create_app() -> FastAPI:
     register_problem_handlers(app)
     app.include_router(create_notification_router(container.notification_service))
     app.include_router(create_template_router(container.notification_service))
-    app.include_router(create_health_router(container.ping_db))
+    components: dict[str, Callable[[], bool]] = {}
+    if settings.temporal.enabled:
+        components["temporal"] = lambda: container.temporal_worker.is_connected
+    app.include_router(create_health_router(container.ping_db, components))
 
     app.middleware("http")(access_log_middleware)
     instrument_fastapi(app)
@@ -74,4 +79,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=settings.server.port,
         reload=settings.server.mode == "debug",
+        timeout_graceful_shutdown=_GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS,
     )

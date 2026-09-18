@@ -57,3 +57,7 @@ class Container:
 
     async def close_readiness(self) -> None:
         await self._readiness_engine.dispose()
+
+    async def dispose(self) -> None:
+        await self.engine.dispose()
+        await self.close_readiness()

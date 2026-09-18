@@ -32,6 +32,11 @@ class TemporalWorkerRunner:
         self._refresh_task: asyncio.Task | None = None
         self._client: Client | None = None
         self._worker: Worker | None = None
+        self._connected = False
+
+    @property
+    def is_connected(self) -> bool:
+        return self._connected
 
     async def start(self) -> None:
         if not self._config.enabled:
@@ -61,6 +66,7 @@ class TemporalWorkerRunner:
                     activities=self._activities,
                     graceful_shutdown_timeout=timedelta(seconds=_GRACEFUL_SHUTDOWN_SECONDS),
                 )
+                self._connected = True
                 logger.info(
                     "temporal worker started",
                     host=self._config.host,
@@ -69,6 +75,7 @@ class TemporalWorkerRunner:
                 )
                 backoff = _INITIAL_BACKOFF_SECONDS
                 await self._worker.run()
+                self._connected = False
                 return
             except asyncio.CancelledError:
                 raise
@@ -81,6 +88,7 @@ class TemporalWorkerRunner:
                     retry_in_seconds=backoff,
                     error=str(e),
                 )
+                self._connected = False
                 self._worker = None
                 self._client = None
                 await asyncio.sleep(backoff)
@@ -110,6 +118,7 @@ class TemporalWorkerRunner:
             with contextlib.suppress(asyncio.CancelledError):
                 await self._refresh_task
             self._refresh_task = None
+        self._connected = False
         self._client = None
 
     @staticmethod

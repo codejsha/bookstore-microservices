@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 
 import structlog
@@ -20,6 +20,8 @@ from internal.infrastructure.support.temporal_worker import TemporalWorkerRunner
 
 logger = structlog.get_logger()
 
+_GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS = 30
+
 
 def _build_grpc_runner(settings: Settings, container: Container) -> GrpcServerRunner | None:
     if not settings.grpc.enabled:
@@ -31,6 +33,19 @@ def _build_grpc_runner(settings: Settings, container: Container) -> GrpcServerRu
         logger.warning("gRPC stubs not available — run `make grpc`", error=str(e))
         return None
     return GrpcServerRunner(settings.grpc, container.register_grpc_servicers)
+
+
+def _readiness_components(
+    settings: Settings,
+    temporal_runner: TemporalWorkerRunner,
+    grpc_runner: GrpcServerRunner | None,
+) -> dict[str, Callable[[], bool]]:
+    components: dict[str, Callable[[], bool]] = {}
+    if settings.temporal.enabled:
+        components["temporal"] = lambda: temporal_runner.is_connected
+    if settings.grpc.enabled:
+        components["grpc"] = lambda: grpc_runner is not None and grpc_runner.is_running
+    return components
 
 
 def create_app() -> FastAPI:
@@ -65,7 +80,7 @@ def create_app() -> FastAPI:
             if grpc_runner is not None:
                 await grpc_runner.stop()
             await temporal_runner.stop()
-            await container.close_readiness()
+            await container.dispose()
 
     app = FastAPI(
         title="Delivery Service",
@@ -78,7 +93,9 @@ def create_app() -> FastAPI:
     app.include_router(create_carrier_router(container.carrier_service))
     app.include_router(create_freight_router(container.freight_service))
     app.include_router(create_stats_router(container.stats_service))
-    app.include_router(create_health_router(container.ping_db))
+    app.include_router(
+        create_health_router(container.ping_db, _readiness_components(settings, temporal_runner, grpc_runner))
+    )
 
     app.middleware("http")(access_log_middleware)
     instrument_fastapi(app)
@@ -101,4 +118,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=settings.server.port,
         reload=settings.server.mode == "debug",
+        timeout_graceful_shutdown=_GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS,
     )
