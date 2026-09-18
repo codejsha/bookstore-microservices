@@ -7,3 +7,8 @@ spring:
       enabled: true
   flyway:
     enabled: false
+
+temporal:
+  worker:
+    max-concurrent-activity-executions: 16
+    activity-task-pollers: 2

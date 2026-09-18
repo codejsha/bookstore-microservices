@@ -8,6 +8,7 @@ import com.codejsha.bookstore.payment.application.port.repo.PaymentRepo
 import com.codejsha.bookstore.payment.application.port.repo.PaymentResult
 import com.codejsha.bookstore.payment.application.port.repo.RefundRepo
 import com.codejsha.bookstore.payment.application.port.repo.RefundResult
+import com.codejsha.bookstore.payment.application.port.support.ActivityHeartbeat
 import com.codejsha.bookstore.payment.application.port.support.DistributedLock
 import com.codejsha.bookstore.payment.domain.constant.PaymentStatus
 import com.codejsha.bookstore.payment.domain.constant.RefundStatus
@@ -46,6 +47,7 @@ class PaymentActivitiesImpl(
     private val mandateRepo: MandateRepo,
     private val hyperswitchClient: HyperswitchClient,
     private val distributedLock: DistributedLock,
+    private val heartbeat: ActivityHeartbeat,
 ) : PaymentActivities {
 
     private val log = LoggerFactory.getLogger(PaymentActivitiesImpl::class.java)
@@ -111,16 +113,18 @@ class PaymentActivitiesImpl(
             )
 
         val hyperswitchResult = try {
-            hyperswitchClient.authorizePayment(
-                HyperswitchPaymentCommand(
-                    idempotencyKey = idempotencyKey,
-                    amountMinor = amountMinor,
-                    currency = request.currency,
-                    description = "Order ${request.orderUid}",
-                    customerId = customerId,
-                    mandateId = mandate.mandateId,
-                ),
-            )
+            withHeartbeat("$HEARTBEAT_AUTHORIZE:$idempotencyKey") {
+                hyperswitchClient.authorizePayment(
+                    HyperswitchPaymentCommand(
+                        idempotencyKey = idempotencyKey,
+                        amountMinor = amountMinor,
+                        currency = request.currency,
+                        description = "Order ${request.orderUid}",
+                        customerId = customerId,
+                        mandateId = mandate.mandateId,
+                    ),
+                )
+            }
         } catch (e: HyperswitchClientException) {
             recoverGatewayPayment(idempotencyKey, e) ?: run {
                 recordFailedAttempt(request, amountMinor, e, context)
@@ -172,7 +176,9 @@ class PaymentActivitiesImpl(
 
     private fun recoverGatewayPayment(idempotencyKey: String, cause: HyperswitchClientException): HyperswitchPaymentResult? {
         val lookup = try {
-            hyperswitchClient.findPaymentByIdempotencyKey(idempotencyKey)
+            withHeartbeat("$HEARTBEAT_LOOKUP:$idempotencyKey") {
+                hyperswitchClient.findPaymentByIdempotencyKey(idempotencyKey)
+            }
         } catch (e: HyperswitchClientException) {
             log.warn("Gateway lookup after failed authorization for {} also failed", idempotencyKey, e)
             null
@@ -226,7 +232,9 @@ class PaymentActivitiesImpl(
     }
 
     private fun healGatewayOnlyPayment(orderUid: String, context: ActorContext): PaymentResult? {
-        val lookup = hyperswitchClient.findPaymentByIdempotencyKey(orderUid) ?: return null
+        val lookup = withHeartbeat("$HEARTBEAT_LOOKUP:$orderUid") {
+            hyperswitchClient.findPaymentByIdempotencyKey(orderUid)
+        } ?: return null
         log.warn(
             "Gateway holds payment {} for order {} with no local record; restoring it before refunding",
             lookup.gatewayPaymentId,
@@ -270,15 +278,17 @@ class PaymentActivitiesImpl(
 
         val refundAmount = settled.amountCaptured ?: settled.amount
 
-        val hyperswitchResult = hyperswitchClient.refundPayment(
-            HyperswitchRefundCommand(
-                idempotencyKey = idempotencyKey,
-                gatewayPaymentId = settled.paymentId,
-                amountMinor = refundAmount,
-                currency = settled.currency,
-                reason = "Order cancellation",
-            ),
-        )
+        val hyperswitchResult = withHeartbeat("$HEARTBEAT_REFUND:${settled.paymentId}") {
+            hyperswitchClient.refundPayment(
+                HyperswitchRefundCommand(
+                    idempotencyKey = idempotencyKey,
+                    gatewayPaymentId = settled.paymentId,
+                    amountMinor = refundAmount,
+                    currency = settled.currency,
+                    reason = "Order cancellation",
+                ),
+            )
+        }
 
         val command = RefundCreateCommand(
             paymentId = settled.paymentId,
@@ -333,7 +343,9 @@ class PaymentActivitiesImpl(
         if (!isPendingAtGateway(payment.status)) {
             return payment
         }
-        val live = hyperswitchClient.findPaymentById(payment.paymentId)
+        val live = withHeartbeat("$HEARTBEAT_STATUS:${payment.paymentId}") {
+            hyperswitchClient.findPaymentById(payment.paymentId)
+        }
         if (live == null || isPendingAtGateway(live.status)) {
             throw ApplicationFailure.newFailure(
                 "payment ${payment.uid} has not settled at the gateway yet " +
@@ -345,6 +357,13 @@ class PaymentActivitiesImpl(
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    private fun <T> withHeartbeat(detail: String, call: () -> T): T {
+        heartbeat.beat(detail)
+        val result = call()
+        heartbeat.beat("$detail:$HEARTBEAT_COMPLETED")
+        return result
+    }
 
     private fun findSettledPayment(idempotencyKey: String, context: ActorContext): PaymentResult? =
         paymentRepo.findByIdempotencyKey(idempotencyKey, context)?.takeIf { isSettled(it.status) }
@@ -436,6 +455,12 @@ class PaymentActivitiesImpl(
         PaymentStatus.fromValueOrNull(status) in PENDING_GATEWAY_STATUSES
 
     companion object {
+        const val HEARTBEAT_AUTHORIZE = "gateway-authorize"
+        const val HEARTBEAT_LOOKUP = "gateway-lookup"
+        const val HEARTBEAT_STATUS = "gateway-status"
+        const val HEARTBEAT_REFUND = "gateway-refund"
+        const val HEARTBEAT_COMPLETED = "completed"
+
         private const val ERROR_NO_ACTIVE_MANDATE = "NoActivePaymentMandate"
         private const val ERROR_GATEWAY_PAYMENT_PENDING = "GatewayPaymentPending"
         private const val ERROR_UNSUPPORTED_CURRENCY = "UnsupportedCurrency"

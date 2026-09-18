@@ -31,12 +31,7 @@ class OrderCancellationWorkflowImpl : OrderCancellationWorkflow {
 
     private val paymentActivities = Workflow.newActivityStub(
         PaymentActivities::class.java,
-        ActivityOptions.newBuilder()
-            .setStartToCloseTimeout(Duration.ofSeconds(60))
-            .setScheduleToCloseTimeout(Duration.ofMinutes(10))
-            .setTaskQueue("payment-task-queue")
-            .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(5).build())
-            .build(),
+        paymentActivityOptions(),
     )
 
     override fun cancelOrder(request: CancelOrderWorkflowRequest): CancelOrderWorkflowResult {
@@ -84,5 +79,20 @@ class OrderCancellationWorkflowImpl : OrderCancellationWorkflow {
         if (items.isNotEmpty()) {
             inventoryActivities.releaseStock(ReserveStockRequest(orderUid = orderUid, items = items))
         }
+    }
+
+    companion object {
+        private const val PAYMENT_MAX_ATTEMPTS = 5
+
+        val PAYMENT_HEARTBEAT_TIMEOUT: Duration = Duration.ofSeconds(30)
+
+        fun paymentActivityOptions(): ActivityOptions =
+            ActivityOptions.newBuilder()
+                .setStartToCloseTimeout(Duration.ofSeconds(60))
+                .setScheduleToCloseTimeout(Duration.ofMinutes(10))
+                .setHeartbeatTimeout(PAYMENT_HEARTBEAT_TIMEOUT)
+                .setTaskQueue("payment-task-queue")
+                .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(PAYMENT_MAX_ATTEMPTS).build())
+                .build()
     }
 }

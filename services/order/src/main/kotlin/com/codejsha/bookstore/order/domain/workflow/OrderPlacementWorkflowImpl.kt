@@ -33,18 +33,7 @@ class OrderPlacementWorkflowImpl : OrderPlacementWorkflow {
 
     private val paymentActivities = Workflow.newActivityStub(
         PaymentActivities::class.java,
-        ActivityOptions.newBuilder()
-            .setStartToCloseTimeout(Duration.ofSeconds(60))
-            .setScheduleToCloseTimeout(Duration.ofMinutes(10))
-            .setTaskQueue("payment-task-queue")
-            .setRetryOptions(
-                RetryOptions.newBuilder()
-                    .setInitialInterval(Duration.ofSeconds(2))
-                    .setMaximumInterval(Duration.ofSeconds(30))
-                    .setMaximumAttempts(PAYMENT_MAX_ATTEMPTS)
-                    .build(),
-            )
-            .build(),
+        paymentActivityOptions(),
     )
 
     private val compensationInventoryActivities = Workflow.newActivityStub(
@@ -59,12 +48,7 @@ class OrderPlacementWorkflowImpl : OrderPlacementWorkflow {
 
     private val compensationPaymentActivities = Workflow.newActivityStub(
         PaymentActivities::class.java,
-        ActivityOptions.newBuilder()
-            .setStartToCloseTimeout(Duration.ofSeconds(60))
-            .setScheduleToCloseTimeout(Duration.ofMinutes(15))
-            .setTaskQueue("payment-task-queue")
-            .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(COMPENSATION_MAX_ATTEMPTS).build())
-            .build(),
+        compensationPaymentActivityOptions(),
     )
 
     override fun placeOrder(request: PlaceOrderWorkflowRequest): PlaceOrderWorkflowResult {
@@ -199,5 +183,31 @@ class OrderPlacementWorkflowImpl : OrderPlacementWorkflow {
     companion object {
         private const val COMPENSATION_MAX_ATTEMPTS = 10
         private const val PAYMENT_MAX_ATTEMPTS = 10
+
+        val PAYMENT_HEARTBEAT_TIMEOUT: Duration = Duration.ofSeconds(30)
+
+        fun paymentActivityOptions(): ActivityOptions =
+            ActivityOptions.newBuilder()
+                .setStartToCloseTimeout(Duration.ofSeconds(60))
+                .setScheduleToCloseTimeout(Duration.ofMinutes(10))
+                .setHeartbeatTimeout(PAYMENT_HEARTBEAT_TIMEOUT)
+                .setTaskQueue("payment-task-queue")
+                .setRetryOptions(
+                    RetryOptions.newBuilder()
+                        .setInitialInterval(Duration.ofSeconds(2))
+                        .setMaximumInterval(Duration.ofSeconds(30))
+                        .setMaximumAttempts(PAYMENT_MAX_ATTEMPTS)
+                        .build(),
+                )
+                .build()
+
+        fun compensationPaymentActivityOptions(): ActivityOptions =
+            ActivityOptions.newBuilder()
+                .setStartToCloseTimeout(Duration.ofSeconds(60))
+                .setScheduleToCloseTimeout(Duration.ofMinutes(15))
+                .setHeartbeatTimeout(PAYMENT_HEARTBEAT_TIMEOUT)
+                .setTaskQueue("payment-task-queue")
+                .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(COMPENSATION_MAX_ATTEMPTS).build())
+                .build()
     }
 }

@@ -46,3 +46,9 @@ class TemporalAuthConfig(
     val connectTimeout: Duration = Duration.ofSeconds(2),
     val readTimeout: Duration = Duration.ofSeconds(5),
 )
+
+@ConfigurationProperties(prefix = "temporal.worker")
+class TemporalWorkerConfig(
+    val maxConcurrentActivityExecutions: Int = 16,
+    val activityTaskPollers: Int = 2
+)
