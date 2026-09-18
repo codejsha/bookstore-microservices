@@ -23,11 +23,13 @@ import (
 var _ repo.WorkRepo = (*workRepository)(nil)
 
 type workRepository struct {
-	q *dao.Query
+	q  *dao.Query
+	db *gorm.DB
 }
 
 func NewWorkRepository(dataSource *database.DataSource) repo.WorkRepo {
-	return &workRepository{q: dao.Use(dataSource.DB())}
+	db := dataSource.DB()
+	return &workRepository{q: dao.Use(db), db: db}
 }
 
 type workAuthorRow struct {
@@ -139,7 +141,7 @@ func (r *workRepository) hydrateWork(ctx context.Context, e *entity.WorkEntity) 
 
 func (r *workRepository) Create(ctx context.Context, cmd command.WorkCreateCommand) (int64, error) {
 	var id int64
-	err := r.q.Transaction(func(tx *dao.Query) error {
+	err := dao.Use(r.db.WithContext(ctx)).Transaction(func(tx *dao.Query) error {
 		now := time.Now()
 		work := &entity.WorkEntity{
 			Uid:              uuid.Must(uuid.NewV7()).String(),
@@ -203,7 +205,7 @@ func (r *workRepository) Create(ctx context.Context, cmd command.WorkCreateComma
 }
 
 func (r *workRepository) Update(ctx context.Context, id int64, cmd command.WorkUpdateCommand) error {
-	return r.q.Transaction(func(tx *dao.Query) error {
+	return dao.Use(r.db.WithContext(ctx)).Transaction(func(tx *dao.Query) error {
 		w := tx.WorkEntity
 		now := time.Now()
 

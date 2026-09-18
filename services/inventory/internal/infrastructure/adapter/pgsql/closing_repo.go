@@ -156,14 +156,16 @@ func (r *monthlyClosingRepository) Create(ctx context.Context, p repo.ClosingCre
 			return err
 		}
 
+		movements, err := r.periodMovements(tx, warehouse.Id, start, end)
+		if err != nil {
+			return err
+		}
+
 		items := make([]entity.MonthlyClosingItemEntity, 0, len(stocks))
 		for _, st := range stocks {
-			sums, err := r.periodMovement(tx, st.Id, start, end)
-			if err != nil {
-				return err
-			}
+			sums := movements[st.Id]
 			net := sums.inbound - sums.outbound + sums.adjust
-			item := entity.MonthlyClosingItemEntity{
+			items = append(items, entity.MonthlyClosingItemEntity{
 				ClosingId:        closing.Id,
 				EditionId:        st.EditionId,
 				EditionUid:       st.EditionUid,
@@ -172,11 +174,12 @@ func (r *monthlyClosingRepository) Create(ctx context.Context, p repo.ClosingCre
 				OutboundQuantity: sums.outbound,
 				AdjustQuantity:   sums.adjust,
 				ClosingQuantity:  st.Quantity,
-			}
-			if err := tx.Create(&item).Error; err != nil {
+			})
+		}
+		if len(items) > 0 {
+			if err := tx.CreateInBatches(&items, closingItemBatchSize).Error; err != nil {
 				return err
 			}
-			items = append(items, item)
 		}
 		out = toClosingResult(closing, items)
 		return nil
@@ -187,26 +190,35 @@ func (r *monthlyClosingRepository) Create(ctx context.Context, p repo.ClosingCre
 	return out, nil
 }
 
+const closingItemBatchSize = 500
+
 type movementSums struct {
 	inbound  int32
 	outbound int32
 	adjust   int32
 }
 
-func (r *monthlyClosingRepository) periodMovement(tx *gorm.DB, stockID int64, start, end time.Time) (movementSums, error) {
-	var row struct {
+func (r *monthlyClosingRepository) periodMovements(tx *gorm.DB, warehouseID int64, start, end time.Time) (map[int64]movementSums, error) {
+	var rows []struct {
+		StockId  int64
 		Inbound  int32
 		Outbound int32
 		Adjust   int32
 	}
+	warehouseStocks := tx.Model(&entity.StockEntity{}).Select("id").Where("warehouse_id = ?", warehouseID)
 	err := tx.Model(&entity.StockHistoryEntity{}).
-		Select(historyBucketSelect).
-		Where("stock_id = ? AND created_at >= ? AND created_at < ?", stockID, start, end).
-		Scan(&row).Error
+		Select("stock_id, "+historyBucketSelect).
+		Where("stock_id IN (?) AND created_at >= ? AND created_at < ?", warehouseStocks, start, end).
+		Group("stock_id").
+		Scan(&rows).Error
 	if err != nil {
-		return movementSums{}, err
+		return nil, err
 	}
-	return movementSums{inbound: row.Inbound, outbound: row.Outbound, adjust: row.Adjust}, nil
+	movements := make(map[int64]movementSums, len(rows))
+	for _, row := range rows {
+		movements[row.StockId] = movementSums{inbound: row.Inbound, outbound: row.Outbound, adjust: row.Adjust}
+	}
+	return movements, nil
 }
 
 func (r *monthlyClosingRepository) loadItems(ctx context.Context, db *gorm.DB, closingID int64) ([]entity.MonthlyClosingItemEntity, error) {

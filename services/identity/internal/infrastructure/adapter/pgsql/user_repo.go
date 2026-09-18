@@ -205,7 +205,7 @@ func (r userRepository) UpdateRoles(ctx context.Context, idpUid string, roles []
 }
 
 func (r userRepository) SoftDelete(ctx context.Context, idpUid string) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		q := dao.Use(tx)
 		u := q.UsersEntity
 		if _, err := u.WithContext(ctx).
