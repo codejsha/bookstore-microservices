@@ -3,6 +3,7 @@ package com.codejsha.bookstore.settlement.domain.service
 import com.codejsha.bookstore.settlement.application.SettlementRunConflictException
 import com.codejsha.bookstore.settlement.application.SettlementRunValidationException
 import com.codejsha.bookstore.settlement.application.port.SettlementJobLauncher
+import com.codejsha.bookstore.settlement.application.port.SettlementRunLock
 import com.codejsha.bookstore.settlement.application.usecase.TriggerSettlementRunUseCase
 import com.codejsha.bookstore.settlement.config.properties.SettlementBatchProperties
 import com.codejsha.bookstore.settlement.domain.aggregate.SettlementRun
@@ -19,6 +20,7 @@ import kotlin.uuid.toJavaUuid
 @Service
 class SettlementRunService(
     private val launcher: SettlementJobLauncher,
+    private val runLock: SettlementRunLock,
     private val properties: SettlementBatchProperties,
 ) : TriggerSettlementRunUseCase {
 
@@ -43,7 +45,19 @@ class SettlementRunService(
         }
 
         val runUid = Uuid.generateV7().toJavaUuid()
-        val launched = launcher.launch(command.targetDate, runUid, command.rerun)
+        val ownerToken = runUid.toString()
+        if (!runLock.tryAcquire(command.targetDate, ownerToken)) {
+            throw SettlementRunConflictException(
+                "A settlement run for ${command.targetDate} is already running",
+            )
+        }
+
+        val launched = try {
+            launcher.launch(command.targetDate, runUid, command.rerun)
+        } catch (e: Throwable) {
+            runLock.release(command.targetDate, ownerToken)
+            throw e
+        }
         return SettlementRun(
             uid = runUid,
             targetDate = command.targetDate,

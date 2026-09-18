@@ -175,7 +175,7 @@ val jooqGenerator =
                 name = "org.jooq.meta.mysql.MySQLDatabase"
                 schemata = listOf(SchemaMappingType().apply { inputSchema = dbName })
                 includes = "$dbName.*"
-                excludes = "$dbName.flyway_schema_history|$dbName.BATCH_.*"
+                excludes = "$dbName.flyway_schema_history|$dbName.BATCH_.*|$dbName.settlement_run_lock"
                 forcedTypes =
                     listOf(
                         ForcedType().apply {

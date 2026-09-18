@@ -8,8 +8,14 @@ data class SettlementBatchProperties(
     val timezone: String = "Asia/Seoul",
     val chunkSize: Int = 500,
     val staleExecutionTimeout: Duration = Duration.ofMinutes(30),
+    val lock: SettlementRunLockProperties = SettlementRunLockProperties(),
     val paymentDb: PaymentDbConnection = PaymentDbConnection(),
     val reconcile: ReconcileProperties = ReconcileProperties(),
+)
+
+data class SettlementRunLockProperties(
+    val ttl: Duration = Duration.ofMinutes(5),
+    val heartbeatInterval: Duration = Duration.ofMinutes(1),
 )
 
 data class PaymentDbConnection(
