@@ -18,7 +18,10 @@ from internal.infrastructure.adapter.mysql.ticket_comment_repo import (
     MySQLTicketCommentRepository,
 )
 from internal.infrastructure.adapter.mysql.ticket_repo import MySQLTicketRepository
-from internal.infrastructure.support.database import create_engine_and_session_factory
+from internal.infrastructure.support.database import (
+    create_engine_and_session_factory,
+    create_readiness_engine,
+)
 
 _PING_TIMEOUT = 3.0
 
@@ -27,6 +30,7 @@ class Container:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.engine, self._session_factory = create_engine_and_session_factory(settings.database, vault_env_prefix())
+        self._readiness_engine = create_readiness_engine(settings.database, vault_env_prefix())
 
         self.ticket_repo: TicketRepository = MySQLTicketRepository(self._session_factory)
         self.comment_repo: TicketCommentRepository = MySQLTicketCommentRepository(self._session_factory)
@@ -42,11 +46,14 @@ class Container:
 
     async def ping_db(self) -> bool:
         async def _run() -> None:
-            async with self._session_factory() as session:
-                await session.execute(text("SELECT 1"))
+            async with self._readiness_engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
 
         try:
             await asyncio.wait_for(_run(), timeout=_PING_TIMEOUT)
         except Exception:
             return False
         return True
+
+    async def close_readiness(self) -> None:
+        await self._readiness_engine.dispose()

@@ -1,31 +1,51 @@
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+import shutil
+from collections.abc import AsyncIterator
+from pathlib import Path
+
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from internal.di.container import Container
 
 
 class _StubContainer:
     ping_db = Container.ping_db
+    close_readiness = Container.close_readiness
 
-    def __init__(self, session_factory) -> None:
-        self._session_factory = session_factory
-
-
-class _FailingSession:
-    async def __aenter__(self) -> _FailingSession:
-        return self
-
-    async def __aexit__(self, *_args) -> bool:
-        return False
-
-    async def execute(self, *_args, **_kwargs):
-        raise RuntimeError("connection refused")
+    def __init__(self, readiness_engine: AsyncEngine) -> None:
+        self._readiness_engine = readiness_engine
 
 
-async def test_ping_db_query_succeeds_returns_true(session_factory: async_sessionmaker[AsyncSession]) -> None:
-    container = _StubContainer(session_factory)
+@pytest_asyncio.fixture
+async def readiness_engine(tmp_path: Path) -> AsyncIterator[AsyncEngine]:
+    db_dir = tmp_path / "readiness"
+    db_dir.mkdir()
+    engine = create_async_engine(f"sqlite+aiosqlite:///{db_dir / 'readiness.db'}")
+    try:
+        yield engine
+    finally:
+        await engine.dispose()
+
+
+async def test_ping_db_readiness_engine_reachable_true(readiness_engine: AsyncEngine) -> None:
+    container = _StubContainer(readiness_engine)
     assert await container.ping_db() is True
 
 
-async def test_ping_db_query_raises_returns_false() -> None:
-    container = _StubContainer(lambda: _FailingSession())
+async def test_ping_db_readiness_engine_unreachable_false(tmp_path: Path) -> None:
+    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'absent' / 'readiness.db'}")
+    container = _StubContainer(engine)
+    try:
+        assert await container.ping_db() is False
+    finally:
+        await engine.dispose()
+
+
+async def test_ping_db_readiness_engine_disposed_false(readiness_engine: AsyncEngine, tmp_path: Path) -> None:
+    container = _StubContainer(readiness_engine)
+    assert await container.ping_db() is True
+
+    await container.close_readiness()
+    shutil.rmtree(tmp_path / "readiness")
+
     assert await container.ping_db() is False

@@ -45,6 +45,7 @@ def create_app() -> FastAPI:
                 worker_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await worker_task
+            await container.close_readiness()
 
     app = FastAPI(
         title="Notification Service",
