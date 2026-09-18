@@ -181,8 +181,8 @@ class OrderPlacementWorkflowImpl : OrderPlacementWorkflow {
         status.equals("succeeded", ignoreCase = true)
 
     companion object {
-        private const val COMPENSATION_MAX_ATTEMPTS = 10
-        private const val PAYMENT_MAX_ATTEMPTS = 10
+        private const val COMPENSATION_MAX_ATTEMPTS = 3
+        private const val PAYMENT_MAX_ATTEMPTS = 3
 
         val PAYMENT_HEARTBEAT_TIMEOUT: Duration = Duration.ofSeconds(30)
 

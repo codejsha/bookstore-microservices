@@ -25,7 +25,7 @@ class OrderCancellationWorkflowImpl : OrderCancellationWorkflow {
             .setStartToCloseTimeout(Duration.ofSeconds(30))
             .setScheduleToCloseTimeout(Duration.ofMinutes(10))
             .setTaskQueue("inventory-task-queue")
-            .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(5).build())
+            .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(3).build())
             .build(),
     )
 
@@ -82,7 +82,7 @@ class OrderCancellationWorkflowImpl : OrderCancellationWorkflow {
     }
 
     companion object {
-        private const val PAYMENT_MAX_ATTEMPTS = 5
+        private const val PAYMENT_MAX_ATTEMPTS = 3
 
         val PAYMENT_HEARTBEAT_TIMEOUT: Duration = Duration.ofSeconds(30)
 

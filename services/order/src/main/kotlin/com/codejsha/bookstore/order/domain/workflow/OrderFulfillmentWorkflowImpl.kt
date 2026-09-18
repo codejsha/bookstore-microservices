@@ -35,7 +35,7 @@ class OrderFulfillmentWorkflowImpl : OrderFulfillmentWorkflow {
             .setStartToCloseTimeout(Duration.ofSeconds(30))
             .setScheduleToCloseTimeout(Duration.ofMinutes(5))
             .setTaskQueue("notification-task-queue")
-            .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(5).build())
+            .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(3).build())
             .build(),
     )
 
