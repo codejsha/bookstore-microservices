@@ -16,6 +16,11 @@ class GrpcServerRunner:
         self._config = config
         self._register_servicers = register_servicers
         self._server: grpc.aio.Server | None = None
+        self._running = False
+
+    @property
+    def is_running(self) -> bool:
+        return self._running
 
     async def start(self) -> None:
         self._server = grpc.aio.server(
@@ -26,9 +31,11 @@ class GrpcServerRunner:
         addr = f"[::]:{self._config.port}"
         self._server.add_insecure_port(addr)
         await self._server.start()
+        self._running = True
         logger.info("gRPC server started", port=self._config.port)
 
     async def stop(self) -> None:
+        self._running = False
         if self._server is None:
             return
         logger.info("gRPC server stopping")

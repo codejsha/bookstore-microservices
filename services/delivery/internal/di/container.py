@@ -15,7 +15,10 @@ from internal.infrastructure.adapter.mysql.shipment_repo import MySQLShipmentRep
 from internal.infrastructure.adapter.mysql.stats_repo import MySQLStatsRepository
 from internal.infrastructure.adapter.mysql.tracking_repo import MySQLTrackingRepository
 from internal.infrastructure.adapter.temporal.shipment_activities import ShipmentActivities
-from internal.infrastructure.support.database import create_readiness_engine, create_session_factory
+from internal.infrastructure.support.database import (
+    create_engine_and_session_factory,
+    create_readiness_engine,
+)
 from internal.infrastructure.support.temporal_auth import TemporalTokenProvider, build_temporal_token_provider
 
 _PING_TIMEOUT = 3.0
@@ -24,7 +27,7 @@ _PING_TIMEOUT = 3.0
 class Container:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self._session_factory = create_session_factory(settings.database, vault_env_prefix())
+        self.engine, self._session_factory = create_engine_and_session_factory(settings.database, vault_env_prefix())
         self._readiness_engine = create_readiness_engine(settings.database, vault_env_prefix())
 
         self.shipment_repo = MySQLShipmentRepository(self._session_factory)
@@ -56,6 +59,10 @@ class Container:
 
     async def close_readiness(self) -> None:
         await self._readiness_engine.dispose()
+
+    async def dispose(self) -> None:
+        await self.engine.dispose()
+        await self.close_readiness()
 
     def temporal_token_provider(self) -> TemporalTokenProvider | None:
         return build_temporal_token_provider(self.settings.temporal.auth)

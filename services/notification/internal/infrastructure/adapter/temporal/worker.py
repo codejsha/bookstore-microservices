@@ -31,6 +31,11 @@ class TemporalWorker:
         self._client: Client | None = None
         self._worker: Worker | None = None
         self._stopped = asyncio.Event()
+        self._connected = False
+
+    @property
+    def is_connected(self) -> bool:
+        return self._connected
 
     async def prepare(self) -> None:
         if not self._config.enabled or self._token_provider is None:
@@ -72,6 +77,7 @@ class TemporalWorker:
                     activities=[self._activities.send_shipment_update],
                     graceful_shutdown_timeout=timedelta(seconds=_GRACEFUL_SHUTDOWN_SECONDS),
                 )
+                self._connected = True
                 _logger.info(
                     "temporal worker started",
                     host=self._config.host,
@@ -99,11 +105,13 @@ class TemporalWorker:
                     pass
                 backoff = min(backoff * 2, _MAX_BACKOFF_SECONDS)
             finally:
+                self._connected = False
                 self._worker = None
                 self._client = None
 
     async def stop(self) -> None:
         self._stopped.set()
+        self._connected = False
         worker = self._worker
         if worker is not None:
             await worker.shutdown()
