@@ -214,3 +214,158 @@ func TestReleaseStock_WhenDbErrorTransient_ReturnsRetryableError(t *testing.T) {
 		t.Errorf("transient DB error must stay retryable, got non-retryable ApplicationError: %v", err)
 	}
 }
+
+// ─── Per-order-line aggregation ─────────────────────────────────────────────
+
+func TestAggregateReservationItems_DuplicateEditions_SumsQuantitiesOnce(t *testing.T) {
+	got := aggregateReservationItems([]StockReservationItem{
+		{ProductID: 7, Quantity: 2},
+		{ProductID: 9, Quantity: 1},
+		{ProductID: 7, Quantity: 3},
+	})
+
+	want := []StockReservationItem{{ProductID: 7, Quantity: 5}, {ProductID: 9, Quantity: 1}}
+	if len(got) != len(want) {
+		t.Fatalf("items = %+v, want %+v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("item[%d] = %+v, want %+v", i, got[i], want[i])
+		}
+	}
+}
+
+func TestAggregateReservationItems_ItemOrderVaries_KeepsFirstSeenOrder(t *testing.T) {
+	forward := aggregateReservationItems([]StockReservationItem{{ProductID: 7, Quantity: 2}, {ProductID: 9, Quantity: 1}})
+	reverse := aggregateReservationItems([]StockReservationItem{{ProductID: 9, Quantity: 1}, {ProductID: 7, Quantity: 2}})
+
+	if forward[0].ProductID != 7 || reverse[0].ProductID != 9 {
+		t.Fatalf("first-seen order not preserved: forward=%+v reverse=%+v", forward, reverse)
+	}
+}
+
+func TestReserveStock_TwoLinesSameEdition_ReservesCombinedQuantity(t *testing.T) {
+	var suite testsuite.WorkflowTestSuite
+	env := suite.NewTestActivityEnvironment()
+
+	var cmds []command.StockOrderReserveCommand
+	uc := &stubInventoryUC{
+		reserveFn: func(_ context.Context, cmd command.StockOrderReserveCommand) (*aggregate.StockAggregate, error) {
+			cmds = append(cmds, cmd)
+			return nil, nil
+		},
+	}
+	act := NewStockActivities(uc)
+	env.RegisterActivity(act.ReserveStock)
+
+	if _, err := env.ExecuteActivity(act.ReserveStock, ReserveStockRequest{
+		OrderUid: "order-1",
+		Items:    []StockReservationItem{{ProductID: 7, Quantity: 2}, {ProductID: 7, Quantity: 3}},
+	}); err != nil {
+		t.Fatalf("reserve: %v", err)
+	}
+
+	if len(cmds) != 1 {
+		t.Fatalf("reserve calls = %d (%+v), want 1 aggregated call", len(cmds), cmds)
+	}
+	if cmds[0].Quantity != 5 {
+		t.Errorf("quantity = %d, want 5 (both lines), otherwise the second line is silently dropped", cmds[0].Quantity)
+	}
+	if cmds[0].EditionId != 7 || cmds[0].OrderUid != "order-1" {
+		t.Errorf("cmd = %+v, want edition 7 of order-1", cmds[0])
+	}
+}
+
+func TestReserveStock_DistinctEditions_ReservesEachSeparately(t *testing.T) {
+	var suite testsuite.WorkflowTestSuite
+	env := suite.NewTestActivityEnvironment()
+
+	var cmds []command.StockOrderReserveCommand
+	uc := &stubInventoryUC{
+		reserveFn: func(_ context.Context, cmd command.StockOrderReserveCommand) (*aggregate.StockAggregate, error) {
+			cmds = append(cmds, cmd)
+			return nil, nil
+		},
+	}
+	act := NewStockActivities(uc)
+	env.RegisterActivity(act.ReserveStock)
+
+	if _, err := env.ExecuteActivity(act.ReserveStock, ReserveStockRequest{
+		OrderUid: "order-1",
+		Items:    []StockReservationItem{{ProductID: 7, Quantity: 2}, {ProductID: 9, Quantity: 4}},
+	}); err != nil {
+		t.Fatalf("reserve: %v", err)
+	}
+
+	if len(cmds) != 2 {
+		t.Fatalf("reserve calls = %d, want 2 (one per edition)", len(cmds))
+	}
+	if cmds[0].EditionId != 7 || cmds[0].Quantity != 2 || cmds[1].EditionId != 9 || cmds[1].Quantity != 4 {
+		t.Errorf("cmds = %+v, want edition 7 qty 2 then edition 9 qty 4", cmds)
+	}
+}
+
+func TestReserveStock_SameRequestRetried_IssuesIdenticalCommands(t *testing.T) {
+	var suite testsuite.WorkflowTestSuite
+	env := suite.NewTestActivityEnvironment()
+
+	var cmds []command.StockOrderReserveCommand
+	uc := &stubInventoryUC{
+		reserveFn: func(_ context.Context, cmd command.StockOrderReserveCommand) (*aggregate.StockAggregate, error) {
+			cmds = append(cmds, cmd)
+			return nil, nil
+		},
+	}
+	act := NewStockActivities(uc)
+	env.RegisterActivity(act.ReserveStock)
+
+	req := ReserveStockRequest{
+		OrderUid: "order-1",
+		Items:    []StockReservationItem{{ProductID: 7, Quantity: 2}, {ProductID: 7, Quantity: 3}},
+	}
+	for attempt := 0; attempt < 2; attempt++ {
+		if _, err := env.ExecuteActivity(act.ReserveStock, req); err != nil {
+			t.Fatalf("reserve attempt %d: %v", attempt, err)
+		}
+	}
+
+	if len(cmds) != 2 {
+		t.Fatalf("reserve calls = %d, want 2 (one per attempt)", len(cmds))
+	}
+	if cmds[0].OrderUid != cmds[1].OrderUid || cmds[0].EditionId != cmds[1].EditionId ||
+		cmds[0].Quantity != cmds[1].Quantity {
+		t.Errorf("retry issued a different reservation: %+v then %+v", cmds[0], cmds[1])
+	}
+	if cmds[1].Quantity != 5 {
+		t.Errorf("retry quantity = %d, want 5 (same aggregated line, so the repo replay is a no-op)", cmds[1].Quantity)
+	}
+}
+
+func TestReleaseStock_TwoLinesSameEdition_ReleasesCombinedQuantity(t *testing.T) {
+	var suite testsuite.WorkflowTestSuite
+	env := suite.NewTestActivityEnvironment()
+
+	var cmds []command.StockOrderReleaseCommand
+	uc := &stubInventoryUC{
+		releaseFn: func(_ context.Context, cmd command.StockOrderReleaseCommand) (*aggregate.StockAggregate, error) {
+			cmds = append(cmds, cmd)
+			return nil, nil
+		},
+	}
+	act := NewStockActivities(uc)
+	env.RegisterActivity(act.ReleaseStock)
+
+	if _, err := env.ExecuteActivity(act.ReleaseStock, ReleaseStockRequest{
+		OrderUid: "order-1",
+		Items:    []StockReservationItem{{ProductID: 7, Quantity: 2}, {ProductID: 7, Quantity: 3}},
+	}); err != nil {
+		t.Fatalf("release: %v", err)
+	}
+
+	if len(cmds) != 1 {
+		t.Fatalf("release calls = %d (%+v), want 1 aggregated call matching the reservation", len(cmds), cmds)
+	}
+	if cmds[0].Quantity != 5 || cmds[0].EditionId != 7 {
+		t.Errorf("cmd = %+v, want edition 7 qty 5 so release mirrors reserve", cmds[0])
+	}
+}

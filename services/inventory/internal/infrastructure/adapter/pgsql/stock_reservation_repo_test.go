@@ -300,3 +300,87 @@ func TestAllocateReservation_WhenStockInsufficient_ReturnsErrInsufficientStock(t
 		t.Errorf("err = %v, want ErrInsufficientStock", err)
 	}
 }
+
+// ─── Per-order-line reservation keys ────────────────────────────────────────
+
+func TestReserve_TwoLinesSameEditionAggregated_ReservesCombinedQuantity(t *testing.T) {
+	r, db := newTestRepo(t)
+	seedStock(t, db, 100, 1, 10)
+
+	got, err := r.Reserve(context.Background(), reserveParams("order-1:100", 100, 5))
+	if err != nil {
+		t.Fatalf("reserve: %v", err)
+	}
+
+	if got.Quantity != 5 {
+		t.Errorf("result quantity = %d, want 5 (2 + 3 from both lines)", got.Quantity)
+	}
+	if q := stockQty(t, db, 100, 1); q != 5 {
+		t.Errorf("remaining = %d, want 5 (combined quantity withheld)", q)
+	}
+	if n := countReservations(t, db, "order-1:100"); n != 1 {
+		t.Errorf("reservation rows = %d, want 1", n)
+	}
+}
+
+func TestReserve_SameKeyReplayedWithLargerQuantity_DoesNotTopUp(t *testing.T) {
+	r, db := newTestRepo(t)
+	seedStock(t, db, 100, 1, 10)
+
+	if _, err := r.Reserve(context.Background(), reserveParams("order-1:100", 100, 2)); err != nil {
+		t.Fatalf("first reserve: %v", err)
+	}
+	second, err := r.Reserve(context.Background(), reserveParams("order-1:100", 100, 3))
+	if err != nil {
+		t.Fatalf("second reserve: %v", err)
+	}
+
+	if !second.AlreadyApplied {
+		t.Errorf("second reserve = %+v, want AlreadyApplied replay", second)
+	}
+	if q := stockQty(t, db, 100, 1); q != 8 {
+		t.Fatalf("remaining = %d, want 8: a second call on one key is a replay, "+
+			"so duplicate lines must be aggregated before reaching the repo", q)
+	}
+}
+
+func TestRelease_AfterAggregatedReserve_RestoresCombinedQuantity(t *testing.T) {
+	r, db := newTestRepo(t)
+	seedStock(t, db, 100, 1, 10)
+	if _, err := r.Reserve(context.Background(), reserveParams("order-1:100", 100, 5)); err != nil {
+		t.Fatalf("reserve: %v", err)
+	}
+
+	reason := "compensate"
+	got, err := r.Release(context.Background(), repo.ReleaseParams{ReservationKey: "order-1:100", Reason: &reason})
+	if err != nil {
+		t.Fatalf("release: %v", err)
+	}
+
+	if got == nil || got.Quantity != 5 {
+		t.Fatalf("release result = %+v, want combined quantity 5", got)
+	}
+	if q := stockQty(t, db, 100, 1); q != 10 {
+		t.Errorf("remaining = %d, want 10 (release mirrors the aggregated reserve)", q)
+	}
+}
+
+func TestReserve_DistinctEditionsOfOneOrder_UseSeparateKeys(t *testing.T) {
+	r, db := newTestRepo(t)
+	seedStock(t, db, 100, 1, 10)
+	seedStock(t, db, 200, 1, 10)
+
+	if _, err := r.Reserve(context.Background(), reserveParams("order-1:100", 100, 4)); err != nil {
+		t.Fatalf("reserve edition 100: %v", err)
+	}
+	if _, err := r.Reserve(context.Background(), reserveParams("order-1:200", 200, 6)); err != nil {
+		t.Fatalf("reserve edition 200: %v", err)
+	}
+
+	if q := stockQty(t, db, 100, 1); q != 6 {
+		t.Errorf("edition 100 remaining = %d, want 6", q)
+	}
+	if q := stockQty(t, db, 200, 1); q != 4 {
+		t.Errorf("edition 200 remaining = %d, want 4", q)
+	}
+}
