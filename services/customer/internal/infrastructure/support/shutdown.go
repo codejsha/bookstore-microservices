@@ -21,6 +21,7 @@ const (
 	sideEffectsDrainTimeout  = 10 * time.Second
 	kafkaCloseTimeout        = 5 * time.Second
 	grpcClientCloseTimeout   = 5 * time.Second
+	readinessCloseTimeout    = 2 * time.Second
 	telemetryShutdownTimeout = 5 * time.Second
 	ShutdownStopTimeout      = 55 * time.Second
 )
@@ -35,10 +36,11 @@ func RegisterShutdownSequence(
 	lc fx.Lifecycle,
 	ginServer *GinServer,
 	publisher io.Closer,
+	readinessDataSource *ReadinessDataSource,
 	telemetryManager *TelemetryManager,
 	grpcClients ...io.Closer,
 ) {
-	steps := shutdownSequence(ginServer, publisher, telemetryManager, grpcClients...)
+	steps := shutdownSequence(ginServer, publisher, readinessDataSource, telemetryManager, grpcClients...)
 	lc.Append(fx.Hook{
 		OnStop: func(context.Context) error {
 			runShutdownSteps(steps)
@@ -50,6 +52,7 @@ func RegisterShutdownSequence(
 func shutdownSequence(
 	ginServer *GinServer,
 	publisher io.Closer,
+	readinessDataSource *ReadinessDataSource,
 	telemetryManager *TelemetryManager,
 	grpcClients ...io.Closer,
 ) []shutdownStep {
@@ -94,6 +97,13 @@ func shutdownSequence(
 			budget: grpcClientCloseTimeout,
 			run: func(context.Context) error {
 				return closeAll(grpcClients)
+			},
+		},
+		{
+			name:   "readiness-db-close",
+			budget: readinessCloseTimeout,
+			run: func(context.Context) error {
+				return readinessDataSource.Close()
 			},
 		},
 		{

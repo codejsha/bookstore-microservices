@@ -42,6 +42,7 @@ var Module = fx.Module("customer",
 		service.NewCustomerService,
 
 		database.NewVaultAwareDataSource,
+		support.NewReadinessDataSource,
 		pgsql.NewPointRepository,
 		pgsql.NewPointHistoryRepository,
 		pgsql.NewReviewRepository,
@@ -71,13 +72,14 @@ func registerShutdownSequence(
 	lc fx.Lifecycle,
 	ginServer *support.GinServer,
 	publisher *message.KafkaAsyncPublisher,
+	readinessDataSource *support.ReadinessDataSource,
 	telemetryManager *support.TelemetryManager,
 	userClient *protostub.UserGrpcClient,
 	orderClient *protostub.OrderGrpcClient,
 	paymentClient *protostub.PaymentGrpcClient,
 	deliveryClient *protostub.DeliveryGrpcClient,
 ) {
-	support.RegisterShutdownSequence(lc, ginServer, publisher, telemetryManager,
+	support.RegisterShutdownSequence(lc, ginServer, publisher, readinessDataSource, telemetryManager,
 		userClient, orderClient, paymentClient, deliveryClient)
 }
 

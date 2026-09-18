@@ -41,6 +41,7 @@ var Module = fx.Module("catalog",
 		service.NewCatalogService,
 
 		database.NewVaultAwareDataSource,
+		support.NewReadinessDataSource,
 		pgsql.NewWorkRepository,
 		pgsql.NewEditionRepository,
 		pgsql.NewAuthorRepository,

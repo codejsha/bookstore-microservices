@@ -22,6 +22,7 @@ const (
 	temporalCloseTimeout     = 5 * time.Second
 	sideEffectsDrainTimeout  = 10 * time.Second
 	kafkaCloseTimeout        = 5 * time.Second
+	readinessCloseTimeout    = 2 * time.Second
 	telemetryShutdownTimeout = 5 * time.Second
 	ShutdownStopTimeout      = 55 * time.Second
 )
@@ -37,6 +38,7 @@ func RegisterShutdownSequence(
 	ginServer *GinServer,
 	temporalWorker *TemporalWorker,
 	kafkaPublisher *message.KafkaAsyncPublisher,
+	readinessDataSource *ReadinessDataSource,
 	telemetryManager *TelemetryManager,
 ) {
 	lc.Append(fx.Hook{
@@ -90,6 +92,13 @@ func RegisterShutdownSequence(
 							temporalWorker.CloseClient()
 							return nil
 						})
+					},
+				},
+				{
+					name:   "readiness-db-close",
+					budget: readinessCloseTimeout,
+					run: func(ctx context.Context) error {
+						return waitWithContext(ctx, readinessDataSource.Close)
 					},
 				},
 				{

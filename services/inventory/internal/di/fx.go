@@ -40,6 +40,7 @@ var Module = fx.Module("inventory",
 		service.NewStockService,
 
 		database.NewVaultAwareDataSource,
+		support.NewReadinessDataSource,
 		pgsql.NewStockRepository,
 		pgsql.NewWarehouseRepository,
 		pgsql.NewStockHistoryRepository,
