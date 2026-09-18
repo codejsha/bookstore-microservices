@@ -7,6 +7,10 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type stepRecorder struct {
@@ -90,7 +94,7 @@ func TestRunShutdownSteps_slowEarlierStep_laterStepKeepsFullBudget(t *testing.T)
 }
 
 func TestShutdownSequence_catalogComponents_stopsInDependencyOrder(t *testing.T) {
-	steps := shutdownSequence(nil, nil, nil, nil, nil)
+	steps := shutdownSequence(nil, nil, nil, nil, nil, nil)
 
 	names := make([]string, 0, len(steps))
 	var total time.Duration
@@ -99,7 +103,7 @@ func TestShutdownSequence_catalogComponents_stopsInDependencyOrder(t *testing.T)
 		total += step.budget
 	}
 
-	want := []string{"http-drain-delay", "http-shutdown", "side-effects-drain", "kafka-close", "valkey-close", "readiness-db-close", "telemetry-shutdown"}
+	want := []string{"http-drain-delay", "http-shutdown", "side-effects-drain", "database-close", "kafka-close", "valkey-close", "readiness-db-close", "telemetry-shutdown"}
 	if !slices.Equal(names, want) {
 		t.Fatalf("shutdown order = %v, want %v", names, want)
 	}
@@ -114,5 +118,35 @@ func TestCacheClientCloser_cacheDisabled_closesAsNoOp(t *testing.T) {
 	}
 	if err := (*CacheClientCloser)(nil).Close(); err != nil {
 		t.Fatalf("nil Close() = %v, want nil", err)
+	}
+}
+
+func TestCloseConnectionPool_shutdownStepRan_poolRejectsFurtherUse(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open("file:catalog-pool-close?mode=memory&cache=shared"), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		t.Fatalf("sql db: %v", err)
+	}
+	if err := sqlDB.Ping(); err != nil {
+		t.Fatalf("ping before close: %v", err)
+	}
+
+	if err := closeConnectionPool(sqlDB); err != nil {
+		t.Fatalf("close pool: %v", err)
+	}
+
+	if err := sqlDB.Ping(); err == nil {
+		t.Fatal("connection pool must reject use once the shutdown step has closed it")
+	}
+}
+
+func TestCloseDataSourcePool_noDataSource_treatedAsNoOp(t *testing.T) {
+	if err := closeDataSourcePool(nil); err != nil {
+		t.Fatalf("closeDataSourcePool(nil) = %v, want nil", err)
 	}
 }

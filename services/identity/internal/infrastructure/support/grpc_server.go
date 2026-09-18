@@ -2,14 +2,17 @@ package support
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
@@ -21,14 +24,23 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/internal/infrastructure/adapter/protosvc"
 )
 
+const (
+	grpcKeepaliveTime        = 30 * time.Second
+	grpcKeepaliveTimeout     = 10 * time.Second
+	grpcKeepaliveMinTime     = 15 * time.Second
+	grpcMaxConcurrentStreams = 256
+)
+
 type GrpcServer struct {
 	server         *grpc.Server
+	shutdowner     fx.Shutdowner
 	grpcCfg        *config.GrpcConfig
 	userGrpcServer *protosvc.UserGrpcServer
 }
 
 func NewGrpcServer(
 	lc fx.Lifecycle,
+	shutdowner fx.Shutdowner,
 	grpcCfg *config.GrpcConfig,
 	userGrpcServer *protosvc.UserGrpcServer,
 	introspector keycloak.Introspector,
@@ -37,14 +49,20 @@ func NewGrpcServer(
 	telemetryManager *TelemetryManager,
 ) *GrpcServer {
 	s := &GrpcServer{
+		shutdowner:     shutdowner,
 		grpcCfg:        grpcCfg,
 		userGrpcServer: userGrpcServer,
 	}
 
-	opts := []grpc.ServerOption{grpc.StatsHandler(otelgrpc.NewServerHandler(
-		otelgrpc.WithTracerProvider(telemetryManager.TraceProvider),
-		otelgrpc.WithMeterProvider(telemetryManager.MeterProvider),
-	))}
+	opts := []grpc.ServerOption{
+		grpc.StatsHandler(otelgrpc.NewServerHandler(
+			otelgrpc.WithTracerProvider(telemetryManager.TraceProvider),
+			otelgrpc.WithMeterProvider(telemetryManager.MeterProvider),
+		)),
+		grpc.KeepaliveParams(grpcKeepaliveParams()),
+		grpc.KeepaliveEnforcementPolicy(grpcKeepaliveEnforcement()),
+		grpc.MaxConcurrentStreams(grpcMaxConcurrentStreams),
+	}
 	if grpcCfg.AuthEnabled {
 		authorizer := keycloak.NewTokenAuthorizer(introspector, revocation, risk)
 		opts = append(opts, grpc.UnaryInterceptor(newAuthUnaryInterceptor(authorizer)))
@@ -65,11 +83,7 @@ func NewGrpcServer(
 			if err != nil {
 				return fmt.Errorf("listen grpc on %s: %w", addr, err)
 			}
-			go func() {
-				if err := s.server.Serve(listener); err != nil {
-					logrus.Errorf("grpc server stopped: %v", err)
-				}
-			}()
+			go s.serve(listener)
 			return nil
 		},
 	})
@@ -89,6 +103,36 @@ func (s *GrpcServer) Shutdown(ctx context.Context) error {
 	case <-ctx.Done():
 		s.server.Stop()
 		return ctx.Err()
+	}
+}
+
+func grpcKeepaliveParams() keepalive.ServerParameters {
+	return keepalive.ServerParameters{
+		Time:    grpcKeepaliveTime,
+		Timeout: grpcKeepaliveTimeout,
+	}
+}
+
+func grpcKeepaliveEnforcement() keepalive.EnforcementPolicy {
+	return keepalive.EnforcementPolicy{
+		MinTime:             grpcKeepaliveMinTime,
+		PermitWithoutStream: true,
+	}
+}
+
+func (s *GrpcServer) serve(listener net.Listener) {
+	if err := s.server.Serve(listener); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
+		logrus.Errorf("grpc server stopped: %v", err)
+		s.signalShutdown()
+	}
+}
+
+func (s *GrpcServer) signalShutdown() {
+	if s.shutdowner == nil {
+		return
+	}
+	if err := s.shutdowner.Shutdown(fx.ExitCode(1)); err != nil {
+		logrus.Errorf("failed to signal application shutdown: %v", err)
 	}
 }
 

@@ -2,6 +2,7 @@ package support
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"sync"
@@ -10,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/fx"
 
+	"github.com/codejsha/shared-library-go/pkg/database"
 	"github.com/codejsha/shared-library-go/pkg/message"
 
 	"github.com/codejsha/bookstore-microservices/inventory/internal/infrastructure/adapter/restcontroller"
@@ -21,6 +23,7 @@ const (
 	temporalStopTimeout      = 10 * time.Second
 	temporalCloseTimeout     = 5 * time.Second
 	sideEffectsDrainTimeout  = 10 * time.Second
+	databaseCloseTimeout     = 3 * time.Second
 	kafkaCloseTimeout        = 5 * time.Second
 	readinessCloseTimeout    = 2 * time.Second
 	telemetryShutdownTimeout = 5 * time.Second
@@ -38,6 +41,7 @@ func RegisterShutdownSequence(
 	ginServer *GinServer,
 	temporalWorker *TemporalWorker,
 	kafkaPublisher *message.KafkaAsyncPublisher,
+	dataSource *database.DataSource,
 	readinessDataSource *ReadinessDataSource,
 	telemetryManager *TelemetryManager,
 ) {
@@ -75,6 +79,15 @@ func RegisterShutdownSequence(
 					run: func(ctx context.Context) error {
 						restcontroller.WaitForSideEffects(ctx)
 						return nil
+					},
+				},
+				{
+					name:   "database-close",
+					budget: databaseCloseTimeout,
+					run: func(ctx context.Context) error {
+						return waitWithContext(ctx, func() error {
+							return closeDataSourcePool(dataSource)
+						})
 					},
 				},
 				{
@@ -188,4 +201,22 @@ func sleepWithContext(ctx context.Context, d time.Duration) error {
 	case <-ctx.Done():
 	}
 	return nil
+}
+
+func closeDataSourcePool(dataSource *database.DataSource) error {
+	if dataSource == nil {
+		return nil
+	}
+	sqlDB, err := dataSource.DB().DB()
+	if err != nil {
+		return fmt.Errorf("resolve database handle: %w", err)
+	}
+	return closeConnectionPool(sqlDB)
+}
+
+func closeConnectionPool(sqlDB *sql.DB) error {
+	if sqlDB == nil {
+		return nil
+	}
+	return sqlDB.Close()
 }

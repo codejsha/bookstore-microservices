@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"net"
 
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/codejsha/bookstore-microservices/customer/generated/application/port/pb/userpb"
 	"github.com/codejsha/bookstore-microservices/customer/internal/config"
@@ -24,13 +22,7 @@ func NewUserGrpcClient(
 	telemetryManager *support.TelemetryManager,
 ) (*UserGrpcClient, error) {
 	target := net.JoinHostPort(grpcCfg.UserServer.Host, grpcCfg.UserServer.Port)
-	credentials := grpc.WithTransportCredentials(insecure.NewCredentials())
-	option := grpc.WithStatsHandler(otelgrpc.NewClientHandler(
-		otelgrpc.WithTracerProvider(telemetryManager.TraceProvider),
-		otelgrpc.WithMeterProvider(telemetryManager.MeterProvider),
-	))
-
-	conn, err := grpc.NewClient(target, credentials, option)
+	conn, err := grpc.NewClient(target, dialOptions(telemetryManager)...)
 	if err != nil {
 		return nil, fmt.Errorf("create user grpc client: %w", err)
 	}

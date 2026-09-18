@@ -78,8 +78,9 @@ func registerShutdownSequence(
 	orderClient *protostub.OrderGrpcClient,
 	paymentClient *protostub.PaymentGrpcClient,
 	deliveryClient *protostub.DeliveryGrpcClient,
+	dataSource *database.DataSource,
 ) {
-	support.RegisterShutdownSequence(lc, ginServer, publisher, readinessDataSource, telemetryManager,
+	support.RegisterShutdownSequence(lc, ginServer, publisher, readinessDataSource, telemetryManager, dataSource,
 		userClient, orderClient, paymentClient, deliveryClient)
 }
 
