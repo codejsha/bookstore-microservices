@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-const maxOptimisticRetries = 5
+const maxOptimisticRetries = 3
 
 const (
 	optimisticRetryBaseDelay = 5 * time.Millisecond
