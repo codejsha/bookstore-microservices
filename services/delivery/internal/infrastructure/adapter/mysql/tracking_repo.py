@@ -10,21 +10,25 @@ from internal.infrastructure.adapter.mysql.models import TrackingEntity
 from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
 
 
+def to_tracking_entity(tracking: TrackingAggregate) -> TrackingEntity:
+    return TrackingEntity(
+        uid=uuid_to_bytes(tracking.uid),
+        shipment_uid=uuid_to_bytes(tracking.shipment_uid),
+        status=tracking.status,
+        location=tracking.location,
+        description=tracking.description,
+        occurred_at=tracking.occurred_at,
+        created_at=tracking.created_at,
+    )
+
+
 class MySQLTrackingRepository(TrackingRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
     async def save(self, tracking: TrackingAggregate) -> TrackingAggregate:
         async with self._session_factory() as session:
-            entity = TrackingEntity(
-                uid=uuid_to_bytes(tracking.uid),
-                shipment_uid=uuid_to_bytes(tracking.shipment_uid),
-                status=tracking.status,
-                location=tracking.location,
-                description=tracking.description,
-                occurred_at=tracking.occurred_at,
-                created_at=tracking.created_at,
-            )
+            entity = to_tracking_entity(tracking)
             session.add(entity)
             await session.commit()
             await session.refresh(entity)

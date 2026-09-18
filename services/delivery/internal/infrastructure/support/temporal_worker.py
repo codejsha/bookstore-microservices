@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 from collections.abc import Mapping, Sequence
+from datetime import timedelta
 
 import structlog
 from temporalio.client import Client
@@ -13,6 +14,8 @@ logger = structlog.get_logger()
 
 _INITIAL_BACKOFF_SECONDS = 1.0
 _MAX_BACKOFF_SECONDS = 60.0
+_GRACEFUL_SHUTDOWN_SECONDS = 10.0
+_DRAIN_TIMEOUT_SECONDS = _GRACEFUL_SHUTDOWN_SECONDS + 5.0
 
 
 class TemporalWorkerRunner:
@@ -56,6 +59,7 @@ class TemporalWorkerRunner:
                     client,
                     task_queue=self._config.task_queue,
                     activities=self._activities,
+                    graceful_shutdown_timeout=timedelta(seconds=_GRACEFUL_SHUTDOWN_SECONDS),
                 )
                 logger.info(
                     "temporal worker started",
@@ -83,21 +87,49 @@ class TemporalWorkerRunner:
                 backoff = min(backoff * 2, _MAX_BACKOFF_SECONDS)
 
     async def stop(self) -> None:
-        if self._task is not None:
-            logger.info("temporal worker stopping")
-            self._task.cancel()
+        task = self._task
+        worker = self._worker
+        self._task = None
+        self._worker = None
+        if task is not None:
+            logger.info("temporal worker stopping", drain_timeout_seconds=_DRAIN_TIMEOUT_SECONDS)
+            if worker is not None:
+                await self._drain(worker, task)
+            if not task.done():
+                logger.warning("temporal worker did not drain — cancelling in-flight activities")
+                task.cancel()
             try:
-                await self._task
+                await task
             except asyncio.CancelledError:
                 pass
-            self._task = None
+            except Exception as e:  # noqa: BLE001
+                logger.warning("temporal worker stopped with error", error=str(e))
+            logger.info("temporal worker stopped")
         if self._refresh_task is not None:
             self._refresh_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await self._refresh_task
             self._refresh_task = None
-        self._worker = None
         self._client = None
+
+    @staticmethod
+    async def _drain(worker: Worker, task: asyncio.Task) -> None:
+        try:
+            await asyncio.wait_for(worker.shutdown(), timeout=_DRAIN_TIMEOUT_SECONDS)
+        except TimeoutError:
+            logger.warning("temporal worker graceful shutdown timed out")
+            return
+        except Exception as e:  # noqa: BLE001
+            logger.warning("temporal worker graceful shutdown failed", error=str(e))
+            return
+        if task.done():
+            return
+        try:
+            await asyncio.wait_for(asyncio.shield(task), timeout=_DRAIN_TIMEOUT_SECONDS)
+        except TimeoutError:
+            logger.warning("temporal worker run loop did not finish after shutdown")
+        except Exception:  # noqa: BLE001
+            pass
 
     def _rpc_metadata(self) -> Mapping[str, str]:
         if self._token_provider is None:

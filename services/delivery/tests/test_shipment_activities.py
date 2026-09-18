@@ -30,6 +30,15 @@ def _input(order_uid: UUID) -> CreateShipmentInput:
     )
 
 
+def _dispatch_mock(dispatched) -> AsyncMock:
+    async def _dispatch(uid, tracking_number=None):
+        if tracking_number and not dispatched.tracking_number:
+            dispatched.tracking_number = tracking_number
+        return dispatched
+
+    return AsyncMock(side_effect=_dispatch)
+
+
 @pytest.fixture
 def shipment_service() -> MagicMock:
     service = MagicMock(spec=ShipmentService)
@@ -72,7 +81,7 @@ class TestCreateShipmentActivity:
         planned = make_shipment(uid=shipment_uid, order_uid=order_uid, status=ShipmentStatus.PLANNED)
         dispatched = make_shipment(uid=shipment_uid, order_uid=order_uid, status=ShipmentStatus.DISPATCHED)
         shipment_service.create_shipment = AsyncMock(return_value=planned)
-        shipment_service.dispatch_shipment = AsyncMock(return_value=dispatched)
+        shipment_service.dispatch_shipment = _dispatch_mock(dispatched)
 
         result = await activities.create_shipment(_input(order_uid))
 
@@ -91,7 +100,7 @@ class TestCreateShipmentActivity:
         planned = make_shipment(order_uid=order_uid, status=ShipmentStatus.PLANNED)
         dispatched = make_shipment(uid=planned.uid, order_uid=order_uid, status=ShipmentStatus.DISPATCHED)
         shipment_service.create_shipment = AsyncMock(return_value=planned)
-        shipment_service.dispatch_shipment = AsyncMock(return_value=dispatched)
+        shipment_service.dispatch_shipment = _dispatch_mock(dispatched)
 
         payload = _input(order_uid)
         await activities.create_shipment(payload)
@@ -107,23 +116,24 @@ class TestCreateShipmentActivity:
         assert command.destination_country_code == payload.destinationCountryCode
         assert command.destination_postal_code == payload.destinationPostalCode
 
-    async def test_create_shipment_planned_dispatches_then_sets_tracking_number(
+    async def test_create_shipment_planned_dispatches_with_tracking_number_in_one_call(
         self, activities: ShipmentActivities, shipment_service: MagicMock
     ) -> None:
         order_uid = uuid4()
         planned = make_shipment(order_uid=order_uid, status=ShipmentStatus.PLANNED)
         dispatched = make_shipment(uid=planned.uid, order_uid=order_uid, status=ShipmentStatus.DISPATCHED)
         shipment_service.create_shipment = AsyncMock(return_value=planned)
-        shipment_service.dispatch_shipment = AsyncMock(return_value=dispatched)
+        shipment_service.dispatch_shipment = _dispatch_mock(dispatched)
 
         result = await activities.create_shipment(_input(order_uid))
 
-        shipment_service.dispatch_shipment.assert_awaited_once_with(planned.uid)
-        shipment_service.set_tracking_number.assert_awaited_once()
-        saved_arg = shipment_service.set_tracking_number.await_args.args[0]
-        assert saved_arg is dispatched
-        assert saved_arg.tracking_number is not None
-        assert result.trackingNumber == saved_arg.tracking_number
+        shipment_service.dispatch_shipment.assert_awaited_once()
+        uid_arg, tracking_arg = shipment_service.dispatch_shipment.await_args.args
+        assert uid_arg == planned.uid
+        assert tracking_arg.startswith("DLV")
+        shipment_service.set_tracking_number.assert_not_awaited()
+        assert result.trackingNumber == tracking_arg
+        assert dispatched.tracking_number == tracking_arg
 
     async def test_create_shipment_failed_dispatch_raises_runtime_error(
         self, activities: ShipmentActivities, shipment_service: MagicMock
@@ -166,14 +176,30 @@ class TestCreateShipmentIdempotency:
         dispatched = make_shipment(uid=planned.uid, order_uid=order_uid, status=ShipmentStatus.DISPATCHED)
         shipment_service.get_shipment_by_order_uid = AsyncMock(return_value=planned)
         shipment_service.create_shipment = AsyncMock()
-        shipment_service.dispatch_shipment = AsyncMock(return_value=dispatched)
+        shipment_service.dispatch_shipment = _dispatch_mock(dispatched)
 
         result = await activities.create_shipment(_input(order_uid))
 
         shipment_service.create_shipment.assert_not_awaited()
-        shipment_service.dispatch_shipment.assert_awaited_once_with(planned.uid)
-        shipment_service.set_tracking_number.assert_awaited_once()
+        shipment_service.dispatch_shipment.assert_awaited_once()
+        assert shipment_service.dispatch_shipment.await_args.args[0] == planned.uid
+        shipment_service.set_tracking_number.assert_not_awaited()
         assert result.status == "DISPATCHED"
+        assert result.trackingNumber and result.trackingNumber.startswith("DLV")
+
+    async def test_create_shipment_dispatched_without_tracking_number_backfills_it(
+        self, activities: ShipmentActivities, shipment_service: MagicMock
+    ) -> None:
+        order_uid = uuid4()
+        existing = make_shipment(order_uid=order_uid, status=ShipmentStatus.DISPATCHED)
+        shipment_service.get_shipment_by_order_uid = AsyncMock(return_value=existing)
+        shipment_service.create_shipment = AsyncMock()
+        shipment_service.dispatch_shipment = AsyncMock()
+
+        result = await activities.create_shipment(_input(order_uid))
+
+        shipment_service.dispatch_shipment.assert_not_awaited()
+        shipment_service.set_tracking_number.assert_awaited_once()
         assert result.trackingNumber and result.trackingNumber.startswith("DLV")
 
     async def test_create_shipment_insert_race_falls_back_to_winner_row(

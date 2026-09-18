@@ -20,6 +20,11 @@ def service(shipment_repo: MagicMock, tracking_repo: MagicMock) -> ShipmentServi
     return ShipmentService(shipment_repo=shipment_repo, tracking_repo=tracking_repo)
 
 
+def _tracking_from_transition(shipment_repo: MagicMock, shipment):
+    _uid, _guard, _mutator, tracking_factory = shipment_repo.transition_with_tracking.call_args[0]
+    return tracking_factory(shipment)
+
+
 def _create_command() -> CreateShipmentCommand:
     return CreateShipmentCommand(
         order_uid=uuid4(),
@@ -130,7 +135,34 @@ class TestDispatchShipment:
         result = await service.dispatch_shipment(shipment.uid)
         assert result is not None
         assert result.status == ShipmentStatus.DISPATCHED
-        tracking_repo.save.assert_called_once()
+        shipment_repo.transition_with_tracking.assert_called_once()
+        tracking = _tracking_from_transition(shipment_repo, result)
+        assert tracking.status == ShipmentStatus.DISPATCHED
+        assert tracking.shipment_uid == result.uid
+        tracking_repo.save.assert_not_called()
+
+    async def test_dispatch_shipment_with_tracking_number_sets_it_in_same_transition(
+        self, service: ShipmentService, shipment_repo: MagicMock, tracking_repo: MagicMock
+    ) -> None:
+        shipment = make_shipment(status=ShipmentStatus.PLANNED)
+        shipment_repo.find_by_uid.return_value = shipment
+        result = await service.dispatch_shipment(shipment.uid, "DLVATOMIC0001")
+        assert result is not None
+        assert result.status == ShipmentStatus.DISPATCHED
+        assert result.tracking_number == "DLVATOMIC0001"
+        shipment_repo.transition_with_tracking.assert_called_once()
+        shipment_repo.save.assert_not_called()
+        tracking_repo.save.assert_not_called()
+
+    async def test_dispatch_shipment_with_existing_tracking_number_keeps_it(
+        self, service: ShipmentService, shipment_repo: MagicMock
+    ) -> None:
+        shipment = make_shipment(status=ShipmentStatus.PLANNED)
+        shipment.tracking_number = "DLVEXISTING01"
+        shipment_repo.find_by_uid.return_value = shipment
+        result = await service.dispatch_shipment(shipment.uid, "DLVNEW0002")
+        assert result is not None
+        assert result.tracking_number == "DLVEXISTING01"
 
     async def test_dispatch_shipment_missing_is_none(self, service: ShipmentService, shipment_repo: MagicMock) -> None:
         shipment_repo.find_by_uid.return_value = None
@@ -163,6 +195,8 @@ class TestPickUpShipment:
         assert result is not None
         assert result.status == ShipmentStatus.PICKED_UP
         assert result.actual_pickup_at is not None
+        shipment_repo.transition_with_tracking.assert_called_once()
+        assert _tracking_from_transition(shipment_repo, result).status == ShipmentStatus.PICKED_UP
 
     async def test_pick_up_shipment_invalid_status_raises_value_error(
         self, service: ShipmentService, shipment_repo: MagicMock
@@ -183,6 +217,8 @@ class TestDeliverShipment:
         assert result is not None
         assert result.status == ShipmentStatus.DELIVERED
         assert result.actual_delivery_at is not None
+        shipment_repo.transition_with_tracking.assert_called_once()
+        assert _tracking_from_transition(shipment_repo, result).status == ShipmentStatus.DELIVERED
 
     async def test_deliver_shipment_invalid_status_raises_value_error(
         self, service: ShipmentService, shipment_repo: MagicMock
@@ -201,6 +237,8 @@ class TestCancelShipment:
         result = await service.cancel_shipment(uuid4())
         assert result is not None
         assert result.status == ShipmentStatus.CANCELLED
+        shipment_repo.transition_with_tracking.assert_called_once()
+        assert _tracking_from_transition(shipment_repo, result).status == ShipmentStatus.CANCELLED
 
     async def test_cancel_shipment_invalid_status_raises_value_error(
         self, service: ShipmentService, shipment_repo: MagicMock

@@ -48,15 +48,17 @@ def shipment_repo() -> MagicMock:
 
     repo.create_with_initial_tracking.side_effect = _create_with_initial_tracking
 
-    async def _transition(uid, guard, mutator):
+    async def _transition_with_tracking(uid, guard, mutator, tracking_factory):
         shipment = repo.find_by_uid.return_value
         if shipment is None:
             return None
         if not guard(shipment):
             raise ValueError(f"Cannot transition from {shipment.status}")
-        return mutator(shipment)
+        updated = mutator(shipment)
+        tracking_factory(updated)
+        return updated
 
-    repo.transition.side_effect = _transition
+    repo.transition_with_tracking.side_effect = _transition_with_tracking
 
     async def _update(uid, mutator):
         shipment = repo.find_by_uid.return_value

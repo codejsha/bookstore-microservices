@@ -41,11 +41,12 @@ class ShipmentRepository(ABC):
     ) -> ShipmentAggregate | None: ...
 
     @abstractmethod
-    async def transition(
+    async def transition_with_tracking(
         self,
         uid: UUID,
         guard: Callable[[ShipmentAggregate], bool],
         mutator: Callable[[ShipmentAggregate], ShipmentAggregate],
+        tracking_factory: Callable[[ShipmentAggregate], TrackingAggregate],
     ) -> ShipmentAggregate | None: ...
 
 

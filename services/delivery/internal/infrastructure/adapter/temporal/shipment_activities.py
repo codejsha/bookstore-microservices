@@ -65,7 +65,8 @@ class ShipmentActivities:
             raise ApplicationError(str(e), non_retryable=True, type="InvalidCommand") from e
 
         if shipment.status == ShipmentStatus.PLANNED:
-            dispatched = await self._shipment_service.dispatch_shipment(shipment.uid)
+            tracking_number = shipment.tracking_number or _generate_tracking_number()
+            dispatched = await self._shipment_service.dispatch_shipment(shipment.uid, tracking_number)
             if dispatched is None:
                 raise RuntimeError(f"failed to dispatch shipment {shipment.uid}")
             shipment = dispatched
