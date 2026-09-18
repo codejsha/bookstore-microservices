@@ -26,9 +26,12 @@ import com.codejsha.bookstore.payment.domain.model.external.HyperswitchWebhookEv
 import com.codejsha.bookstore.payment.domain.model.option.MandateQueryOption
 import com.codejsha.bookstore.payment.domain.model.option.PaymentQueryOption
 import com.codejsha.bookstore.payment.domain.model.option.RefundQueryOption
+import com.codejsha.bookstore.payment.support.CancellingActivityHeartbeat
 import com.codejsha.bookstore.payment.support.FakeDistributedLock
 import com.codejsha.bookstore.payment.support.PaymentTestFixtures
+import com.codejsha.bookstore.payment.support.RecordingActivityHeartbeat
 import com.codejsha.platform.shared.data.ActorContext
+import io.temporal.client.ActivityCanceledException
 import io.temporal.failure.ApplicationFailure
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Page
@@ -64,7 +67,7 @@ class PaymentActivitiesImplTest {
         val paymentRepo = FakePaymentRepo()
         val attemptRepo = FakePaymentAttemptRepo()
         val lock = FakeDistributedLock()
-        val activities = PaymentActivitiesImpl(paymentRepo, attemptRepo, FakeRefundRepo(), FakeMandateRepo(), client, lock)
+        val activities = PaymentActivitiesImpl(paymentRepo, attemptRepo, FakeRefundRepo(), FakeMandateRepo(), client, lock, RecordingActivityHeartbeat())
 
         val result = activities.processPayment(
             ProcessPaymentRequest(orderUid = orderUid, userUid = "00000000-0000-0000-0000-000000000007", amount = BigDecimal("49.99"), currency = "USD"),
@@ -101,7 +104,7 @@ class PaymentActivitiesImplTest {
         )
         val attemptRepo = FakePaymentAttemptRepo()
         val lock = FakeDistributedLock()
-        val activities = PaymentActivitiesImpl(paymentRepo, attemptRepo, FakeRefundRepo(), FakeMandateRepo(), client, lock)
+        val activities = PaymentActivitiesImpl(paymentRepo, attemptRepo, FakeRefundRepo(), FakeMandateRepo(), client, lock, RecordingActivityHeartbeat())
 
         val result = activities.processPayment(
             ProcessPaymentRequest(orderUid = orderUid, userUid = "00000000-0000-0000-0000-000000000007", amount = BigDecimal("10.00"), currency = "USD"),
@@ -123,7 +126,7 @@ class PaymentActivitiesImplTest {
         val paymentRepo = FakePaymentRepo(
             existingByKey = PaymentTestFixtures.paymentResult(status = "failed", paymentId = "pay_failed"),
         )
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val result = activities.processPayment(
             ProcessPaymentRequest(orderUid = orderUid, userUid = "00000000-0000-0000-0000-000000000007", amount = BigDecimal("10.00"), currency = "USD"),
@@ -138,7 +141,7 @@ class PaymentActivitiesImplTest {
         val client = StubHyperswitchClient(authorizeError = HyperswitchClientException("boom", errorCode = "CE_00"))
         val paymentRepo = FakePaymentRepo()
         val attemptRepo = FakePaymentAttemptRepo()
-        val activities = PaymentActivitiesImpl(paymentRepo, attemptRepo, FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, attemptRepo, FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         assertFailsWith<HyperswitchClientException> {
             activities.processPayment(
@@ -158,7 +161,7 @@ class PaymentActivitiesImplTest {
         val client = StubHyperswitchClient(
             paymentResult = HyperswitchPaymentResult("pay_pending", "processing", "stripe", 1_000, 0, null, null),
         )
-        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val failure = assertFailsWith<ApplicationFailure> {
             activities.processPayment(
@@ -178,7 +181,7 @@ class PaymentActivitiesImplTest {
         val paymentRepo = FakePaymentRepo(
             existingByKey = PaymentTestFixtures.paymentResult(status = "processing", paymentId = "pay_pending"),
         )
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val result = activities.processPayment(
             ProcessPaymentRequest(orderUid = orderUid, userUid = "00000000-0000-0000-0000-000000000007", amount = BigDecimal("10.00"), currency = "USD"),
@@ -198,7 +201,7 @@ class PaymentActivitiesImplTest {
         )
         val paymentRepo = FakePaymentRepo()
         val attemptRepo = FakePaymentAttemptRepo()
-        val activities = PaymentActivitiesImpl(paymentRepo, attemptRepo, FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, attemptRepo, FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val result = activities.processPayment(
             ProcessPaymentRequest(orderUid = orderUid, userUid = "00000000-0000-0000-0000-000000000007", amount = BigDecimal("10.00"), currency = "USD"),
@@ -214,7 +217,7 @@ class PaymentActivitiesImplTest {
     @Test
     fun `processPayment_whenCurrencyHasNoMinorUnit_sendsUnscaledAmount`() {
         val client = StubHyperswitchClient()
-        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         activities.processPayment(
             ProcessPaymentRequest(orderUid = orderUid, userUid = "00000000-0000-0000-0000-000000000007", amount = BigDecimal("15000"), currency = "KRW"),
@@ -226,7 +229,7 @@ class PaymentActivitiesImplTest {
     @Test
     fun `processPayment_whenCurrencyUnknown_throwsNonRetryableUnsupportedCurrency`() {
         val client = StubHyperswitchClient()
-        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val failure = assertFailsWith<ApplicationFailure> {
             activities.processPayment(
@@ -242,7 +245,7 @@ class PaymentActivitiesImplTest {
     @Test
     fun `processPayment_whenInputMalformed_throwsNonRetryableInvalidPaymentRequestBeforeGateway`() {
         val client = StubHyperswitchClient()
-        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val failure = assertFailsWith<ApplicationFailure> {
             activities.processPayment(
@@ -258,7 +261,7 @@ class PaymentActivitiesImplTest {
     @Test
     fun `processPayment_whenUserUidBlank_throwsNonRetryableInvalidPaymentRequestBeforeGateway`() {
         val client = StubHyperswitchClient()
-        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val failure = assertFailsWith<ApplicationFailure> {
             activities.processPayment(
@@ -276,7 +279,7 @@ class PaymentActivitiesImplTest {
         val paymentUid = UUID.randomUUID()
         val client = StubHyperswitchClient()
         val paymentRepo = FakePaymentRepo(findOne = PaymentTestFixtures.paymentResult(status = "partially_captured_and_capturable"))
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), FakeRefundRepo(), FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         assertFalse(activities.refundPayment(paymentUid.toString()))
         assertNull(client.refundCommand)
@@ -295,7 +298,7 @@ class PaymentActivitiesImplTest {
         )
         val refundRepo = FakeRefundRepo()
         val lock = FakeDistributedLock()
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, lock)
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, lock, RecordingActivityHeartbeat())
 
         val refunded = activities.refundPayment(paymentUid.toString())
 
@@ -318,7 +321,7 @@ class PaymentActivitiesImplTest {
         val client = StubHyperswitchClient()
         val refundRepo = FakeRefundRepo(existingByKey = PaymentTestFixtures.refundResult())
         val lock = FakeDistributedLock()
-        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, lock)
+        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, lock, RecordingActivityHeartbeat())
 
         val refunded = activities.refundPayment(paymentUid.toString())
 
@@ -336,7 +339,7 @@ class PaymentActivitiesImplTest {
         )
         val paymentRepo = FakePaymentRepo(findOne = PaymentTestFixtures.paymentResult(status = "succeeded"))
         val refundRepo = FakeRefundRepo()
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val refunded = activities.refundPayment(paymentUid.toString())
 
@@ -349,7 +352,7 @@ class PaymentActivitiesImplTest {
         val paymentUid = UUID.randomUUID()
         val client = StubHyperswitchClient()
         val refundRepo = FakeRefundRepo(existingByKey = PaymentTestFixtures.refundResult(status = "failed"))
-        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         assertFalse(activities.refundPayment(paymentUid.toString()))
         assertNull(client.refundCommand)
@@ -366,7 +369,7 @@ class PaymentActivitiesImplTest {
                 .copy(amountCaptured = 2000L),
         )
         val refundRepo = FakeRefundRepo()
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         activities.refundPayment(paymentUid.toString())
 
@@ -380,7 +383,7 @@ class PaymentActivitiesImplTest {
         val client = StubHyperswitchClient()
         val paymentRepo = FakePaymentRepo(findOne = PaymentTestFixtures.paymentResult(status = "requires_payment_method"))
         val refundRepo = FakeRefundRepo()
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val refunded = activities.refundPayment(paymentUid.toString())
 
@@ -399,7 +402,7 @@ class PaymentActivitiesImplTest {
         val payment = PaymentTestFixtures.paymentResult(status = "succeeded", paymentId = "pay_by_order")
         val paymentRepo = FakePaymentRepo(existingByKey = payment)
         val refundRepo = FakeRefundRepo()
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val refunded = activities.refundPaymentByOrder(orderUid)
 
@@ -414,7 +417,7 @@ class PaymentActivitiesImplTest {
     fun `refundPaymentByOrder_whenNoPaymentForOrder_returnsFalse`() {
         val client = StubHyperswitchClient()
         val refundRepo = FakeRefundRepo()
-        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(FakePaymentRepo(), FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val refunded = activities.refundPaymentByOrder(orderUid)
 
@@ -429,7 +432,7 @@ class PaymentActivitiesImplTest {
         val payment = PaymentTestFixtures.paymentResult(status = "succeeded")
         val paymentRepo = FakePaymentRepo(existingByKey = payment)
         val refundRepo = FakeRefundRepo(existingByKey = PaymentTestFixtures.refundResult())
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val refunded = activities.refundPaymentByOrder(orderUid)
 
@@ -456,7 +459,7 @@ class PaymentActivitiesImplTest {
         )
         val paymentRepo = FakePaymentRepo()
         val refundRepo = FakeRefundRepo()
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val refunded = activities.refundPaymentByOrder(orderUid)
 
@@ -483,7 +486,7 @@ class PaymentActivitiesImplTest {
             findOne = PaymentTestFixtures.paymentResult(status = "processing", paymentId = "pay_pending"),
         )
         val refundRepo = FakeRefundRepo()
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val failure = assertFailsWith<ApplicationFailure> {
             activities.refundPayment(paymentUid.toString())
@@ -509,7 +512,7 @@ class PaymentActivitiesImplTest {
             findOne = PaymentTestFixtures.paymentResult(status = "processing", paymentId = "pay_late"),
         )
         val refundRepo = FakeRefundRepo()
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val refunded = activities.refundPayment(paymentUid.toString())
 
@@ -524,7 +527,7 @@ class PaymentActivitiesImplTest {
         val payment = PaymentTestFixtures.paymentResult(status = "requires_payment_method")
         val paymentRepo = FakePaymentRepo(existingByKey = payment)
         val refundRepo = FakeRefundRepo()
-        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock())
+        val activities = PaymentActivitiesImpl(paymentRepo, FakePaymentAttemptRepo(), refundRepo, FakeMandateRepo(), client, FakeDistributedLock(), RecordingActivityHeartbeat())
 
         val refunded = activities.refundPaymentByOrder(orderUid)
 
@@ -546,6 +549,7 @@ class PaymentActivitiesImplTest {
             FakeMandateRepo(PaymentTestFixtures.mandateResult(mandateId = "mand_active", customerId = userUid)),
             client,
             FakeDistributedLock(),
+            RecordingActivityHeartbeat(),
         )
 
         activities.processPayment(
@@ -568,6 +572,7 @@ class PaymentActivitiesImplTest {
             FakeMandateRepo(),
             StubHyperswitchClient(),
             FakeDistributedLock(),
+            RecordingActivityHeartbeat(),
         )
 
         activities.processPayment(
@@ -588,6 +593,7 @@ class PaymentActivitiesImplTest {
             FakeMandateRepo(active = null),
             client,
             FakeDistributedLock(),
+            RecordingActivityHeartbeat(),
         )
 
         val failure = assertFailsWith<ApplicationFailure> {
@@ -605,6 +611,124 @@ class PaymentActivitiesImplTest {
         assertEquals("NoActivePaymentMandate", failure.type)
         assertNull(client.authorizeCommand)
         assertNull(paymentRepo.createCommand)
+    }
+
+    // ─── heartbeats ───────────────────────────────────────────────────────────────
+
+    @Test
+    fun `processPayment_gatewayAuthorization_heartbeatsAroundTheCall`() {
+        val heartbeat = RecordingActivityHeartbeat()
+        val activities = PaymentActivitiesImpl(
+            FakePaymentRepo(),
+            FakePaymentAttemptRepo(),
+            FakeRefundRepo(),
+            FakeMandateRepo(),
+            StubHyperswitchClient(),
+            FakeDistributedLock(),
+            heartbeat,
+        )
+
+        activities.processPayment(
+            ProcessPaymentRequest(
+                orderUid = orderUid,
+                userUid = "00000000-0000-0000-0000-000000000007",
+                amount = BigDecimal("49.99"),
+                currency = "USD",
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                "${PaymentActivitiesImpl.HEARTBEAT_AUTHORIZE}:$orderUid",
+                "${PaymentActivitiesImpl.HEARTBEAT_AUTHORIZE}:$orderUid:${PaymentActivitiesImpl.HEARTBEAT_COMPLETED}",
+            ),
+            heartbeat.beats,
+        )
+    }
+
+    @Test
+    fun `processPayment_attemptCancelled_propagatesTheCancellationBeforeTheGatewayCall`() {
+        val client = StubHyperswitchClient()
+        val heartbeat = CancellingActivityHeartbeat(
+            PaymentActivitiesImpl.HEARTBEAT_AUTHORIZE,
+            ActivityCanceledException(),
+        )
+        val activities = PaymentActivitiesImpl(
+            FakePaymentRepo(),
+            FakePaymentAttemptRepo(),
+            FakeRefundRepo(),
+            FakeMandateRepo(),
+            client,
+            FakeDistributedLock(),
+            heartbeat,
+        )
+
+        assertFailsWith<ActivityCanceledException> {
+            activities.processPayment(
+                ProcessPaymentRequest(
+                    orderUid = orderUid,
+                    userUid = "00000000-0000-0000-0000-000000000007",
+                    amount = BigDecimal("49.99"),
+                    currency = "USD",
+                ),
+            )
+        }
+
+        assertNull(client.authorizeCommand, "a cancelled attempt must not reach the gateway")
+    }
+
+    @Test
+    fun `refundPayment_gatewayRefund_heartbeatsAroundTheCall`() {
+        val heartbeat = RecordingActivityHeartbeat()
+        val paymentRepo = FakePaymentRepo(
+            findOne = PaymentTestFixtures.paymentResult(status = "succeeded", paymentId = "pay_ok"),
+        )
+        val activities = PaymentActivitiesImpl(
+            paymentRepo,
+            FakePaymentAttemptRepo(),
+            FakeRefundRepo(),
+            FakeMandateRepo(),
+            StubHyperswitchClient(),
+            FakeDistributedLock(),
+            heartbeat,
+        )
+
+        activities.refundPayment(UUID.randomUUID().toString())
+
+        assertEquals(
+            listOf(
+                "${PaymentActivitiesImpl.HEARTBEAT_REFUND}:pay_ok",
+                "${PaymentActivitiesImpl.HEARTBEAT_REFUND}:pay_ok:${PaymentActivitiesImpl.HEARTBEAT_COMPLETED}",
+            ),
+            heartbeat.beats,
+        )
+    }
+
+    @Test
+    fun `refundPaymentByOrder_gatewayRefund_heartbeatsAroundTheCall`() {
+        val heartbeat = RecordingActivityHeartbeat()
+        val paymentRepo = FakePaymentRepo(
+            existingByKey = PaymentTestFixtures.paymentResult(status = "succeeded", paymentId = "pay_ok"),
+        )
+        val activities = PaymentActivitiesImpl(
+            paymentRepo,
+            FakePaymentAttemptRepo(),
+            FakeRefundRepo(),
+            FakeMandateRepo(),
+            StubHyperswitchClient(),
+            FakeDistributedLock(),
+            heartbeat,
+        )
+
+        activities.refundPaymentByOrder(orderUid)
+
+        assertEquals(
+            listOf(
+                "${PaymentActivitiesImpl.HEARTBEAT_REFUND}:pay_ok",
+                "${PaymentActivitiesImpl.HEARTBEAT_REFUND}:pay_ok:${PaymentActivitiesImpl.HEARTBEAT_COMPLETED}",
+            ),
+            heartbeat.beats,
+        )
     }
 
     // ─── Stubs / fakes ─────────────────────────────────────────────────────────

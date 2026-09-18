@@ -1,10 +1,12 @@
 package com.codejsha.bookstore.order.infrastructure.support
 
+import com.codejsha.bookstore.order.config.properties.TemporalWorkerConfig
 import com.codejsha.bookstore.order.domain.workflow.OrderActivities
 import com.codejsha.bookstore.order.domain.workflow.OrderCancellationWorkflowImpl
 import com.codejsha.bookstore.order.domain.workflow.OrderFulfillmentWorkflowImpl
 import com.codejsha.bookstore.order.domain.workflow.OrderPlacementWorkflowImpl
 import io.temporal.worker.WorkerFactory
+import io.temporal.worker.WorkerOptions
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
@@ -15,12 +17,21 @@ import java.util.concurrent.TimeUnit
 class TemporalManager(
     private val workerFactory: WorkerFactory,
     private val orderActivities: OrderActivities,
+    private val workerConfig: TemporalWorkerConfig,
 ) {
     private val log = LoggerFactory.getLogger(TemporalManager::class.java)
 
+    fun workerOptions(): WorkerOptions =
+        WorkerOptions.newBuilder()
+            .setMaxConcurrentActivityExecutionSize(workerConfig.maxConcurrentActivityExecutions)
+            .setMaxConcurrentWorkflowTaskExecutionSize(workerConfig.maxConcurrentWorkflowTaskExecutions)
+            .setMaxConcurrentActivityTaskPollers(workerConfig.activityTaskPollers)
+            .setMaxConcurrentWorkflowTaskPollers(workerConfig.workflowTaskPollers)
+            .build()
+
     @PostConstruct
     fun startWorkers() {
-        val worker = workerFactory.newWorker("order-task-queue")
+        val worker = workerFactory.newWorker("order-task-queue", workerOptions())
         worker.registerWorkflowImplementationTypes(
             OrderPlacementWorkflowImpl::class.java,
             OrderCancellationWorkflowImpl::class.java,
