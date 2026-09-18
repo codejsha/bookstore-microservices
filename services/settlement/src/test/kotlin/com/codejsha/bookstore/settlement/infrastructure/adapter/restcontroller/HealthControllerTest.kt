@@ -1,5 +1,6 @@
 package com.codejsha.bookstore.settlement.infrastructure.adapter.restcontroller
 
+import com.codejsha.bookstore.settlement.infrastructure.support.ReadinessDataSource
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.BDDMockito.given
@@ -13,31 +14,31 @@ import kotlin.test.assertTrue
 
 class HealthControllerTest {
 
-    private fun dataSource(valid: Boolean): DataSource {
+    private fun readinessDataSource(valid: Boolean): ReadinessDataSource {
         val connection = mock(Connection::class.java)
         given(connection.isValid(anyInt())).willReturn(valid)
         val dataSource = mock(DataSource::class.java)
         given(dataSource.connection).willReturn(connection)
-        return dataSource
+        return ReadinessDataSource(dataSource)
     }
 
     @Test
     fun `health_always_returns200`() {
-        val controller = HealthController(emptyList())
+        val controller = HealthController(readinessDataSource(valid = true))
 
         assertEquals(HttpStatus.OK, controller.health().statusCode)
     }
 
     @Test
-    fun `ready_allPoolsValid_returns200`() {
-        val controller = HealthController(listOf(dataSource(valid = true), dataSource(valid = true)))
+    fun `ready_readinessPoolValid_returns200`() {
+        val controller = HealthController(readinessDataSource(valid = true))
 
         assertEquals(HttpStatus.OK, controller.ready().statusCode)
     }
 
     @Test
-    fun `ready_onePoolInvalid_returns503`() {
-        val controller = HealthController(listOf(dataSource(valid = true), dataSource(valid = false)))
+    fun `ready_readinessPoolInvalid_returns503`() {
+        val controller = HealthController(readinessDataSource(valid = false))
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, controller.ready().statusCode)
     }
@@ -46,7 +47,7 @@ class HealthControllerTest {
     fun `ready_acquisitionFails_returns503`() {
         val dataSource = mock(DataSource::class.java)
         given(dataSource.connection).willThrow(SQLException("pool exhausted"))
-        val controller = HealthController(listOf(dataSource))
+        val controller = HealthController(ReadinessDataSource(dataSource))
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, controller.ready().statusCode)
     }
@@ -58,7 +59,7 @@ class HealthControllerTest {
             Thread.sleep(10_000)
             mock(Connection::class.java)
         }
-        val controller = HealthController(listOf(dataSource))
+        val controller = HealthController(ReadinessDataSource(dataSource))
 
         val start = System.nanoTime()
         val status = controller.ready().statusCode

@@ -29,6 +29,16 @@ class VaultCredentialConfig {
             ),
         )
 
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    fun readinessVaultCredentialWatcher(readinessDataSource: ReadinessDataSource): VaultCredentialWatcher =
+        VaultCredentialWatcher(
+            listOf(
+                VaultCredentialBinding(DB_SECRETS_FILE, "db.username", "db.password") {
+                    readinessDataSource.unwrapHikari()
+                },
+            ),
+        )
+
     private fun DataSource.unwrapHikari(): HikariDataSource? =
         when (this) {
             is HikariDataSource -> this
