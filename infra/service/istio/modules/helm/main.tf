@@ -41,6 +41,7 @@ resource "helm_release" "istio_cni" {
   version         = var.istio_version
   set = [
     { name = "profile", value = "ambient" },
+    { name = "istioOwnedCNIConfig", value = "true" },
   ]
 }
 
