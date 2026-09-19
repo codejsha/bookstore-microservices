@@ -59,10 +59,19 @@ locals {
   ]
 
   circuit_breaker_services = [
+    "admin",
+    "admin-web",
     "catalog",
+    "customer",
+    "delivery",
     "identity",
+    "inventory",
+    "notification",
     "order",
     "payment",
+    "settlement",
+    "support",
+    "web",
   ]
 
   service_port = 8080
