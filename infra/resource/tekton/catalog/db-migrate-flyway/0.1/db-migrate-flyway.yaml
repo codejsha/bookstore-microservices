@@ -78,7 +78,7 @@ spec:
 
           case "$(params.DB_ENGINE)" in
             mysql)
-              url="jdbc:mysql://$(params.DB_HOST):3306/$(params.DB_NAME)?sslMode=trust&usePipelineAuth=false&useBatchMultiSend=false"
+              url="jdbc:mysql://$(params.DB_HOST):3306/$(params.DB_NAME)?sslMode=trust&allowPublicKeyRetrieval=true&usePipelineAuth=false&useBatchMultiSend=false"
               user="$MYSQL_USER"
               password="$MYSQL_PASSWORD"
               ;;
