@@ -65,14 +65,6 @@ locals {
       { path = "sys/policies/acl/vso-grafana", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/vso-grafana-role", capabilities = ["create", "read", "update", "delete"] },
     ]
-    # youtrack = [
-    #   { path = "kv-infra/data/youtrack/*", capabilities = ["create", "read", "update", "list"] },
-    #   { path = "sys/policies/acl/youtrack", capabilities = ["create", "read", "update", "delete"] },
-    #   { path = "pki_int/issuer/*", capabilities = ["read"] },
-    #   { path = "pki_int/roles/youtrack", capabilities = ["create", "read", "update", "delete"] },
-    #   { path = "auth/kubernetes/role/youtrack-issuer", capabilities = ["create", "read", "update", "delete"] },
-    #   { path = "auth/kubernetes/role/youtrack-role", capabilities = ["create", "read", "update", "delete"] },
-    # ]
     seaweedfs = [
       { path = "kv-infra/data/seaweedfs/*", capabilities = ["create", "read", "update", "list"] },
     ]
@@ -207,7 +199,6 @@ locals {
     "prometheus", "keycloak", "flink", "nexus",
     "foundation-alerts", "argo-rollouts",
     "kyverno",
-    # "youtrack",
   ])
   grafana_alert_read_rules = [
     { path = "kv-infra/data/grafana/admin/credentials", capabilities = ["read"] },
