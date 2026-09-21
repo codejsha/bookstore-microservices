@@ -83,10 +83,22 @@ otelcol.processor.batch "default" {
     logs    = [
       otelcol.exporter.otlphttp.loki.input,
       otelcol.processor.filter.risk_access.input,
+      otelcol.processor.batch.kafka_logs.input,
+    ]
+    traces  = [otelcol.exporter.otlp.tempo.input]
+  }
+}
+
+otelcol.processor.batch "kafka_logs" {
+  send_batch_size     = 200
+  send_batch_max_size = 200
+  timeout             = "1s"
+
+  output {
+    logs = [
       otelcol.processor.filter.log_bookstore.input,
       otelcol.processor.filter.log_infra.input,
     ]
-    traces  = [otelcol.exporter.otlp.tempo.input]
   }
 }
 
