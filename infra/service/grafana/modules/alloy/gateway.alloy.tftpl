@@ -15,7 +15,7 @@ otelcol.receiver.otlp "default" {
 
   output {
     metrics = [otelcol.processor.batch.default.input]
-    logs    = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.k8sattributes.logs.input]
     traces  = [otelcol.processor.batch.default.input]
   }
 }
@@ -28,6 +28,10 @@ faro.receiver "default" {
     listen_port    = 12347
   }
 
+  extra_log_labels = {
+    namespace = "bookstore",
+  }
+
   output {
     logs   = [otelcol.receiver.loki.faro.receiver]
     traces = [otelcol.processor.batch.default.input]
@@ -35,6 +39,35 @@ faro.receiver "default" {
 }
 
 otelcol.receiver.loki "faro" {
+  output {
+    logs = [otelcol.processor.transform.logs.input]
+  }
+}
+
+// --- Log enrichment + secret masking -----------------------------------------
+
+otelcol.processor.k8sattributes "logs" {
+  extract {
+    metadata = ["k8s.namespace.name"]
+  }
+
+  output {
+    logs = [otelcol.processor.transform.logs.input]
+  }
+}
+
+otelcol.processor.transform "logs" {
+  error_mode = "ignore"
+
+  log_statements {
+    context    = "log"
+    statements = [
+      `set(resource.attributes["k8s.namespace.name"], attributes["namespace"]) where attributes["namespace"] != nil`,
+      `replace_pattern(body, "(?i)('password'\\s*:\\s*')[^']*(')", "$${1}****$${2}")`,
+      `replace_all_patterns(attributes, "value", "(?i)('password'\\s*:\\s*')[^']*(')", "$${1}****$${2}")`,
+    ]
+  }
+
   output {
     logs = [otelcol.processor.batch.default.input]
   }
@@ -47,7 +80,12 @@ otelcol.processor.batch "default" {
 
   output {
     metrics = [otelcol.exporter.otlphttp.prometheus.input]
-    logs    = [otelcol.exporter.otlphttp.loki.input]
+    logs    = [
+      otelcol.exporter.otlphttp.loki.input,
+      otelcol.processor.filter.risk_access.input,
+      otelcol.processor.filter.log_bookstore.input,
+      otelcol.processor.filter.log_infra.input,
+    ]
     traces  = [otelcol.exporter.otlp.tempo.input]
   }
 }
@@ -82,5 +120,84 @@ otelcol.exporter.otlp "tempo" {
     tls {
       insecure = true
     }
+  }
+}
+
+// --- Logs → Kafka ------------------------------------------------------------
+
+otelcol.processor.filter "log_bookstore" {
+  error_mode = "ignore"
+
+  logs {
+    log_record = [`resource.attributes["k8s.namespace.name"] != "bookstore"`]
+  }
+
+  output {
+    logs = [otelcol.exporter.kafka.log_bookstore.input]
+  }
+}
+
+otelcol.exporter.kafka "log_bookstore" {
+  brokers          = ["${kafka_bootstrap}"]
+  protocol_version = "3.0.0"
+  topic            = "bookstore.pod.log"
+  encoding         = "otlp_json"
+
+  sending_queue {
+    enabled = true
+  }
+}
+
+otelcol.processor.filter "log_infra" {
+  error_mode = "ignore"
+
+  logs {
+    log_record = [
+      `resource.attributes["k8s.namespace.name"] == nil`,
+      `resource.attributes["k8s.namespace.name"] == "bookstore"`,
+    ]
+  }
+
+  output {
+    logs = [otelcol.exporter.kafka.log_infra.input]
+  }
+}
+
+otelcol.exporter.kafka "log_infra" {
+  brokers          = ["${kafka_bootstrap}"]
+  protocol_version = "3.0.0"
+  topic            = "infra.pod.log"
+  encoding         = "otlp_json"
+
+  sending_queue {
+    enabled = true
+  }
+}
+
+// --- Access-log tee → Kafka (risk-scorer) ------------------------------------
+
+otelcol.processor.filter "risk_access" {
+  error_mode = "ignore"
+
+  logs {
+    log_record = [
+      `attributes["namespace"] != "bookstore"`,
+      `not IsMatch(body, "user_uid")`,
+    ]
+  }
+
+  output {
+    logs = [otelcol.exporter.kafka.risk_access.input]
+  }
+}
+
+otelcol.exporter.kafka "risk_access" {
+  brokers          = ["${kafka_bootstrap}"]
+  protocol_version = "3.0.0"
+  topic            = "bookstore.access-log"
+  encoding         = "raw"
+
+  sending_queue {
+    enabled = true
   }
 }

@@ -107,6 +107,30 @@ module "strimzi_broker" {
   depends_on         = [module.strimzi_operator]
 }
 
+resource "kubernetes_manifest" "log_topic" {
+  for_each = toset(["bookstore", "infra"])
+  manifest = {
+    apiVersion = "kafka.strimzi.io/v1"
+    kind       = "KafkaTopic"
+    metadata = {
+      name      = "${each.value}.pod.log"
+      namespace = kubernetes_namespace_v1.kafka_broker.metadata[0].name
+      labels = {
+        "strimzi.io/cluster" = var.kafka_cluster_name
+      }
+    }
+    spec = {
+      topicName  = "${each.value}.pod.log"
+      partitions = 3
+      replicas   = 3
+      config = {
+        "retention.ms" = "86400000"
+      }
+    }
+  }
+  depends_on = [module.strimzi_broker]
+}
+
 module "confluent_operator" {
   source           = "./modules/confluent-operator"
   namespace        = kubernetes_namespace_v1.kafka_operator.metadata[0].name

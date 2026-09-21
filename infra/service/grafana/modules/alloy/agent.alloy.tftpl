@@ -52,40 +52,7 @@ discovery.relabel "pod_logs" {
 
 loki.source.kubernetes "pods" {
   targets    = discovery.relabel.pod_logs.output
-  forward_to = [
-    otelcol.receiver.loki.default.receiver,
-    loki.process.risk_access.receiver,
-  ]
-}
-
-// --- Access-log tee → Kafka (risk-scorer) ------------------------------------
-loki.process "risk_access" {
-  stage.match {
-    selector = "{namespace=~\".+\", namespace!=\"bookstore\"}"
-    action   = "drop"
-  }
-  stage.match {
-    selector = "{namespace=\"bookstore\"} != \"user_uid\""
-    action   = "drop"
-  }
-  forward_to = [otelcol.receiver.loki.risk_access.receiver]
-}
-
-otelcol.receiver.loki "risk_access" {
-  output {
-    logs = [otelcol.exporter.kafka.risk_access.input]
-  }
-}
-
-otelcol.exporter.kafka "risk_access" {
-  brokers          = ["bookstore-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093"]
-  protocol_version = "3.0.0"
-  topic            = "bookstore.access-log"
-  encoding         = "raw"
-
-  sending_queue {
-    enabled = true
-  }
+  forward_to = [otelcol.receiver.loki.default.receiver]
 }
 
 // --- Processing --------------------------------------------------------------

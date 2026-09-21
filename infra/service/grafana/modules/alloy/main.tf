@@ -16,6 +16,7 @@ locals {
     loki_push_url       = var.loki_push_url
     tempo_otlp_endpoint = var.tempo_otlp_endpoint
     prometheus_otlp_url = var.prometheus_otlp_url
+    kafka_bootstrap     = "bookstore-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093"
   })
 }
 
