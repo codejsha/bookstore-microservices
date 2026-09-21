@@ -12,8 +12,8 @@ importers:
         specifier: ^1.3.0
         version: 1.6.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@bookstore/admin-client':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       '@bookstore/design':
         specifier: ^1.0.0
         version: 1.0.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(tailwindcss@4.3.2)
@@ -325,8 +325,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@bookstore/admin-client@1.0.0':
-    resolution: {integrity: sha512-GdOLXQq4hGVDDOTaQqlT9tiZSgrwAd4n3ndJA6f64kbihAG44X4aOZJto8ZUyFDDF0AQ4yv8MKDx4ksvkNcmbA==}
+  '@bookstore/admin-client@1.0.1':
+    resolution: {integrity: sha512-mjSu1+aQrCtOR34VS69ZLdaAMHIQ2cLrgXbSvoFC80meJ8x82FHs9NE0dGGEIlIaGdL0BTmRIawLY2Ba2Mx3jg==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/admin-client/-/admin-client-1.0.1.tgz}
 
   '@bookstore/design@1.0.0':
     resolution: {integrity: sha512-mXOUmeUXww3KBfzUy6r0xEshoPlV0FkBzIxAYC5RoKGWMT3oz1W8LEjEXLtaZXHlZglubesalbEDmEt3bNl61Q==}
@@ -2608,7 +2608,7 @@ snapshots:
   '@biomejs/cli-win32-x64@2.4.12':
     optional: true
 
-  '@bookstore/admin-client@1.0.0':
+  '@bookstore/admin-client@1.0.1':
     dependencies:
       zod: 4.4.3
 
