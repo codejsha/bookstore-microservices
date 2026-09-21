@@ -16,7 +16,7 @@ BOOTSTRAP_EXCLUDE := $(foreach m,$(BOOTSTRAP),--queue-exclude-dir $(LIVE)/$(m))
 POST_RESOURCE         := service/oauth2-proxy
 POST_RESOURCE_EXCLUDE := $(foreach m,$(POST_RESOURCE),--queue-exclude-dir $(LIVE)/$(m))
 
-DISABLED         := service/youtrack
+DISABLED         :=
 DISABLED_EXCLUDE := $(foreach m,$(DISABLED),--queue-exclude-dir $(LIVE)/$(m))
 
 define bootstrap_layer
