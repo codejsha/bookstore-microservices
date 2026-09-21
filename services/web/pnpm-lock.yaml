@@ -12,29 +12,29 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@bookstore/catalog-client':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       '@bookstore/customer-client':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       '@bookstore/delivery-client':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       '@bookstore/design':
         specifier: ^1.0.0
         version: 1.0.0(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tailwindcss@4.2.2)
       '@bookstore/identity-client':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       '@bookstore/inventory-client':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       '@bookstore/order-client':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       '@bookstore/payment-client':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       '@fontsource-variable/geist':
         specifier: ^5.2.8
         version: 5.2.8
@@ -400,14 +400,14 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@bookstore/catalog-client@1.0.0':
-    resolution: {integrity: sha512-TAVk23WWznUFo3yLCie10AXVFTENkQxAYBtuavgK07JBde5kpuEFPzfXjIH2caWKJZiGcaIjHROciDbkzpCoZw==}
+  '@bookstore/catalog-client@1.0.1':
+    resolution: {integrity: sha512-q2LJnRJRt/FmOS5QKC7wfQYKKdpwy1ShWsQjsnm++H+Rfl2tNXow/ytA1BstuO5HMOU0gj7pQgVX56Sa/fFBRQ==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/catalog-client/-/catalog-client-1.0.1.tgz}
 
-  '@bookstore/customer-client@1.0.0':
-    resolution: {integrity: sha512-MOizApQCdCjtD3YdIJez9IfHLIzRXL9DyBD2KKRMK4UPgaAEWjxUTpv3/0UnZSpLB7WRI6IT5y0lt2TmlRYnhg==}
+  '@bookstore/customer-client@1.0.1':
+    resolution: {integrity: sha512-A+FwKRbF847HEipKpY7AXXW3ghYKPBBqoTlPn84V+DptBMfnzM1+99mz50os6bOjrWh85FqKDv2YdFCzYw/hzw==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/customer-client/-/customer-client-1.0.1.tgz}
 
-  '@bookstore/delivery-client@1.0.0':
-    resolution: {integrity: sha512-7mD79dG6a27boRFQB3sFXIzV6xFr+TIEby5HIPrVf9mbK4nhTSHprhC1Ith9BW92bsO/QZfQpl+klSHBdJxO5w==}
+  '@bookstore/delivery-client@1.0.1':
+    resolution: {integrity: sha512-N9/7i+G2z6ad+H+t+7U39mtSj/NDiZKC9SQG5jjlQKDsSHPZxDv8zry4kEkMCQyNdIJLWan3AzWZ5jYvG9xKYQ==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/delivery-client/-/delivery-client-1.0.1.tgz}
 
   '@bookstore/design@1.0.0':
     resolution: {integrity: sha512-mXOUmeUXww3KBfzUy6r0xEshoPlV0FkBzIxAYC5RoKGWMT3oz1W8LEjEXLtaZXHlZglubesalbEDmEt3bNl61Q==}
@@ -416,17 +416,17 @@ packages:
       react-dom: ^19.0.0
       tailwindcss: ^4.0.0
 
-  '@bookstore/identity-client@1.0.0':
-    resolution: {integrity: sha512-YkHMacOZatnjz/FtmJ/FFIZt26fb9mwhmlIrFd60Td54FoN8tCopYUP2JLIA3+qevIfPA1y+HE+wuI6xHlCNtQ==}
+  '@bookstore/identity-client@1.0.1':
+    resolution: {integrity: sha512-DyeAj2oAgDFtIv4KUSaOjyTxN1wh89oFqbBBHr0xKQvXj3RZOyn84BpADf2ox1SMATbXvM6kgI15V6B7VzvQbA==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/identity-client/-/identity-client-1.0.1.tgz}
 
-  '@bookstore/inventory-client@1.0.0':
-    resolution: {integrity: sha512-SQREZIHLJCO8BQ18TqIYqn4lcuQ5geIArY2SmRljOlxXIzNXPFwV4zYr7QE6jzVKrliucOYDso1y/uiMCSQJQw==}
+  '@bookstore/inventory-client@1.0.1':
+    resolution: {integrity: sha512-ibEnSGqI6sMSvCA9+gYIQyT/tZ80dYNPWhEX5Yj7r7PwFkWG4/hKLcpv3+7ExPAWeVyR2iRnlvPwfJFHiR5T7g==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/inventory-client/-/inventory-client-1.0.1.tgz}
 
-  '@bookstore/order-client@1.0.0':
-    resolution: {integrity: sha512-jYrwPisnekLQ4jZuZdjE1VqVBJF+Bim7Xt++i3IpU+/9xfoS/REILc6EVfNy/DyEta2bsYGR0dG05va9GJMYHg==}
+  '@bookstore/order-client@1.0.1':
+    resolution: {integrity: sha512-oZ8rrbV/HA81cGRci5cB2pvR6qM9OXQgn6GH2TIYqkcuC+um6OWLDHS8GP55ZXocc0UWEF2ANdeb1Z/qz+0Qmw==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/order-client/-/order-client-1.0.1.tgz}
 
-  '@bookstore/payment-client@1.0.0':
-    resolution: {integrity: sha512-n1iHGqye6AlN3n961PYHb5H+SrceL1l541q6cZHh4R979bRD/iGmoR4UjdLFPLMayKZo5WyGsdtRHP4tyfNrdg==}
+  '@bookstore/payment-client@1.0.1':
+    resolution: {integrity: sha512-zGSNrwOpVv7N2zGquUFGv71GneM1G1qK9kWxXJyXNobADojjTUfLymZ7iuR1HS5LODxn9tuwHZX1g4ZKi8JPsg==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/payment-client/-/payment-client-1.0.1.tgz}
 
   '@dotenvx/dotenvx@1.61.0':
     resolution: {integrity: sha512-utL3cpZoFzflyqUkjYbxYujI6STBTmO5LFn4bbin/NZnRWN6wQ7eErhr3/Vpa5h/jicPFC6kTa42r940mQftJQ==}
@@ -3061,15 +3061,15 @@ snapshots:
   '@biomejs/cli-win32-x64@2.4.12':
     optional: true
 
-  '@bookstore/catalog-client@1.0.0':
+  '@bookstore/catalog-client@1.0.1':
     dependencies:
       zod: 4.3.6
 
-  '@bookstore/customer-client@1.0.0':
+  '@bookstore/customer-client@1.0.1':
     dependencies:
       zod: 4.3.6
 
-  '@bookstore/delivery-client@1.0.0':
+  '@bookstore/delivery-client@1.0.1':
     dependencies:
       zod: 4.3.6
 
@@ -3087,19 +3087,19 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
 
-  '@bookstore/identity-client@1.0.0':
+  '@bookstore/identity-client@1.0.1':
     dependencies:
       zod: 4.3.6
 
-  '@bookstore/inventory-client@1.0.0':
+  '@bookstore/inventory-client@1.0.1':
     dependencies:
       zod: 4.3.6
 
-  '@bookstore/order-client@1.0.0':
+  '@bookstore/order-client@1.0.1':
     dependencies:
       zod: 4.3.6
 
-  '@bookstore/payment-client@1.0.0':
+  '@bookstore/payment-client@1.0.1':
     dependencies:
       zod: 4.3.6
 
