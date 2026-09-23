@@ -12,3 +12,8 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/resources/requests/cpu
         value: 100m
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: CALICO_IPV4POOL_CIDR
+          value: 10.42.0.0/16
