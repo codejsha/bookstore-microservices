@@ -145,6 +145,12 @@ spec:
     - name: gitleaks-image
       type: string
       default: docker.io/zricethezav/gitleaks:v8.21.2
+    - name: db-schema-lint-exit-code
+      type: string
+      default: "0"
+    - name: db-schema-lint-image
+      type: string
+      default: docker.io/alpine/git:v2.47.2
 
   tasks:
     ### task
@@ -430,6 +436,32 @@ spec:
           workspace: shared-workspace
 
     ### task
+    - name: db-schema-lint
+      runAfter:
+        - clone-lib-repo
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/db-schema-lint/0.1/db-schema-lint.yaml
+      params:
+        - name: CONTEXT_DIR
+          value: $(params.context-dir)
+        - name: BASELINE_STATUSES_URL
+          value: http://gitea-http.gitea.svc.cluster.local:3000/api/v1/repos/example-corp/$(params.service-name)-source/statuses
+        - name: EXIT_CODE
+          value: $(params.db-schema-lint-exit-code)
+        - name: GIT_IMAGE
+          value: $(params.db-schema-lint-image)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    ### task
     - name: build-go-app
       runAfter:
         - trivy-fs-scan
@@ -591,3 +623,25 @@ spec:
           value: $(tasks.gitleaks-scan.results.found)
         - name: description
           value: gitleaks
+    - name: report-db-schema-lint-status
+      retries: 2
+      taskRef:
+        resolver: git
+        params:
+          - name: repo
+            value: tektoncd-custom-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/gitea-scan-status/0.1/gitea-scan-status.yaml
+      params:
+        - name: service-name
+          value: $(params.service-name)
+        - name: git-source-revision
+          value: $(params.git-source-revision)
+        - name: status-context
+          value: tekton/ci/db-schema-lint
+        - name: found
+          value: $(tasks.db-schema-lint.results.found)
+        - name: description
+          value: db schema lint
