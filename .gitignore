@@ -391,6 +391,7 @@ temp/
 *.zip
 *temp.md
 *temp.sh
+Modelfile*
 podman-build-secret-*
 
 cluster-keys.json
