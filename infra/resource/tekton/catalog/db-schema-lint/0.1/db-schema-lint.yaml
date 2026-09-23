@@ -1,0 +1,169 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: db-schema-lint
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.27.2"
+    tekton.dev/categories: Code Quality
+    tekton.dev/tags: lint,database,migration
+    tekton.dev/displayName: "Schema migration breaking-change lint"
+spec:
+  description: >-
+    Flags migration files that carry destructive DDL — statements the previous
+    release's code cannot survive while it still serves traffic (the CD
+    pipeline applies migrations before the Argo CD sync, and never rolls a
+    schema back). Only files added since the last linted build are inspected:
+    ancestors of HEAD are walked until one carries the BASELINE_STATUS_CONTEXT
+    commit status this task's badge leaves behind, and files added in
+    <that commit>..HEAD under MIGRATIONS_DIR are linted; without a baseline
+    only HEAD's own additions are. Forward-only inputs are considered
+    (golang-migrate *.up.sql, Flyway V*.sql, the upgrade() body of Alembic
+    revisions); *.down.sql and downgrade() are skipped. A file whose first
+    lines carry the marker "expand-contract: contract" is an intentional
+    contract step and is skipped. Findings are printed; EXIT_CODE decides
+    whether they also fail the pipeline.
+  results:
+    - name: found
+      description: >-
+        "true" if destructive DDL was flagged, "false" otherwise. Written even
+        in warn-only mode (EXIT_CODE "0"), so a finally task can surface the
+        outcome as its own commit status.
+  workspaces:
+    - name: source
+  params:
+    - name: CONTEXT_DIR
+      description: directory under workspace holding the service checkout
+      type: string
+      default: ./
+    - name: MIGRATIONS_DIR
+      description: >-
+        migrations directory relative to CONTEXT_DIR; Alembic revisions under
+        its versions/ subdirectory are picked up too
+      type: string
+      default: db/migrations
+    - name: BASELINE_STATUSES_URL
+      description: >-
+        Gitea statuses API base for the source repo
+        (…/repos/{org}/{repo}/statuses); the commit sha is appended per
+        lookup. Queried with the gitea-status-credentials secret; empty,
+        unfetchable, or no ancestor carrying BASELINE_STATUS_CONTEXT falls
+        back to HEAD's own additions.
+      type: string
+      default: ""
+    - name: BASELINE_STATUS_CONTEXT
+      description: >-
+        Commit-status context that marks a commit as already linted — the
+        badge the pipeline's finally task posts from this task's result.
+      type: string
+      default: tekton/ci/db-schema-lint
+    - name: BASELINE_MAX_COMMITS
+      description: >-
+        How many ancestors of HEAD to probe for the baseline before giving
+        up.
+      type: string
+      default: "50"
+    - name: EXIT_CODE
+      description: >-
+        Exit code the task ends with when destructive DDL is flagged. "1"
+        fails the pipeline; "0" reports the findings and lets it continue.
+      type: string
+      default: "0"
+    - name: GIT_IMAGE
+      description: image with git, sh, grep, awk and wget
+      type: string
+      default: docker.io/alpine/git:v2.47.2
+  steps:
+    - name: lint
+      image: $(params.GIT_IMAGE)
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
+      env:
+        - name: GITEA_USER
+          valueFrom:
+            secretKeyRef:
+              name: gitea-status-credentials
+              key: username
+              optional: true
+        - name: GITEA_PASS
+          valueFrom:
+            secretKeyRef:
+              name: gitea-status-credentials
+              key: password
+              optional: true
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        export HOME=/tmp
+        git config --global --add safe.directory '*'
+
+        DIR="$(params.MIGRATIONS_DIR)"
+        if [ ! -d "$DIR" ]; then
+          echo "no $DIR in this service - nothing to lint"
+          printf 'false' > "$(results.found.path)"
+          exit 0
+        fi
+
+        base=""
+        if [ -n "$(params.BASELINE_STATUSES_URL)" ] && [ -n "${GITEA_USER:-}" ]; then
+          auth="$(printf '%s:%s' "$GITEA_USER" "${GITEA_PASS:-}" | base64 | tr -d '\n')"
+          for c in $(git rev-list -n "$(params.BASELINE_MAX_COMMITS)" HEAD~1 2>/dev/null); do
+            statuses="$(wget -q -O - --header "Authorization: Basic $auth" \
+              "$(params.BASELINE_STATUSES_URL)/$c?limit=50" || true)"
+            if printf '%s' "$statuses" | grep -Eq "\"context\" *: *\"$(params.BASELINE_STATUS_CONTEXT)\""; then
+              base="$c"
+              break
+            fi
+          done
+        fi
+        if [ -n "$base" ]; then
+          echo "last linted build $base - linting migrations added since"
+          range="$base..HEAD"
+        else
+          echo "no previously linted build found - linting migrations added in HEAD only"
+          range="HEAD~1..HEAD"
+        fi
+
+        files="$(git diff --name-only --diff-filter=A "$range" -- "$DIR" 2>/dev/null \
+          | grep -Ev '(^|/)__pycache__/|(^|/)env\.py$|\.mako$|\.down\.sql$' \
+          | grep -E '\.(sql|py)$' || true)"
+        if [ -z "$files" ]; then
+          echo "no new migration files in $range"
+          printf 'false' > "$(results.found.path)"
+          exit 0
+        fi
+
+        SQL_PATTERN='DROP[[:space:]]+(COLUMN|TABLE)([[:space:]]|$)|RENAME[[:space:]]+(COLUMN|TABLE|TO)([[:space:]]|$)|(^|[^a-z_])(CHANGE|MODIFY)[[:space:]]+|ALTER[[:space:]]+COLUMN[[:space:]].*(TYPE|SET[[:space:]]+NOT[[:space:]]+NULL)([[:space:]]|$)|ADD[[:space:]]+(COLUMN[[:space:]]+)?[^,;]*NOT[[:space:]]+NULL|ADD[[:space:]]+(CONSTRAINT|UNIQUE|FOREIGN[[:space:]]+KEY|CHECK)([[:space:]]|$)|CREATE[[:space:]]+UNIQUE[[:space:]]+INDEX'
+        PY_PATTERN='op\.(drop_column|drop_table|rename_table|alter_column|create_unique_constraint|create_foreign_key|create_check_constraint)\(|op\.create_index\([^)]*unique=True|op\.add_column\(.*nullable=False'
+
+        found=false
+        for f in $files; do
+          [ -f "$f" ] || continue
+          if head -n 5 "$f" | grep -Eq 'expand-contract:[[:space:]]*contract'; then
+            echo "$f: contract marker present - skipped"
+            continue
+          fi
+          case "$f" in
+            *.py)
+              hits="$(awk '/^def upgrade\(/{f=1;next} /^def /{f=0} f' "$f" | grep -En "$PY_PATTERN" || true)"
+              ;;
+            *)
+              hits="$(grep -Ein "$SQL_PATTERN" "$f" || true)"
+              ;;
+          esac
+          if [ -n "$hits" ]; then
+            found=true
+            echo "$f: destructive DDL"
+            printf '%s\n' "$hits" | sed 's/^/    /'
+          else
+            echo "$f: ok"
+          fi
+        done
+
+        if [ "$found" = true ]; then
+          echo "db-schema-lint: destructive DDL found - see .claude/docs/db-migration-expand-contract.md for the expand/contract split"
+          printf 'true' > "$(results.found.path)"
+          [ "$(params.EXIT_CODE)" = "0" ] || exit "$(params.EXIT_CODE)"
+        else
+          printf 'false' > "$(results.found.path)"
+        fi
