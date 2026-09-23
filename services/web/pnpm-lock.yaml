@@ -401,13 +401,13 @@ packages:
     os: [win32]
 
   '@bookstore/catalog-client@1.0.1':
-    resolution: {integrity: sha512-q2LJnRJRt/FmOS5QKC7wfQYKKdpwy1ShWsQjsnm++H+Rfl2tNXow/ytA1BstuO5HMOU0gj7pQgVX56Sa/fFBRQ==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/catalog-client/-/catalog-client-1.0.1.tgz}
+    resolution: {integrity: sha512-q2LJnRJRt/FmOS5QKC7wfQYKKdpwy1ShWsQjsnm++H+Rfl2tNXow/ytA1BstuO5HMOU0gj7pQgVX56Sa/fFBRQ==}
 
   '@bookstore/customer-client@1.0.1':
-    resolution: {integrity: sha512-A+FwKRbF847HEipKpY7AXXW3ghYKPBBqoTlPn84V+DptBMfnzM1+99mz50os6bOjrWh85FqKDv2YdFCzYw/hzw==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/customer-client/-/customer-client-1.0.1.tgz}
+    resolution: {integrity: sha512-A+FwKRbF847HEipKpY7AXXW3ghYKPBBqoTlPn84V+DptBMfnzM1+99mz50os6bOjrWh85FqKDv2YdFCzYw/hzw==}
 
   '@bookstore/delivery-client@1.0.1':
-    resolution: {integrity: sha512-N9/7i+G2z6ad+H+t+7U39mtSj/NDiZKC9SQG5jjlQKDsSHPZxDv8zry4kEkMCQyNdIJLWan3AzWZ5jYvG9xKYQ==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/delivery-client/-/delivery-client-1.0.1.tgz}
+    resolution: {integrity: sha512-N9/7i+G2z6ad+H+t+7U39mtSj/NDiZKC9SQG5jjlQKDsSHPZxDv8zry4kEkMCQyNdIJLWan3AzWZ5jYvG9xKYQ==}
 
   '@bookstore/design@1.0.0':
     resolution: {integrity: sha512-mXOUmeUXww3KBfzUy6r0xEshoPlV0FkBzIxAYC5RoKGWMT3oz1W8LEjEXLtaZXHlZglubesalbEDmEt3bNl61Q==}
@@ -417,16 +417,16 @@ packages:
       tailwindcss: ^4.0.0
 
   '@bookstore/identity-client@1.0.1':
-    resolution: {integrity: sha512-DyeAj2oAgDFtIv4KUSaOjyTxN1wh89oFqbBBHr0xKQvXj3RZOyn84BpADf2ox1SMATbXvM6kgI15V6B7VzvQbA==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/identity-client/-/identity-client-1.0.1.tgz}
+    resolution: {integrity: sha512-DyeAj2oAgDFtIv4KUSaOjyTxN1wh89oFqbBBHr0xKQvXj3RZOyn84BpADf2ox1SMATbXvM6kgI15V6B7VzvQbA==}
 
   '@bookstore/inventory-client@1.0.1':
-    resolution: {integrity: sha512-ibEnSGqI6sMSvCA9+gYIQyT/tZ80dYNPWhEX5Yj7r7PwFkWG4/hKLcpv3+7ExPAWeVyR2iRnlvPwfJFHiR5T7g==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/inventory-client/-/inventory-client-1.0.1.tgz}
+    resolution: {integrity: sha512-ibEnSGqI6sMSvCA9+gYIQyT/tZ80dYNPWhEX5Yj7r7PwFkWG4/hKLcpv3+7ExPAWeVyR2iRnlvPwfJFHiR5T7g==}
 
   '@bookstore/order-client@1.0.1':
-    resolution: {integrity: sha512-oZ8rrbV/HA81cGRci5cB2pvR6qM9OXQgn6GH2TIYqkcuC+um6OWLDHS8GP55ZXocc0UWEF2ANdeb1Z/qz+0Qmw==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/order-client/-/order-client-1.0.1.tgz}
+    resolution: {integrity: sha512-oZ8rrbV/HA81cGRci5cB2pvR6qM9OXQgn6GH2TIYqkcuC+um6OWLDHS8GP55ZXocc0UWEF2ANdeb1Z/qz+0Qmw==}
 
   '@bookstore/payment-client@1.0.1':
-    resolution: {integrity: sha512-zGSNrwOpVv7N2zGquUFGv71GneM1G1qK9kWxXJyXNobADojjTUfLymZ7iuR1HS5LODxn9tuwHZX1g4ZKi8JPsg==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/payment-client/-/payment-client-1.0.1.tgz}
+    resolution: {integrity: sha512-zGSNrwOpVv7N2zGquUFGv71GneM1G1qK9kWxXJyXNobADojjTUfLymZ7iuR1HS5LODxn9tuwHZX1g4ZKi8JPsg==}
 
   '@dotenvx/dotenvx@1.61.0':
     resolution: {integrity: sha512-utL3cpZoFzflyqUkjYbxYujI6STBTmO5LFn4bbin/NZnRWN6wQ7eErhr3/Vpa5h/jicPFC6kTa42r940mQftJQ==}

@@ -326,7 +326,7 @@ packages:
     os: [win32]
 
   '@bookstore/admin-client@1.0.1':
-    resolution: {integrity: sha512-mjSu1+aQrCtOR34VS69ZLdaAMHIQ2cLrgXbSvoFC80meJ8x82FHs9NE0dGGEIlIaGdL0BTmRIawLY2Ba2Mx3jg==, tarball: https://nexus.example.com/repository/npm-group/@bookstore/admin-client/-/admin-client-1.0.1.tgz}
+    resolution: {integrity: sha512-mjSu1+aQrCtOR34VS69ZLdaAMHIQ2cLrgXbSvoFC80meJ8x82FHs9NE0dGGEIlIaGdL0BTmRIawLY2Ba2Mx3jg==}
 
   '@bookstore/design@1.0.0':
     resolution: {integrity: sha512-mXOUmeUXww3KBfzUy6r0xEshoPlV0FkBzIxAYC5RoKGWMT3oz1W8LEjEXLtaZXHlZglubesalbEDmEt3bNl61Q==}
