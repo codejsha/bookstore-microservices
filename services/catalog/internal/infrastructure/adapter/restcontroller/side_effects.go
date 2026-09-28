@@ -9,13 +9,18 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/codejsha/shared-library-go/pkg/message"
 )
 
-const sideEffectsTimeout = 5 * time.Second
+const (
+	sideEffectsTimeout     = 5 * time.Second
+	maxInFlightSideEffects = 16
+)
 
 var sideEffectsWG sync.WaitGroup
+var sideEffectsSlots = semaphore.NewWeighted(maxInFlightSideEffects)
 var eventPublisher atomic.Pointer[message.EventPublisher]
 
 type CacheInvalidator interface {
@@ -86,6 +91,16 @@ func WaitForSideEffects(timeout time.Duration) bool {
 func runSideEffects(parent context.Context, resource, key, action string, extra logrus.Fields) {
 	ctx, cancel := context.WithTimeout(parent, sideEffectsTimeout)
 	defer cancel()
+
+	if err := sideEffectsSlots.Acquire(ctx, 1); err != nil {
+		logrus.WithError(err).
+			WithField("resource", resource).
+			WithField("key", key).
+			WithField("action", action).
+			Warn("side-effect work dropped; in-flight limit reached")
+		return
+	}
+	defer sideEffectsSlots.Release(1)
 
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(guardSideEffect("event", resource, key, func() error { return emitEvent(gctx, resource, key, action, extra) }))
