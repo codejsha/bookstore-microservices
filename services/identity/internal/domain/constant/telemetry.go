@@ -10,3 +10,13 @@ const (
 	TracerNameS3        TracerName = "bookstore.identity.s3"
 	TracerNameRedis     TracerName = "bookstore.identity.redis"
 )
+
+type MeterName string
+
+const (
+	MeterNameAuthz MeterName = "bookstore.identity.authz"
+)
+
+const (
+	MetricAuthzDecisions = "identity.authz.decisions"
+)

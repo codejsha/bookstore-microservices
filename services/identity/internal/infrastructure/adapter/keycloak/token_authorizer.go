@@ -20,6 +20,29 @@ const (
 	AuthzRiskUnavailable
 )
 
+func (r AuthzReason) String() string {
+	switch r {
+	case AuthzOK:
+		return "ok"
+	case AuthzInactive:
+		return "inactive"
+	case AuthzIntrospectUnavailable:
+		return "introspect_unavailable"
+	case AuthzRevoked:
+		return "revoked"
+	case AuthzRevocationUnavailable:
+		return "revocation_unavailable"
+	case AuthzRiskBlocked:
+		return "risk_blocked"
+	case AuthzRiskRestricted:
+		return "risk_restricted"
+	case AuthzRiskUnavailable:
+		return "risk_unavailable"
+	default:
+		return "unknown"
+	}
+}
+
 type TokenAuthorizer struct {
 	introspector Introspector
 	revocation   security.RevocationChecker

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel"
 
 	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/security"
 	"github.com/codejsha/bookstore-microservices/identity/internal/infrastructure/adapter/keycloak"
@@ -14,6 +15,7 @@ const AuthzPathPrefix = "/internal/authz"
 
 type AuthzController struct {
 	authorizer *keycloak.TokenAuthorizer
+	metrics    *authzMetrics
 }
 
 func NewAuthzController(
@@ -21,7 +23,10 @@ func NewAuthzController(
 	revocation security.RevocationChecker,
 	risk security.RiskChecker,
 ) *AuthzController {
-	return &AuthzController{authorizer: keycloak.NewTokenAuthorizer(introspector, revocation, risk)}
+	return &AuthzController{
+		authorizer: keycloak.NewTokenAuthorizer(introspector, revocation, risk),
+		metrics:    newAuthzMetrics(otel.GetMeterProvider()),
+	}
 }
 
 func (c *AuthzController) RegisterRoutes(engine *gin.Engine) {
@@ -30,33 +35,35 @@ func (c *AuthzController) RegisterRoutes(engine *gin.Engine) {
 }
 
 func (c *AuthzController) Check(ctx *gin.Context) {
+	reqCtx := ctx.Request.Context()
 	token := bearerToken(ctx.GetHeader("Authorization"))
 	if token == "" {
+		c.metrics.deny(reqCtx, authzReasonMissingBearer)
 		ctx.Status(http.StatusUnauthorized)
 		return
 	}
-	switch sub, reason, err := c.authorizer.Authorize(ctx.Request.Context(), token, isWrite(ctx.Request.Method)); reason {
-	case keycloak.AuthzOK:
+	sub, reason, err := c.authorizer.Authorize(reqCtx, token, isWrite(ctx.Request.Method))
+	if reason == keycloak.AuthzOK {
+		c.metrics.allow(reqCtx, reason.String())
 		ctx.Status(http.StatusOK)
-	case keycloak.AuthzIntrospectUnavailable:
-		logrus.WithContext(ctx.Request.Context()).WithError(err).
-			Warn("authz denied: introspection unavailable")
-		ctx.Status(http.StatusForbidden)
-	case keycloak.AuthzRevocationUnavailable:
-		logrus.WithContext(ctx.Request.Context()).WithError(err).
-			Warn("authz denied: revocation denylist unavailable")
-		ctx.Status(http.StatusForbidden)
-	case keycloak.AuthzRiskUnavailable:
-		logrus.WithContext(ctx.Request.Context()).WithError(err).
-			Warn("authz denied: risk store unavailable")
-		ctx.Status(http.StatusForbidden)
-	case keycloak.AuthzRiskBlocked, keycloak.AuthzRiskRestricted:
-		logrus.WithContext(ctx.Request.Context()).WithField("user_uid", sub).
-			Warn("authz denied: principal flagged in risk store")
-		ctx.Status(http.StatusForbidden)
-	default:
-		ctx.Status(http.StatusForbidden)
+		return
 	}
+	c.metrics.deny(reqCtx, reason.String())
+	switch reason {
+	case keycloak.AuthzIntrospectUnavailable:
+		logrus.WithContext(reqCtx).WithError(err).
+			Warn("authz denied: introspection unavailable")
+	case keycloak.AuthzRevocationUnavailable:
+		logrus.WithContext(reqCtx).WithError(err).
+			Warn("authz denied: revocation denylist unavailable")
+	case keycloak.AuthzRiskUnavailable:
+		logrus.WithContext(reqCtx).WithError(err).
+			Warn("authz denied: risk store unavailable")
+	case keycloak.AuthzRiskBlocked, keycloak.AuthzRiskRestricted:
+		logrus.WithContext(reqCtx).WithField("user_uid", sub).
+			Warn("authz denied: principal flagged in risk store")
+	}
+	ctx.Status(http.StatusForbidden)
 }
 
 func bearerToken(header string) string {
