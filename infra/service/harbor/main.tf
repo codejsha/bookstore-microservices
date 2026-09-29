@@ -114,7 +114,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "Harbor high error rate"
-      description = "Harbor instance {{ $labels.instance }} 5xx error rate is {{ $value | humanizePercentage }}, exceeding 5% threshold."
+      description = "Harbor instance {{ $labels.instance }} 5xx error rate is {{ $values.B.Value | humanizePercentage }}, exceeding 5% threshold."
     },
     {
       name        = "HarborStorageUsageHigh"
@@ -122,7 +122,7 @@ module "alertrules" {
       for         = "30m"
       severity    = "warning"
       summary     = "Harbor storage usage high"
-      description = "Harbor project {{ $labels.project_name }} storage quota usage is {{ $value | humanizePercentage }}, exceeding 90% threshold."
+      description = "Harbor project {{ $labels.project_name }} storage quota usage is {{ $values.B.Value | humanizePercentage }}, exceeding 90% threshold."
     },
     {
       name        = "HarborComponentUnhealthy"

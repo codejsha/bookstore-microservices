@@ -109,7 +109,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "warning"
       summary     = "Istio xDS push errors"
-      description = "Istiod is experiencing xDS push errors at {{ $value }}/sec. Envoy configurations may be stale."
+      description = "Istiod is experiencing xDS push errors at {{ $values.B.Value | humanize }}/sec. Envoy configurations may be stale."
     },
     {
       name        = "IstioHighRequestErrorRate"
@@ -141,7 +141,7 @@ module "alertrules" {
       for         = "15m"
       severity    = "warning"
       summary     = "Node CPU usage high ({{ $labels.instance }})"
-      description = "Node {{ $labels.instance }} CPU usage is {{ $value | humanizePercentage }}, exceeding 90% for 15 minutes."
+      description = "Node {{ $labels.instance }} CPU usage is {{ $values.B.Value | humanizePercentage }}, exceeding 90% for 15 minutes."
     },
     {
       name        = "NodeMemoryUsageHigh"
@@ -149,7 +149,7 @@ module "alertrules" {
       for         = "15m"
       severity    = "warning"
       summary     = "Node memory usage high ({{ $labels.instance }})"
-      description = "Node {{ $labels.instance }} memory usage is {{ $value | humanizePercentage }}, exceeding 90% for 15 minutes."
+      description = "Node {{ $labels.instance }} memory usage is {{ $values.B.Value | humanizePercentage }}, exceeding 90% for 15 minutes."
     },
     {
       name        = "PodCPUUsageHigh"
@@ -157,7 +157,7 @@ module "alertrules" {
       for         = "15m"
       severity    = "warning"
       summary     = "Pod CPU usage high ({{ $labels.namespace }}/{{ $labels.pod }})"
-      description = "Container {{ $labels.container }} in pod {{ $labels.pod }} ({{ $labels.namespace }}) is using {{ $value | humanizePercentage }} of its CPU limit, exceeding 80% for 15 minutes."
+      description = "Container {{ $labels.container }} in pod {{ $labels.pod }} ({{ $labels.namespace }}) is using {{ $values.B.Value | humanizePercentage }} of its CPU limit, exceeding 80% for 15 minutes."
     },
     {
       name        = "PodMemoryUsageHigh"
@@ -165,7 +165,7 @@ module "alertrules" {
       for         = "15m"
       severity    = "warning"
       summary     = "Pod memory usage high ({{ $labels.namespace }}/{{ $labels.pod }})"
-      description = "Container {{ $labels.container }} in pod {{ $labels.pod }} ({{ $labels.namespace }}) is using {{ $value | humanizePercentage }} of its memory limit, exceeding 80% for 15 minutes."
+      description = "Container {{ $labels.container }} in pod {{ $labels.pod }} ({{ $labels.namespace }}) is using {{ $values.B.Value | humanizePercentage }} of its memory limit, exceeding 80% for 15 minutes."
     },
     {
       name        = "PVCUsageHigh"
@@ -173,7 +173,7 @@ module "alertrules" {
       for         = "15m"
       severity    = "warning"
       summary     = "PVC usage high ({{ $labels.persistentvolumeclaim }})"
-      description = "PVC {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is {{ $value | humanizePercentage }} full."
+      description = "PVC {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is {{ $values.B.Value | humanizePercentage }} full."
     },
     {
       name        = "PVCUsageCritical"
@@ -181,7 +181,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "critical"
       summary     = "PVC usage critical ({{ $labels.persistentvolumeclaim }})"
-      description = "PVC {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is {{ $value | humanizePercentage }} full. Immediate action required."
+      description = "PVC {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is {{ $values.B.Value | humanizePercentage }} full. Immediate action required."
     },
     {
       name        = "PodCrashLooping"
@@ -189,7 +189,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "Pod crash looping ({{ $labels.namespace }}/{{ $labels.pod }})"
-      description = "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted {{ $value }} times in the last hour."
+      description = "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted {{ $values.B.Value | humanize }} times in the last hour."
     },
     {
       name        = "DeploymentReplicasMismatch"
@@ -197,7 +197,7 @@ module "alertrules" {
       for         = "15m"
       severity    = "warning"
       summary     = "Deployment replicas mismatch ({{ $labels.namespace }}/{{ $labels.deployment }})"
-      description = "Deployment {{ $labels.deployment }} in {{ $labels.namespace }} has {{ $value }} ready vs desired replicas for 15 minutes."
+      description = "Deployment {{ $labels.deployment }} in {{ $labels.namespace }} has {{ $values.B.Value | humanize }} ready vs desired replicas for 15 minutes."
     },
     {
       name        = "StatefulSetReplicasMismatch"

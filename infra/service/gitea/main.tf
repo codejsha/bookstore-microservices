@@ -118,7 +118,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "Gitea high response time"
-      description = "Gitea instance {{ $labels.instance }} p99 response time is {{ $value }}s, exceeding 5s threshold."
+      description = "Gitea instance {{ $labels.instance }} p99 response time is {{ $values.B.Value | humanize }}s, exceeding 5s threshold."
     },
     {
       name        = "GiteaHighErrorRate"
@@ -126,7 +126,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "Gitea high error rate"
-      description = "Gitea instance {{ $labels.instance }} 5xx error rate is {{ $value | humanizePercentage }}, exceeding 5% threshold."
+      description = "Gitea instance {{ $labels.instance }} 5xx error rate is {{ $values.B.Value | humanizePercentage }}, exceeding 5% threshold."
     },
   ]
   providers = {

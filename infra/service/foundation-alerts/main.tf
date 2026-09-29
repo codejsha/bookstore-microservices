@@ -54,7 +54,7 @@ module "vault_alerts" {
       for         = "10m"
       severity    = "warning"
       summary     = "Vault high response time"
-      description = "Vault instance {{ $labels.instance }} p99 barrier get latency is {{ $value }}s, exceeding 0.5s threshold."
+      description = "Vault instance {{ $labels.instance }} p99 barrier get latency is {{ $values.B.Value | humanize }}s, exceeding 0.5s threshold."
     },
     {
       name        = "VaultHighErrorRate"
@@ -62,7 +62,7 @@ module "vault_alerts" {
       for         = "5m"
       severity    = "warning"
       summary     = "Vault audit log request failures detected"
-      description = "Vault instance {{ $labels.instance }} is experiencing audit log request failures at a rate of {{ $value }}/s."
+      description = "Vault instance {{ $labels.instance }} is experiencing audit log request failures at a rate of {{ $values.B.Value | humanize }}/s."
     },
     {
       name        = "VaultLeaderLost"
@@ -78,7 +78,7 @@ module "vault_alerts" {
       for         = "5m"
       severity    = "warning"
       summary     = "Vault token expiring soon"
-      description = "Vault token on {{ $labels.instance }} has a TTL of {{ $value }}s, which is less than 1 hour."
+      description = "Vault token on {{ $labels.instance }} has a TTL of {{ $values.B.Value | humanize }}s, which is less than 1 hour."
     },
     {
       name        = "VaultPKICertIssuanceFailure"
@@ -130,7 +130,7 @@ module "seaweedfs_alerts" {
       for         = "10m"
       severity    = "warning"
       summary     = "SeaweedFS disk usage high"
-      description = "SeaweedFS node {{ $labels.instance }} disk usage is {{ $value | humanizePercentage }}, exceeding 85% threshold."
+      description = "SeaweedFS node {{ $labels.instance }} disk usage is {{ $values.B.Value | humanizePercentage }}, exceeding 85% threshold."
     },
   ]
   providers = {
@@ -200,7 +200,7 @@ module "security_alerts" {
       for         = "5m"
       severity    = "warning"
       summary     = "User is issuing an abnormal request volume"
-      description = "user_uid {{ $labels.user_uid }} made {{ $value }} backend requests in 5 minutes (> 5 req/s sustained); likely automation or scraping."
+      description = "user_uid {{ $labels.user_uid }} made {{ $values.B.Value | humanize }} backend requests in 5 minutes (> 5 req/s sustained); likely automation or scraping."
     },
     {
       name        = "UserClientErrorBurst"
@@ -208,7 +208,7 @@ module "security_alerts" {
       for         = "5m"
       severity    = "warning"
       summary     = "User is generating a burst of 4xx responses"
-      description = "user_uid {{ $labels.user_uid }} received {{ $value }} 4xx responses in 5 minutes; probing, fuzzing or a broken client."
+      description = "user_uid {{ $labels.user_uid }} received {{ $values.B.Value | humanize }} 4xx responses in 5 minutes; probing, fuzzing or a broken client."
     },
     {
       name        = "UserAuthorizationDenied"
@@ -216,7 +216,7 @@ module "security_alerts" {
       for         = "0s"
       severity    = "critical"
       summary     = "User repeatedly denied by authorization"
-      description = "user_uid {{ $labels.user_uid }} hit {{ $value }} 403s in 5 minutes; likely enumerating other users' resources."
+      description = "user_uid {{ $labels.user_uid }} hit {{ $values.B.Value | humanize }} 403s in 5 minutes; likely enumerating other users' resources."
     },
     {
       name        = "UserOrderPlacementBurst"
@@ -224,7 +224,7 @@ module "security_alerts" {
       for         = "0s"
       severity    = "warning"
       summary     = "User placing orders at an abnormal rate"
-      description = "user_uid {{ $labels.user_uid }} started {{ $value }} place-order sagas in 10 minutes."
+      description = "user_uid {{ $labels.user_uid }} started {{ $values.B.Value | humanize }} place-order sagas in 10 minutes."
     },
     {
       name        = "UserCancellationBurst"
@@ -232,7 +232,7 @@ module "security_alerts" {
       for         = "0s"
       severity    = "warning"
       summary     = "User cancelling orders at an abnormal rate"
-      description = "user_uid {{ $labels.user_uid }} requested {{ $value }} order cancellations in 1 hour; possible refund farming."
+      description = "user_uid {{ $labels.user_uid }} requested {{ $values.B.Value | humanize }} order cancellations in 1 hour; possible refund farming."
     },
     {
       name        = "UserReviewWriteBurst"
@@ -240,7 +240,7 @@ module "security_alerts" {
       for         = "0s"
       severity    = "warning"
       summary     = "User posting reviews at an abnormal rate"
-      description = "user_uid {{ $labels.user_uid }} posted {{ $value }} reviews in 10 minutes; likely review spam."
+      description = "user_uid {{ $labels.user_uid }} posted {{ $values.B.Value | humanize }} reviews in 10 minutes; likely review spam."
     },
     {
       name        = "ClientIpManyUsers"
@@ -248,7 +248,7 @@ module "security_alerts" {
       for         = "0s"
       severity    = "critical"
       summary     = "Single client IP acting as many users"
-      description = "client_ip {{ $labels.client_ip }} authenticated as {{ $value }} distinct users in 15 minutes; credential stuffing or shared automation."
+      description = "client_ip {{ $labels.client_ip }} authenticated as {{ $values.B.Value | humanize }} distinct users in 15 minutes; credential stuffing or shared automation."
     },
     {
       name            = "EdgeRateLimitTripping"
@@ -258,7 +258,7 @@ module "security_alerts" {
       for             = "5m"
       severity        = "warning"
       summary         = "Edge rate limit is rejecting traffic"
-      description     = "{{ $labels.destination_service }} is returning {{ $value }} 429/s for 5 minutes; either an attack is being throttled or the bucket is too small."
+      description     = "{{ $labels.destination_service }} is returning {{ $values.B.Value | humanize }} 429/s for 5 minutes; either an attack is being throttled or the bucket is too small."
     },
     {
       name            = "AuthFailureSpike"
@@ -268,7 +268,7 @@ module "security_alerts" {
       for             = "5m"
       severity        = "warning"
       summary         = "Authentication/authorization failures spiking"
-      description     = "{{ $labels.destination_service }} is rejecting {{ $value }} req/s with 401/403 for 5 minutes; credential stuffing or token replay."
+      description     = "{{ $labels.destination_service }} is rejecting {{ $values.B.Value | humanize }} req/s with 401/403 for 5 minutes; credential stuffing or token replay."
     },
   ]
   providers = {
@@ -290,7 +290,7 @@ module "database_alerts" {
       for             = "5m"
       severity        = "warning"
       summary         = "MySQL is rejecting logins"
-      description     = "{{ $labels.pod }} logged {{ $value }} access-denied errors in 5 minutes; an application pool is most likely still using a stale password after a Vault static-role rotation."
+      description     = "{{ $labels.pod }} logged {{ $values.B.Value | humanize }} access-denied errors in 5 minutes; an application pool is most likely still using a stale password after a Vault static-role rotation."
     },
     {
       name            = "PostgresAuthFailed"
@@ -300,7 +300,7 @@ module "database_alerts" {
       for             = "5m"
       severity        = "warning"
       summary         = "Postgres is rejecting logins"
-      description     = "{{ $labels.pod }} logged {{ $value }} password authentication failures in 5 minutes; an application pool is most likely still using a stale password after a Vault static-role rotation."
+      description     = "{{ $labels.pod }} logged {{ $values.B.Value | humanize }} password authentication failures in 5 minutes; an application pool is most likely still using a stale password after a Vault static-role rotation."
     },
     {
       name        = "HikariConnectionTimeout"
@@ -308,7 +308,7 @@ module "database_alerts" {
       for         = "5m"
       severity    = "warning"
       summary     = "HikariCP connection acquisition is timing out"
-      description = "Pool {{ $labels.pool_name }} on {{ $labels.pod }} timed out {{ $value }} connection acquisitions in 5 minutes; the pool cannot reach the database or is exhausted."
+      description = "Pool {{ $labels.pool_name }} on {{ $labels.pod }} timed out {{ $values.B.Value | humanize }} connection acquisitions in 5 minutes; the pool cannot reach the database or is exhausted."
     },
     {
       name          = "VaultDbRotationFailed"
@@ -316,7 +316,7 @@ module "database_alerts" {
       for           = "0s"
       severity      = "critical"
       summary       = "Vault database static-role rotation failed"
-      description   = "Vault recorded {{ $value }} database UpdateUser errors on {{ $labels.instance }} in the last hour; a static-role password rotation did not complete and the credential in Vault may no longer match the database."
+      description   = "Vault recorded {{ $values.B.Value | humanize }} database UpdateUser errors on {{ $labels.instance }} in the last hour; a static-role password rotation did not complete and the credential in Vault may no longer match the database."
       no_data_state = "OK"
     },
   ]

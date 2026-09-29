@@ -114,7 +114,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "Keycloak high login failure rate"
-      description = "Keycloak realm {{ $labels.realm }} login failure rate is {{ $value | humanizePercentage }}, exceeding 10% threshold."
+      description = "Keycloak realm {{ $labels.realm }} login failure rate is {{ $values.B.Value | humanizePercentage }}, exceeding 10% threshold."
     },
     {
       name        = "KeycloakHighResponseTime"
@@ -122,7 +122,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "Keycloak high response time"
-      description = "Keycloak instance {{ $labels.instance }} p99 response time is {{ $value }}s, exceeding 2s threshold."
+      description = "Keycloak instance {{ $labels.instance }} p99 response time is {{ $values.B.Value | humanize }}s, exceeding 2s threshold."
     },
   ]
   providers = {
