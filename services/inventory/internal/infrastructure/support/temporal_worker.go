@@ -6,10 +6,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/codejsha/shared-library-go/pkg/logging"
 	restclient "github.com/codejsha/shared-library-go/pkg/rest/client"
 	"github.com/sirupsen/logrus"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/contrib/opentelemetry"
+	tlog "go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/fx"
 
@@ -63,6 +65,7 @@ func NewTemporalWorker(
 		HostPort:       cfg.Host,
 		Namespace:      cfg.Namespace,
 		MetricsHandler: metricsHandler,
+		Logger:         tlog.NewStructuredLogger(logging.NewSlogLogger(logrus.StandardLogger())),
 	}
 
 	var tokens *TemporalTokenSource

@@ -1,11 +1,14 @@
 package di
 
 import (
+	"log/slog"
+
 	pkgconfig "github.com/codejsha/shared-library-go/pkg/config"
 	"github.com/codejsha/shared-library-go/pkg/database"
 	"github.com/codejsha/shared-library-go/pkg/logging"
 	"github.com/codejsha/shared-library-go/pkg/rest/client"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 
 	"github.com/codejsha/bookstore-microservices/inventory/internal/config"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/service"
@@ -67,8 +70,15 @@ var Module = fx.Module("inventory",
 func NewApp(preConfig *pkgconfig.PreConfig, metadata *pkgconfig.Metadata) *fx.App {
 	return fx.New(
 		fx.Supply(preConfig, metadata),
+		fx.WithLogger(newFxLogger),
 		Module,
 		fx.Invoke(func(*infrastructure.Infra) {}),
 		fx.StopTimeout(support.ShutdownStopTimeout),
 	)
+}
+
+func newFxLogger(helper *logging.LogHelper) fxevent.Logger {
+	logger := &fxevent.SlogLogger{Logger: logging.NewSlogLogger(helper.Logger)}
+	logger.UseLogLevel(slog.LevelDebug)
+	return logger
 }
