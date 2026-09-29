@@ -9,6 +9,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/codejsha/shared-library-go/pkg/message"
 )
@@ -16,11 +17,14 @@ import (
 const (
 	sideEffectTimeout       = 5 * time.Second
 	sideEffectsDrainTimeout = 10 * time.Second
+	maxInFlightSideEffects  = 16
 )
 
 var eventPublisher atomic.Pointer[message.EventPublisher]
 
 var sideEffectsWG sync.WaitGroup
+
+var sideEffectsSlots = semaphore.NewWeighted(maxInFlightSideEffects)
 
 func dispatchSideEffects(parent context.Context, resource, key, action string, extra logrus.Fields) {
 	sideEffectsWG.Add(1)
@@ -79,6 +83,16 @@ func (e resourceEvent) CreatedAt() time.Time             { return e.CreatedAtVal
 func runSideEffects(parent context.Context, resource, key, action string, extra logrus.Fields) {
 	ctx, cancel := context.WithTimeout(parent, sideEffectTimeout)
 	defer cancel()
+
+	if err := sideEffectsSlots.Acquire(ctx, 1); err != nil {
+		logrus.WithError(err).
+			WithField("resource", resource).
+			WithField("key", key).
+			WithField("action", action).
+			Warn("side effects dropped; in-flight limit reached")
+		return
+	}
+	defer sideEffectsSlots.Release(1)
 
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(guardStage("emit", resource, key, action, func() error { return emitEvent(gctx, resource, key, action, extra) }))
