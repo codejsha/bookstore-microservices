@@ -1,5 +1,8 @@
 replicaCount: 1
 
+image:
+  rootless: false
+
 service:
   http:
     type: ClusterIP
@@ -26,6 +29,13 @@ persistence:
   size: 10Gi
   accessModes:
     - ReadWriteOnce
+
+initPreScript: |
+  mkdir -p /data/ssh
+  install -o root -g root -m 600 /etc/gitea/ssh/gitea.rsa /data/ssh/ssh_host_rsa_key
+  if [ -f "${GITEA_APP_INI}" ] && [ ! -s /data/git/.ssh/authorized_keys ]; then
+    su-exec 1000:1000 env HOME=/data/git USER=git gitea --config "${GITEA_APP_INI}" admin regenerate keys
+  fi
 
 initContainers:
   resources:
@@ -68,9 +78,9 @@ gitea:
       REPO_INDEXER_ENABLED: true
     server:
       ROOT_URL: https://git.example.com/
+      START_SSH_SERVER: false
       SSH_PORT: 22
       SSH_LISTEN_PORT: 2222
-      SSH_SERVER_HOST_KEYS: /etc/gitea/ssh/gitea.rsa
     webhook:
       ALLOWED_HOST_LIST: "*.svc.cluster.local"
     service:

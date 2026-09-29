@@ -53,17 +53,17 @@ resource "helm_release" "gitea" {
       ]
       extraContainerVolumeMounts = [
         {
-          name      = "ssh-host-key"
-          mountPath = "/etc/gitea/ssh"
-          readOnly  = true
-        },
-        {
           name      = "keycloak-ca"
           mountPath = "/etc/gitea/keycloak-ca"
           readOnly  = true
         },
       ]
       extraInitVolumeMounts = [
+        {
+          name      = "ssh-host-key"
+          mountPath = "/etc/gitea/ssh"
+          readOnly  = true
+        },
         {
           name      = "keycloak-ca"
           mountPath = "/etc/gitea/keycloak-ca"
