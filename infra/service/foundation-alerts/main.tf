@@ -324,3 +324,79 @@ module "database_alerts" {
     grafana = grafana
   }
 }
+
+locals {
+  valkey_outage_impact = "identity-valkey outage denies every authenticated mesh request with 403 (revocation/risk lookups fail closed); oauth2-proxy-valkey outage logs every admin-web user out."
+}
+
+module "valkey_alerts" {
+  source            = "../../shared/grafana-alertrules"
+  group_name        = "valkey"
+  folder_title      = "Valkey"
+  parent_folder_uid = grafana_folder.alerts.uid
+  rules = [
+    {
+      name        = "ValkeyPodNotReady"
+      expr        = "kube_statefulset_replicas{namespace=\"bookstore\", statefulset=~\".+-valkey-primary\"} - kube_statefulset_status_replicas_ready{namespace=\"bookstore\", statefulset=~\".+-valkey-primary\"} > 0"
+      for         = "2m"
+      severity    = "critical"
+      summary     = "Valkey pod is not ready"
+      description = "StatefulSet {{ $labels.statefulset }} has {{ $value }} replica(s) not ready for 2 minutes; the Valkey pod is gone or failing its probes. ${local.valkey_outage_impact}"
+    },
+    {
+      name        = "ValkeyDown"
+      expr        = "redis_up == bool 0"
+      for         = "1m"
+      severity    = "critical"
+      summary     = "Valkey server is not responding"
+      description = "The exporter on {{ $labels.instance }} ({{ $labels.job }}) cannot reach its Valkey server for 1 minute. ${local.valkey_outage_impact}"
+    },
+    {
+      name        = "ValkeyRejectedConnections"
+      expr        = "sum by (job, instance) (increase(redis_rejected_connections_total[5m])) > 0"
+      for         = "0s"
+      severity    = "warning"
+      summary     = "Valkey is rejecting client connections"
+      description = "{{ $labels.job }} ({{ $labels.instance }}) rejected {{ $value }} connections in 5 minutes; maxclients is exhausted or a client is leaking connections."
+    },
+    {
+      name        = "ValkeyMemoryHigh"
+      expr        = "redis_memory_used_bytes / redis_memory_max_bytes > 0.9 and redis_memory_max_bytes > 0"
+      for         = "10m"
+      severity    = "warning"
+      summary     = "Valkey memory usage high"
+      description = "{{ $labels.job }} ({{ $labels.instance }}) is using {{ $value | humanizePercentage }} of maxmemory; evictions of revocation, risk or session keys start once it is full."
+    },
+  ]
+  providers = {
+    grafana = grafana
+  }
+}
+
+module "identity_authz_alerts" {
+  source            = "../../shared/grafana-alertrules"
+  group_name        = "identity-authz"
+  folder_title      = "Identity"
+  parent_folder_uid = grafana_folder.alerts.uid
+  rules = [
+    {
+      name        = "IdentityAuthzDependencyUnavailable"
+      expr        = "sum by (reason) (rate(identity_authz_decisions_total{outcome=\"deny\", reason=~\".*_unavailable\"}[5m])) > 0"
+      for         = "1m"
+      severity    = "critical"
+      summary     = "identity authz is failing closed on an unavailable dependency"
+      description = "identity /internal/authz denied {{ $value }} req/s with reason {{ $labels.reason }} for 1 minute. revocation_unavailable / risk_unavailable mean identity-valkey is unreachable, introspect_unavailable means Keycloak is; every authenticated request to the mesh is rejected with 403 until the dependency recovers."
+    },
+    {
+      name        = "IdentityAuthzDenyRatioHigh"
+      expr        = "sum(rate(identity_authz_decisions_total{outcome=\"deny\", reason!=\"missing_bearer\"}[5m])) / sum(rate(identity_authz_decisions_total{reason!=\"missing_bearer\"}[5m])) > 0.5"
+      for         = "5m"
+      severity    = "warning"
+      summary     = "identity authz is denying most bearer-token requests"
+      description = "{{ $value | humanizePercentage }} of bearer-token authz checks were denied over 5 minutes. Break it down with sum by (reason) (rate(identity_authz_decisions_total{outcome=\"deny\"}[5m])): inactive means expired or foreign tokens, revoked / risk_* means the denylist is doing its job, *_unavailable means a dependency outage."
+    },
+  ]
+  providers = {
+    grafana = grafana
+  }
+}
