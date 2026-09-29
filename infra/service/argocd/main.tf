@@ -130,7 +130,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "warning"
       summary     = "ArgoCD sync errors detected"
-      description = "ArgoCD application {{ $labels.name }} has experienced {{ $value }} failed sync attempts in the last 5 minutes."
+      description = "ArgoCD application {{ $labels.name }} has experienced {{ $values.B.Value | humanize }} failed sync attempts in the last 5 minutes."
     },
     {
       name        = "ArgocdHighReconciliationTime"
@@ -138,7 +138,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "ArgoCD high reconciliation time"
-      description = "ArgoCD p99 reconciliation time is {{ $value }}s, exceeding 60s threshold."
+      description = "ArgoCD p99 reconciliation time is {{ $values.B.Value | humanize }}s, exceeding 60s threshold."
     },
   ]
   providers = {

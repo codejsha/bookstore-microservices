@@ -88,7 +88,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "Flink checkpoints are failing"
-      description = "Flink job {{ $labels.job_name }} has had {{ $value }} failed checkpoints in the last 10 minutes."
+      description = "Flink job {{ $labels.job_name }} has had {{ $values.B.Value | humanize }} failed checkpoints in the last 10 minutes."
     },
     {
       name        = "FlinkTaskManagerLost"
@@ -96,7 +96,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "critical"
       summary     = "Flink TaskManager lost"
-      description = "Flink cluster has {{ $value }} registered TaskManagers, expected at least 1."
+      description = "Flink cluster has {{ $values.B.Value | humanize }} registered TaskManagers, expected at least 1."
     },
     {
       name        = "FlinkHighBackPressure"
@@ -104,7 +104,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "Flink task experiencing high back pressure"
-      description = "Flink task {{ $labels.task_name }} in job {{ $labels.job_name }} has {{ $value }}ms/s of back pressure time, exceeding 500ms/s threshold."
+      description = "Flink task {{ $labels.task_name }} in job {{ $labels.job_name }} has {{ $values.B.Value | humanize }}ms/s of back pressure time, exceeding 500ms/s threshold."
     },
   ]
   providers = {

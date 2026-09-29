@@ -67,7 +67,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "Kyverno admission reviews are slow"
-      description = "p99 admission review latency is {{ $value | humanizeDuration }}. The webhook fails open on timeout, so slow reviews skip image verification."
+      description = "p99 admission review latency is {{ $values.B.Value | humanizeDuration }}. The webhook fails open on timeout, so slow reviews skip image verification."
     },
     {
       name        = "KyvernoEnforceBlocked"
@@ -75,7 +75,7 @@ module "alertrules" {
       for         = "0m"
       severity    = "warning"
       summary     = "Kyverno rejected an image ({{ $labels.policy_name }})"
-      description = "Policy {{ $labels.policy_name }} failed verification for {{ $value }} {{ $labels.resource_kind }} admission(s) in the last 10 minutes. Check the image signature of the deployment."
+      description = "Policy {{ $labels.policy_name }} failed verification for {{ $values.B.Value | humanize }} {{ $labels.resource_kind }} admission(s) in the last 10 minutes. Check the image signature of the deployment."
     },
     {
       name        = "KyvernoPolicyEvaluationErrors"
@@ -83,7 +83,7 @@ module "alertrules" {
       for         = "0m"
       severity    = "warning"
       summary     = "Kyverno policy evaluation errors ({{ $labels.policy_name }})"
-      description = "Policy {{ $labels.policy_name }} hit {{ $value }} evaluation error(s) in the last 10 minutes. With failurePolicy Ignore an error admits the resource without verification."
+      description = "Policy {{ $labels.policy_name }} hit {{ $values.B.Value | humanize }} evaluation error(s) in the last 10 minutes. With failurePolicy Ignore an error admits the resource without verification."
     },
   ]
   providers = {

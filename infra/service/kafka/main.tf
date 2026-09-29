@@ -211,7 +211,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "warning"
       summary     = "Kafka under-replicated partitions detected"
-      description = "Kafka broker {{ $labels.instance }} has {{ $value }} under-replicated partitions."
+      description = "Kafka broker {{ $labels.instance }} has {{ $values.B.Value | humanize }} under-replicated partitions."
     },
     {
       name        = "KafkaOfflinePartitions"
@@ -219,7 +219,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "critical"
       summary     = "Kafka offline partitions detected"
-      description = "Kafka cluster has {{ $value }} offline partitions on {{ $labels.instance }}."
+      description = "Kafka cluster has {{ $values.B.Value | humanize }} offline partitions on {{ $labels.instance }}."
     },
     {
       name        = "KafkaConsumerLagHigh"
@@ -227,7 +227,7 @@ module "alertrules" {
       for         = "15m"
       severity    = "warning"
       summary     = "Kafka consumer lag is high"
-      description = "Kafka consumer group {{ $labels.consumergroup }} on topic {{ $labels.topic }} has a lag of {{ $value }}, exceeding 1000 threshold."
+      description = "Kafka consumer group {{ $labels.consumergroup }} on topic {{ $labels.topic }} has a lag of {{ $values.B.Value | humanize }}, exceeding 1000 threshold."
     },
     {
       name        = "KafkaBrokerDiskUsageHigh"
@@ -235,7 +235,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "Kafka broker disk usage high"
-      description = "Kafka broker {{ $labels.instance }} disk usage is {{ $value | humanizePercentage }}, exceeding 85% threshold."
+      description = "Kafka broker {{ $labels.instance }} disk usage is {{ $values.B.Value | humanizePercentage }}, exceeding 85% threshold."
     },
     {
       name        = "KafkaNoActiveController"
@@ -243,7 +243,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "critical"
       summary     = "Kafka has no active controller"
-      description = "Kafka cluster active controller count is {{ $value }}, expected exactly 1."
+      description = "Kafka cluster active controller count is {{ $values.B.Value | humanize }}, expected exactly 1."
     },
     {
       name        = "KafkaISRShrinkRate"
@@ -251,7 +251,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "warning"
       summary     = "Kafka ISR shrink rate increasing"
-      description = "Kafka broker {{ $labels.instance }} ISR shrink rate is {{ $value }}/s, indicating replica synchronization issues."
+      description = "Kafka broker {{ $labels.instance }} ISR shrink rate is {{ $values.B.Value | humanize }}/s, indicating replica synchronization issues."
     },
     {
       name        = "KafkaRequestQueueOverflow"
@@ -259,7 +259,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "warning"
       summary     = "Kafka request queue overflow"
-      description = "Kafka broker {{ $labels.instance }} request queue size is {{ $value }}, exceeding 100 threshold."
+      description = "Kafka broker {{ $labels.instance }} request queue size is {{ $values.B.Value | humanize }}, exceeding 100 threshold."
     },
     {
       name        = "KafkaTopicPartitionSkew"
@@ -267,7 +267,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "Kafka topic partition skew detected"
-      description = "Kafka topic {{ $labels.topic }} has a partition size skew ratio of {{ $value }}, exceeding 1.5 threshold."
+      description = "Kafka topic {{ $labels.topic }} has a partition size skew ratio of {{ $values.B.Value | humanize }}, exceeding 1.5 threshold."
     },
     {
       name        = "StrimziReconciliationFailed"
@@ -275,7 +275,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "warning"
       summary     = "Strimzi reconciliation failed"
-      description = "Strimzi operator has {{ $value }} failed reconciliations for {{ $labels.kind }}/{{ $labels.name }}."
+      description = "Strimzi operator has {{ $values.B.Value | humanize }} failed reconciliations for {{ $labels.kind }}/{{ $labels.name }}."
     },
     {
       name        = "StrimziReconciliationSlow"
@@ -283,7 +283,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "warning"
       summary     = "Strimzi reconciliation is slow"
-      description = "Strimzi operator reconciliation for {{ $labels.kind }}/{{ $labels.name }} took {{ $value }}s, exceeding 300s threshold."
+      description = "Strimzi operator reconciliation for {{ $labels.kind }}/{{ $labels.name }} took {{ $values.B.Value | humanize }}s, exceeding 300s threshold."
     },
   ]
   providers = {

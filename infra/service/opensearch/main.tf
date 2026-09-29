@@ -117,7 +117,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "OpenSearch disk usage high"
-      description = "OpenSearch node {{ $labels.node }} disk usage is {{ $value | humanizePercentage }}, exceeding 85% watermark."
+      description = "OpenSearch node {{ $labels.node }} disk usage is {{ $values.B.Value | humanizePercentage }}, exceeding 85% watermark."
     },
     {
       name        = "OpenSearchDiskWatermarkCritical"
@@ -125,7 +125,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "critical"
       summary     = "OpenSearch disk usage critical"
-      description = "OpenSearch node {{ $labels.node }} disk usage is {{ $value | humanizePercentage }}, exceeding 95% critical watermark."
+      description = "OpenSearch node {{ $labels.node }} disk usage is {{ $values.B.Value | humanizePercentage }}, exceeding 95% critical watermark."
     },
     {
       name        = "OpenSearchHeapUsageHigh"
@@ -133,7 +133,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "OpenSearch JVM heap usage high"
-      description = "OpenSearch node {{ $labels.node }} JVM heap usage is {{ $value | humanizePercentage }}, exceeding 90% threshold."
+      description = "OpenSearch node {{ $labels.node }} JVM heap usage is {{ $values.B.Value | humanizePercentage }}, exceeding 90% threshold."
     },
     {
       name        = "OpenSearchPendingTasksHigh"
@@ -141,7 +141,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "OpenSearch pending tasks high"
-      description = "OpenSearch cluster {{ $labels.cluster }} has {{ $value }} pending tasks, exceeding threshold of 50."
+      description = "OpenSearch cluster {{ $labels.cluster }} has {{ $values.B.Value | humanize }} pending tasks, exceeding threshold of 50."
     },
     {
       name        = "OpenSearchIndexingRejections"
@@ -149,7 +149,7 @@ module "alertrules" {
       for         = "5m"
       severity    = "warning"
       summary     = "OpenSearch indexing rejections detected"
-      description = "OpenSearch node {{ $labels.node }} is rejecting write requests at a rate of {{ $value }}/s."
+      description = "OpenSearch node {{ $labels.node }} is rejecting write requests at a rate of {{ $values.B.Value | humanize }}/s."
     },
     {
       name        = "OpenSearchGCPauseHigh"
@@ -157,7 +157,7 @@ module "alertrules" {
       for         = "10m"
       severity    = "warning"
       summary     = "OpenSearch GC pause time high"
-      description = "OpenSearch node {{ $labels.node }} spends {{ $value }}s per second in {{ $labels.gc }} GC, exceeding 0.5s threshold."
+      description = "OpenSearch node {{ $labels.node }} spends {{ $values.B.Value | humanize }}s per second in {{ $labels.gc }} GC, exceeding 0.5s threshold."
     },
   ]
   providers = {
