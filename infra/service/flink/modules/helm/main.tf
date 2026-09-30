@@ -12,9 +12,10 @@ terraform {
 resource "helm_release" "flink_operator" {
   namespace  = var.namespace
   name       = "flink-operator"
-  repository = "https://downloads.apache.org/flink/flink-kubernetes-operator-1.12.1/"
+  repository = "https://archive.apache.org/dist/flink/flink-kubernetes-operator-1.16.1/"
   chart      = "flink-kubernetes-operator"
-  version    = "1.12.1"
+  version    = "1.16.1"
+  skip_crds  = true
   timeout    = 180
   values = [
     yamlencode({

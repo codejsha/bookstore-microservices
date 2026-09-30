@@ -16,6 +16,10 @@ terraform {
       source  = "grafana/grafana"
       version = "~> 4.44"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.3"
+    }
   }
 }
 
@@ -54,12 +58,17 @@ resource "kubernetes_limit_range_v1" "resource_limits" {
   }
 }
 
+module "crds" {
+  source = "./modules/crds"
+}
+
 module "helm" {
   source    = "./modules/helm"
   namespace = kubernetes_namespace_v1.flink.metadata[0].name
   providers = {
     helm = helm
   }
+  depends_on = [module.crds]
 }
 
 module "session_cluster" {
