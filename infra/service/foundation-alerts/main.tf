@@ -341,7 +341,7 @@ module "valkey_alerts" {
       for         = "2m"
       severity    = "critical"
       summary     = "Valkey pod is not ready"
-      description = "StatefulSet {{ $labels.statefulset }} has {{ $value }} replica(s) not ready for 2 minutes; the Valkey pod is gone or failing its probes. ${local.valkey_outage_impact}"
+      description = "StatefulSet {{ $labels.statefulset }} has {{ $values.B.Value | humanize }} replica(s) not ready for 2 minutes; the Valkey pod is gone or failing its probes. ${local.valkey_outage_impact}"
     },
     {
       name        = "ValkeyDown"
@@ -357,7 +357,7 @@ module "valkey_alerts" {
       for         = "0s"
       severity    = "warning"
       summary     = "Valkey is rejecting client connections"
-      description = "{{ $labels.job }} ({{ $labels.instance }}) rejected {{ $value }} connections in 5 minutes; maxclients is exhausted or a client is leaking connections."
+      description = "{{ $labels.job }} ({{ $labels.instance }}) rejected {{ $values.B.Value | humanize }} connections in 5 minutes; maxclients is exhausted or a client is leaking connections."
     },
     {
       name        = "ValkeyMemoryHigh"
@@ -365,7 +365,7 @@ module "valkey_alerts" {
       for         = "10m"
       severity    = "warning"
       summary     = "Valkey memory usage high"
-      description = "{{ $labels.job }} ({{ $labels.instance }}) is using {{ $value | humanizePercentage }} of maxmemory; evictions of revocation, risk or session keys start once it is full."
+      description = "{{ $labels.job }} ({{ $labels.instance }}) is using {{ $values.B.Value | humanizePercentage }} of maxmemory; evictions of revocation, risk or session keys start once it is full."
     },
   ]
   providers = {
@@ -385,7 +385,7 @@ module "identity_authz_alerts" {
       for         = "1m"
       severity    = "critical"
       summary     = "identity authz is failing closed on an unavailable dependency"
-      description = "identity /internal/authz denied {{ $value }} req/s with reason {{ $labels.reason }} for 1 minute. revocation_unavailable / risk_unavailable mean identity-valkey is unreachable, introspect_unavailable means Keycloak is; every authenticated request to the mesh is rejected with 403 until the dependency recovers."
+      description = "identity /internal/authz denied {{ $values.B.Value | humanize }} req/s with reason {{ $labels.reason }} for 1 minute. revocation_unavailable / risk_unavailable mean identity-valkey is unreachable, introspect_unavailable means Keycloak is; every authenticated request to the mesh is rejected with 403 until the dependency recovers."
     },
     {
       name        = "IdentityAuthzDenyRatioHigh"
@@ -393,7 +393,7 @@ module "identity_authz_alerts" {
       for         = "5m"
       severity    = "warning"
       summary     = "identity authz is denying most bearer-token requests"
-      description = "{{ $value | humanizePercentage }} of bearer-token authz checks were denied over 5 minutes. Break it down with sum by (reason) (rate(identity_authz_decisions_total{outcome=\"deny\"}[5m])): inactive means expired or foreign tokens, revoked / risk_* means the denylist is doing its job, *_unavailable means a dependency outage."
+      description = "{{ $values.B.Value | humanizePercentage }} of bearer-token authz checks were denied over 5 minutes. Break it down with sum by (reason) (rate(identity_authz_decisions_total{outcome=\"deny\"}[5m])): inactive means expired or foreign tokens, revoked / risk_* means the denylist is doing its job, *_unavailable means a dependency outage."
     },
   ]
   providers = {
