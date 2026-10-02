@@ -17,6 +17,7 @@ import (
 	genrepo "github.com/codejsha/bookstore-microservices/inventory/generated/infrastructure/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
+	"github.com/codejsha/bookstore-microservices/inventory/internal/infrastructure/support/utils"
 )
 
 var _ repo.WarehouseRepo = (*warehouseRepository)(nil)
@@ -48,21 +49,21 @@ func (r warehouseRepository) FindAll(ctx context.Context, opt option.WarehouseQu
 	base := q.WarehouseEntity.WithContext(ctx).
 		Scopes(r.buildWhereScope(q, opt))
 
+	total, err := base.Count()
+	if err != nil {
+		return 0, nil, err
+	}
+
 	var entities []*entity.WarehouseEntity
-	err := base.
+	err = base.
 		Select(
 			q.WarehouseEntity.Uid,
 			q.WarehouseEntity.Name,
 			q.WarehouseEntity.Address,
 			q.WarehouseEntity.Capacity,
 		).
-		Scopes(gormutils.BuildPageScope(opt.Page(), sortable)).
+		Scopes(gormutils.BuildPageScope(utils.RowOffsetPage(opt.Page()), sortable)).
 		Scan(&entities)
-	if err != nil {
-		return 0, nil, err
-	}
-
-	total, err := base.Count()
 	if err != nil {
 		return 0, nil, err
 	}

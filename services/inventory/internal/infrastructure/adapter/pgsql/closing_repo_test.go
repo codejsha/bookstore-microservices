@@ -9,7 +9,10 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	"github.com/codejsha/shared-library-go/pkg/pagination"
+
 	"github.com/codejsha/bookstore-microservices/inventory/internal/application/port/repo"
+	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
 )
 
 var closingSchemaDDL = []string{
@@ -114,5 +117,42 @@ func TestMonthlyClosingCreate_severalStocks_readsHistoryOnceAndComputesItems(t *
 	}
 	if stored != int64(len(want)) {
 		t.Fatalf("stored items = %d, want %d", stored, len(want))
+	}
+}
+
+func TestMonthlyClosingFindAll_secondPage_skipsOneFullPage(t *testing.T) {
+	_, db := newTestRepo(t)
+	for _, ddl := range closingSchemaDDL {
+		if err := db.Exec(ddl).Error; err != nil {
+			t.Fatalf("create closing schema: %v", err)
+		}
+	}
+	for month := 1; month <= 7; month++ {
+		if err := db.Exec(
+			"INSERT INTO monthly_closing (uid, warehouse_id, warehouse_uid, year, month, status, created_at, actor, version) VALUES (?, 7, ?, 2026, ?, 'CLOSED', ?, 1, 1)",
+			uuid.NewString(), warehouseUidFor(7), month, time.Now().UTC(),
+		).Error; err != nil {
+			t.Fatalf("seed closing: %v", err)
+		}
+	}
+	r := &monthlyClosingRepository{db: db}
+	size, page, sort := int32(3), int32(1), "month,asc"
+
+	total, got, err := r.FindAll(context.Background(), option.NewClosingQueryOption(
+		option.ClosingQueryOption{}.WithPage(pagination.NewPageOption(&size, &page, &sort)),
+	))
+	if err != nil {
+		t.Fatalf("find all: %v", err)
+	}
+
+	if total != 7 {
+		t.Errorf("total = %d, want 7", total)
+	}
+	months := make([]int32, len(got))
+	for i, c := range got {
+		months[i] = c.Month
+	}
+	if len(months) != 3 || months[0] != 4 || months[1] != 5 || months[2] != 6 {
+		t.Fatalf("months = %v, want [4 5 6]", months)
 	}
 }

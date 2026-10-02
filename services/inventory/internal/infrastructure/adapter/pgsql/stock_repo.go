@@ -62,7 +62,7 @@ func (r stockRepository) FindAll(ctx context.Context, opt option.StockQueryOptio
 	if limit := page.GetSize(); limit > 0 {
 		editionQuery = editionQuery.Limit(int(limit))
 	}
-	if offset := page.GetPage(); offset > 0 {
+	if offset := page.GetPage() * page.GetSize(); offset > 0 {
 		editionQuery = editionQuery.Offset(int(offset))
 	}
 	var editionUids []string

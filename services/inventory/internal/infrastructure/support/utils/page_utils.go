@@ -20,3 +20,8 @@ func PageOffsetLimit(p pagination.PageOption) (int, int) {
 	}
 	return (page - 1) * size, size
 }
+
+func RowOffsetPage(p pagination.PageOption) pagination.PageOption {
+	offset := p.GetPage() * p.GetSize()
+	return p.WithOverrides(nil, &offset, nil)
+}
