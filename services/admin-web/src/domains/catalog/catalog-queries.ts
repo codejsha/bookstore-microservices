@@ -1,18 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
 import { api } from "@/shared/api/client";
 import { paths } from "@/shared/api/paths";
+import { toQueryString } from "@/shared/api/query-string";
 import type { Author, Paged, Subject, Work, WorkListParams } from "./types";
 
 export const WORKS_PAGE_SIZE = 20;
-
-function worksSearch({ title, page, size, sort }: WorkListParams): string {
-  const params = new URLSearchParams();
-  if (title) params.set("title", title);
-  params.set("page", String(page));
-  params.set("size", String(size));
-  if (sort) params.set("sort", sort);
-  return `?${params.toString()}`;
-}
 
 export const catalogKeys = {
   workList: (params?: WorkListParams) =>
@@ -26,7 +18,9 @@ export const worksQueryOptions = (params: WorkListParams) =>
   queryOptions({
     queryKey: catalogKeys.workList(params),
     queryFn: () =>
-      api.get<Paged<Work>>(`${paths.catalog.works}${worksSearch(params)}`),
+      api.get<Paged<Work>>(
+        `${paths.catalog.works}${toQueryString({ ...params })}`,
+      ),
   });
 
 export const workQueryOptions = (uid: string) =>
