@@ -19,8 +19,8 @@ import {
 interface DataTableProps<T> {
   columns: ColumnDef<T, unknown>[];
   rows: T[];
-  sorting: SortingState;
-  onSortingChange: OnChangeFn<SortingState>;
+  sorting?: SortingState;
+  onSortingChange?: OnChangeFn<SortingState>;
   onRowClick?: (row: T) => void;
   emptyMessage?: string;
 }
@@ -36,8 +36,9 @@ export function DataTable<T>({
   const table = useReactTable({
     data: rows,
     columns,
-    state: { sorting },
+    state: { sorting: sorting ?? [] },
     onSortingChange,
+    enableSorting: onSortingChange !== undefined,
     manualSorting: true,
     manualPagination: true,
     enableMultiSort: false,

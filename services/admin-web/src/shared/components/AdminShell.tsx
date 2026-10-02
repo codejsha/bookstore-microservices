@@ -1,6 +1,17 @@
 import { Separator } from "@bookstore/design/ui/separator";
 import { Link } from "@tanstack/react-router";
-import { BookOpen, LayoutDashboard, ShieldAlert } from "lucide-react";
+import {
+  BookOpen,
+  Boxes,
+  CreditCard,
+  Landmark,
+  LayoutDashboard,
+  RotateCcw,
+  ShieldAlert,
+  ShoppingCart,
+  Users,
+  Warehouse,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import type { AdminIdentity } from "@/domains/admin";
 
@@ -13,6 +24,13 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/catalog", label: "Catalog", icon: BookOpen },
+  { to: "/users", label: "Users", icon: Users },
+  { to: "/orders", label: "Orders", icon: ShoppingCart },
+  { to: "/payments", label: "Payments", icon: CreditCard },
+  { to: "/refunds", label: "Refunds", icon: RotateCcw },
+  { to: "/settlements", label: "Settlements", icon: Landmark },
+  { to: "/inventory/warehouses", label: "Warehouses", icon: Warehouse },
+  { to: "/inventory/stocks", label: "Stock", icon: Boxes },
   { to: "/risk", label: "Risk", icon: ShieldAlert },
 ];
 

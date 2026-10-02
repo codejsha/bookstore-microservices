@@ -34,6 +34,10 @@ export class ApiError extends Error {
   }
 }
 
+export function retryUnlessNotFound(failureCount: number, error: unknown) {
+  return !(error instanceof ApiError && error.isNotFound) && failureCount < 2;
+}
+
 export function signInHref(returnTo: string): string {
   return `${SIGN_IN_PATH}?rd=${encodeURIComponent(returnTo)}`;
 }

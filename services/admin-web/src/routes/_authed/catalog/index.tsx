@@ -2,32 +2,24 @@ import { Button } from "@bookstore/design/ui/button";
 import { Input } from "@bookstore/design/ui/input";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
-import { useMemo } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import type { Work } from "@/domains/catalog";
 import { WORKS_PAGE_SIZE, worksQueryOptions } from "@/domains/catalog";
 import { DataTable } from "@/shared/components/ui/data-table";
 import { Pagination } from "@/shared/components/ui/pagination";
+import {
+  type ListSearch,
+  parseListSearch,
+  parseText,
+} from "@/shared/lib/list-search";
+import { useUrlSorting } from "@/shared/lib/sorting";
 
-interface WorksSearch {
-  page: number;
+interface WorksSearch extends ListSearch {
   title?: string;
-  sort?: string;
 }
 
 function validateSearch(search: Record<string, unknown>): WorksSearch {
-  const page = Number(search.page);
-  return {
-    page: Number.isInteger(page) && page >= 0 ? page : 0,
-    title:
-      typeof search.title === "string" && search.title !== ""
-        ? search.title
-        : undefined,
-    sort:
-      typeof search.sort === "string" && search.sort !== ""
-        ? search.sort
-        : undefined,
-  };
+  return { ...parseListSearch(search), title: parseText(search.title) };
 }
 
 export const Route = createFileRoute("/_authed/catalog/")({
@@ -70,11 +62,9 @@ function WorksPage() {
     worksQueryOptions({ ...search, size: WORKS_PAGE_SIZE }),
   );
 
-  const sorting: SortingState = useMemo(() => {
-    if (!search.sort) return [];
-    const [id, direction] = search.sort.split(",");
-    return [{ id, desc: direction === "desc" }];
-  }, [search.sort]);
+  const { sorting, onSortingChange } = useUrlSorting(search.sort, (sort) =>
+    navigate({ search: { ...search, sort, page: 0 } }),
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -100,20 +90,7 @@ function WorksPage() {
         columns={columns}
         rows={data.items}
         sorting={sorting}
-        onSortingChange={(updater) => {
-          const next =
-            typeof updater === "function" ? updater(sorting) : updater;
-          const order = next[0];
-          navigate({
-            search: {
-              ...search,
-              sort: order
-                ? `${order.id},${order.desc ? "desc" : "asc"}`
-                : undefined,
-              page: 0,
-            },
-          });
-        }}
+        onSortingChange={onSortingChange}
         onRowClick={(work) =>
           navigate({ to: "/catalog/$uid", params: { uid: work.uid } })
         }
