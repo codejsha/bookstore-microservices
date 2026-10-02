@@ -4,16 +4,11 @@ import com.codejsha.bookstore.admin.application.usecase.SettlementUseCase
 import com.codejsha.bookstore.admin.domain.model.command.TriggerSettlementRunCommand
 import com.codejsha.bookstore.admin.domain.model.option.SettlementQueryOption
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
-import com.codejsha.bookstore.admin.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.admin.infrastructure.support.auth.assertManager
-import com.codejsha.bookstore.admin.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.generated.application.port.openapi.api.AdminSettlementApi
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSettlementFindAllResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSettlementResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSettlementRunRequest
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSettlementRunResponse
-import com.codejsha.platform.shared.data.ActorContext
-import com.codejsha.platform.shared.data.ActorType
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -31,9 +26,9 @@ class AdminSettlementController(
         status: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminSettlementFindAllResponse> {
-        val principal = requireStaff()
+        principalResolver.requireStaff()
         val option = SettlementQueryOption(settlementDate = date, status = status)
-        val context = buildContext(principal)
+        val context = buildContext()
         val result = settlementUseCase.findAllSettlements(option, pageable ?: Pageable.unpaged(), context)
         return ResponseEntity.ok(
             AdminSettlementFindAllResponse(
@@ -44,16 +39,16 @@ class AdminSettlementController(
     }
 
     override fun adminSettlementsReadSettlement(uid: String): ResponseEntity<AdminSettlementResponse> {
-        val principal = requireStaff()
-        val context = buildContext(principal)
+        principalResolver.requireStaff()
+        val context = buildContext()
         return ResponseEntity.ok(toAdminSettlementResponse(settlementUseCase.findSettlement(uid, context)))
     }
 
     override fun adminSettlementsTriggerRun(
         requestBody: AdminSettlementRunRequest,
     ): ResponseEntity<AdminSettlementRunResponse> {
-        val principal = requireManager()
-        val context = buildContext(principal)
+        principalResolver.requireManager()
+        val context = buildContext()
         val command = TriggerSettlementRunCommand(
             targetDate = requestBody.targetDate,
             rerun = requestBody.rerun ?: false,
@@ -61,11 +56,4 @@ class AdminSettlementController(
         val ack = settlementUseCase.triggerSettlementRun(command, context)
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(toAdminSettlementRunResponse(ack))
     }
-
-    private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }
-
-    private fun requireManager(): Principal = principalResolver.require().also { it.assertManager() }
-
-    private fun buildContext(principal: Principal) =
-        ActorContext(actorId = 0L, ActorType.USER)
 }

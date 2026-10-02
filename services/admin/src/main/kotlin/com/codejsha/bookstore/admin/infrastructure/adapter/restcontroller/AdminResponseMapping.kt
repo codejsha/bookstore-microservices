@@ -8,6 +8,7 @@ import com.codejsha.bookstore.admin.domain.model.external.OrderLine
 import com.codejsha.bookstore.admin.domain.model.external.OrderShipping
 import com.codejsha.bookstore.admin.domain.model.external.Payment
 import com.codejsha.bookstore.admin.domain.model.external.Refund
+import com.codejsha.bookstore.admin.domain.model.external.RiskEntry
 import com.codejsha.bookstore.admin.domain.model.external.SettlementBucket
 import com.codejsha.bookstore.admin.domain.model.external.SettlementDetailLine
 import com.codejsha.bookstore.admin.domain.model.external.SettlementRunAck
@@ -28,6 +29,8 @@ import com.codejsha.bookstore.generated.application.port.openapi.model.AdminOrde
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminOrderShipping
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminPaymentResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminRefundResponse
+import com.codejsha.bookstore.generated.application.port.openapi.model.AdminRiskEntryResponse
+import com.codejsha.bookstore.generated.application.port.openapi.model.AdminRiskLevel
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSettlementDetailItem
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSettlementItem
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminSettlementResponse
@@ -90,6 +93,15 @@ internal fun toAdminUserResponse(user: User) = AdminUserResponse(
     lastLoginAt = user.lastLoginAt,
     createdAt = user.createdAt,
     updatedAt = user.updatedAt,
+)
+
+internal fun toAdminRiskEntryResponse(entry: RiskEntry) = AdminRiskEntryResponse(
+    userUid = entry.userUid,
+    level = AdminRiskLevel.fromValue(entry.level),
+    reason = entry.reason,
+    flaggedBy = entry.flaggedBy,
+    flaggedAt = entry.flaggedAt,
+    expiresAt = entry.expiresAt,
 )
 
 internal fun toAdminWarehouseResponse(warehouse: Warehouse) = AdminWarehouseResponse(

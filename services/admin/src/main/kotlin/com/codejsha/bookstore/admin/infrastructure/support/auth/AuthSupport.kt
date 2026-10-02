@@ -30,6 +30,10 @@ class HttpPrincipalResolver(
     }
 
     fun require(): Principal = current() ?: throw UnauthorizedException()
+
+    fun requireStaff(): Principal = require().also { it.assertStaff() }
+
+    fun requireManager(): Principal = require().also { it.assertManager() }
 }
 
 fun Principal.isStaff(): Boolean = hasRole(ROLE_STAFF) || hasRole(ROLE_SYSTEM)

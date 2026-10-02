@@ -3,14 +3,10 @@ package com.codejsha.bookstore.admin.infrastructure.adapter.restcontroller
 import com.codejsha.bookstore.admin.application.usecase.InventoryUseCase
 import com.codejsha.bookstore.admin.domain.model.option.StockQueryOption
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
-import com.codejsha.bookstore.admin.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.admin.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.generated.application.port.openapi.api.AdminInventoryApi
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminStockFindAllResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminWarehouseFindAllResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminWarehouseResponse
-import com.codejsha.platform.shared.data.ActorContext
-import com.codejsha.platform.shared.data.ActorType
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -25,8 +21,8 @@ class AdminInventoryController(
         name: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminWarehouseFindAllResponse> {
-        val principal = requireStaff()
-        val context = buildContext(principal)
+        principalResolver.requireStaff()
+        val context = buildContext()
         val result = inventoryUseCase.findAllWarehouses(name, pageable ?: Pageable.unpaged(), context)
         return ResponseEntity.ok(
             AdminWarehouseFindAllResponse(
@@ -37,8 +33,8 @@ class AdminInventoryController(
     }
 
     override fun adminInventoryReadWarehouse(uid: String): ResponseEntity<AdminWarehouseResponse> {
-        val principal = requireStaff()
-        val context = buildContext(principal)
+        principalResolver.requireStaff()
+        val context = buildContext()
         return ResponseEntity.ok(toAdminWarehouseResponse(inventoryUseCase.findWarehouse(uid, context)))
     }
 
@@ -47,9 +43,9 @@ class AdminInventoryController(
         warehouseUid: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminStockFindAllResponse> {
-        val principal = requireStaff()
+        principalResolver.requireStaff()
         val option = StockQueryOption(editionUid = editionUid, warehouseUid = warehouseUid)
-        val context = buildContext(principal)
+        val context = buildContext()
         val result = inventoryUseCase.findAllStocks(option, pageable ?: Pageable.unpaged(), context)
         return ResponseEntity.ok(
             AdminStockFindAllResponse(
@@ -58,9 +54,4 @@ class AdminInventoryController(
             )
         )
     }
-
-    private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }
-
-    private fun buildContext(principal: Principal) =
-        ActorContext(actorId = 0L, ActorType.USER)
 }
