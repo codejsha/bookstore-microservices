@@ -20,6 +20,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/constant"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/option"
+	"github.com/codejsha/bookstore-microservices/identity/internal/infrastructure/support/utils"
 )
 
 const emptyRolesJSON = `{"values":[]}`
@@ -62,7 +63,7 @@ func (r userRepository) FindAll(ctx context.Context, opt option.UserQueryOption)
 	}
 
 	entities, err := base.
-		Scopes(gormutils.BuildPageScope(opt.Page(), sortable)).
+		Scopes(gormutils.BuildPageScope(utils.RowOffsetPage(opt.Page()), sortable)).
 		Find()
 	if err != nil {
 		return 0, nil, err
@@ -85,6 +86,9 @@ func (r userRepository) buildWhereScope(q *dao.Query, opt option.UserQueryOption
 	}
 	if v := opt.Phone(); v != nil && *v != "" {
 		conds = append(conds, q.UsersEntity.Phone.Eq(*v))
+	}
+	if v := opt.Status(); v != nil && *v != "" {
+		conds = append(conds, q.UsersEntity.Status.Eq(*v))
 	}
 
 	return func(d gen.Dao) gen.Dao {

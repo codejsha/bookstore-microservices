@@ -5,10 +5,11 @@ import (
 )
 
 type UserQueryOption struct {
-	email *string
-	name  *string
-	phone *string
-	page  pagination.PageOption
+	email  *string
+	name   *string
+	phone  *string
+	status *string
+	page   pagination.PageOption
 }
 
 type UserQueryOptionFunc func(*UserQueryOption)
@@ -33,6 +34,10 @@ func (o UserQueryOption) Phone() *string {
 	return o.phone
 }
 
+func (o UserQueryOption) Status() *string {
+	return o.status
+}
+
 func (o UserQueryOption) Page() pagination.PageOption {
 	return o.page
 }
@@ -52,6 +57,12 @@ func (UserQueryOption) WithName(name *string) UserQueryOptionFunc {
 func (UserQueryOption) WithPhone(phone *string) UserQueryOptionFunc {
 	return func(o *UserQueryOption) {
 		o.phone = phone
+	}
+}
+
+func (UserQueryOption) WithStatus(status *string) UserQueryOptionFunc {
+	return func(o *UserQueryOption) {
+		o.status = status
 	}
 }
 

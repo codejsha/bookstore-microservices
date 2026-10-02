@@ -1,13 +1,140 @@
 package pgsql
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+
+	"github.com/codejsha/shared-library-go/pkg/pagination"
+
 	"github.com/codejsha/bookstore-microservices/identity/generated/infrastructure/port/entity"
+	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/repo"
+	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/option"
 )
+
+const usersSchemaDDL = `CREATE TABLE users (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	uid TEXT, idp_uid TEXT, email TEXT, first_name TEXT, last_name TEXT, phone TEXT,
+	roles TEXT, status TEXT, last_login_at DATETIME,
+	created_at DATETIME, updated_at DATETIME, deleted_at DATETIME,
+	actor INTEGER, version INTEGER
+)`
+
+func newUserTestRepo(t *testing.T) (userRepository, *gorm.DB) {
+	t.Helper()
+	dsn := "file:" + uuid.NewString() + "?mode=memory&cache=shared"
+	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	if err := db.Exec(usersSchemaDDL).Error; err != nil {
+		t.Fatalf("create users schema: %v", err)
+	}
+	t.Cleanup(func() {
+		sqlDB, _ := db.DB()
+		_ = sqlDB.Close()
+	})
+	return userRepository{db: db}, db
+}
+
+func seedUser(t *testing.T, db *gorm.DB, email, status string) {
+	t.Helper()
+	u := &entity.UsersEntity{
+		Uid:       uuid.NewString(),
+		IdpUid:    uuid.NewString(),
+		Email:     email,
+		FirstName: "F",
+		LastName:  "L",
+		Role:      emptyRolesJSON,
+		Status:    status,
+		CreatedAt: time.Now(),
+		Actor:     1,
+		Version:   1,
+	}
+	if err := db.Create(u).Error; err != nil {
+		t.Fatalf("seed user: %v", err)
+	}
+}
+
+func userEmails(users []*repo.UserResult) []string {
+	out := make([]string, len(users))
+	for i, u := range users {
+		out[i] = u.Email
+	}
+	return out
+}
+
+func TestUserRepositoryFindAll_secondPage_skipsOneFullPage(t *testing.T) {
+	r, db := newUserTestRepo(t)
+	for i := 0; i < 7; i++ {
+		seedUser(t, db, fmt.Sprintf("u%d@x.com", i), "ACTIVE")
+	}
+	size, page, sort := int32(3), int32(1), "email,asc"
+
+	total, got, err := r.FindAll(context.Background(), option.NewUserQueryOption(
+		option.UserQueryOption{}.WithPage(pagination.NewPageOption(&size, &page, &sort)),
+	))
+	if err != nil {
+		t.Fatalf("find all: %v", err)
+	}
+
+	if total != 7 {
+		t.Errorf("total = %d, want 7", total)
+	}
+	if want := []string{"u3@x.com", "u4@x.com", "u5@x.com"}; !reflect.DeepEqual(userEmails(got), want) {
+		t.Fatalf("emails = %v, want %v", userEmails(got), want)
+	}
+}
+
+func TestUserRepositoryFindAll_statusGiven_keepsOnlyMatchingUsers(t *testing.T) {
+	r, db := newUserTestRepo(t)
+	seedUser(t, db, "a@x.com", "ACTIVE")
+	seedUser(t, db, "b@x.com", "SUSPENDED")
+	seedUser(t, db, "c@x.com", "ACTIVE")
+	seedUser(t, db, "d@x.com", "SUSPENDED")
+	status, sort := "SUSPENDED", "email,asc"
+
+	total, got, err := r.FindAll(context.Background(), option.NewUserQueryOption(
+		option.UserQueryOption{}.WithStatus(&status),
+		option.UserQueryOption{}.WithPage(pagination.NewPageOption(nil, nil, &sort)),
+	))
+	if err != nil {
+		t.Fatalf("find all: %v", err)
+	}
+
+	if total != 2 {
+		t.Errorf("total = %d, want 2", total)
+	}
+	if want := []string{"b@x.com", "d@x.com"}; !reflect.DeepEqual(userEmails(got), want) {
+		t.Fatalf("emails = %v, want %v", userEmails(got), want)
+	}
+}
+
+func TestUserRepositoryFindAll_statusEmpty_appliesNoStatusFilter(t *testing.T) {
+	r, db := newUserTestRepo(t)
+	seedUser(t, db, "a@x.com", "ACTIVE")
+	seedUser(t, db, "b@x.com", "SUSPENDED")
+	status := ""
+
+	total, _, err := r.FindAll(context.Background(), option.NewUserQueryOption(
+		option.UserQueryOption{}.WithStatus(&status),
+	))
+	if err != nil {
+		t.Fatalf("find all: %v", err)
+	}
+
+	if total != 2 {
+		t.Errorf("total = %d, want 2", total)
+	}
+}
 
 func TestToUserResult_WhenRowFullyPopulated_MapsEveryField(t *testing.T) {
 	now := time.Now()
