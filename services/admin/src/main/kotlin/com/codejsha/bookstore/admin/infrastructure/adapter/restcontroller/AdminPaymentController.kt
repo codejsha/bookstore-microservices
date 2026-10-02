@@ -4,15 +4,11 @@ import com.codejsha.bookstore.admin.application.usecase.PaymentUseCase
 import com.codejsha.bookstore.admin.domain.model.option.PaymentQueryOption
 import com.codejsha.bookstore.admin.domain.model.option.RefundQueryOption
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
-import com.codejsha.bookstore.admin.infrastructure.support.auth.Principal
-import com.codejsha.bookstore.admin.infrastructure.support.auth.assertStaff
 import com.codejsha.bookstore.generated.application.port.openapi.api.AdminPaymentApi
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminPaymentFindAllResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminPaymentResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminRefundFindAllResponse
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminRefundResponse
-import com.codejsha.platform.shared.data.ActorContext
-import com.codejsha.platform.shared.data.ActorType
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -29,9 +25,9 @@ class AdminPaymentController(
         connector: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminPaymentFindAllResponse> {
-        val principal = requireStaff()
+        principalResolver.requireStaff()
         val option = PaymentQueryOption(customerId = customerId, status = status, connector = connector)
-        val context = buildContext(principal)
+        val context = buildContext()
         val result = paymentUseCase.findAllPayments(option, pageable ?: Pageable.unpaged(), context)
         return ResponseEntity.ok(
             AdminPaymentFindAllResponse(
@@ -42,8 +38,8 @@ class AdminPaymentController(
     }
 
     override fun adminPaymentsReadPayment(uid: String): ResponseEntity<AdminPaymentResponse> {
-        val principal = requireStaff()
-        val context = buildContext(principal)
+        principalResolver.requireStaff()
+        val context = buildContext()
         return ResponseEntity.ok(toAdminPaymentResponse(paymentUseCase.findPayment(uid, context)))
     }
 
@@ -52,9 +48,9 @@ class AdminPaymentController(
         status: String?,
         pageable: Pageable?,
     ): ResponseEntity<AdminRefundFindAllResponse> {
-        val principal = requireStaff()
+        principalResolver.requireStaff()
         val option = RefundQueryOption(paymentId = paymentId, status = status)
-        val context = buildContext(principal)
+        val context = buildContext()
         val result = paymentUseCase.findAllRefunds(option, pageable ?: Pageable.unpaged(), context)
         return ResponseEntity.ok(
             AdminRefundFindAllResponse(
@@ -65,13 +61,8 @@ class AdminPaymentController(
     }
 
     override fun adminPaymentsReadRefund(uid: String): ResponseEntity<AdminRefundResponse> {
-        val principal = requireStaff()
-        val context = buildContext(principal)
+        principalResolver.requireStaff()
+        val context = buildContext()
         return ResponseEntity.ok(toAdminRefundResponse(paymentUseCase.findRefund(uid, context)))
     }
-
-    private fun requireStaff(): Principal = principalResolver.require().also { it.assertStaff() }
-
-    private fun buildContext(principal: Principal) =
-        ActorContext(actorId = 0L, ActorType.USER)
 }

@@ -1,6 +1,5 @@
 package com.codejsha.bookstore.admin.application.usecase
 
-import com.codejsha.bookstore.admin.domain.model.external.RiskEntry
 import com.codejsha.bookstore.admin.domain.model.external.User
 import com.codejsha.bookstore.admin.domain.model.option.UserQueryOption
 import com.codejsha.platform.shared.data.ActorContext
@@ -19,17 +18,4 @@ interface UserUseCase {
     fun reactivateUser(uid: String, context: ActorContext): User
 
     fun deactivateUser(uid: String, actorUid: String, context: ActorContext): User
-
-    fun listRisk(context: ActorContext): List<RiskEntry>
-
-    fun flagRisk(
-        uid: String,
-        level: String,
-        reason: String,
-        ttlSeconds: Long?,
-        actorUid: String,
-        context: ActorContext,
-    ): RiskEntry
-
-    fun unflagRisk(uid: String, context: ActorContext)
 }

@@ -1,15 +1,6 @@
 package com.codejsha.bookstore.admin.infrastructure.support.auth
 
 import tools.jackson.databind.ObjectMapper
-import jakarta.servlet.http.HttpServletRequest
-import org.springframework.core.MethodParameter
-import org.springframework.stereotype.Component
-import org.springframework.web.bind.support.WebDataBinderFactory
-import org.springframework.web.context.request.NativeWebRequest
-import org.springframework.web.method.support.HandlerMethodArgumentResolver
-import org.springframework.web.method.support.ModelAndViewContainer
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
-import org.springframework.context.annotation.Configuration
 import java.util.Base64
 
 data class Principal(
@@ -33,10 +24,6 @@ object PrincipalHeaders {
     const val USER_SCOPES = "X-User-Scopes"
     const val JWT_PAYLOAD = "x-jwt-payload"
 }
-
-@Target(AnnotationTarget.VALUE_PARAMETER)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class AuthPrincipal
 
 object PrincipalParser {
     fun parse(header: (String) -> String?, objectMapper: ObjectMapper): Principal? {
@@ -78,32 +65,4 @@ object PrincipalParser {
             val list = objectMapper.readValue(decoded, List::class.java) as List<Any?>
             list.mapNotNull { it?.toString()?.trim()?.takeIf(String::isNotEmpty) }
         }.getOrNull()
-}
-
-@Component
-class PrincipalArgumentResolver(
-    private val objectMapper: ObjectMapper,
-) : HandlerMethodArgumentResolver {
-    override fun supportsParameter(parameter: MethodParameter): Boolean =
-        parameter.hasParameterAnnotation(AuthPrincipal::class.java) &&
-            parameter.parameterType == Principal::class.java
-
-    override fun resolveArgument(
-        parameter: MethodParameter,
-        mavContainer: ModelAndViewContainer?,
-        webRequest: NativeWebRequest,
-        binderFactory: WebDataBinderFactory?,
-    ): Any? {
-        val req = webRequest.getNativeRequest(HttpServletRequest::class.java) ?: return null
-        return PrincipalParser.parse(req::getHeader, objectMapper)
-    }
-}
-
-@Configuration
-class WebMvcAuthConfig(
-    private val resolver: PrincipalArgumentResolver,
-) : WebMvcConfigurer {
-    override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
-        resolvers.add(resolver)
-    }
 }

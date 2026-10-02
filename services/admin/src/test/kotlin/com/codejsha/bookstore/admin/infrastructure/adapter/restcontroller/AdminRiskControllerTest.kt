@@ -1,6 +1,6 @@
 package com.codejsha.bookstore.admin.infrastructure.adapter.restcontroller
 
-import com.codejsha.bookstore.admin.application.usecase.UserUseCase
+import com.codejsha.bookstore.admin.application.usecase.RiskUseCase
 import com.codejsha.bookstore.admin.infrastructure.support.auth.ForbiddenException
 import com.codejsha.bookstore.admin.infrastructure.support.auth.HttpPrincipalResolver
 import com.codejsha.bookstore.generated.application.port.openapi.model.AdminRiskFlagRequest
@@ -34,7 +34,7 @@ class AdminRiskControllerTest {
     @Test
     fun `every risk endpoint rejects a caller without the STAFF role`() {
         bindPrincipal(roles = "USER")
-        val useCase = mock(UserUseCase::class.java)
+        val useCase = mock(RiskUseCase::class.java)
         val controller = AdminRiskController(useCase, resolver)
 
         assertFailsWith<ForbiddenException> { controller.adminRiskListRisk() }
@@ -46,7 +46,7 @@ class AdminRiskControllerTest {
     @Test
     fun `a staff caller cannot flag or unflag a principal`() {
         bindPrincipal(roles = "STAFF,USER")
-        val useCase = mock(UserUseCase::class.java)
+        val useCase = mock(RiskUseCase::class.java)
         val controller = AdminRiskController(useCase, resolver)
 
         assertFailsWith<ForbiddenException> { controller.adminRiskFlagRisk(TARGET_UID, flagRequest()) }

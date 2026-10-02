@@ -5,6 +5,8 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 
+internal const val COUNT_ONLY_PAGE_SIZE = 1
+
 internal fun Pageable.sizeParam(): Int? = if (isPaged) pageSize else null
 
 internal fun Pageable.pageParam(): Int? = if (isPaged) pageNumber else null

@@ -2,8 +2,6 @@ package com.codejsha.bookstore.admin.domain.service
 
 import com.codejsha.bookstore.admin.application.port.restclient.IdentityClient
 import com.codejsha.bookstore.admin.application.usecase.UserUseCase
-import com.codejsha.bookstore.admin.domain.model.SelfManagementException
-import com.codejsha.bookstore.admin.domain.model.external.RiskEntry
 import com.codejsha.bookstore.admin.domain.model.external.User
 import com.codejsha.bookstore.admin.domain.model.option.UserQueryOption
 import com.codejsha.platform.shared.data.ActorContext
@@ -41,25 +39,4 @@ class UserService(
         assertNotSelf(uid, actorUid, "administrators cannot deactivate their own account")
         return identityClient.deactivateUser(uid)
     }
-
-    private fun assertNotSelf(uid: String, actorUid: String, message: String) {
-        if (uid.equals(actorUid, ignoreCase = true)) throw SelfManagementException(message)
-    }
-
-    override fun listRisk(context: ActorContext): List<RiskEntry> = identityClient.listRisk()
-
-    override fun flagRisk(
-        uid: String,
-        level: String,
-        reason: String,
-        ttlSeconds: Long?,
-        actorUid: String,
-        context: ActorContext,
-    ): RiskEntry {
-        assertNotSelf(uid, actorUid, "administrators cannot flag their own account")
-        return identityClient.flagRisk(uid, level, reason, ttlSeconds)
-    }
-
-    override fun unflagRisk(uid: String, context: ActorContext) = identityClient.unflagRisk(uid)
-
 }

@@ -12,6 +12,7 @@ import com.codejsha.bookstore.admin.domain.model.external.Subject
 import com.codejsha.bookstore.admin.domain.model.external.User
 import com.codejsha.bookstore.admin.domain.model.external.Warehouse
 import com.codejsha.bookstore.admin.domain.model.external.Work
+import com.codejsha.bookstore.admin.domain.model.command.FlagRiskCommand
 import com.codejsha.bookstore.admin.domain.model.command.TriggerSettlementRunCommand
 import com.codejsha.bookstore.admin.domain.model.command.WorkCreateCommand
 import com.codejsha.bookstore.admin.domain.model.command.WorkUpdateCommand
@@ -44,12 +45,6 @@ interface CatalogClient {
 interface IdentityClient {
     fun findAllUsers(option: UserQueryOption, pageable: Pageable): Page<User>
 
-    fun listRisk(): List<RiskEntry>
-
-    fun flagRisk(uid: String, level: String, reason: String, ttlSeconds: Long?): RiskEntry
-
-    fun unflagRisk(uid: String)
-
     fun findUser(uid: String): User
 
     fun updateRoles(uid: String, roles: List<String>): User
@@ -59,6 +54,12 @@ interface IdentityClient {
     fun reactivateUser(uid: String): User
 
     fun deactivateUser(uid: String): User
+
+    fun listRisk(): List<RiskEntry>
+
+    fun flagRisk(uid: String, command: FlagRiskCommand): RiskEntry
+
+    fun unflagRisk(uid: String)
 }
 
 interface OrderClient {
