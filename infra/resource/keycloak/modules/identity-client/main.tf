@@ -64,9 +64,9 @@ data "keycloak_openid_client" "realm_management" {
   client_id = "realm-management"
 }
 
-resource "vault_kv_secret_v2" "identity_admin" {
-  mount = "kv-infra"
-  name  = "keycloak/admin/identity-admin/credentials"
+resource "vault_kv_secret_v2" "keycloak_admin" {
+  mount = "kv-bookstore"
+  name  = "keycloak/admin/credentials"
   data_json = jsonencode({
     client_id      = keycloak_openid_client.identity.client_id
     client_secret  = keycloak_openid_client.identity.client_secret
