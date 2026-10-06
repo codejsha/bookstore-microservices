@@ -297,7 +297,7 @@ moved {
 }
 
 removed {
-  from = module.identity_client.vault_kv_secret_v2.identity_keycloak
+  from = module.identity_client.vault_kv_secret_v2.identity_admin
 
   lifecycle {
     destroy = false
