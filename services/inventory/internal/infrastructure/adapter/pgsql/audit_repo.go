@@ -19,6 +19,7 @@ import (
 	genrepo "github.com/codejsha/bookstore-microservices/inventory/generated/infrastructure/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
+	"github.com/codejsha/bookstore-microservices/inventory/internal/infrastructure/support/utils"
 )
 
 var _ repo.StockAuditRepo = (*stockAuditRepository)(nil)
@@ -50,14 +51,14 @@ func (r *stockAuditRepository) FindAll(ctx context.Context, opt option.AuditQuer
 
 	base := q.StockAuditEntity.WithContext(ctx).Scopes(r.buildWhereScope(q, opt))
 
-	audits, err := base.
-		Scopes(gormutils.BuildPageScope(opt.Page(), sortable)).
-		Find()
+	total, err := base.Count()
 	if err != nil {
 		return 0, nil, err
 	}
 
-	total, err := base.Count()
+	audits, err := base.
+		Scopes(gormutils.BuildPageScope(utils.RowOffsetPage(opt.Page()), sortable)).
+		Find()
 	if err != nil {
 		return 0, nil, err
 	}
