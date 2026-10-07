@@ -9,6 +9,12 @@ import (
 // Customer API
 type CustomerApi interface {
 	// Find all customers
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
+	// 503 (ServiceUnavailableError) — Service unavailable.
+	// 504 (GatewayTimeoutError) — Server error
 	CustomersGetAll(
 		ctx context.Context,
 		email *string,
@@ -21,26 +27,13 @@ type CustomerApi interface {
 
 	// Find customer
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 503 (ServiceUnavailableError) — Service unavailable.
+	// 504 (GatewayTimeoutError) — Server error
 	CustomersRead(
 		ctx context.Context,
 		uid string,
 	) (*CustomerFindResponse, error)
-
-	// Update customer
-	// Errors:
-	// 404 (NotFoundError) — The server cannot find the requested resource.
-	CustomersUpdate(
-		ctx context.Context,
-		uid string,
-		req CustomerUpdateRequest,
-	) (*CustomerUpdateResponse, error)
-
-	// Delete customer
-	// Errors:
-	// 404 (NotFoundError) — The server cannot find the requested resource.
-	CustomersDelete(
-		ctx context.Context,
-		uid string,
-	) error
 }

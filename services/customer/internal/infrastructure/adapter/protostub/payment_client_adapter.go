@@ -3,6 +3,8 @@ package protostub
 import (
 	"context"
 
+	"github.com/codejsha/shared-library-go/pkg/pagination"
+
 	"github.com/codejsha/bookstore-microservices/customer/generated/application/port/pb/paymentpb"
 	port "github.com/codejsha/bookstore-microservices/customer/internal/application/port/protostub"
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/aggregate"
@@ -18,11 +20,14 @@ func NewPaymentClient(c *PaymentGrpcClient) port.PaymentClient {
 	return &paymentClient{client: c.Client}
 }
 
-func (g *paymentClient) ListPayments(ctx context.Context, customerUid string, pageSize int32) (int64, []*aggregate.PaymentAggregate, error) {
+func (g *paymentClient) ListPayments(ctx context.Context, customerUid string, page pagination.PageOption) (int64, []*aggregate.PaymentAggregate, error) {
 	ctx = withActor(ctx)
+	pr := toPageRequest(page)
 	resp, err := g.client.ListPayments(ctx, &paymentpb.ListPaymentsRequest{
 		CustomerUid: customerUid,
-		PageSize:    pageSize,
+		PageSize:    pr.pageSize,
+		PageToken:   pr.pageToken,
+		OrderBy:     pr.orderBy,
 	})
 	if err != nil {
 		return 0, nil, err

@@ -21,15 +21,4 @@ model CustomerFindResponse {
   roles?: AuthRole[];
 }
 
-model CustomerUpdateRequest {
-  @format("email") email?: string;
-  @format("password") password?: string;
-  first_name?: string;
-  last_name?: string;
-  phone?: string;
-  roles?: AuthRole[];
-}
-
-model CustomerUpdateResponse is CustomerFindResponse;
-
 model CustomerFindAllResponse is PaginatedResponse<CustomerFindResponse>;

@@ -17,14 +17,20 @@ interface CustomerReviews {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): ReviewFindAllResponse | NotFoundError;
+  ): ReviewFindAllResponse | BadRequestError | UnauthorizedError | ForbiddenError;
 
   @doc("Write a review for a book")
   @post
   write(
     @path uid: uuid,
     @body body: ReviewCreateRequest,
-  ): CreatedResponse | BadRequestError | NotFoundError;
+  ):
+    | CreatedResponse
+    | BadRequestError
+    | NotFoundError
+    | UnauthorizedError
+    | ForbiddenError
+    | ConflictError;
 
   @doc("Get a specific review")
   @route("{review_uid}")
@@ -32,7 +38,7 @@ interface CustomerReviews {
   read(
     @path uid: uuid,
     @path review_uid: uuid,
-  ): ReviewFindResponse | NotFoundError;
+  ): ReviewFindResponse | NotFoundError | UnauthorizedError | ForbiddenError;
 
   @doc("Edit a review")
   @route("{review_uid}")
@@ -41,7 +47,12 @@ interface CustomerReviews {
     @path uid: uuid,
     @path review_uid: uuid,
     @body body: ReviewUpdateRequest,
-  ): ReviewFindResponse | BadRequestError | NotFoundError;
+  ):
+    | ReviewFindResponse
+    | BadRequestError
+    | NotFoundError
+    | UnauthorizedError
+    | ForbiddenError;
 
   @doc("Delete a review")
   @route("{review_uid}")
@@ -49,7 +60,7 @@ interface CustomerReviews {
   remove(
     @path uid: uuid,
     @path review_uid: uuid,
-  ): NoContentResponse | NotFoundError;
+  ): NoContentResponse | NotFoundError | UnauthorizedError | ForbiddenError;
 }
 
 // ─── Book Reviews (public, read-only) ───────────────────────────────────────
@@ -65,5 +76,5 @@ interface BookReviews {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): ReviewFindAllResponse;
+  ): ReviewFindAllResponse | BadRequestError;
 }

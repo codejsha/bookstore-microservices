@@ -10,17 +10,26 @@ namespace CustomerService;
 interface Points {
   @doc("Get customer's point balance")
   @get
-  getBalance(@path uid: uuid): PointBalanceResponse | NotFoundError;
+  getBalance(@path uid: uuid): PointBalanceResponse | UnauthorizedError | ForbiddenError;
 
   @doc("Earn points for a customer")
   @route("earn")
   @post
-  earn(@path uid: uuid, @body body: PointEarnRequest): PointBalanceResponse | BadRequestError | NotFoundError;
+  earn(@path uid: uuid, @body body: PointEarnRequest):
+    | PointBalanceResponse
+    | BadRequestError
+    | UnauthorizedError
+    | ForbiddenError;
 
   @doc("Spend points for a customer")
   @route("spend")
   @post
-  spend(@path uid: uuid, @body body: PointSpendRequest): PointBalanceResponse | BadRequestError | NotFoundError;
+  spend(@path uid: uuid, @body body: PointSpendRequest):
+    | PointBalanceResponse
+    | BadRequestError
+    | NotFoundError
+    | UnauthorizedError
+    | ForbiddenError;
 
   @doc("Get point change history")
   @route("history")
@@ -30,5 +39,5 @@ interface Points {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): PointHistoryFindAllResponse | NotFoundError;
+  ): PointHistoryFindAllResponse | BadRequestError | UnauthorizedError | ForbiddenError;
 }

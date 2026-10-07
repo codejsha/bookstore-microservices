@@ -3,6 +3,8 @@ package protostub
 import (
 	"context"
 
+	"github.com/codejsha/shared-library-go/pkg/pagination"
+
 	"github.com/codejsha/bookstore-microservices/customer/generated/application/port/pb/orderpb"
 	port "github.com/codejsha/bookstore-microservices/customer/internal/application/port/protostub"
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/aggregate"
@@ -18,12 +20,15 @@ func NewOrderClient(c *OrderGrpcClient) port.OrderClient {
 	return &orderClient{client: c.Client}
 }
 
-func (g *orderClient) ListOrders(ctx context.Context, userUid string, status *string, pageSize int32) (int64, []*aggregate.OrderAggregate, error) {
+func (g *orderClient) ListOrders(ctx context.Context, userUid string, status *string, page pagination.PageOption) (int64, []*aggregate.OrderAggregate, error) {
 	ctx = withActor(ctx)
+	pr := toPageRequest(page)
 	resp, err := g.client.ListOrders(ctx, &orderpb.ListOrdersRequest{
-		UserUid:  userUid,
-		Status:   stringToOrderStatusProto(status),
-		PageSize: pageSize,
+		UserUid:   userUid,
+		Status:    stringToOrderStatusProto(status),
+		PageSize:  pr.pageSize,
+		PageToken: pr.pageToken,
+		OrderBy:   pr.orderBy,
 	})
 	if err != nil {
 		return 0, nil, err

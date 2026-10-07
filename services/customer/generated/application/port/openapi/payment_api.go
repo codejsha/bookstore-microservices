@@ -10,11 +10,15 @@ import (
 type PaymentApi interface {
 	// Find customer's payments
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 503 (ServiceUnavailableError) — Service unavailable.
+	// 504 (GatewayTimeoutError) — Server error
 	CustomerPaymentsGetAll(
 		ctx context.Context,
 		uid string,
-		orderUid *string,
 		size *int32,
 		page *int32,
 		sort *string,
@@ -22,7 +26,11 @@ type PaymentApi interface {
 
 	// Find customer's payment
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 503 (ServiceUnavailableError) — Service unavailable.
+	// 504 (GatewayTimeoutError) — Server error
 	CustomerPaymentsRead(
 		ctx context.Context,
 		uid string,

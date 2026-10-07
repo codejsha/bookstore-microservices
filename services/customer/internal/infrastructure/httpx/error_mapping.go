@@ -17,7 +17,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/model/command"
 )
 
-var ErrNotFound = errors.New("resource not found")
+var ErrNotFound = usecase.ErrNotFound
 
 type errorStatus struct {
 	status  int
@@ -47,19 +47,6 @@ func MapBusinessError(ctx context.Context, err error) error {
 		if es, ok := ctx.Value(errorStatusKey{}).(*errorStatus); ok {
 			es.status = http.StatusBadRequest
 			es.message = err.Error()
-		}
-	}
-	return err
-}
-
-func MapNotImplemented(ctx context.Context, err error) error {
-	if err == nil {
-		return nil
-	}
-	if errors.Is(err, usecase.ErrNotImplemented) {
-		if es, ok := ctx.Value(errorStatusKey{}).(*errorStatus); ok {
-			es.status = http.StatusNotImplemented
-			es.message = "not implemented"
 		}
 	}
 	return err
@@ -108,6 +95,7 @@ var grpcStatusToHTTP = map[codes.Code]struct {
 	status  int
 	message string
 }{
+	codes.InvalidArgument:  {http.StatusBadRequest, "invalid argument"},
 	codes.NotFound:         {http.StatusNotFound, "resource not found"},
 	codes.Unavailable:      {http.StatusServiceUnavailable, "upstream service unavailable"},
 	codes.DeadlineExceeded: {http.StatusGatewayTimeout, "upstream service timed out"},

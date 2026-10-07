@@ -13,7 +13,13 @@ interface Delivery {
   @doc("Track a shipment by its uid")
   @route("/shipments/{uid}")
   @get
-  track(@path uid: uuid): ShipmentResponse | NotFoundError;
+  track(@path uid: uuid):
+    | ShipmentResponse
+    | NotFoundError
+    | UnauthorizedError
+    | ForbiddenError
+    | ServiceUnavailableError
+    | GatewayTimeoutError;
 
   @doc("List shipments for an order")
   @route("/orders/{order_uid}/shipments")
@@ -22,5 +28,12 @@ interface Delivery {
     @path order_uid: uuid,
     @query status?: ShipmentStatus,
     @query size?: Size,
-  ): ShipmentFindAllResponse | NotFoundError;
+  ):
+    | ShipmentFindAllResponse
+    | NotFoundError
+    | BadRequestError
+    | UnauthorizedError
+    | ForbiddenError
+    | ServiceUnavailableError
+    | GatewayTimeoutError;
 }

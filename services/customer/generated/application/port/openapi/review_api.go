@@ -9,6 +9,8 @@ import (
 // Review API
 type ReviewApi interface {
 	// Get all reviews for a book
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	BookReviewsGetAll(
 		ctx context.Context,
 		bookUid string,
@@ -20,7 +22,9 @@ type ReviewApi interface {
 
 	// Get all reviews by a customer
 	// Errors:
-	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	CustomerReviewsGetAll(
 		ctx context.Context,
 		uid string,
@@ -32,7 +36,10 @@ type ReviewApi interface {
 	// Write a review for a book
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	//
 	// Response headers (CustomerReviewsWriteResponseHeaders):
 	//   location (string) — Location of the created resource
@@ -44,6 +51,8 @@ type ReviewApi interface {
 
 	// Get a specific review
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	CustomerReviewsRead(
 		ctx context.Context,
@@ -54,6 +63,8 @@ type ReviewApi interface {
 	// Edit a review
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	CustomerReviewsEdit(
 		ctx context.Context,
@@ -64,6 +75,8 @@ type ReviewApi interface {
 
 	// Delete a review
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	CustomerReviewsRemove(
 		ctx context.Context,

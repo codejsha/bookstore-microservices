@@ -14,14 +14,26 @@ interface CustomerPayments {
   @get
   getAll(
     @path uid: uuid,
-    @query order_uid?: uuid,
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): PaymentFindAllResponse | NotFoundError;
+  ):
+    | PaymentFindAllResponse
+    | NotFoundError
+    | BadRequestError
+    | UnauthorizedError
+    | ForbiddenError
+    | ServiceUnavailableError
+    | GatewayTimeoutError;
 
   @doc("Find customer's payment")
   @route("{payment_uid}")
   @get
-  read(@path uid: uuid, @path payment_uid: uuid): PaymentFindResponse | NotFoundError;
+  read(@path uid: uuid, @path payment_uid: uuid):
+    | PaymentFindResponse
+    | NotFoundError
+    | UnauthorizedError
+    | ForbiddenError
+    | ServiceUnavailableError
+    | GatewayTimeoutError;
 }

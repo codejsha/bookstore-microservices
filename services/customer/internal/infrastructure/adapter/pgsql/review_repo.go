@@ -16,7 +16,6 @@ import (
 	genrepo "github.com/codejsha/bookstore-microservices/customer/generated/infrastructure/port/repo"
 	"github.com/codejsha/bookstore-microservices/customer/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/model/option"
-	"github.com/codejsha/bookstore-microservices/customer/internal/infrastructure/support/utils"
 )
 
 var _ repo.ReviewRepo = (*reviewRepository)(nil)
@@ -49,7 +48,7 @@ func (r *reviewRepository) FindAll(ctx context.Context, opt option.ReviewQueryOp
 	}
 	q = q.Order(rv.CreatedAt.Desc())
 
-	offset, limit := utils.PageOffsetLimit(opt.Page())
+	offset, limit := opt.Page().OffsetLimit()
 	entities, total, err := q.FindByPage(offset, limit)
 	if err != nil {
 		return 0, nil, err

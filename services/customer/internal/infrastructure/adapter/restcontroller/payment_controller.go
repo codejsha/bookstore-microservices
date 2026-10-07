@@ -25,14 +25,12 @@ func NewPaymentController(customerUseCase usecase.CustomerUseCase) openapi.Payme
 func (c *paymentController) CustomerPaymentsGetAll(
 	ctx context.Context,
 	uid string,
-	orderUid *string,
 	size *int32,
 	page *int32,
 	sort *string,
 ) (*openapi.PaymentFindAllResponse, error) {
 	opt := option.NewPaymentQueryOption(
 		option.PaymentQueryOption{}.WithUserUid(&uid),
-		option.PaymentQueryOption{}.WithOrderUid(orderUid),
 		option.PaymentQueryOption{}.WithPage(pagination.NewPageOption(size, page, sort)),
 	)
 
@@ -70,7 +68,7 @@ func (c *paymentController) CustomerPaymentsRead(
 func toPaymentFindResponse(a *aggregate.PaymentAggregate) openapi.PaymentFindResponse {
 	userUid := a.CustomerUid
 	return openapi.PaymentFindResponse{
-		Uid:      a.PaymentUid,
+		Uid:      a.Uid,
 		UserUid:  &userUid,
 		Currency: &a.Currency,
 		Amount:   &a.Amount,

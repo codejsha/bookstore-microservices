@@ -145,7 +145,7 @@ func (c *reviewController) CustomerReviewsEdit(
 
 func (c *reviewController) CustomerReviewsRemove(ctx context.Context, uid string, reviewUid string) error {
 	if err := c.customerUseCase.RemoveReview(ctx, uid, reviewUid); err != nil {
-		return err
+		return httpx.MapNotFound(ctx, err)
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "review", reviewUid, "deleted", logrus.Fields{})

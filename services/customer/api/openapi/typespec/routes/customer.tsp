@@ -19,20 +19,22 @@ interface Customers {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): CustomerFindAllResponse;
+  ):
+    | CustomerFindAllResponse
+    | BadRequestError
+    | UnauthorizedError
+    | ForbiddenError
+    | ServiceUnavailableError
+    | GatewayTimeoutError;
 
   @doc("Find customer")
   @route("{uid}")
   @get
-  read(@path uid: uuid): CustomerFindResponse | NotFoundError;
-
-  @doc("Update customer")
-  @route("{uid}")
-  @put
-  update(@path uid: uuid, @body body: CustomerUpdateRequest): CustomerUpdateResponse | NotFoundError;
-
-  @doc("Delete customer")
-  @route("{uid}")
-  @delete
-  delete(@path uid: uuid): NoContentResponse | NotFoundError;
+  read(@path uid: uuid):
+    | CustomerFindResponse
+    | NotFoundError
+    | UnauthorizedError
+    | ForbiddenError
+    | ServiceUnavailableError
+    | GatewayTimeoutError;
 }

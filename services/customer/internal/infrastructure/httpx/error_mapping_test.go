@@ -64,17 +64,31 @@ func TestGinResponseMapping_WhenHandlerWrapsGormNotFound_Returns404ProblemDetail
 	}
 }
 
-func TestGinResponseMapping_WhenHandlerReturnsNotImplemented_Returns501ProblemDetails(t *testing.T) {
+func TestMapNotFound_UseCaseNotFoundWrapped_Returns404ProblemDetails(t *testing.T) {
 	r := newTestEngine(func(c *gin.Context) (int, any, error) {
-		return 0, nil, MapNotImplemented(c.Request.Context(),
-			fmt.Errorf("update customer: %w", usecase.ErrNotImplemented))
+		return 0, nil, MapNotFound(c.Request.Context(),
+			fmt.Errorf("remove review r-1: %w", usecase.ErrNotFound))
 	})
 	w := do(r)
-	if w.Code != http.StatusNotImplemented {
-		t.Fatalf("status = %d, want 501", w.Code)
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want 404", w.Code)
 	}
-	if body := w.Body.String(); body != `{"title":"Not Implemented","status":501,"detail":"not implemented"}` {
-		t.Errorf("body = %q, want not-implemented json", body)
+	if body := w.Body.String(); body != `{"title":"Not Found","status":404,"detail":"resource not found"}` {
+		t.Errorf("body = %q, want resource-not-found json", body)
+	}
+}
+
+func TestMapGrpcStatus_InvalidArgumentWrapped_Returns400ProblemDetails(t *testing.T) {
+	r := newTestEngine(func(c *gin.Context) (int, any, error) {
+		return 0, nil, MapGrpcStatus(c.Request.Context(),
+			fmt.Errorf("list users via grpc: %w", status.Error(codes.InvalidArgument, "page_token malformed")))
+	})
+	w := do(r)
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400", w.Code)
+	}
+	if body := w.Body.String(); body != `{"title":"Bad Request","status":400,"detail":"invalid argument"}` {
+		t.Errorf("body = %q, want invalid-argument json", body)
 	}
 }
 
@@ -127,6 +141,7 @@ func TestGinResponseMapping_WhenHandlerWrapsGrpcStatus_ReturnsMappedHttpStatus(t
 		wantCode int
 		wantBody string
 	}{
+		{"invalid argument", codes.InvalidArgument, http.StatusBadRequest, `{"title":"Bad Request","status":400,"detail":"invalid argument"}`},
 		{"not found", codes.NotFound, http.StatusNotFound, `{"title":"Not Found","status":404,"detail":"resource not found"}`},
 		{"unavailable", codes.Unavailable, http.StatusServiceUnavailable, `{"title":"Service Unavailable","status":503,"detail":"upstream service unavailable"}`},
 		{"deadline exceeded", codes.DeadlineExceeded, http.StatusGatewayTimeout, `{"title":"Gateway Timeout","status":504,"detail":"upstream service timed out"}`},

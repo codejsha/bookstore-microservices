@@ -19,7 +19,8 @@ func NewWishlistApiHandler(service WishlistApi) *WishlistApiHandler {
 
 // Get customer's wishlist
 // Errors:
-// 404 (NotFoundError) — The server cannot find the requested resource.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *WishlistApiHandler) WishlistsGet(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.WishlistsGet(c.Request.Context(), uid)
@@ -33,7 +34,8 @@ func (h *WishlistApiHandler) WishlistsGet(c *gin.Context) {
 // Add books to customer's wishlist
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
-// 404 (NotFoundError) — The server cannot find the requested resource.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *WishlistApiHandler) WishlistsAddBooks(c *gin.Context) {
 	uid := c.Param("uid")
 	var req WishlistAddRequest
@@ -52,7 +54,8 @@ func (h *WishlistApiHandler) WishlistsAddBooks(c *gin.Context) {
 // Remove books from customer's wishlist
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
-// 404 (NotFoundError) — The server cannot find the requested resource.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *WishlistApiHandler) WishlistsRemoveBooks(c *gin.Context) {
 	uid := c.Param("uid")
 	var req WishlistRemoveRequest
