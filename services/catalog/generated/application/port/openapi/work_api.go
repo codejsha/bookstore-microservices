@@ -8,7 +8,9 @@ import (
 
 // Work API
 type WorkApi interface {
-	// Search works
+	// Search works. Served from the OpenSearch search index, not the primary database: a newly created or updated work appears here only after the CDC pipeline has indexed it
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	WorksSearch(
 		ctx context.Context,
 		title *string,
@@ -23,6 +25,8 @@ type WorkApi interface {
 	// Create new work
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	//
@@ -34,6 +38,8 @@ type WorkApi interface {
 	) error
 
 	// Full-text search backed by OpenSearch
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	WorksFullTextSearch(
 		ctx context.Context,
 		q *string,
@@ -54,6 +60,8 @@ type WorkApi interface {
 	// Update work
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	WorksUpdate(
@@ -63,6 +71,8 @@ type WorkApi interface {
 	) (*WorkUpdateResponse, error)
 
 	// Find editions of a work
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	WorksEditions(
 		ctx context.Context,
 		uid string,

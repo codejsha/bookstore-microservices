@@ -92,7 +92,7 @@ func (r *editionRepository) FindAll(ctx context.Context, opt option.EditionQuery
 		"updated_at": e.UpdatedAt,
 	}, e.Id)...)
 
-	offset, limit := utils.PageOffsetLimit(opt.Page())
+	offset, limit := opt.Page().OffsetLimit()
 	var rows []editionRow
 	total, err := q.ScanByPage(&rows, offset, limit)
 	if err != nil {
@@ -136,9 +136,19 @@ func (r *editionRepository) findOneBy(ctx context.Context, cond field.Expr) (*re
 	return toEditionResult(&row), nil
 }
 
-func (r *editionRepository) Create(ctx context.Context, cmd command.EditionCreateCommand, workId int64, publisherId *int64) (int64, error) {
+func (r *editionRepository) Create(ctx context.Context, cmd command.EditionCreateCommand, work repo.EditionWorkRef, publisher *repo.EditionPublisherRef) (int64, error) {
+	e := newEditionEntity(cmd, work, publisher, uuid.Must(uuid.NewV7()).String(), time.Now())
+	if err := r.q.EditionEntity.WithContext(ctx).Create(e); err != nil {
+		return 0, err
+	}
+	return e.Id, nil
+}
+
+func newEditionEntity(
+	cmd command.EditionCreateCommand, work repo.EditionWorkRef, publisher *repo.EditionPublisherRef, uid string, now time.Time,
+) *entity.EditionEntity {
 	e := &entity.EditionEntity{
-		Uid:            uuid.Must(uuid.NewV7()).String(),
+		Uid:            uid,
 		Title:          cmd.Title,
 		Isbn10:         cmd.Isbn10,
 		Isbn13:         cmd.Isbn13,
@@ -148,19 +158,21 @@ func (r *editionRepository) Create(ctx context.Context, cmd command.EditionCreat
 		Language:       utils.ToJsonString(cmd.Languages),
 		PhysicalFormat: cmd.PhysicalFormat,
 		Description:    cmd.Description,
-		WorkId:         workId,
-		PublisherId:    publisherId,
+		WorkId:         work.Id,
+		WorkUid:        work.Uid,
 		OlKey:          cmd.OlKey,
-		CreatedAt:      time.Now(),
+		CreatedAt:      now,
 		Version:        1,
 	}
-	if err := r.q.EditionEntity.WithContext(ctx).Create(e); err != nil {
-		return 0, err
+	if publisher != nil {
+		publisherId, publisherUid := publisher.Id, publisher.Uid
+		e.PublisherId = &publisherId
+		e.PublisherUid = &publisherUid
 	}
-	return e.Id, nil
+	return e
 }
 
-func (r *editionRepository) Update(ctx context.Context, id int64, cmd command.EditionUpdateCommand, workId *int64, publisherId *int64) error {
+func (r *editionRepository) Update(ctx context.Context, id int64, cmd command.EditionUpdateCommand, work *repo.EditionWorkRef, publisher *repo.EditionPublisherRef) error {
 	e := r.q.EditionEntity
 	assigns := []field.AssignExpr{e.UpdatedAt.Value(time.Now())}
 	if cmd.Title != nil {
@@ -194,11 +206,11 @@ func (r *editionRepository) Update(ctx context.Context, id int64, cmd command.Ed
 	if cmd.Description != nil {
 		assigns = append(assigns, e.Description.Value(*cmd.Description))
 	}
-	if workId != nil {
-		assigns = append(assigns, e.WorkId.Value(*workId))
+	if work != nil {
+		assigns = append(assigns, e.WorkId.Value(work.Id), e.WorkUid.Value(work.Uid))
 	}
-	if publisherId != nil {
-		assigns = append(assigns, e.PublisherId.Value(*publisherId))
+	if publisher != nil {
+		assigns = append(assigns, e.PublisherId.Value(publisher.Id), e.PublisherUid.Value(publisher.Uid))
 	}
 	if cmd.OlKey != nil {
 		assigns = append(assigns, e.OlKey.Value(*cmd.OlKey))

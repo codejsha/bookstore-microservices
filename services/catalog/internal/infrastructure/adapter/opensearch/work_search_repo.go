@@ -14,7 +14,6 @@ import (
 	"github.com/codejsha/bookstore-microservices/catalog/internal/config"
 	"github.com/codejsha/bookstore-microservices/catalog/internal/domain/model/option"
 	"github.com/codejsha/bookstore-microservices/catalog/internal/infrastructure/support"
-	"github.com/codejsha/bookstore-microservices/catalog/internal/infrastructure/support/utils"
 )
 
 type workSearchRepo struct {
@@ -110,8 +109,7 @@ func buildQuery(opt option.WorkSearchOption) ([]byte, error) {
 		})
 	}
 
-	offset, size := utils.PageOffsetLimit(opt.Page())
-	from := offset
+	from, size := opt.Page().OffsetLimit()
 
 	query := map[string]any{}
 	if len(must) > 0 || len(filter) > 0 {
@@ -181,7 +179,7 @@ func buildListQuery(opt option.WorkQueryOption) ([]byte, error) {
 		query["match_all"] = map[string]any{}
 	}
 
-	from, size := utils.PageOffsetLimit(opt.Page())
+	from, size := opt.Page().OffsetLimit()
 
 	return json.Marshal(map[string]any{
 		"from":             from,

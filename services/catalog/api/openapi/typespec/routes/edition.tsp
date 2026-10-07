@@ -10,6 +10,7 @@ namespace CatalogService;
 interface Editions {
   @doc("Search editions")
   @get
+  @useAuth(NoAuth | BearerAuth)
   search(
     @query title?: string,
     @query isbn?: string,
@@ -20,19 +21,20 @@ interface Editions {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): EditionFindAllResponse;
+  ): EditionFindAllResponse | BadRequestError;
 
   @doc("Create new edition")
   @post
-  create(@body body: EditionCreateRequest): CreatedResponse | BadRequestError | NotFoundError | ConflictError;
+  create(@body body: EditionCreateRequest): CreatedResponse | BadRequestError | NotFoundError | ConflictError | UnauthorizedError | ForbiddenError;
 
-  @doc("Find edition with full details")
+  @doc("Find edition with its work (uid and title only) and publisher")
   @route("{uid}")
   @get
+  @useAuth(NoAuth | BearerAuth)
   read(@path uid: uuid): EditionFindResponse | NotFoundError;
 
   @doc("Update edition")
   @route("{uid}")
   @put
-  update(@path uid: uuid, @body body: EditionUpdateRequest): EditionUpdateResponse | BadRequestError | NotFoundError | ConflictError;
+  update(@path uid: uuid, @body body: EditionUpdateRequest): EditionUpdateResponse | BadRequestError | NotFoundError | ConflictError | UnauthorizedError | ForbiddenError;
 }

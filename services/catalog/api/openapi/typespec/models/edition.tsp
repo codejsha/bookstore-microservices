@@ -60,6 +60,11 @@ model EditionUpdateRequest {
   ol_key?: string;
 }
 
+model EditionWorkRef {
+  uid: uuid;
+  title: string;
+}
+
 model EditionItem {
   uid: uuid;
   title: string;
@@ -71,7 +76,7 @@ model EditionItem {
   languages?: string[];
   physical_format?: string;
   description?: string;
-  work: WorkItem;
+  work: EditionWorkRef;
   publisher?: PublisherItem;
   ol_key?: string;
   created_at: utcDateTime;

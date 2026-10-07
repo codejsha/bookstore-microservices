@@ -19,6 +19,8 @@ func NewEditionApiHandler(service EditionApi) *EditionApiHandler {
 }
 
 // Search editions
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 func (h *EditionApiHandler) EditionsSearch(c *gin.Context) {
 	titleStr := c.Query("title")
 	var title *string
@@ -88,6 +90,8 @@ func (h *EditionApiHandler) EditionsSearch(c *gin.Context) {
 // Create new edition
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 // 409 (ConflictError) — The request conflicts with the current state of the server.
 //
@@ -107,7 +111,7 @@ func (h *EditionApiHandler) EditionsCreate(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// Find edition with full details
+// Find edition with its work (uid and title only) and publisher
 // Errors:
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *EditionApiHandler) EditionsRead(c *gin.Context) {
@@ -123,6 +127,8 @@ func (h *EditionApiHandler) EditionsRead(c *gin.Context) {
 // Update edition
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 // 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *EditionApiHandler) EditionsUpdate(c *gin.Context) {

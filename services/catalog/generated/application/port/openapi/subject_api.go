@@ -9,6 +9,8 @@ import (
 // Subject API
 type SubjectApi interface {
 	// Find all subjects
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	SubjectsGetAll(
 		ctx context.Context,
 		name *string,
@@ -20,6 +22,8 @@ type SubjectApi interface {
 	// Create subject
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	//
 	// Response headers (SubjectsCreateResponseHeaders):
@@ -40,6 +44,8 @@ type SubjectApi interface {
 	// Update subject
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	SubjectsUpdate(

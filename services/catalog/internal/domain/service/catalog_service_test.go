@@ -60,8 +60,8 @@ type stubEditionRepo struct {
 	findAllFn   func(ctx context.Context, opt option.EditionQueryOption) (int64, []*repo.EditionResult, error)
 	findOneFn   func(ctx context.Context, id int64) (*repo.EditionResult, error)
 	findByUidFn func(ctx context.Context, uid string) (*repo.EditionResult, error)
-	createFn    func(ctx context.Context, cmd command.EditionCreateCommand, workId int64, publisherId *int64) (int64, error)
-	updateFn    func(ctx context.Context, id int64, cmd command.EditionUpdateCommand, workId *int64, publisherId *int64) error
+	createFn    func(ctx context.Context, cmd command.EditionCreateCommand, work repo.EditionWorkRef, publisher *repo.EditionPublisherRef) (int64, error)
+	updateFn    func(ctx context.Context, id int64, cmd command.EditionUpdateCommand, work *repo.EditionWorkRef, publisher *repo.EditionPublisherRef) error
 }
 
 func (s *stubEditionRepo) FindAll(ctx context.Context, opt option.EditionQueryOption) (int64, []*repo.EditionResult, error) {
@@ -73,11 +73,11 @@ func (s *stubEditionRepo) FindOne(ctx context.Context, id int64) (*repo.EditionR
 func (s *stubEditionRepo) FindByUid(ctx context.Context, uid string) (*repo.EditionResult, error) {
 	return s.findByUidFn(ctx, uid)
 }
-func (s *stubEditionRepo) Create(ctx context.Context, cmd command.EditionCreateCommand, workId int64, publisherId *int64) (int64, error) {
-	return s.createFn(ctx, cmd, workId, publisherId)
+func (s *stubEditionRepo) Create(ctx context.Context, cmd command.EditionCreateCommand, work repo.EditionWorkRef, publisher *repo.EditionPublisherRef) (int64, error) {
+	return s.createFn(ctx, cmd, work, publisher)
 }
-func (s *stubEditionRepo) Update(ctx context.Context, id int64, cmd command.EditionUpdateCommand, workId *int64, publisherId *int64) error {
-	return s.updateFn(ctx, id, cmd, workId, publisherId)
+func (s *stubEditionRepo) Update(ctx context.Context, id int64, cmd command.EditionUpdateCommand, work *repo.EditionWorkRef, publisher *repo.EditionPublisherRef) error {
+	return s.updateFn(ctx, id, cmd, work, publisher)
 }
 
 type stubAuthorRepo struct {
@@ -604,7 +604,7 @@ func TestFindEdition_WhenRepoFails_ReturnsRepoError(t *testing.T) {
 	}
 }
 
-func TestCreateEdition_WhenPublisherUidOmitted_CreatesWithNilPublisherId(t *testing.T) {
+func TestCreateEdition_PublisherUidOmitted_CreatesWithWorkRefAndNilPublisher(t *testing.T) {
 	workStub := &stubWorkRepo{
 		findByUidFn: func(_ context.Context, uid string) (*repo.WorkResult, error) {
 			if uid != cmdWorkUid {
@@ -614,12 +614,12 @@ func TestCreateEdition_WhenPublisherUidOmitted_CreatesWithNilPublisherId(t *test
 		},
 	}
 	editionStub := &stubEditionRepo{
-		createFn: func(_ context.Context, cmd command.EditionCreateCommand, workId int64, publisherId *int64) (int64, error) {
-			if workId != 50 {
-				t.Errorf("createFn workId = %d, want 50", workId)
+		createFn: func(_ context.Context, cmd command.EditionCreateCommand, work repo.EditionWorkRef, publisher *repo.EditionPublisherRef) (int64, error) {
+			if work.Id != 50 || work.Uid != cmdWorkUid {
+				t.Errorf("createFn work = %+v, want id=50 uid=%s", work, cmdWorkUid)
 			}
-			if publisherId != nil {
-				t.Errorf("createFn publisherId = %v, want nil", publisherId)
+			if publisher != nil {
+				t.Errorf("createFn publisher = %+v, want nil", publisher)
 			}
 			if cmd.Title != "1st" {
 				t.Errorf("create cmd Title = %q, want 1st", cmd.Title)
@@ -640,7 +640,7 @@ func TestCreateEdition_WhenPublisherUidOmitted_CreatesWithNilPublisherId(t *test
 	}
 }
 
-func TestCreateEdition_WhenPublisherUidGiven_CreatesWithResolvedPublisherId(t *testing.T) {
+func TestCreateEdition_PublisherUidGiven_CreatesWithResolvedPublisherRef(t *testing.T) {
 	workStub := &stubWorkRepo{
 		findByUidFn: func(context.Context, string) (*repo.WorkResult, error) {
 			return &repo.WorkResult{Id: 1, Uid: "w-1"}, nil
@@ -651,10 +651,10 @@ func TestCreateEdition_WhenPublisherUidGiven_CreatesWithResolvedPublisherId(t *t
 			return &repo.PublisherResult{Id: 7, Uid: "p-1", Name: "Acme"}, nil
 		},
 	}
-	var capturedPublisherId *int64
+	var capturedPublisher *repo.EditionPublisherRef
 	editionStub := &stubEditionRepo{
-		createFn: func(_ context.Context, _ command.EditionCreateCommand, _ int64, publisherId *int64) (int64, error) {
-			capturedPublisherId = publisherId
+		createFn: func(_ context.Context, _ command.EditionCreateCommand, _ repo.EditionWorkRef, publisher *repo.EditionPublisherRef) (int64, error) {
+			capturedPublisher = publisher
 			return 100, nil
 		},
 		findOneFn: func(context.Context, int64) (*repo.EditionResult, error) {
@@ -667,8 +667,8 @@ func TestCreateEdition_WhenPublisherUidGiven_CreatesWithResolvedPublisherId(t *t
 	if err != nil {
 		t.Fatalf("CreateEdition err: %v", err)
 	}
-	if capturedPublisherId == nil || *capturedPublisherId != 7 {
-		t.Errorf("capturedPublisherId = %v, want 7", capturedPublisherId)
+	if capturedPublisher == nil || capturedPublisher.Id != 7 || capturedPublisher.Uid != "p-1" {
+		t.Errorf("capturedPublisher = %+v, want id=7 uid=p-1", capturedPublisher)
 	}
 }
 
@@ -683,7 +683,7 @@ func TestCreateEdition_WhenPublisherLookupFails_ReturnsLookupError(t *testing.T)
 		findByUidFn: func(context.Context, string) (*repo.PublisherResult, error) { return nil, wantErr },
 	}
 	editionStub := &stubEditionRepo{
-		createFn: func(context.Context, command.EditionCreateCommand, int64, *int64) (int64, error) {
+		createFn: func(context.Context, command.EditionCreateCommand, repo.EditionWorkRef, *repo.EditionPublisherRef) (int64, error) {
 			t.Error("Create should not be called when publisher lookup fails")
 			return 0, nil
 		},
@@ -696,20 +696,20 @@ func TestCreateEdition_WhenPublisherLookupFails_ReturnsLookupError(t *testing.T)
 	}
 }
 
-func TestUpdateEdition_WhenWorkAndPublisherGiven_UpdatesWithResolvedIds(t *testing.T) {
+func TestUpdateEdition_WorkAndPublisherGiven_UpdatesWithResolvedRefs(t *testing.T) {
 	editionStub := &stubEditionRepo{
 		findByUidFn: func(context.Context, string) (*repo.EditionResult, error) {
 			return &repo.EditionResult{Id: 5, Uid: "e-5", WorkUid: "w-old", WorkTitle: "Old"}, nil
 		},
-		updateFn: func(_ context.Context, id int64, _ command.EditionUpdateCommand, workId *int64, publisherId *int64) error {
+		updateFn: func(_ context.Context, id int64, _ command.EditionUpdateCommand, work *repo.EditionWorkRef, publisher *repo.EditionPublisherRef) error {
 			if id != 5 {
 				t.Errorf("update id = %d, want 5", id)
 			}
-			if workId == nil || *workId != 22 {
-				t.Errorf("update workId = %v, want 22", workId)
+			if work == nil || work.Id != 22 || work.Uid != "w-new" {
+				t.Errorf("update work = %+v, want id=22 uid=w-new", work)
 			}
-			if publisherId == nil || *publisherId != 33 {
-				t.Errorf("update publisherId = %v, want 33", publisherId)
+			if publisher == nil || publisher.Id != 33 || publisher.Uid != "p-new" {
+				t.Errorf("update publisher = %+v, want id=33 uid=p-new", publisher)
 			}
 			return nil
 		},
@@ -742,7 +742,7 @@ func TestUpdateEdition_WhenWorkLookupFails_ReturnsLookupError(t *testing.T) {
 		findByUidFn: func(context.Context, string) (*repo.EditionResult, error) {
 			return &repo.EditionResult{Id: 5, Uid: "e-5"}, nil
 		},
-		updateFn: func(context.Context, int64, command.EditionUpdateCommand, *int64, *int64) error {
+		updateFn: func(context.Context, int64, command.EditionUpdateCommand, *repo.EditionWorkRef, *repo.EditionPublisherRef) error {
 			t.Error("Update must not run when a parallel ref lookup fails")
 			return nil
 		},

@@ -9,6 +9,8 @@ import (
 // Author API
 type AuthorApi interface {
 	// Find all authors
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	AuthorsGetAll(
 		ctx context.Context,
 		name *string,
@@ -20,6 +22,8 @@ type AuthorApi interface {
 	// Register new author
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	//
 	// Response headers (AuthorsCreateResponseHeaders):
@@ -40,6 +44,8 @@ type AuthorApi interface {
 	// Update author
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	AuthorsUpdate(

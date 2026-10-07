@@ -17,7 +17,6 @@ import (
 	"github.com/codejsha/bookstore-microservices/catalog/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/catalog/internal/domain/model/command"
 	"github.com/codejsha/bookstore-microservices/catalog/internal/domain/model/option"
-	"github.com/codejsha/bookstore-microservices/catalog/internal/infrastructure/support/utils"
 )
 
 var _ repo.SubjectRepo = (*subjectRepository)(nil)
@@ -44,7 +43,7 @@ func (r *subjectRepository) FindAll(ctx context.Context, opt option.SubjectQuery
 		"updated_at": s.UpdatedAt,
 	}, s.Id)...)
 
-	offset, limit := utils.PageOffsetLimit(opt.Page())
+	offset, limit := opt.Page().OffsetLimit()
 	entities, total, err := q.FindByPage(offset, limit)
 	if err != nil {
 		return 0, nil, err

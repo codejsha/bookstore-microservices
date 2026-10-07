@@ -19,6 +19,8 @@ func NewSubjectApiHandler(service SubjectApi) *SubjectApiHandler {
 }
 
 // Find all subjects
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 func (h *SubjectApiHandler) SubjectsGetAll(c *gin.Context) {
 	nameStr := c.Query("name")
 	var name *string
@@ -63,6 +65,8 @@ func (h *SubjectApiHandler) SubjectsGetAll(c *gin.Context) {
 // Create subject
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 409 (ConflictError) — The request conflicts with the current state of the server.
 //
 // Response headers (SubjectsCreateResponseHeaders):
@@ -97,6 +101,8 @@ func (h *SubjectApiHandler) SubjectsRead(c *gin.Context) {
 // Update subject
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 // 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *SubjectApiHandler) SubjectsUpdate(c *gin.Context) {

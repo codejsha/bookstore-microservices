@@ -105,7 +105,7 @@ func (c *editionController) EditionsRead(ctx context.Context, uid string) (*open
 		UpdatedAt:      edition.UpdatedAt,
 	}
 	if edition.Work != nil {
-		resp.Work = toWorkItem(edition.Work)
+		resp.Work = toEditionWorkRef(edition.Work)
 	}
 	if edition.Publisher != nil {
 		pub := toPublisherItem(edition.Publisher)
@@ -157,7 +157,7 @@ func (c *editionController) EditionsUpdate(
 		UpdatedAt:      edition.UpdatedAt,
 	}
 	if edition.Work != nil {
-		resp.Work = toWorkItem(edition.Work)
+		resp.Work = toEditionWorkRef(edition.Work)
 	}
 	if edition.Publisher != nil {
 		pub := toPublisherItem(edition.Publisher)
