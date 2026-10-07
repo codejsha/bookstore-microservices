@@ -105,6 +105,12 @@ func TestGinResponseMapping_WhenHandlerWrapsBusinessError_Returns4xxProblemDetai
 			wantStatus: http.StatusConflict,
 			wantBody:   `{"title":"Conflict","status":409,"detail":"monthly closing already exists for this warehouse and period"}`,
 		},
+		{
+			name:       "invalidTransition_conflict409",
+			err:        fmt.Errorf("transfer x cannot be completed in status COMPLETED: %w", repo.ErrInvalidTransition),
+			wantStatus: http.StatusConflict,
+			wantBody:   `{"title":"Conflict","status":409,"detail":"transfer x cannot be completed in status COMPLETED: invalid state transition"}`,
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

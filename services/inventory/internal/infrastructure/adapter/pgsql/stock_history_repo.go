@@ -26,9 +26,12 @@ func NewStockHistoryRepository(dataSource *database.DataSource) repo.StockHistor
 	}
 }
 
-func (r *stockHistoryRepository) FindAll(ctx context.Context, stockUid string, page pagination.PageOption) (int64, []*repo.StockHistoryResult, error) {
+func (r *stockHistoryRepository) FindAll(ctx context.Context, stockUids []string, page pagination.PageOption) (int64, []*repo.StockHistoryResult, error) {
+	if len(stockUids) == 0 {
+		return 0, nil, nil
+	}
 	h := r.q.StockHistoryEntity
-	q := h.WithContext(ctx).Where(h.StockUid.Eq(stockUid)).Order(h.CreatedAt.Desc())
+	q := h.WithContext(ctx).Where(h.StockUid.In(stockUids...)).Order(h.CreatedAt.Desc(), h.Uid.Desc())
 
 	offset, limit := page.OffsetLimit()
 	entities, total, err := q.FindByPage(offset, limit)

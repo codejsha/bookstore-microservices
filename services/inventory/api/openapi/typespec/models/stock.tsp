@@ -41,7 +41,7 @@ model StockReceiveRequest {
   reason?: string;
 }
 
-@doc("Release stock from a warehouse (outbound)")
+@doc("Release reserved stock back to available (inverse of reserve)")
 model StockReleaseRequest {
   edition_uid: uuid;
   warehouse_uid: uuid;

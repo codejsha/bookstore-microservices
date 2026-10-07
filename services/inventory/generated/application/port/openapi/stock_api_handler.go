@@ -19,6 +19,10 @@ func NewStockApiHandler(service StockApi) *StockApiHandler {
 }
 
 // Find all stocks grouped by edition
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *StockApiHandler) StocksGetAll(c *gin.Context) {
 	editionUidStr := c.Query("edition_uid")
 	var editionUid *string
@@ -68,6 +72,8 @@ func (h *StockApiHandler) StocksGetAll(c *gin.Context) {
 // Adjust stock quantity (correction)
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *StockApiHandler) StocksAdjust(c *gin.Context) {
 	var req StockAdjustRequest
@@ -86,6 +92,8 @@ func (h *StockApiHandler) StocksAdjust(c *gin.Context) {
 // Receive stock into warehouse (inbound)
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *StockApiHandler) StocksReceive(c *gin.Context) {
 	var req StockReceiveRequest
@@ -101,9 +109,11 @@ func (h *StockApiHandler) StocksReceive(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// Release stock from warehouse (outbound)
+// Release reserved stock back to available (inverse of reserve)
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *StockApiHandler) StocksRelease(c *gin.Context) {
 	var req StockReleaseRequest
@@ -122,6 +132,8 @@ func (h *StockApiHandler) StocksRelease(c *gin.Context) {
 // Reserve stock for an order
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *StockApiHandler) StocksReserve(c *gin.Context) {
 	var req StockReserveRequest
@@ -139,6 +151,8 @@ func (h *StockApiHandler) StocksReserve(c *gin.Context) {
 
 // Find stock by edition UID
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *StockApiHandler) StocksRead(c *gin.Context) {
 	editionUid := c.Param("edition_uid")
@@ -152,6 +166,9 @@ func (h *StockApiHandler) StocksRead(c *gin.Context) {
 
 // Find stock change history
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *StockApiHandler) StocksHistory(c *gin.Context) {
 	editionUid := c.Param("edition_uid")

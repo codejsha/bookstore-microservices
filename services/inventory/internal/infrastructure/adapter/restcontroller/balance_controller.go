@@ -9,6 +9,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/inventory/internal/application/usecase"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/aggregate"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
+	"github.com/codejsha/bookstore-microservices/inventory/internal/infrastructure/httpx"
 )
 
 var _ openapi.BalanceApi = (*balanceController)(nil)
@@ -44,9 +45,13 @@ func (c *balanceController) BalanceGetAll(
 		option.BalanceQueryOption{}.WithPage(pagination.NewPageOption(size, page, sort)),
 	)
 
+	if err := opt.Validate(); err != nil {
+		return nil, httpx.MapBusinessError(ctx, err)
+	}
+
 	total, entries, err := c.inventoryUseCase.FindStockBalance(ctx, opt)
 	if err != nil {
-		return nil, err
+		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
 	items := make([]openapi.BalanceFindResponse, len(entries))

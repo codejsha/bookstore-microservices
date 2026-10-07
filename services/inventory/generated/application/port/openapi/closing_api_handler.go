@@ -19,6 +19,10 @@ func NewClosingApiHandler(service ClosingApi) *ClosingApiHandler {
 }
 
 // Find all monthly closings
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *ClosingApiHandler) ClosingsGetAll(c *gin.Context) {
 	warehouseUidStr := c.Query("warehouse_uid")
 	var warehouseUid *string
@@ -95,7 +99,10 @@ func (h *ClosingApiHandler) ClosingsGetAll(c *gin.Context) {
 // Create monthly closing (월 마감)
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *ClosingApiHandler) ClosingsCreate(c *gin.Context) {
 	var req ClosingCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -112,6 +119,8 @@ func (h *ClosingApiHandler) ClosingsCreate(c *gin.Context) {
 
 // Find monthly closing
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *ClosingApiHandler) ClosingsRead(c *gin.Context) {
 	uid := c.Param("uid")

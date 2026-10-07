@@ -27,7 +27,7 @@ type WarehouseRepo interface {
 }
 
 type StockHistoryRepo interface {
-	FindAll(ctx context.Context, stockUid string, page pagination.PageOption) (int64, []*StockHistoryResult, error)
+	FindAll(ctx context.Context, stockUids []string, page pagination.PageOption) (int64, []*StockHistoryResult, error)
 }
 
 type StockTransferRepo interface {

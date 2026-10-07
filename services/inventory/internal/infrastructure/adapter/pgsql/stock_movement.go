@@ -20,6 +20,7 @@ const (
 
 const (
 	transferStatusPending   = "PENDING"
+	transferStatusInTransit = "IN_TRANSIT"
 	transferStatusCompleted = "COMPLETED"
 	transferStatusCancelled = "CANCELLED"
 )

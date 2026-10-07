@@ -131,7 +131,16 @@ func (r stockRepository) ApplyChange(ctx context.Context, p repo.ApplyChangePara
 			e := tx.Where("edition_uid = ? AND warehouse_uid = ?", p.EditionUid, p.WarehouseUid).
 				First(&target).Error
 			if errors.Is(e, gorm.ErrRecordNotFound) {
-				return fmt.Errorf("stock not found for edition %s in warehouse %s: %w", p.EditionUid, p.WarehouseUid, repo.ErrStockNotFound)
+				if p.ChangeType != changeTypeInbound || p.Delta <= 0 {
+					return fmt.Errorf("stock not found for edition %s in warehouse %s: %w", p.EditionUid, p.WarehouseUid, repo.ErrStockNotFound)
+				}
+				if err := r.createInboundTx(tx, p); err != nil {
+					if isRetryableConflict(err) {
+						retry = true
+					}
+					return err
+				}
+				return nil
 			}
 			if e != nil {
 				return e
@@ -182,6 +191,37 @@ func (r stockRepository) ApplyChange(ctx context.Context, p repo.ApplyChangePara
 		return err
 	}
 	return fmt.Errorf("apply change for edition %s: exhausted %d optimistic-lock retries", p.EditionUid, maxOptimisticRetries)
+}
+
+func (r stockRepository) createInboundTx(tx *gorm.DB, p repo.ApplyChangeParams) error {
+	var warehouse entity.WarehouseEntity
+	e := tx.Where("uid = ?", p.WarehouseUid).First(&warehouse).Error
+	if errors.Is(e, gorm.ErrRecordNotFound) {
+		return fmt.Errorf("warehouse %s not found: %w", p.WarehouseUid, repo.ErrWarehouseNotFound)
+	}
+	if e != nil {
+		return e
+	}
+
+	var sibling entity.StockEntity
+	e = tx.Where("edition_uid = ?", p.EditionUid).First(&sibling).Error
+	if errors.Is(e, gorm.ErrRecordNotFound) {
+		return fmt.Errorf("edition %s has no stock in any warehouse to resolve its id: %w", p.EditionUid, repo.ErrStockNotFound)
+	}
+	if e != nil {
+		return e
+	}
+
+	return applyStockDeltaTx(tx, stockDelta{
+		editionID:    sibling.EditionId,
+		editionUID:   p.EditionUid,
+		warehouseID:  warehouse.Id,
+		warehouseUID: warehouse.Uid,
+		delta:        p.Delta,
+		changeType:   p.ChangeType,
+		reason:       p.Reason,
+		allowCreate:  true,
+	})
 }
 
 func (r stockRepository) FindOne(ctx context.Context, id int64) (*repo.StockResult, error) {

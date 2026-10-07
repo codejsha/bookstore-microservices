@@ -36,14 +36,14 @@ func NewWarehouseRepository(dataSource *database.DataSource) repo.WarehouseRepo 
 
 func (r warehouseRepository) FindAll(ctx context.Context, opt option.WarehouseQueryOption) (int64, []*repo.WarehouseResult, error) {
 	q := dao.Use(r.db)
-	sortable := map[string]field.OrderExpr{
-		"uid":       q.WarehouseEntity.Uid,
-		"name":      q.WarehouseEntity.Name,
-		"address":   q.WarehouseEntity.Address,
-		"capacity":  q.WarehouseEntity.Capacity,
-		"createdat": q.WarehouseEntity.CreatedAt,
-		"updatedat": q.WarehouseEntity.UpdatedAt,
-	}
+	sortable := sortableByWireName(map[string]field.OrderExpr{
+		"uid":        q.WarehouseEntity.Uid,
+		"name":       q.WarehouseEntity.Name,
+		"address":    q.WarehouseEntity.Address,
+		"capacity":   q.WarehouseEntity.Capacity,
+		"created_at": q.WarehouseEntity.CreatedAt,
+		"updated_at": q.WarehouseEntity.UpdatedAt,
+	})
 
 	base := q.WarehouseEntity.WithContext(ctx).
 		Scopes(r.buildWhereScope(q, opt))
@@ -60,8 +60,10 @@ func (r warehouseRepository) FindAll(ctx context.Context, opt option.WarehouseQu
 			q.WarehouseEntity.Name,
 			q.WarehouseEntity.Address,
 			q.WarehouseEntity.Capacity,
+			q.WarehouseEntity.CreatedAt,
+			q.WarehouseEntity.UpdatedAt,
 		).
-		Scopes(gormutils.BuildPageScope(opt.Page().WithDefaultSort(defaultSort).RowOffset(), sortable)).
+		Scopes(gormutils.BuildPageScope(resolveSort(opt.Page(), sortable).RowOffset(), sortable)).
 		Scan(&entities)
 	if err != nil {
 		return 0, nil, err

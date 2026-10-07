@@ -9,6 +9,10 @@ import (
 // Closing API
 type ClosingApi interface {
 	// Find all monthly closings
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	ClosingsGetAll(
 		ctx context.Context,
 		warehouseUid *string,
@@ -23,7 +27,10 @@ type ClosingApi interface {
 	// Create monthly closing (월 마감)
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	ClosingsCreate(
 		ctx context.Context,
 		req ClosingCreateRequest,
@@ -31,6 +38,8 @@ type ClosingApi interface {
 
 	// Find monthly closing
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	ClosingsRead(
 		ctx context.Context,

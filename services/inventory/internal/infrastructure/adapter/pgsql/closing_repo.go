@@ -38,16 +38,16 @@ func NewMonthlyClosingRepository(dataSource *database.DataSource) repo.MonthlyCl
 
 func (r *monthlyClosingRepository) FindAll(ctx context.Context, opt option.ClosingQueryOption) (int64, []*repo.ClosingResult, error) {
 	q := dao.Use(r.db)
-	sortable := map[string]field.OrderExpr{
-		"uid":          q.MonthlyClosingEntity.Uid,
-		"warehouseuid": q.MonthlyClosingEntity.WarehouseUid,
-		"year":         q.MonthlyClosingEntity.Year,
-		"month":        q.MonthlyClosingEntity.Month,
-		"status":       q.MonthlyClosingEntity.Status,
-		"closedat":     q.MonthlyClosingEntity.ClosedAt,
-		"createdat":    q.MonthlyClosingEntity.CreatedAt,
-		"updatedat":    q.MonthlyClosingEntity.UpdatedAt,
-	}
+	sortable := sortableByWireName(map[string]field.OrderExpr{
+		"uid":           q.MonthlyClosingEntity.Uid,
+		"warehouse_uid": q.MonthlyClosingEntity.WarehouseUid,
+		"year":          q.MonthlyClosingEntity.Year,
+		"month":         q.MonthlyClosingEntity.Month,
+		"status":        q.MonthlyClosingEntity.Status,
+		"closed_at":     q.MonthlyClosingEntity.ClosedAt,
+		"created_at":    q.MonthlyClosingEntity.CreatedAt,
+		"updated_at":    q.MonthlyClosingEntity.UpdatedAt,
+	})
 
 	base := q.MonthlyClosingEntity.WithContext(ctx).Scopes(r.buildWhereScope(q, opt))
 
@@ -57,7 +57,7 @@ func (r *monthlyClosingRepository) FindAll(ctx context.Context, opt option.Closi
 	}
 
 	closings, err := base.
-		Scopes(gormutils.BuildPageScope(opt.Page().WithDefaultSort(defaultSort).RowOffset(), sortable)).
+		Scopes(gormutils.BuildPageScope(resolveSort(opt.Page(), sortable).RowOffset(), sortable)).
 		Find()
 	if err != nil {
 		return 0, nil, err

@@ -16,19 +16,19 @@ interface Audits {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): AuditFindAllResponse;
+  ): AuditFindAllResponse | BadRequestError | UnauthorizedError | ForbiddenError;
 
   @doc("Create stock audit (실사)")
   @post
-  create(@body body: AuditCreateRequest): AuditFindResponse | BadRequestError | NotFoundError;
+  create(@body body: AuditCreateRequest): AuditFindResponse | BadRequestError | NotFoundError | UnauthorizedError | ForbiddenError;
 
   @doc("Find stock audit")
   @route("{uid}")
   @get
-  read(@path uid: uuid): AuditFindResponse | NotFoundError;
+  read(@path uid: uuid): AuditFindResponse | NotFoundError | UnauthorizedError | ForbiddenError;
 
   @doc("Complete stock audit and apply adjustments")
   @route("{uid}/complete")
   @post
-  complete(@path uid: uuid): AuditFindResponse | BadRequestError | NotFoundError;
+  complete(@path uid: uuid): AuditFindResponse | BadRequestError | NotFoundError | ConflictError | UnauthorizedError | ForbiddenError;
 }

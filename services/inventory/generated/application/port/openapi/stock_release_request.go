@@ -2,7 +2,7 @@
 
 package openapi
 
-// Release stock from a warehouse (outbound)
+// Release reserved stock back to available (inverse of reserve)
 type StockReleaseRequest struct {
 	EditionUid   string  `json:"edition_uid" binding:"required"`
 	Quantity     int32   `json:"quantity" binding:"required,gte=1"`

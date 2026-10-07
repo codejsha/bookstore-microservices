@@ -2,6 +2,7 @@ package pgsql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"sync/atomic"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/codejsha/shared-library-go/pkg/pagination"
 
+	"github.com/codejsha/bookstore-microservices/inventory/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
 )
 
@@ -46,7 +48,7 @@ func TestAuditFindAll_secondPage_skipsOneFullPage(t *testing.T) {
 		}
 	}
 	r := &stockAuditRepository{db: db}
-	size, page, sort := int32(3), int32(1), "note,asc"
+	size, page, sort := int32(3), int32(1), "notes,asc"
 
 	total, got, err := r.FindAll(context.Background(), option.NewAuditQueryOption(
 		option.AuditQueryOption{}.WithPage(pagination.NewPageOption(&size, &page, &sort)),
@@ -123,5 +125,26 @@ func TestAuditFindAll_severalAudits_readsItemsOnce(t *testing.T) {
 		if len(a.Items) != 2 {
 			t.Errorf("audit %s items = %d, want 2", a.Uid, len(a.Items))
 		}
+	}
+}
+
+func TestAuditComplete_alreadyCompleted_invalidTransition(t *testing.T) {
+	_, db := newTestRepo(t)
+	for _, ddl := range auditSchemaDDL {
+		if err := db.Exec(ddl).Error; err != nil {
+			t.Fatalf("create audit schema: %v", err)
+		}
+	}
+	uid := uuid.NewString()
+	if err := db.Exec(
+		"INSERT INTO stock_audit (uid, warehouse_id, warehouse_uid, status, created_at, actor, version) VALUES (?, 1, ?, 'COMPLETED', ?, 1, 1)",
+		uid, warehouseUidFor(1), time.Now().UTC(),
+	).Error; err != nil {
+		t.Fatalf("seed audit: %v", err)
+	}
+	r := &stockAuditRepository{db: db}
+
+	if _, err := r.Complete(context.Background(), uid); !errors.Is(err, repo.ErrInvalidTransition) {
+		t.Fatalf("err = %v, want ErrInvalidTransition", err)
 	}
 }

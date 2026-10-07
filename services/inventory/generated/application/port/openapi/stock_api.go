@@ -9,6 +9,10 @@ import (
 // Stock API
 type StockApi interface {
 	// Find all stocks grouped by edition
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	StocksGetAll(
 		ctx context.Context,
 		editionUid *string,
@@ -21,6 +25,8 @@ type StockApi interface {
 	// Adjust stock quantity (correction)
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	StocksAdjust(
 		ctx context.Context,
@@ -30,15 +36,19 @@ type StockApi interface {
 	// Receive stock into warehouse (inbound)
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	StocksReceive(
 		ctx context.Context,
 		req StockReceiveRequest,
 	) (*StockFindResponse, error)
 
-	// Release stock from warehouse (outbound)
+	// Release reserved stock back to available (inverse of reserve)
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	StocksRelease(
 		ctx context.Context,
@@ -48,6 +58,8 @@ type StockApi interface {
 	// Reserve stock for an order
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	StocksReserve(
 		ctx context.Context,
@@ -56,6 +68,8 @@ type StockApi interface {
 
 	// Find stock by edition UID
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	StocksRead(
 		ctx context.Context,
@@ -64,6 +78,9 @@ type StockApi interface {
 
 	// Find stock change history
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	StocksHistory(
 		ctx context.Context,

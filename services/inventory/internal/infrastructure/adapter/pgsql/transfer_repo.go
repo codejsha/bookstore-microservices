@@ -38,17 +38,17 @@ func NewStockTransferRepository(dataSource *database.DataSource) repo.StockTrans
 
 func (r *stockTransferRepository) FindAll(ctx context.Context, opt option.TransferQueryOption) (int64, []*repo.TransferResult, error) {
 	q := dao.Use(r.db)
-	sortable := map[string]field.OrderExpr{
-		"uid":                q.StockTransferEntity.Uid,
-		"editionuid":         q.StockTransferEntity.EditionUid,
-		"sourcewarehouseuid": q.StockTransferEntity.SourceWarehouseUid,
-		"targetwarehouseuid": q.StockTransferEntity.TargetWarehouseUid,
-		"quantity":           q.StockTransferEntity.Quantity,
-		"status":             q.StockTransferEntity.Status,
-		"completedat":        q.StockTransferEntity.CompletedAt,
-		"createdat":          q.StockTransferEntity.CreatedAt,
-		"updatedat":          q.StockTransferEntity.UpdatedAt,
-	}
+	sortable := sortableByWireName(map[string]field.OrderExpr{
+		"uid":                  q.StockTransferEntity.Uid,
+		"edition_uid":          q.StockTransferEntity.EditionUid,
+		"source_warehouse_uid": q.StockTransferEntity.SourceWarehouseUid,
+		"target_warehouse_uid": q.StockTransferEntity.TargetWarehouseUid,
+		"quantity":             q.StockTransferEntity.Quantity,
+		"status":               q.StockTransferEntity.Status,
+		"completed_at":         q.StockTransferEntity.CompletedAt,
+		"created_at":           q.StockTransferEntity.CreatedAt,
+		"updated_at":           q.StockTransferEntity.UpdatedAt,
+	})
 
 	base := q.StockTransferEntity.WithContext(ctx).Scopes(r.buildWhereScope(q, opt))
 
@@ -58,7 +58,7 @@ func (r *stockTransferRepository) FindAll(ctx context.Context, opt option.Transf
 	}
 
 	entities, err := base.
-		Scopes(gormutils.BuildPageScope(opt.Page().WithDefaultSort(defaultSort).RowOffset(), sortable)).
+		Scopes(gormutils.BuildPageScope(resolveSort(opt.Page(), sortable).RowOffset(), sortable)).
 		Find()
 	if err != nil {
 		return 0, nil, err
@@ -188,8 +188,8 @@ func (r *stockTransferRepository) Create(ctx context.Context, p repo.TransferCre
 
 func (r *stockTransferRepository) Complete(ctx context.Context, uid string) (*repo.TransferResult, error) {
 	return r.finalize(ctx, uid, func(tx *gorm.DB, t *entity.StockTransferEntity) error {
-		if t.Status != transferStatusPending {
-			return fmt.Errorf("transfer %s cannot be completed in status %s", uid, t.Status)
+		if t.Status != transferStatusPending && t.Status != transferStatusInTransit {
+			return fmt.Errorf("transfer %s cannot be completed in status %s: %w", uid, t.Status, repo.ErrInvalidTransition)
 		}
 		if err := applyStockDeltaTx(tx, stockDelta{
 			editionID:    t.EditionId,
@@ -211,7 +211,7 @@ func (r *stockTransferRepository) Complete(ctx context.Context, uid string) (*re
 func (r *stockTransferRepository) Cancel(ctx context.Context, uid string) (*repo.TransferResult, error) {
 	return r.finalize(ctx, uid, func(tx *gorm.DB, t *entity.StockTransferEntity) error {
 		if t.Status != transferStatusPending {
-			return fmt.Errorf("transfer %s cannot be cancelled in status %s", uid, t.Status)
+			return fmt.Errorf("transfer %s cannot be cancelled in status %s: %w", uid, t.Status, repo.ErrInvalidTransition)
 		}
 		if err := applyStockDeltaTx(tx, stockDelta{
 			editionID:    t.EditionId,

@@ -38,15 +38,15 @@ func NewStockAuditRepository(dataSource *database.DataSource) repo.StockAuditRep
 
 func (r *stockAuditRepository) FindAll(ctx context.Context, opt option.AuditQueryOption) (int64, []*repo.AuditResult, error) {
 	q := dao.Use(r.db)
-	sortable := map[string]field.OrderExpr{
-		"uid":          q.StockAuditEntity.Uid,
-		"warehouseuid": q.StockAuditEntity.WarehouseUid,
-		"status":       q.StockAuditEntity.Status,
-		"note":         q.StockAuditEntity.Note,
-		"completedat":  q.StockAuditEntity.CompletedAt,
-		"createdat":    q.StockAuditEntity.CreatedAt,
-		"updatedat":    q.StockAuditEntity.UpdatedAt,
-	}
+	sortable := sortableByWireName(map[string]field.OrderExpr{
+		"uid":           q.StockAuditEntity.Uid,
+		"warehouse_uid": q.StockAuditEntity.WarehouseUid,
+		"status":        q.StockAuditEntity.Status,
+		"notes":         q.StockAuditEntity.Note,
+		"completed_at":  q.StockAuditEntity.CompletedAt,
+		"created_at":    q.StockAuditEntity.CreatedAt,
+		"updated_at":    q.StockAuditEntity.UpdatedAt,
+	})
 
 	base := q.StockAuditEntity.WithContext(ctx).Scopes(r.buildWhereScope(q, opt))
 
@@ -56,7 +56,7 @@ func (r *stockAuditRepository) FindAll(ctx context.Context, opt option.AuditQuer
 	}
 
 	audits, err := base.
-		Scopes(gormutils.BuildPageScope(opt.Page().WithDefaultSort(defaultSort).RowOffset(), sortable)).
+		Scopes(gormutils.BuildPageScope(resolveSort(opt.Page(), sortable).RowOffset(), sortable)).
 		Find()
 	if err != nil {
 		return 0, nil, err
@@ -190,7 +190,7 @@ func (r *stockAuditRepository) Complete(ctx context.Context, uid string) (*repo.
 				return e
 			}
 			if audit.Status == auditStatusCompleted {
-				return fmt.Errorf("audit %s is already completed", uid)
+				return fmt.Errorf("audit %s is already completed: %w", uid, repo.ErrInvalidTransition)
 			}
 
 			items, err := r.loadItems(ctx, tx, audit.Id)
