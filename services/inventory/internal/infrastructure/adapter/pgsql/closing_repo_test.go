@@ -156,3 +156,50 @@ func TestMonthlyClosingFindAll_secondPage_skipsOneFullPage(t *testing.T) {
 		t.Fatalf("months = %v, want [4 5 6]", months)
 	}
 }
+
+func TestMonthlyClosingFindAll_severalClosings_readsItemsOnce(t *testing.T) {
+	_, db := newTestRepo(t)
+	for _, ddl := range closingSchemaDDL {
+		if err := db.Exec(ddl).Error; err != nil {
+			t.Fatalf("create closing schema: %v", err)
+		}
+	}
+	for month := 1; month <= 3; month++ {
+		if err := db.Exec(
+			"INSERT INTO monthly_closing (uid, warehouse_id, warehouse_uid, year, month, status, created_at, actor, version) VALUES (?, 7, ?, 2026, ?, 'CLOSED', ?, 1, 1)",
+			uuid.NewString(), warehouseUidFor(7), month, time.Now().UTC(),
+		).Error; err != nil {
+			t.Fatalf("seed closing: %v", err)
+		}
+		for edition := int64(1); edition <= 2; edition++ {
+			if err := db.Exec(
+				"INSERT INTO monthly_closing_item (closing_id, edition_id, edition_uid, opening_quantity, inbound_quantity, outbound_quantity, adjust_quantity, closing_quantity) VALUES (?, ?, ?, 0, 0, 0, 0, 0)",
+				month, edition, editionUidFor(edition),
+			).Error; err != nil {
+				t.Fatalf("seed closing item: %v", err)
+			}
+		}
+	}
+	reads := countTableReads(db, "monthly_closing_item")
+	r := &monthlyClosingRepository{db: db}
+	size, page := int32(3), int32(0)
+
+	_, got, err := r.FindAll(context.Background(), option.NewClosingQueryOption(
+		option.ClosingQueryOption{}.WithPage(pagination.NewPageOption(&size, &page, nil)),
+	))
+	if err != nil {
+		t.Fatalf("find all: %v", err)
+	}
+
+	if reads.Load() != 1 {
+		t.Errorf("monthly_closing_item reads = %d, want 1", reads.Load())
+	}
+	if len(got) != 3 {
+		t.Fatalf("closings = %d, want 3", len(got))
+	}
+	for _, c := range got {
+		if len(c.Items) != 2 {
+			t.Errorf("closing month %d items = %d, want 2", c.Month, len(c.Items))
+		}
+	}
+}

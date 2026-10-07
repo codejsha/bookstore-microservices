@@ -19,7 +19,6 @@ import (
 	genrepo "github.com/codejsha/bookstore-microservices/inventory/generated/infrastructure/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
-	"github.com/codejsha/bookstore-microservices/inventory/internal/infrastructure/support/utils"
 )
 
 var _ repo.StockAuditRepo = (*stockAuditRepository)(nil)
@@ -57,19 +56,24 @@ func (r *stockAuditRepository) FindAll(ctx context.Context, opt option.AuditQuer
 	}
 
 	audits, err := base.
-		Scopes(gormutils.BuildPageScope(utils.RowOffsetPage(utils.WithDefaultSort(opt.Page())), sortable)).
+		Scopes(gormutils.BuildPageScope(opt.Page().WithDefaultSort(defaultSort).RowOffset(), sortable)).
 		Find()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	ids := make([]int64, len(audits))
+	for i, a := range audits {
+		ids[i] = a.Id
+	}
+	itemsByAudit, err := r.loadItemsByAuditIDs(ctx, r.db, ids)
 	if err != nil {
 		return 0, nil, err
 	}
 
 	results := make([]*repo.AuditResult, len(audits))
 	for i, a := range audits {
-		items, err := r.loadItems(ctx, r.db, a.Id)
-		if err != nil {
-			return 0, nil, err
-		}
-		results[i] = toAuditResult(a, items)
+		results[i] = toAuditResult(a, itemsByAudit[a.Id])
 	}
 	return total, results, nil
 }
@@ -261,6 +265,21 @@ func (r *stockAuditRepository) loadItems(ctx context.Context, db *gorm.DB, audit
 		return nil, err
 	}
 	return items, nil
+}
+
+func (r *stockAuditRepository) loadItemsByAuditIDs(ctx context.Context, db *gorm.DB, auditIDs []int64) (map[int64][]entity.StockAuditItemEntity, error) {
+	grouped := make(map[int64][]entity.StockAuditItemEntity, len(auditIDs))
+	if len(auditIDs) == 0 {
+		return grouped, nil
+	}
+	var items []entity.StockAuditItemEntity
+	if err := db.WithContext(ctx).Where("audit_id IN ?", auditIDs).Order("audit_id, id").Find(&items).Error; err != nil {
+		return nil, err
+	}
+	for _, it := range items {
+		grouped[it.AuditId] = append(grouped[it.AuditId], it)
+	}
+	return grouped, nil
 }
 
 func toAuditResult(a *entity.StockAuditEntity, items []entity.StockAuditItemEntity) *repo.AuditResult {

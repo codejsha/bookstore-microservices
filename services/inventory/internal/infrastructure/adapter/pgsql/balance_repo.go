@@ -11,7 +11,6 @@ import (
 
 	"github.com/codejsha/bookstore-microservices/inventory/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
-	"github.com/codejsha/bookstore-microservices/inventory/internal/infrastructure/support/utils"
 )
 
 var _ repo.StockBalanceRepo = (*stockBalanceRepository)(nil)
@@ -45,7 +44,7 @@ func (r *stockBalanceRepository) FindAll(ctx context.Context, opt option.Balance
 		return 0, nil, err
 	}
 
-	offset, limit := utils.PageOffsetLimit(opt.Page())
+	offset, limit := opt.Page().OffsetLimit()
 
 	query := fmt.Sprintf(`
 SELECT

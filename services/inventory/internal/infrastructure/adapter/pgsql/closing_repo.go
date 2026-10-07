@@ -19,7 +19,6 @@ import (
 	genrepo "github.com/codejsha/bookstore-microservices/inventory/generated/infrastructure/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
-	"github.com/codejsha/bookstore-microservices/inventory/internal/infrastructure/support/utils"
 )
 
 var _ repo.MonthlyClosingRepo = (*monthlyClosingRepository)(nil)
@@ -58,19 +57,24 @@ func (r *monthlyClosingRepository) FindAll(ctx context.Context, opt option.Closi
 	}
 
 	closings, err := base.
-		Scopes(gormutils.BuildPageScope(utils.RowOffsetPage(utils.WithDefaultSort(opt.Page())), sortable)).
+		Scopes(gormutils.BuildPageScope(opt.Page().WithDefaultSort(defaultSort).RowOffset(), sortable)).
 		Find()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	ids := make([]int64, len(closings))
+	for i, c := range closings {
+		ids[i] = c.Id
+	}
+	itemsByClosing, err := r.loadItemsByClosingIDs(ctx, r.db, ids)
 	if err != nil {
 		return 0, nil, err
 	}
 
 	results := make([]*repo.ClosingResult, len(closings))
 	for i, c := range closings {
-		items, err := r.loadItems(ctx, r.db, c.Id)
-		if err != nil {
-			return 0, nil, err
-		}
-		results[i] = toClosingResult(c, items)
+		results[i] = toClosingResult(c, itemsByClosing[c.Id])
 	}
 	return total, results, nil
 }
@@ -228,6 +232,21 @@ func (r *monthlyClosingRepository) loadItems(ctx context.Context, db *gorm.DB, c
 		return nil, err
 	}
 	return items, nil
+}
+
+func (r *monthlyClosingRepository) loadItemsByClosingIDs(ctx context.Context, db *gorm.DB, closingIDs []int64) (map[int64][]entity.MonthlyClosingItemEntity, error) {
+	grouped := make(map[int64][]entity.MonthlyClosingItemEntity, len(closingIDs))
+	if len(closingIDs) == 0 {
+		return grouped, nil
+	}
+	var items []entity.MonthlyClosingItemEntity
+	if err := db.WithContext(ctx).Where("closing_id IN ?", closingIDs).Order("closing_id, id").Find(&items).Error; err != nil {
+		return nil, err
+	}
+	for _, it := range items {
+		grouped[it.ClosingId] = append(grouped[it.ClosingId], it)
+	}
+	return grouped, nil
 }
 
 func toClosingResult(c *entity.MonthlyClosingEntity, items []entity.MonthlyClosingItemEntity) *repo.ClosingResult {
