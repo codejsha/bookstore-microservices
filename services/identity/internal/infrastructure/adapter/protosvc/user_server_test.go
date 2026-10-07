@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
 
+	"github.com/codejsha/shared-library-go/pkg/ptr"
+
 	"github.com/codejsha/bookstore-microservices/identity/generated/application/port/pb/userpb"
 	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/identity/internal/application/usecase"
@@ -215,9 +217,9 @@ func TestUserGrpcServer_ListUsers_statusGiven_forwardsDomainStatus(t *testing.T)
 		in   userpb.UserStatus
 		want *string
 	}{
-		{"active", userpb.UserStatus_USER_STATUS_ACTIVE, strPtr("ACTIVE")},
-		{"suspended", userpb.UserStatus_USER_STATUS_SUSPENDED, strPtr("SUSPENDED")},
-		{"inactive_mapsToDeactivated", userpb.UserStatus_USER_STATUS_INACTIVE, strPtr("DEACTIVATED")},
+		{"active", userpb.UserStatus_USER_STATUS_ACTIVE, ptr.String("ACTIVE")},
+		{"suspended", userpb.UserStatus_USER_STATUS_SUSPENDED, ptr.String("SUSPENDED")},
+		{"inactive_mapsToDeactivated", userpb.UserStatus_USER_STATUS_INACTIVE, ptr.String("DEACTIVATED")},
 		{"unspecified_noFilter", userpb.UserStatus_USER_STATUS_UNSPECIFIED, nil},
 	}
 	for _, c := range cases {
@@ -271,5 +273,3 @@ func TestUserGrpcServer_ListUsers_tokenInvalid_invalidArgument(t *testing.T) {
 		t.Errorf("code = %v, want InvalidArgument", status.Code(err))
 	}
 }
-
-func strPtr(v string) *string { return &v }

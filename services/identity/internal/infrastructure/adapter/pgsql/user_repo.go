@@ -20,7 +20,6 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/constant"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/option"
-	"github.com/codejsha/bookstore-microservices/identity/internal/infrastructure/support/utils"
 )
 
 const emptyRolesJSON = `{"values":[]}`
@@ -63,7 +62,7 @@ func (r userRepository) FindAll(ctx context.Context, opt option.UserQueryOption)
 	}
 
 	entities, err := base.
-		Scopes(gormutils.BuildPageScope(utils.RowOffsetPage(utils.WithDefaultSort(opt.Page())), sortable)).
+		Scopes(gormutils.BuildPageScope(opt.Page().WithDefaultSort(defaultSort).RowOffset(), sortable)).
 		Find()
 	if err != nil {
 		return 0, nil, err

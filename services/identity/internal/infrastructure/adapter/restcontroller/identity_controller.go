@@ -39,7 +39,7 @@ func (c *userController) UsersGetAll(
 		option.UserQueryOption{}.WithEmail(email),
 		option.UserQueryOption{}.WithName(name),
 		option.UserQueryOption{}.WithPhone(phone),
-		option.UserQueryOption{}.WithStatus(userStatusToString(status)),
+		option.UserQueryOption{}.WithStatus((*string)(status)),
 		option.UserQueryOption{}.WithPage(pagination.NewPageOption(size, page, sort)),
 	)
 
@@ -238,14 +238,6 @@ func parseStatusOrDefault(s string) openapi.UserStatus {
 		return openapi.USERSTATUS_ACTIVE
 	}
 	return v
-}
-
-func userStatusToString(status *openapi.UserStatus) *string {
-	if status == nil {
-		return nil
-	}
-	s := string(*status)
-	return &s
 }
 
 func authRolesToStrings(roles *[]openapi.AuthRole) []string {

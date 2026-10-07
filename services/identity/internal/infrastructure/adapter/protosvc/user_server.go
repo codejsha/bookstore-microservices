@@ -17,7 +17,6 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/aggregate"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/constant"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/option"
-	"github.com/codejsha/bookstore-microservices/identity/internal/infrastructure/support/utils"
 )
 
 var errInvalidPageToken = errors.New("invalid page token")
@@ -166,7 +165,7 @@ func newPageOption(pageSize int32, pageToken, orderBy string) (pagination.PageOp
 }
 
 func nextPageToken(page pagination.PageOption, total int64) string {
-	normalized := utils.RowOffsetPage(page)
+	normalized := page.RowOffset()
 	offset, size := int64(normalized.GetPage()), int64(normalized.GetSize())
 	if offset+size >= total {
 		return ""
