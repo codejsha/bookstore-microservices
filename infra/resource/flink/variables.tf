@@ -30,7 +30,13 @@ variable "flink_jobs" {
 variable "indexer_image" {
   description = "Custom Flink image for the catalog-indexer."
   type        = string
-  default     = "harbor.example.com/bookstore/catalog-indexer:1.2.0"
+  default     = "harbor.example.com/bookstore/catalog-indexer:1.2.1"
+}
+
+variable "risk_scorer_image" {
+  description = "Flink SQL runner image for the risk-scorer (same Dockerfile as the catalog-indexer; pinned separately so the two jobs can be bumped independently: the catalog-indexer runs with upgradeMode stateless and re-indexes from the earliest offset on any image change)."
+  type        = string
+  default     = "harbor.example.com/bookstore/catalog-indexer:1.2.1"
 }
 
 variable "opensearch_secret_name" {
