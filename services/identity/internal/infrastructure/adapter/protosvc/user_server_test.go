@@ -157,13 +157,119 @@ func TestUserGrpcServer_WhenFiltersGiven_ForwardsThemToTheUsecase(t *testing.T) 
 	}
 }
 
-func TestNewPageOption_WhenPagingGiven_ReturnsOption(t *testing.T) {
-	p := newPageOption(0, "", "")
-	if p.GetSize() != 0 {
-		t.Errorf("zero pageSize -> Size %d", p.GetSize())
+func TestNewPageOption_tokenGiven_setsPageIndex(t *testing.T) {
+	p, err := newPageOption(0, "", "")
+	if err != nil {
+		t.Fatalf("err: %v", err)
 	}
-	p = newPageOption(50, "ignored", "title")
-	if p.GetSize() != 50 || p.GetSort() != "title" {
-		t.Errorf("got Size=%d Sort=%q, want 50/title", p.GetSize(), p.GetSort())
+	if p.GetSize() != 0 || p.GetPage() != 0 {
+		t.Errorf("empty paging -> Size %d Page %d", p.GetSize(), p.GetPage())
+	}
+	p, err = newPageOption(50, "3", "title")
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if p.GetSize() != 50 || p.GetPage() != 3 || p.GetSort() != "title" {
+		t.Errorf("got Size=%d Page=%d Sort=%q, want 50/3/title", p.GetSize(), p.GetPage(), p.GetSort())
 	}
 }
+
+func TestNewPageOption_tokenNotAPageIndex_fails(t *testing.T) {
+	for _, token := range []string{"abc", "-1", "1.5", "99999999999"} {
+		if _, err := newPageOption(20, token, ""); err == nil {
+			t.Errorf("token %q accepted", token)
+		}
+	}
+}
+
+func TestNextPageToken(t *testing.T) {
+	cases := []struct {
+		name  string
+		size  int32
+		token string
+		total int64
+		want  string
+	}{
+		{"firstOfThreePages_pointsToSecond", 20, "", 45, "1"},
+		{"secondOfThreePages_pointsToThird", 20, "1", 45, "2"},
+		{"lastPage_empty", 20, "2", 45, ""},
+		{"singlePage_empty", 20, "", 20, ""},
+		{"sizeUnset_usesRepositoryDefault", 0, "", 21, "1"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			page, err := newPageOption(c.size, c.token, "")
+			if err != nil {
+				t.Fatalf("err: %v", err)
+			}
+			if got := nextPageToken(page, c.total); got != c.want {
+				t.Errorf("next token = %q, want %q", got, c.want)
+			}
+		})
+	}
+}
+
+func TestUserGrpcServer_ListUsers_statusGiven_forwardsDomainStatus(t *testing.T) {
+	cases := []struct {
+		name string
+		in   userpb.UserStatus
+		want *string
+	}{
+		{"active", userpb.UserStatus_USER_STATUS_ACTIVE, strPtr("ACTIVE")},
+		{"suspended", userpb.UserStatus_USER_STATUS_SUSPENDED, strPtr("SUSPENDED")},
+		{"inactive_mapsToDeactivated", userpb.UserStatus_USER_STATUS_INACTIVE, strPtr("DEACTIVATED")},
+		{"unspecified_noFilter", userpb.UserStatus_USER_STATUS_UNSPECIFIED, nil},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var got *string
+			use := &stubUseCase{
+				findAllUsers: func(_ context.Context, opt option.UserQueryOption) (int64, []*aggregate.UserAggregate, error) {
+					got = opt.Status()
+					return 0, nil, nil
+				},
+			}
+			if _, err := NewUserGrpcServer(use).ListUsers(context.Background(), &userpb.ListUsersRequest{Status: c.in}); err != nil {
+				t.Fatalf("err: %v", err)
+			}
+			if (got == nil) != (c.want == nil) || (got != nil && *got != *c.want) {
+				t.Errorf("Status = %v, want %v", got, c.want)
+			}
+		})
+	}
+}
+
+func TestUserGrpcServer_ListUsers_tokenGiven_pagesAndSetsNextToken(t *testing.T) {
+	var gotPage int32
+	use := &stubUseCase{
+		findAllUsers: func(_ context.Context, opt option.UserQueryOption) (int64, []*aggregate.UserAggregate, error) {
+			gotPage = opt.Page().GetPage()
+			return 45, []*aggregate.UserAggregate{newAggregate("idp-1", "a@x.com", []string{"USER"})}, nil
+		},
+	}
+	resp, err := NewUserGrpcServer(use).ListUsers(context.Background(), &userpb.ListUsersRequest{PageSize: 20, PageToken: "1"})
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if gotPage != 1 {
+		t.Errorf("page forwarded = %d, want 1", gotPage)
+	}
+	if resp.GetNextPageToken() != "2" {
+		t.Errorf("next token = %q, want 2", resp.GetNextPageToken())
+	}
+}
+
+func TestUserGrpcServer_ListUsers_tokenInvalid_invalidArgument(t *testing.T) {
+	use := &stubUseCase{
+		findAllUsers: func(context.Context, option.UserQueryOption) (int64, []*aggregate.UserAggregate, error) {
+			t.Error("usecase must not be called")
+			return 0, nil, nil
+		},
+	}
+	_, err := NewUserGrpcServer(use).ListUsers(context.Background(), &userpb.ListUsersRequest{PageToken: "abc"})
+	if status.Code(err) != codes.InvalidArgument {
+		t.Errorf("code = %v, want InvalidArgument", status.Code(err))
+	}
+}
+
+func strPtr(v string) *string { return &v }
