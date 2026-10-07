@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"math"
 	"testing"
 
 	"github.com/codejsha/shared-library-go/pkg/pagination"
@@ -20,7 +21,11 @@ func TestRowOffsetPage(t *testing.T) {
 		{"pageUnset_offsetZero", pagination.NewPageOption(i32p(20), nil, nil), 20, 0},
 		{"secondPage_offsetIsOneSize", pagination.NewPageOption(i32p(20), i32p(1), nil), 20, 20},
 		{"thirdPage_offsetIsTwoSizes", pagination.NewPageOption(i32p(5), i32p(3), nil), 5, 15},
-		{"sizeUnset_offsetZero", pagination.NewPageOption(nil, i32p(4), nil), 0, 0},
+		{"negativePage_offsetZero", pagination.NewPageOption(i32p(20), i32p(-3), nil), 20, 0},
+		{"sizeUnset_defaultSize", pagination.NewPageOption(nil, i32p(4), nil), 20, 80},
+		{"sizeZero_defaultSize", pagination.NewPageOption(i32p(0), i32p(1), nil), 20, 20},
+		{"sizeAboveMax_cappedSize", pagination.NewPageOption(i32p(500), i32p(2), nil), 100, 200},
+		{"offsetOverflow_cappedAtMaxInt32", pagination.NewPageOption(i32p(100), i32p(math.MaxInt32), nil), 100, math.MaxInt32},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
