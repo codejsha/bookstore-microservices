@@ -63,7 +63,7 @@ module "catalog_indexer" {
 module "risk_scorer" {
   source                 = "./modules/risk-scorer"
   namespace              = var.namespace
-  runner_image           = var.indexer_image
+  runner_image           = var.risk_scorer_image
   flink_service_account  = "flink-operator"
   image_pull_secret_name = "harbor-pull"
   sql_dir                = var.risk_scorer_sql_dir

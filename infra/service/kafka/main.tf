@@ -271,19 +271,19 @@ module "alertrules" {
     },
     {
       name        = "StrimziReconciliationFailed"
-      expr        = "strimzi_reconciliations_failed_total > 0"
+      expr        = "ceil(sum by (kind, exported_namespace) (increase(strimzi_reconciliations_failed_total[15m]))) > 2"
       for         = "5m"
       severity    = "warning"
       summary     = "Strimzi reconciliation failed"
-      description = "Strimzi operator has {{ $values.B.Value | humanize }} failed reconciliations for {{ $labels.kind }}/{{ $labels.name }}."
+      description = "Strimzi operator had {{ $values.B.Value | humanize }} failed {{ $labels.kind }} reconciliations in namespace {{ $labels.exported_namespace }} over the last 15m."
     },
     {
       name        = "StrimziReconciliationSlow"
-      expr        = "strimzi_reconciliations_duration_seconds > 300"
+      expr        = "max by (kind, exported_namespace) (strimzi_reconciliations_duration_seconds_max) > 300"
       for         = "5m"
       severity    = "warning"
       summary     = "Strimzi reconciliation is slow"
-      description = "Strimzi operator reconciliation for {{ $labels.kind }}/{{ $labels.name }} took {{ $values.B.Value | humanize }}s, exceeding 300s threshold."
+      description = "Strimzi operator {{ $labels.kind }} reconciliation in namespace {{ $labels.exported_namespace }} took {{ $values.B.Value | humanize }}s, exceeding 300s threshold."
     },
   ]
   providers = {

@@ -1,5 +1,5 @@
 SERVICE_NAME := catalog-indexer
-VERSION := 1.2.0
+VERSION := 1.2.1
 
 COMMIT := $(shell git rev-parse --short HEAD)
 
