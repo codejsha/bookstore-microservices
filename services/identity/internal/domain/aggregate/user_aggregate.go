@@ -3,7 +3,6 @@ package aggregate
 import (
 	"time"
 
-	idp "github.com/codejsha/bookstore-microservices/identity/generated/application/port/idpapi"
 	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/constant"
 )
@@ -87,46 +86,4 @@ func (a *UserAggregate) CreatedAt() time.Time {
 
 func (a *UserAggregate) UpdatedAt() *time.Time {
 	return a.updatedAt
-}
-
-func (a *UserAggregate) ApplyRegistration(roles []string, createdAt, updatedAt time.Time) {
-	authRoles := make([]constant.AuthRole, len(roles))
-	for i, role := range roles {
-		authRoles[i] = constant.AuthRoleFromString(role)
-	}
-	a.roles = authRoles
-	a.createdAt = createdAt
-	a.updatedAt = &updatedAt
-}
-
-func (a *UserAggregate) FromIdp(id int64, userRepresent idp.UserRepresentation) {
-	var realmRoles []string
-	if userRepresent.RealmRoles != nil {
-		realmRoles = *userRepresent.RealmRoles
-	}
-	roles := make([]constant.AuthRole, len(realmRoles))
-	for i, role := range realmRoles {
-		roles[i] = constant.AuthRoleFromString(role)
-	}
-
-	a.id = id
-	a.idpId = userRepresent.Id
-	a.email = ""
-	if userRepresent.Email != nil {
-		a.email = *userRepresent.Email
-	}
-	a.firstName = ""
-	if userRepresent.FirstName != nil {
-		a.firstName = *userRepresent.FirstName
-	}
-	a.lastName = ""
-	if userRepresent.LastName != nil {
-		a.lastName = *userRepresent.LastName
-	}
-	a.phone = nil
-	a.roles = roles
-	a.status = ""
-	a.lastLoginAt = nil
-	a.createdAt = time.Time{}
-	a.updatedAt = nil
 }

@@ -46,6 +46,18 @@ func (c *usersClient) authHeaders() (map[string]string, error) {
 	return map[string]string{"Authorization": "Bearer " + token}, nil
 }
 
+func idpStatusError(op string, status int, body string) error {
+	switch status {
+	case http.StatusNotFound:
+		return fmt.Errorf("failed to %s: %w", op, security.ErrIdpUserNotFound)
+	case http.StatusConflict:
+		return fmt.Errorf("failed to %s: %w", op, security.ErrIdpUserConflict)
+	case http.StatusBadRequest:
+		return fmt.Errorf("failed to %s: %w", op, security.ErrIdpBadRequest)
+	}
+	return fmt.Errorf("failed to %s: status %d: %s", op, status, body)
+}
+
 func (c *usersClient) ListUsers(ctx context.Context, realm, email string) ([]idp.UserRepresentation, error) {
 	headers, err := c.authHeaders()
 	if err != nil {
@@ -66,7 +78,7 @@ func (c *usersClient) ListUsers(ctx context.Context, realm, email string) ([]idp
 		return nil, fmt.Errorf("failed to list users: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("failed to list users: %s", resp.String())
+		return nil, idpStatusError("list users", resp.StatusCode(), resp.String())
 	}
 
 	var users []idp.UserRepresentation
@@ -107,7 +119,7 @@ func (c *usersClient) CreateUser(ctx context.Context, realm string, req idp.User
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 	if resp.StatusCode() != 201 {
-		return fmt.Errorf("failed to create user: %s", resp.String())
+		return idpStatusError("create user", resp.StatusCode(), resp.String())
 	}
 	return nil
 }
@@ -127,7 +139,7 @@ func (c *usersClient) GetUser(ctx context.Context, realm, userId string) (idp.Us
 		return idp.UserRepresentation{}, fmt.Errorf("failed to get user: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return idp.UserRepresentation{}, fmt.Errorf("failed to get user: %s", resp.String())
+		return idp.UserRepresentation{}, idpStatusError("get user", resp.StatusCode(), resp.String())
 	}
 
 	var user idp.UserRepresentation
@@ -159,7 +171,7 @@ func (c *usersClient) UpdateUser(ctx context.Context, realm, userId string, req 
 		return fmt.Errorf("failed to update user: %w", err)
 	}
 	if resp.StatusCode() != 204 {
-		return fmt.Errorf("failed to update user: %s", resp.String())
+		return idpStatusError("update user", resp.StatusCode(), resp.String())
 	}
 	return nil
 }
@@ -179,7 +191,7 @@ func (c *usersClient) LogoutUser(ctx context.Context, realm, userId string) erro
 		return fmt.Errorf("failed to logout user: %w", err)
 	}
 	if resp.StatusCode() != 204 {
-		return fmt.Errorf("failed to logout user: %s", resp.String())
+		return idpStatusError("logout user", resp.StatusCode(), resp.String())
 	}
 	return nil
 }
@@ -199,7 +211,7 @@ func (c *usersClient) DeleteUser(ctx context.Context, realm, userId string) erro
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
 	if resp.StatusCode() != 204 {
-		return fmt.Errorf("failed to delete user: %s", resp.String())
+		return idpStatusError("delete user", resp.StatusCode(), resp.String())
 	}
 	return nil
 }
@@ -231,7 +243,7 @@ func (c *usersClient) SetUserRealmRoles(ctx context.Context, realm, userId strin
 	for _, name := range roles {
 		role, ok := available[name]
 		if !ok {
-			return fmt.Errorf("realm role %q does not exist in realm %s", name, realm)
+			return fmt.Errorf("%w: realm role %q does not exist in realm %s", security.ErrIdpBadRequest, name, realm)
 		}
 		desired = append(desired, role)
 	}
@@ -297,7 +309,7 @@ func (c *usersClient) listRealmRoles(ctx context.Context, realm string) (map[str
 		return nil, fmt.Errorf("failed to list realm roles: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("failed to list realm roles: %s", resp.String())
+		return nil, idpStatusError("list realm roles", resp.StatusCode(), resp.String())
 	}
 
 	var roles []idp.RoleRepresentation
@@ -329,7 +341,7 @@ func (c *usersClient) getUserRealmRoles(ctx context.Context, realm, userId strin
 		return nil, fmt.Errorf("failed to get user realm roles: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("failed to get user realm roles: %s", resp.String())
+		return nil, idpStatusError("get user realm roles", resp.StatusCode(), resp.String())
 	}
 
 	var roles []idp.RoleRepresentation
@@ -366,7 +378,7 @@ func (c *usersClient) mapRealmRoles(
 		return fmt.Errorf("failed to map realm roles: %w", err)
 	}
 	if resp.StatusCode() != 204 {
-		return fmt.Errorf("failed to map realm roles: %s", resp.String())
+		return idpStatusError("map realm roles", resp.StatusCode(), resp.String())
 	}
 	return nil
 }

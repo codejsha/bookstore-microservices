@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/driver/sqlite"
+	"gorm.io/gen/field"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
@@ -167,6 +168,213 @@ func TestUserRepositoryFindAll_statusEmpty_appliesNoStatusFilter(t *testing.T) {
 
 	if total != 2 {
 		t.Errorf("total = %d, want 2", total)
+	}
+}
+
+func seedNamedUser(t *testing.T, db *gorm.DB, email, firstName string, createdAt time.Time) {
+	t.Helper()
+	u := &entity.UsersEntity{
+		Uid:       uuid.NewString(),
+		IdpUid:    uuid.NewString(),
+		Email:     email,
+		FirstName: firstName,
+		LastName:  "L",
+		Role:      emptyRolesJSON,
+		Status:    "ACTIVE",
+		CreatedAt: createdAt,
+		Actor:     1,
+		Version:   1,
+	}
+	if err := db.Create(u).Error; err != nil {
+		t.Fatalf("seed user: %v", err)
+	}
+}
+
+func seedSortableUsers(t *testing.T, db *gorm.DB) {
+	t.Helper()
+	base := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC)
+	seedNamedUser(t, db, "a@x.com", "Carol", base.Add(1*time.Hour))
+	seedNamedUser(t, db, "b@x.com", "Alice", base.Add(3*time.Hour))
+	seedNamedUser(t, db, "c@x.com", "Bob", base.Add(2*time.Hour))
+}
+
+func findSorted(t *testing.T, r userRepository, sort string) []string {
+	t.Helper()
+	_, got, err := r.FindAll(context.Background(), option.NewUserQueryOption(
+		option.UserQueryOption{}.WithPage(pagination.NewPageOption(nil, nil, &sort)),
+	))
+	if err != nil {
+		t.Fatalf("find all: %v", err)
+	}
+	return userEmails(got)
+}
+
+func TestUserRepositoryFindAll_snakeCaseSort_ordersPage(t *testing.T) {
+	r, db := newUserTestRepo(t)
+	seedSortableUsers(t, db)
+
+	got := findSorted(t, r, "first_name,asc")
+
+	if want := []string{"b@x.com", "c@x.com", "a@x.com"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("emails = %v, want %v", got, want)
+	}
+}
+
+func TestUserRepositoryFindAll_camelCaseSort_ordersPage(t *testing.T) {
+	r, db := newUserTestRepo(t)
+	seedSortableUsers(t, db)
+
+	got := findSorted(t, r, "firstName,desc")
+
+	if want := []string{"a@x.com", "c@x.com", "b@x.com"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("emails = %v, want %v", got, want)
+	}
+}
+
+func TestUserRepositoryFindAll_unknownSortOnly_fallsBackToNewestFirst(t *testing.T) {
+	r, db := newUserTestRepo(t)
+	seedSortableUsers(t, db)
+
+	got := findSorted(t, r, "bogus,asc;nope")
+
+	if want := []string{"b@x.com", "c@x.com", "a@x.com"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("emails = %v, want %v", got, want)
+	}
+}
+
+func TestUserRepositoryFindAll_mixedSort_keepsOnlyKnownKeys(t *testing.T) {
+	r, db := newUserTestRepo(t)
+	seedSortableUsers(t, db)
+
+	got := findSorted(t, r, "bogus,desc;created_at,asc")
+
+	if want := []string{"a@x.com", "c@x.com", "b@x.com"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("emails = %v, want %v", got, want)
+	}
+}
+
+func TestUserRepositoryFindAll_deactivatedStatus_includesSoftDeletedUsers(t *testing.T) {
+	r, db := newUserTestRepo(t)
+	seedUser(t, db, "a@x.com", "ACTIVE")
+	seedUser(t, db, "b@x.com", "ACTIVE")
+	var target entity.UsersEntity
+	if err := db.Where("email = ?", "b@x.com").First(&target).Error; err != nil {
+		t.Fatalf("load seeded user: %v", err)
+	}
+	if err := r.SoftDelete(context.Background(), target.IdpUid); err != nil {
+		t.Fatalf("soft delete: %v", err)
+	}
+	status := "DEACTIVATED"
+
+	total, got, err := r.FindAll(context.Background(), option.NewUserQueryOption(
+		option.UserQueryOption{}.WithStatus(&status),
+	))
+	if err != nil {
+		t.Fatalf("find all: %v", err)
+	}
+
+	if total != 1 {
+		t.Errorf("total = %d, want 1", total)
+	}
+	if want := []string{"b@x.com"}; !reflect.DeepEqual(userEmails(got), want) {
+		t.Fatalf("emails = %v, want %v", userEmails(got), want)
+	}
+}
+
+func TestUserRepositoryFindAll_noStatus_excludesSoftDeletedUsers(t *testing.T) {
+	r, db := newUserTestRepo(t)
+	seedUser(t, db, "a@x.com", "ACTIVE")
+	seedUser(t, db, "b@x.com", "ACTIVE")
+	var target entity.UsersEntity
+	if err := db.Where("email = ?", "b@x.com").First(&target).Error; err != nil {
+		t.Fatalf("load seeded user: %v", err)
+	}
+	if err := r.SoftDelete(context.Background(), target.IdpUid); err != nil {
+		t.Fatalf("soft delete: %v", err)
+	}
+
+	total, got, err := r.FindAll(context.Background(), option.NewUserQueryOption())
+	if err != nil {
+		t.Fatalf("find all: %v", err)
+	}
+
+	if total != 1 {
+		t.Errorf("total = %d, want 1", total)
+	}
+	if want := []string{"a@x.com"}; !reflect.DeepEqual(userEmails(got), want) {
+		t.Fatalf("emails = %v, want %v", userEmails(got), want)
+	}
+}
+
+func TestUserRepositoryUpsert_phoneOmitted_keepsStoredPhone(t *testing.T) {
+	r, _ := newUserTestRepo(t)
+	phone := "+1-555-0100"
+	if _, err := r.Upsert(context.Background(), repo.UserUpsert{
+		IdpUid: "idp-1", Email: "u@x.com", FirstName: "F", LastName: "L", Phone: &phone, Status: "ACTIVE",
+	}); err != nil {
+		t.Fatalf("first upsert: %v", err)
+	}
+
+	got, err := r.Upsert(context.Background(), repo.UserUpsert{
+		IdpUid: "idp-1", Email: "u@x.com", FirstName: "F2", LastName: "L", Status: "ACTIVE",
+	})
+	if err != nil {
+		t.Fatalf("second upsert: %v", err)
+	}
+
+	if got.Phone == nil || *got.Phone != phone {
+		t.Errorf("phone = %v, want stored %q", got.Phone, phone)
+	}
+	if got.FirstName != "F2" {
+		t.Errorf("first name = %q, want F2", got.FirstName)
+	}
+}
+
+func TestUserRepositoryUpsert_phoneGiven_overwritesStoredPhone(t *testing.T) {
+	r, _ := newUserTestRepo(t)
+	oldPhone, newPhone := "+1-555-0100", "+1-555-0199"
+	if _, err := r.Upsert(context.Background(), repo.UserUpsert{
+		IdpUid: "idp-1", Email: "u@x.com", FirstName: "F", LastName: "L", Phone: &oldPhone, Status: "ACTIVE",
+	}); err != nil {
+		t.Fatalf("first upsert: %v", err)
+	}
+
+	got, err := r.Upsert(context.Background(), repo.UserUpsert{
+		IdpUid: "idp-1", Email: "u@x.com", FirstName: "F", LastName: "L", Phone: &newPhone, Status: "ACTIVE",
+	})
+	if err != nil {
+		t.Fatalf("second upsert: %v", err)
+	}
+
+	if got.Phone == nil || *got.Phone != newPhone {
+		t.Errorf("phone = %v, want %q", got.Phone, newPhone)
+	}
+}
+
+func TestResolveSort_snakeAndCamelKeys_keepsBoth(t *testing.T) {
+	sortable := sortableWithAliases(map[string]field.OrderExpr{
+		"created_at": field.NewTime("users", "created_at"),
+		"uid":        field.NewString("users", "idp_uid"),
+	})
+	sort := "created_at,asc;createdAt,desc;bogus,asc;uid"
+
+	got := resolveSort(pagination.NewPageOption(nil, nil, &sort), sortable).GetSort()
+
+	if want := "created_at,asc;createdAt,desc;uid"; got != want {
+		t.Errorf("sort = %q, want %q", got, want)
+	}
+}
+
+func TestResolveSort_noResolvableKey_usesDefaultSort(t *testing.T) {
+	sortable := sortableWithAliases(map[string]field.OrderExpr{
+		"created_at": field.NewTime("users", "created_at"),
+	})
+	sort := "bogus,asc"
+
+	got := resolveSort(pagination.NewPageOption(nil, nil, &sort), sortable).GetSort()
+
+	if got != defaultSort {
+		t.Errorf("sort = %q, want %q", got, defaultSort)
 	}
 }
 

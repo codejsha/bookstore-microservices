@@ -18,6 +18,9 @@ func NewRiskApiHandler(service RiskApi) *RiskApiHandler {
 }
 
 // List all currently flagged principals
+// Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *RiskApiHandler) RiskGetAll(c *gin.Context) {
 	result, err := h.service.RiskGetAll(c.Request.Context())
 	if err != nil {
@@ -30,6 +33,8 @@ func (h *RiskApiHandler) RiskGetAll(c *gin.Context) {
 // Flag a principal (restrict = deny writes, block = deny all)
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *RiskApiHandler) RiskFlagPrincipal(c *gin.Context) {
 	uid := c.Param("uid")
 	var req RiskFlagRequest
@@ -46,6 +51,9 @@ func (h *RiskApiHandler) RiskFlagPrincipal(c *gin.Context) {
 }
 
 // Remove a principal's risk flag
+// Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *RiskApiHandler) RiskUnflagPrincipal(c *gin.Context) {
 	uid := c.Param("uid")
 	if err := h.service.RiskUnflagPrincipal(c.Request.Context(), uid); err != nil {

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -91,6 +90,7 @@ func (s identityService) deleteOrphanedIdpUserByEmail(ctx context.Context, email
 
 var ErrElevatedRoleOnRegister = errors.New("identity: registration may not grant elevated roles")
 var ErrUserAlreadyExists = errors.New("identity: user already exists")
+var ErrUserNotFound = errors.New("identity: user not found")
 var selfServiceRolesAllowed = map[string]bool{
 	string(openapi.AUTHROLE_USER): true,
 }
@@ -165,26 +165,17 @@ func (s identityService) RegisterUser(ctx context.Context, cmd command.UserRegis
 		return nil, fmt.Errorf("failed to assign realm roles in IdP: %w", err)
 	}
 
-	localRow, err := s.upsertLocal(ctx, users[0], statusActive, roles)
+	localRow, err := s.upsertLocal(ctx, users[0], statusActive, roles, cmd.Phone)
 	if err != nil {
 		s.deleteOrphanedIdpUser(ctx, *users[0].Id)
 		return nil, fmt.Errorf("failed to sync user to local DB: %w", err)
 	}
 
-	userAgg := &aggregate.UserAggregate{}
-	userAgg.FromIdp(0, users[0])
-	created := time.Now()
-	updated := created
-	if localRow != nil {
-		if !localRow.CreatedAt.IsZero() {
-			created = localRow.CreatedAt
-		}
-		if localRow.UpdatedAt != nil {
-			updated = *localRow.UpdatedAt
-		}
+	if localRow == nil {
+		s.deleteOrphanedIdpUser(ctx, *users[0].Id)
+		return nil, fmt.Errorf("failed to sync user to local DB: no row returned for %s", cmd.Email)
 	}
-	userAgg.ApplyRegistration(roles, created, updated)
-	return userAgg, nil
+	return aggregate.NewUserAggregate(localRow), nil
 }
 
 // ─── User query ─────────────────────────────────────────────────────────────
@@ -217,7 +208,7 @@ func (s identityService) FindUserByEmail(ctx context.Context, email string) (*ag
 		return nil, err
 	}
 	if len(users) == 0 {
-		return nil, fmt.Errorf("user not found with email %s", email)
+		return nil, fmt.Errorf("%w with email %s", ErrUserNotFound, email)
 	}
 	return aggregate.NewUserAggregate(users[0]), nil
 }
@@ -390,13 +381,14 @@ func (s identityService) SyncUserFromIdp(ctx context.Context, idpId string) (*ag
 	if idpUser.Enabled != nil && !*idpUser.Enabled {
 		status = statusSuspended
 	}
-	if _, err := s.upsertLocal(ctx, idpUser, status, roles); err != nil {
+	row, err := s.upsertLocal(ctx, idpUser, status, roles, nil)
+	if err != nil {
 		return nil, fmt.Errorf("failed to upsert user to local DB: %w", err)
 	}
-
-	userAgg := &aggregate.UserAggregate{}
-	userAgg.FromIdp(0, idpUser)
-	return userAgg, nil
+	if row == nil {
+		return nil, fmt.Errorf("failed to upsert user to local DB: no row returned for %s", idpId)
+	}
+	return aggregate.NewUserAggregate(row), nil
 }
 
 func (s identityService) upsertLocal(
@@ -404,6 +396,7 @@ func (s identityService) upsertLocal(
 	idpUser idp.UserRepresentation,
 	status string,
 	roles []string,
+	phone *string,
 ) (*repo.UserResult, error) {
 	if idpUser.Id == nil {
 		return nil, fmt.Errorf("IdP user is missing id")
@@ -411,6 +404,9 @@ func (s identityService) upsertLocal(
 	profile := repo.UserUpsert{
 		IdpUid: *idpUser.Id,
 		Status: status,
+	}
+	if phone != nil {
+		profile.Phone = phone
 	}
 	if idpUser.Email != nil {
 		profile.Email = *idpUser.Email

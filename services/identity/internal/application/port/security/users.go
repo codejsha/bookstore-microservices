@@ -2,8 +2,15 @@ package security
 
 import (
 	"context"
+	"errors"
 
 	idp "github.com/codejsha/bookstore-microservices/identity/generated/application/port/idpapi"
+)
+
+var (
+	ErrIdpUserNotFound = errors.New("identity provider: user not found")
+	ErrIdpUserConflict = errors.New("identity provider: user conflict")
+	ErrIdpBadRequest   = errors.New("identity provider: bad request")
 )
 
 type UsersClient interface {

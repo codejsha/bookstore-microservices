@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 
+	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/security"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/service"
 )
 
@@ -104,6 +106,46 @@ func TestGinResponseMapping_WhenHandlerWrapsGormNotFound_Returns404ProblemDetail
 	}
 	if body := w.Body.String(); body != `{"title":"Not Found","status":404,"detail":"resource not found"}` {
 		t.Errorf("body = %q, want resource-not-found json", body)
+	}
+}
+
+func TestGinResponseMapping_userNotFound_404ProblemDetails(t *testing.T) {
+	r := newTestEngine(func(c *gin.Context) (int, any, error) {
+		return 0, nil, MapError(c.Request.Context(),
+			fmt.Errorf("%w with email nope@x.com", service.ErrUserNotFound))
+	})
+	w := do(r)
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want 404", w.Code)
+	}
+	if body := w.Body.String(); body != `{"title":"Not Found","status":404,"detail":"user not found"}` {
+		t.Errorf("body = %q, want user-not-found json", body)
+	}
+}
+
+func TestGinResponseMapping_idpSentinel_mappedStatus(t *testing.T) {
+	cases := map[string]struct {
+		err  error
+		want int
+	}{
+		"idpUserNotFound_404": {security.ErrIdpUserNotFound, http.StatusNotFound},
+		"idpUserConflict_409": {security.ErrIdpUserConflict, http.StatusConflict},
+		"idpBadRequest_400":   {security.ErrIdpBadRequest, http.StatusBadRequest},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			r := newTestEngine(func(c *gin.Context) (int, any, error) {
+				return 0, nil, MapError(c.Request.Context(),
+					fmt.Errorf("failed to get user from IdP: failed to get user: %w", tc.err))
+			})
+			w := do(r)
+			if w.Code != tc.want {
+				t.Fatalf("status = %d, want %d", w.Code, tc.want)
+			}
+			if body := w.Body.String(); strings.Contains(body, "failed to get user") {
+				t.Errorf("body = %q, want the internal error text left out", body)
+			}
+		})
 	}
 }
 

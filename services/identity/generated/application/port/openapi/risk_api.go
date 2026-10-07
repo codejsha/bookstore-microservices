@@ -9,6 +9,9 @@ import (
 // Risk API
 type RiskApi interface {
 	// List all currently flagged principals
+	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	RiskGetAll(
 		ctx context.Context,
 	) (*RiskEntryListResponse, error)
@@ -16,6 +19,8 @@ type RiskApi interface {
 	// Flag a principal (restrict = deny writes, block = deny all)
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	RiskFlagPrincipal(
 		ctx context.Context,
 		uid string,
@@ -23,6 +28,9 @@ type RiskApi interface {
 	) (*RiskEntryResponse, error)
 
 	// Remove a principal's risk flag
+	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	RiskUnflagPrincipal(
 		ctx context.Context,
 		uid string,

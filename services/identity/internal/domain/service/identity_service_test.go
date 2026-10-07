@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	sharedconfig "github.com/codejsha/shared-library-go/pkg/config"
 
@@ -42,7 +43,22 @@ func (s *stubUserRepo) Upsert(ctx context.Context, profile repo.UserUpsert) (*re
 	if s.upsertFn != nil {
 		return s.upsertFn(ctx, profile)
 	}
-	return nil, nil
+	return upsertedRow(profile), nil
+}
+
+func upsertedRow(p repo.UserUpsert) *repo.UserResult {
+	idpUid := p.IdpUid
+	return &repo.UserResult{
+		Id:        1,
+		IdpId:     &idpUid,
+		Email:     p.Email,
+		FirstName: p.FirstName,
+		LastName:  p.LastName,
+		Phone:     p.Phone,
+		Roles:     p.Roles,
+		Status:    p.Status,
+		CreatedAt: time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC),
+	}
 }
 func (s *stubUserRepo) UpdateProfile(ctx context.Context, idpUid string, patch repo.UserProfileUpdate) error {
 	if s.updateProfileFn != nil {
@@ -923,7 +939,7 @@ func TestSyncUserFromIdp_WhenIdpUserDisabled_UpsertsLocalRowAsSuspended(t *testi
 	userRepo := &stubUserRepo{
 		upsertFn: func(_ context.Context, p repo.UserUpsert) (*repo.UserResult, error) {
 			captured = p
-			return nil, nil
+			return upsertedRow(p), nil
 		},
 	}
 	svc := newSvc(userRepo, usersClient)
@@ -990,7 +1006,7 @@ func TestSyncUserFromIdp_WhenIdpOmitsRealmRoles_FetchesRoleMappings(t *testing.T
 	userRepo := &stubUserRepo{
 		upsertFn: func(_ context.Context, p repo.UserUpsert) (*repo.UserResult, error) {
 			captured = p
-			return nil, nil
+			return upsertedRow(p), nil
 		},
 	}
 	svc := newSvc(userRepo, usersClient)
@@ -1305,5 +1321,145 @@ func TestUpdateUser_WhenLocalWriteFails_CompensatesKeycloak(t *testing.T) {
 	}
 	if updates[1] != [2]string{"Old", "Name"} {
 		t.Errorf("compensation update = %v, want the previous [Old Name]", updates[1])
+	}
+}
+
+func TestFindUserByEmail_unknownEmail_wrapsErrUserNotFound(t *testing.T) {
+	userRepo := &stubUserRepo{
+		fetchByEmailFn: func(context.Context, string) ([]*repo.UserResult, error) { return nil, nil },
+	}
+
+	_, err := newSvc(userRepo, nil).FindUserByEmail(context.Background(), "nope@x.com")
+
+	if !errors.Is(err, ErrUserNotFound) {
+		t.Fatalf("err = %v, want ErrUserNotFound", err)
+	}
+}
+
+func TestSyncUserFromIdp_disabledIdpUser_respondsSuspendedWithStoredCreatedAt(t *testing.T) {
+	id := "idp-1"
+	em := "u@x.com"
+	enabled := false
+	roles := []string{"USER"}
+	stored := time.Date(2025, 5, 6, 7, 8, 9, 0, time.UTC)
+	usersClient := &stubUsersClient{
+		getUserFn: func(_ context.Context, _ string, userId string) (idp.UserRepresentation, error) {
+			return idp.UserRepresentation{Id: &userId, Email: &em, RealmRoles: &roles, Enabled: &enabled}, nil
+		},
+	}
+	userRepo := &stubUserRepo{
+		upsertFn: func(_ context.Context, p repo.UserUpsert) (*repo.UserResult, error) {
+			row := upsertedRow(p)
+			row.CreatedAt = stored
+			return row, nil
+		},
+	}
+
+	got, err := newSvc(userRepo, usersClient).SyncUserFromIdp(context.Background(), id)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	if got.Status() != "SUSPENDED" {
+		t.Errorf("status = %q, want SUSPENDED", got.Status())
+	}
+	if !got.CreatedAt().Equal(stored) {
+		t.Errorf("createdAt = %v, want stored %v", got.CreatedAt(), stored)
+	}
+	if got.Uid() != id {
+		t.Errorf("uid = %q, want %q", got.Uid(), id)
+	}
+}
+
+func TestSyncUserFromIdp_upsertSucceeds_leavesPhoneUnset(t *testing.T) {
+	em := "u@x.com"
+	roles := []string{"USER"}
+	usersClient := &stubUsersClient{
+		getUserFn: func(_ context.Context, _ string, userId string) (idp.UserRepresentation, error) {
+			return idp.UserRepresentation{Id: &userId, Email: &em, RealmRoles: &roles}, nil
+		},
+	}
+	var captured repo.UserUpsert
+	userRepo := &stubUserRepo{
+		upsertFn: func(_ context.Context, p repo.UserUpsert) (*repo.UserResult, error) {
+			captured = p
+			return upsertedRow(p), nil
+		},
+	}
+
+	if _, err := newSvc(userRepo, usersClient).SyncUserFromIdp(context.Background(), "idp-1"); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	if captured.Phone != nil {
+		t.Errorf("upsert phone = %q, want nil so the stored phone is kept", *captured.Phone)
+	}
+}
+
+func TestRegisterUser_phoneGiven_upsertsPhone(t *testing.T) {
+	id := "idp-1"
+	em := "u@x.com"
+	calls := 0
+	users := &stubUsersClient{
+		listUsersFn: func(context.Context, string, string) ([]idp.UserRepresentation, error) {
+			calls++
+			if calls == 1 {
+				return nil, nil
+			}
+			return []idp.UserRepresentation{{Id: &id, Email: &em}}, nil
+		},
+		createUserFn: func(context.Context, string, idp.UserRepresentation) error { return nil },
+	}
+	var captured repo.UserUpsert
+	userRepo := &stubUserRepo{
+		upsertFn: func(_ context.Context, p repo.UserUpsert) (*repo.UserResult, error) {
+			captured = p
+			return upsertedRow(p), nil
+		},
+	}
+	phone := "+1-555-0100"
+
+	if _, err := newSvc(userRepo, users).RegisterUser(context.Background(), command.UserRegisterCommand{
+		Email: em, Password: "secret", FirstName: "F", LastName: "L", Phone: &phone,
+	}); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	if captured.Phone == nil || *captured.Phone != phone {
+		t.Errorf("upsert phone = %v, want %q", captured.Phone, phone)
+	}
+}
+
+func TestRegisterUser_rowStored_respondsWithStoredStatusPhoneAndCreatedAt(t *testing.T) {
+	id := "idp-1"
+	em := "u@x.com"
+	calls := 0
+	users := &stubUsersClient{
+		listUsersFn: func(context.Context, string, string) ([]idp.UserRepresentation, error) {
+			calls++
+			if calls == 1 {
+				return nil, nil
+			}
+			return []idp.UserRepresentation{{Id: &id, Email: &em}}, nil
+		},
+		createUserFn: func(context.Context, string, idp.UserRepresentation) error { return nil },
+	}
+	phone := "+1-555-0100"
+
+	got, err := newSvc(&stubUserRepo{}, users).RegisterUser(context.Background(), command.UserRegisterCommand{
+		Email: em, Password: "secret", FirstName: "F", LastName: "L", Phone: &phone,
+	})
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	if got.Status() != "ACTIVE" {
+		t.Errorf("status = %q, want ACTIVE", got.Status())
+	}
+	if got.Phone() == nil || *got.Phone() != phone {
+		t.Errorf("phone = %v, want %q", got.Phone(), phone)
+	}
+	if want := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC); !got.CreatedAt().Equal(want) {
+		t.Errorf("created_at = %v, want %v", got.CreatedAt(), want)
 	}
 }

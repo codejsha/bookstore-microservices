@@ -9,6 +9,10 @@ import (
 // User API
 type UserApi interface {
 	// Find all users
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	UsersGetAll(
 		ctx context.Context,
 		email *string,
@@ -23,6 +27,7 @@ type UserApi interface {
 	// Register a new user (creates in Keycloak + local DB)
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	UsersRegister(
 		ctx context.Context,
 		req UserRegisterRequest,
@@ -30,6 +35,8 @@ type UserApi interface {
 
 	// Find user by email
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	UsersReadByEmail(
 		ctx context.Context,
@@ -38,7 +45,10 @@ type UserApi interface {
 
 	// Sync user data from Keycloak to local DB
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	UsersSyncFromIdp(
 		ctx context.Context,
 		idpUid string,
@@ -46,6 +56,8 @@ type UserApi interface {
 
 	// Find user by uid
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	UsersRead(
 		ctx context.Context,
@@ -54,6 +66,9 @@ type UserApi interface {
 
 	// Update user profile
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	UsersUpdate(
 		ctx context.Context,
@@ -64,6 +79,8 @@ type UserApi interface {
 	// Deactivate user account (delete in Keycloak, soft-delete locally)
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	UsersDeactivate(
 		ctx context.Context,
@@ -73,6 +90,8 @@ type UserApi interface {
 	// Reactivate suspended user account (enable in Keycloak)
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	UsersReactivate(
 		ctx context.Context,
@@ -81,6 +100,9 @@ type UserApi interface {
 
 	// Update user roles
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	UsersUpdateRoles(
 		ctx context.Context,
@@ -91,6 +113,8 @@ type UserApi interface {
 	// Suspend user account (disable in Keycloak)
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	UsersSuspend(
 		ctx context.Context,
