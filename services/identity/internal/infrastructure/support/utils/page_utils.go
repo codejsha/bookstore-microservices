@@ -9,6 +9,7 @@ import (
 const (
 	defaultPageSize = 20
 	maxPageSize     = 100
+	defaultSort     = "createdat,desc;uid,asc"
 )
 
 func RowOffsetPage(p pagination.PageOption) pagination.PageOption {
@@ -28,4 +29,12 @@ func RowOffsetPage(p pagination.PageOption) pagination.PageOption {
 	}
 	rowOffset := int32(offset)
 	return p.WithOverrides(&size, &rowOffset, nil)
+}
+
+func WithDefaultSort(p pagination.PageOption) pagination.PageOption {
+	if p.GetSort() != "" {
+		return p
+	}
+	sort := defaultSort
+	return p.WithOverrides(nil, nil, []*string{&sort})
 }

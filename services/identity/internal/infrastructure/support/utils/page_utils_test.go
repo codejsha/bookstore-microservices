@@ -50,3 +50,22 @@ func TestRowOffsetPage_sortGiven_keepsSort(t *testing.T) {
 		t.Errorf("input page = %d, want 2 left untouched", in.GetPage())
 	}
 }
+
+func TestWithDefaultSort(t *testing.T) {
+	cases := []struct {
+		name string
+		in   pagination.PageOption
+		want string
+	}{
+		{"sortUnset_defaultSort", pagination.NewPageOption(i32p(20), i32p(0), nil), "createdat,desc;uid,asc"},
+		{"sortEmpty_defaultSort", pagination.NewPageOption(i32p(20), i32p(0), strp("")), "createdat,desc;uid,asc"},
+		{"sortGiven_keepsSort", pagination.NewPageOption(i32p(20), i32p(0), strp("email,asc")), "email,asc"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := WithDefaultSort(c.in).GetSort(); got != c.want {
+				t.Errorf("sort = %q, want %q", got, c.want)
+			}
+		})
+	}
+}

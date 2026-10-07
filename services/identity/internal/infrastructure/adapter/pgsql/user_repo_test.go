@@ -94,6 +94,40 @@ func TestUserRepositoryFindAll_secondPage_skipsOneFullPage(t *testing.T) {
 	}
 }
 
+func TestUserRepositoryFindAll_sortOmitted_newestFirst(t *testing.T) {
+	r, db := newUserTestRepo(t)
+	base := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC)
+	for i := 1; i <= 3; i++ {
+		u := &entity.UsersEntity{
+			Uid:       uuid.NewString(),
+			IdpUid:    uuid.NewString(),
+			Email:     fmt.Sprintf("u%d@x.com", i),
+			FirstName: "F",
+			LastName:  "L",
+			Role:      emptyRolesJSON,
+			Status:    "ACTIVE",
+			CreatedAt: base.Add(time.Duration(i) * time.Hour),
+			Actor:     1,
+			Version:   1,
+		}
+		if err := db.Create(u).Error; err != nil {
+			t.Fatalf("seed user: %v", err)
+		}
+	}
+	size, page := int32(3), int32(0)
+
+	_, got, err := r.FindAll(context.Background(), option.NewUserQueryOption(
+		option.UserQueryOption{}.WithPage(pagination.NewPageOption(&size, &page, nil)),
+	))
+	if err != nil {
+		t.Fatalf("find all: %v", err)
+	}
+
+	if want := []string{"u3@x.com", "u2@x.com", "u1@x.com"}; !reflect.DeepEqual(userEmails(got), want) {
+		t.Fatalf("emails = %v, want %v", userEmails(got), want)
+	}
+}
+
 func TestUserRepositoryFindAll_statusGiven_keepsOnlyMatchingUsers(t *testing.T) {
 	r, db := newUserTestRepo(t)
 	seedUser(t, db, "a@x.com", "ACTIVE")
