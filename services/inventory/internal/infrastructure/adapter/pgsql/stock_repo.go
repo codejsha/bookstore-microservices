@@ -17,6 +17,7 @@ import (
 	genrepo "github.com/codejsha/bookstore-microservices/inventory/generated/infrastructure/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
+	"github.com/codejsha/bookstore-microservices/inventory/internal/infrastructure/support/utils"
 )
 
 var _ repo.StockRepo = (*stockRepository)(nil)
@@ -55,14 +56,13 @@ func (r stockRepository) FindAll(ctx context.Context, opt option.StockQueryOptio
 		return 0, nil, err
 	}
 
+	paged := utils.RowOffsetPage(page)
 	editionQuery := q.StockEntity.WithContext(ctx).
 		Scopes(r.buildWhereScope(q, opt)).
 		Group(q.StockEntity.EditionUid).
-		Order(q.StockEntity.EditionUid)
-	if limit := page.GetSize(); limit > 0 {
-		editionQuery = editionQuery.Limit(int(limit))
-	}
-	if offset := page.GetPage() * page.GetSize(); offset > 0 {
+		Order(q.StockEntity.EditionUid).
+		Limit(int(paged.GetSize()))
+	if offset := paged.GetPage(); offset > 0 {
 		editionQuery = editionQuery.Offset(int(offset))
 	}
 	var editionUids []string

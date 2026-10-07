@@ -1,6 +1,10 @@
 package utils
 
-import "github.com/codejsha/shared-library-go/pkg/pagination"
+import (
+	"math"
+
+	"github.com/codejsha/shared-library-go/pkg/pagination"
+)
 
 const (
 	defaultPageSize = 20
@@ -8,20 +12,30 @@ const (
 )
 
 func PageOffsetLimit(p pagination.PageOption) (int, int) {
-	size := int(p.GetSize())
-	page := int(p.GetPage())
+	page, size := normalizePage(p)
+	return int(page) * int(size), int(size)
+}
+
+func RowOffsetPage(p pagination.PageOption) pagination.PageOption {
+	page, size := normalizePage(p)
+	offset := int64(page) * int64(size)
+	if offset > math.MaxInt32 {
+		offset = math.MaxInt32
+	}
+	rowOffset := int32(offset)
+	return p.WithOverrides(&size, &rowOffset, nil)
+}
+
+func normalizePage(p pagination.PageOption) (int32, int32) {
+	size := p.GetSize()
 	if size <= 0 {
 		size = defaultPageSize
 	} else if size > maxPageSize {
 		size = maxPageSize
 	}
-	if page <= 0 {
-		page = 1
+	page := p.GetPage()
+	if page < 0 {
+		page = 0
 	}
-	return (page - 1) * size, size
-}
-
-func RowOffsetPage(p pagination.PageOption) pagination.PageOption {
-	offset := p.GetPage() * p.GetSize()
-	return p.WithOverrides(nil, &offset, nil)
+	return page, size
 }
