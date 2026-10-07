@@ -78,3 +78,22 @@ func TestPageOffsetLimit(t *testing.T) {
 		})
 	}
 }
+
+func TestWithDefaultSort(t *testing.T) {
+	cases := []struct {
+		name string
+		in   pagination.PageOption
+		want string
+	}{
+		{"sortUnset_defaultSort", pagination.NewPageOption(i32p(20), i32p(0), nil), "createdat,desc;uid,asc"},
+		{"sortEmpty_defaultSort", pagination.NewPageOption(i32p(20), i32p(0), strp("")), "createdat,desc;uid,asc"},
+		{"sortGiven_keepsSort", pagination.NewPageOption(i32p(20), i32p(0), strp("name,asc")), "name,asc"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := WithDefaultSort(c.in).GetSort(); got != c.want {
+				t.Errorf("sort = %q, want %q", got, c.want)
+			}
+		})
+	}
+}

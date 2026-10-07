@@ -45,3 +45,33 @@ func TestWarehouseFindAll_secondPage_skipsOneFullPage(t *testing.T) {
 		t.Fatalf("names = %v, want %v", names, want)
 	}
 }
+
+func TestWarehouseFindAll_sortOmitted_newestFirst(t *testing.T) {
+	_, db := newTestRepo(t)
+	base := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC)
+	for i := 1; i <= 3; i++ {
+		if err := db.Exec(
+			"INSERT INTO warehouse (uid, name, address, capacity, created_at, actor, version) VALUES (?, ?, 'addr', 100, ?, 1, 1)",
+			uuid.NewString(), fmt.Sprintf("wh-%d", i), base.Add(time.Duration(i)*time.Hour),
+		).Error; err != nil {
+			t.Fatalf("seed warehouse: %v", err)
+		}
+	}
+	r := warehouseRepository{db: db}
+	size, page := int32(3), int32(0)
+
+	_, got, err := r.FindAll(context.Background(), option.NewWarehouseQueryOption(
+		option.WarehouseQueryOption{}.WithPage(pagination.NewPageOption(&size, &page, nil)),
+	))
+	if err != nil {
+		t.Fatalf("find all: %v", err)
+	}
+
+	names := make([]string, len(got))
+	for i, w := range got {
+		names[i] = w.Name
+	}
+	if want := []string{"wh-3", "wh-2", "wh-1"}; !reflect.DeepEqual(names, want) {
+		t.Fatalf("names = %v, want %v", names, want)
+	}
+}

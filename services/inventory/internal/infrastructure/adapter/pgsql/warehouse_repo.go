@@ -62,7 +62,7 @@ func (r warehouseRepository) FindAll(ctx context.Context, opt option.WarehouseQu
 			q.WarehouseEntity.Address,
 			q.WarehouseEntity.Capacity,
 		).
-		Scopes(gormutils.BuildPageScope(utils.RowOffsetPage(opt.Page()), sortable)).
+		Scopes(gormutils.BuildPageScope(utils.RowOffsetPage(utils.WithDefaultSort(opt.Page())), sortable)).
 		Scan(&entities)
 	if err != nil {
 		return 0, nil, err

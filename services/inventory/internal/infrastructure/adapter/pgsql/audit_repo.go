@@ -57,7 +57,7 @@ func (r *stockAuditRepository) FindAll(ctx context.Context, opt option.AuditQuer
 	}
 
 	audits, err := base.
-		Scopes(gormutils.BuildPageScope(utils.RowOffsetPage(opt.Page()), sortable)).
+		Scopes(gormutils.BuildPageScope(utils.RowOffsetPage(utils.WithDefaultSort(opt.Page())), sortable)).
 		Find()
 	if err != nil {
 		return 0, nil, err

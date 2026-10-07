@@ -9,6 +9,7 @@ import (
 const (
 	defaultPageSize = 20
 	maxPageSize     = 100
+	defaultSort     = "createdat,desc;uid,asc"
 )
 
 func PageOffsetLimit(p pagination.PageOption) (int, int) {
@@ -38,4 +39,12 @@ func normalizePage(p pagination.PageOption) (int32, int32) {
 		page = 0
 	}
 	return page, size
+}
+
+func WithDefaultSort(p pagination.PageOption) pagination.PageOption {
+	if p.GetSort() != "" {
+		return p
+	}
+	sort := defaultSort
+	return p.WithOverrides(nil, nil, []*string{&sort})
 }
