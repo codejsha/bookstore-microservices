@@ -50,6 +50,11 @@ resource "kubernetes_manifest" "keycloak" {
       networkPolicy = {
         enabled = false
       }
+      serviceMonitor = {
+        enabled       = false
+        interval      = "30s"
+        scrapeTimeout = "10s"
+      }
     }
   }
 }
