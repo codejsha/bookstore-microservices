@@ -12,6 +12,7 @@ import com.codejsha.bookstore.generated.application.port.restclient.order.api.Or
 import com.codejsha.bookstore.generated.application.port.restclient.payment.api.PaymentApi
 import com.codejsha.bookstore.generated.application.port.restclient.payment.api.RefundApi
 import com.codejsha.bookstore.generated.application.port.restclient.settlement.api.SettlementApi
+import com.codejsha.platform.shared.web.EnumToWireValueConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.ConversionService
@@ -96,9 +97,7 @@ class RestClientConfig(
         private fun queryConversionService(objectMapper: ObjectMapper): ConversionService =
             DefaultFormattingConversionService(false).apply {
                 DateTimeFormatterRegistrar().apply { setUseIsoFormat(true) }.registerFormatters(this)
-                addConverter(Enum::class.java, String::class.java) { source ->
-                    objectMapper.convertValue(source, String::class.java)
-                }
+                addConverter(Enum::class.java, String::class.java, EnumToWireValueConverter(objectMapper))
             }
     }
 }
