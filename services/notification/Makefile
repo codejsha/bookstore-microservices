@@ -26,8 +26,19 @@ style:
 openapi-bundle:
 	cd api/openapi && pnpm install --frozen-lockfile && pnpm exec tsp compile ./main.tsp --output-dir .
 
+.PHONY: openapi-gen
+openapi-gen:
+	rm -rf ./generated/application/port/openapi ./generated/application/port/model ./generated/application/port/api ./generated/application/port/constant
+	oapi-codegen-cli -c api/openapi/config.toml
+	@find ./generated/application/port/model -name "*.py" -exec sed -i.bak \
+		-e 's|^from \.channel import|from ..constant.channel import|' \
+		-e 's|^from \.notification_type import|from ..constant.notification_type import|' \
+		-e 's|^from \.notification_status import|from ..constant.notification_status import|' \
+		{} +
+	@find ./generated/application/port/model -name "*.bak" -delete
+
 .PHONY: openapi
-openapi: openapi-bundle
+openapi: openapi-bundle openapi-gen
 
 .PHONY: gen
 gen: spec openapi

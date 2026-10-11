@@ -31,6 +31,7 @@ WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/internal /app/internal
+COPY --from=builder /app/generated /app/generated
 COPY --from=builder /app/main.py /app/main.py
 COPY --from=builder /app/configs /app/configs
 COPY --from=builder /app/db /app/db
