@@ -43,6 +43,12 @@ def test_add_comment_valid_request_created(client: TestClient, service: MagicMoc
     assert response.status_code == 201
 
 
+def test_add_comment_separator_only_body_bad_request(client: TestClient, service: MagicMock) -> None:
+    response = client.post(f"/api/v1/tickets/{uuid4()}/comments", json={"body": "\x1f"})
+    assert response.status_code == 400
+    service.add_comment.assert_not_called()
+
+
 def test_add_comment_missing_ticket_not_found(client: TestClient, service: MagicMock) -> None:
     service.add_comment.return_value = None
     response = client.post(

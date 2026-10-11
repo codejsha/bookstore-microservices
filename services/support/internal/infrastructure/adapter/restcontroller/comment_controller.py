@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from pydantic import ValidationError
 
 from generated.application.port.model.comment_create_request import CommentCreateRequest
 from generated.application.port.model.comment_find_all_response import CommentFindAllResponse
@@ -9,6 +10,7 @@ from internal.domain.aggregate.ticket_comment_aggregate import TicketCommentAggr
 from internal.domain.constant.author_role import AuthorRole
 from internal.domain.model.command.ticket_command import AddCommentCommand
 from internal.domain.service.support_service import SupportService
+from internal.infrastructure.adapter.restcontroller.error_mapping import invalid_command_error
 from internal.infrastructure.support.auth import (
     Principal,
     is_staff,
@@ -47,13 +49,16 @@ def create_comment_router(service: SupportService) -> APIRouter:
         author_uid = principal_uid(principal)
         if author_uid is None:
             raise HTTPException(status_code=403, detail="Cannot resolve caller identity")
-        command = AddCommentCommand(
-            ticket_uid=ticket_uid,
-            author_uid=author_uid,
-            author_role=AuthorRole.AGENT if staff else AuthorRole.CUSTOMER,
-            body=request.body,
-            internal=internal,
-        )
+        try:
+            command = AddCommentCommand(
+                ticket_uid=ticket_uid,
+                author_uid=author_uid,
+                author_role=AuthorRole.AGENT if staff else AuthorRole.CUSTOMER,
+                body=request.body,
+                internal=internal,
+            )
+        except ValidationError as e:
+            raise invalid_command_error(e) from e
         comment = await service.add_comment(command)
         if comment is None:
             raise HTTPException(status_code=404, detail="Ticket not found")
