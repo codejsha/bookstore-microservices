@@ -1,7 +1,15 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import ValidationError
 
+from generated.application.port.model.ticket_create_request import TicketCreateRequest
+from generated.application.port.model.ticket_find_all_response import TicketFindAllResponse
+from generated.application.port.model.ticket_find_response import TicketFindResponse
+from generated.application.port.model.ticket_item import TicketItem
+from generated.application.port.model.ticket_update_request import TicketUpdateRequest
+from generated.application.port.model.ticket_update_response import TicketUpdateResponse
+from generated.application.port.model.ticket_update_status_request import TicketUpdateStatusRequest
 from internal.domain.aggregate.ticket_aggregate import TicketAggregate
 from internal.domain.constant.ticket_priority import TicketPriority
 from internal.domain.constant.ticket_status import TicketStatus
@@ -13,12 +21,9 @@ from internal.domain.model.command.ticket_command import (
 )
 from internal.domain.model.option.ticket_option import TicketFilterOption
 from internal.domain.service.support_service import SupportService
-from internal.infrastructure.adapter.restcontroller.schemas import (
-    CreateTicketRequest,
-    PaginatedTicketResponse,
-    TicketResponse,
-    UpdateTicketRequest,
-    UpdateTicketStatusRequest,
+from internal.infrastructure.adapter.restcontroller.error_mapping import (
+    invalid_command_error,
+    unknown_reference_error,
 )
 from internal.infrastructure.support.auth import (
     Principal,
@@ -44,37 +49,37 @@ def create_ticket_router(service: SupportService) -> APIRouter:
         dependencies=[Depends(require_principal)],
     )
 
-    @router.post("", status_code=201, response_model=TicketResponse)
+    @router.post("", status_code=201, response_model=TicketItem)
     async def create_ticket(
-        request: CreateTicketRequest,
+        request: TicketCreateRequest,
         principal: Principal = Depends(require_principal),
-    ) -> TicketResponse:
-        customer_uid = request.customer_uid if is_staff(principal) else _caller_customer_uid(principal)
-        command = CreateTicketCommand(
-            customer_uid=customer_uid,
-            subject=request.subject,
-            description=request.description,
-            priority=request.priority,
-            category_uid=request.category_uid,
-        )
+    ) -> TicketItem:
+        fields = request.model_dump(exclude_none=True)
+        if not is_staff(principal):
+            fields["customer_uid"] = _caller_customer_uid(principal)
         try:
-            return _to_response(await service.create_ticket(command))
+            command = CreateTicketCommand(**fields)
+        except ValidationError as e:
+            raise invalid_command_error(e) from e
+        try:
+            ticket = await service.create_ticket(command)
         except UnknownReferenceError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+            raise unknown_reference_error(exc) from exc
+        return _to_ticket_item(ticket)
 
-    @router.get("/{uid}", response_model=TicketResponse)
+    @router.get("/{uid}", response_model=TicketFindResponse)
     async def get_ticket(
         uid: UUID,
         principal: Principal = Depends(require_principal),
-    ) -> TicketResponse:
+    ) -> TicketFindResponse:
         ticket = await service.get_ticket(uid)
         if ticket is None:
             raise HTTPException(status_code=404, detail="Ticket not found")
         if not is_staff(principal) and not owns(principal, ticket.customer_uid):
             raise HTTPException(status_code=403, detail="Forbidden")
-        return _to_response(ticket)
+        return TicketFindResponse(**_to_ticket_item(ticket).model_dump())
 
-    @router.get("", response_model=PaginatedTicketResponse)
+    @router.get("", response_model=TicketFindAllResponse)
     async def list_tickets(
         principal: Principal = Depends(require_principal),
         customer_uid: UUID | None = Query(None),
@@ -85,7 +90,7 @@ def create_ticket_router(service: SupportService) -> APIRouter:
         page: int = Query(0, ge=0),
         size: int = Query(20, ge=1, le=100),
         sort: str = Query("created_at:desc"),
-    ) -> PaginatedTicketResponse:
+    ) -> TicketFindAllResponse:
         if not is_staff(principal):
             customer_uid = _caller_customer_uid(principal)
         option = TicketFilterOption(
@@ -99,19 +104,17 @@ def create_ticket_router(service: SupportService) -> APIRouter:
             sort=sort,
         )
         tickets, total = await service.list_tickets(option)
-        return PaginatedTicketResponse(
-            content=[_to_response(t) for t in tickets],
+        return TicketFindAllResponse(
+            items=[_to_ticket_item(t) for t in tickets],
             total=total,
-            page=page,
-            size=size,
         )
 
-    @router.patch("/{uid}", response_model=TicketResponse)
+    @router.patch("/{uid}", response_model=TicketUpdateResponse)
     async def update_ticket(
         uid: UUID,
-        request: UpdateTicketRequest,
+        request: TicketUpdateRequest,
         principal: Principal = Depends(require_principal),
-    ) -> TicketResponse:
+    ) -> TicketUpdateResponse:
         ticket = await service.get_ticket(uid)
         if ticket is None:
             raise HTTPException(status_code=404, detail="Ticket not found")
@@ -120,41 +123,38 @@ def create_ticket_router(service: SupportService) -> APIRouter:
             raise HTTPException(status_code=403, detail="Forbidden")
         if request.assignee_uid is not None and not staff:
             raise HTTPException(status_code=403, detail="Assignment requires staff role")
-        command = UpdateTicketCommand(
-            subject=request.subject,
-            description=request.description,
-            priority=request.priority,
-            category_uid=request.category_uid,
-            assignee_uid=request.assignee_uid,
-        )
+        try:
+            command = UpdateTicketCommand(**request.model_dump(exclude_unset=True))
+        except ValidationError as e:
+            raise invalid_command_error(e) from e
         try:
             ticket = await service.update_ticket(uid, command)
         except UnknownReferenceError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+            raise unknown_reference_error(exc) from exc
         if ticket is None:
             raise HTTPException(status_code=404, detail="Ticket not found")
-        return _to_response(ticket)
+        return TicketUpdateResponse(**_to_ticket_item(ticket).model_dump())
 
-    @router.patch("/{uid}/status", response_model=TicketResponse)
+    @router.patch("/{uid}/status", response_model=TicketUpdateResponse)
     async def update_status(
         uid: UUID,
-        request: UpdateTicketStatusRequest,
+        request: TicketUpdateStatusRequest,
         _staff: Principal = Depends(require_staff),
-    ) -> TicketResponse:
+    ) -> TicketUpdateResponse:
         ticket = await service.update_ticket_status(uid, UpdateTicketStatusCommand(status=request.status))
         if ticket is None:
             raise HTTPException(status_code=404, detail="Ticket not found")
-        return _to_response(ticket)
+        return TicketUpdateResponse(**_to_ticket_item(ticket).model_dump())
 
     return router
 
 
-def _to_response(t: TicketAggregate) -> TicketResponse:
-    return TicketResponse(
-        uid=t.uid,
-        customer_uid=t.customer_uid,
-        category_uid=t.category_uid,
-        assignee_uid=t.assignee_uid,
+def _to_ticket_item(t: TicketAggregate) -> TicketItem:
+    return TicketItem(
+        uid=str(t.uid),
+        customer_uid=str(t.customer_uid),
+        category_uid=str(t.category_uid) if t.category_uid else None,
+        assignee_uid=str(t.assignee_uid) if t.assignee_uid else None,
         subject=t.subject,
         description=t.description,
         status=t.status,

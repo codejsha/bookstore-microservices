@@ -1,17 +1,22 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import ValidationError
 
+from generated.application.port.model.faq_create_request import FaqCreateRequest
+from generated.application.port.model.faq_find_all_response import FaqFindAllResponse
+from generated.application.port.model.faq_find_response import FaqFindResponse
+from generated.application.port.model.faq_item import FaqItem
+from generated.application.port.model.faq_update_request import FaqUpdateRequest
+from generated.application.port.model.faq_update_response import FaqUpdateResponse
 from internal.domain.aggregate.faq_aggregate import FaqAggregate
 from internal.domain.error import UnknownReferenceError
 from internal.domain.model.command.faq_command import CreateFaqCommand, UpdateFaqCommand
 from internal.domain.model.option.faq_option import FaqSearchOption
 from internal.domain.service.support_service import SupportService
-from internal.infrastructure.adapter.restcontroller.schemas import (
-    CreateFaqRequest,
-    FaqResponse,
-    PaginatedFaqResponse,
-    UpdateFaqRequest,
+from internal.infrastructure.adapter.restcontroller.error_mapping import (
+    invalid_command_error,
+    unknown_reference_error,
 )
 from internal.infrastructure.support.auth import Principal, is_staff, require_manager, require_principal
 
@@ -23,33 +28,32 @@ def create_faq_router(service: SupportService) -> APIRouter:
         dependencies=[Depends(require_principal)],
     )
 
-    @router.post("", status_code=201, response_model=FaqResponse, dependencies=[Depends(require_manager)])
-    async def create_faq(request: CreateFaqRequest) -> FaqResponse:
-        command = CreateFaqCommand(
-            question=request.question,
-            answer=request.answer,
-            category_uid=request.category_uid,
-            published=request.published,
-        )
+    @router.post("", status_code=201, response_model=FaqItem, dependencies=[Depends(require_manager)])
+    async def create_faq(request: FaqCreateRequest) -> FaqItem:
         try:
-            return _to_response(await service.create_faq(command))
+            command = CreateFaqCommand(**request.model_dump(exclude_none=True))
+        except ValidationError as e:
+            raise invalid_command_error(e) from e
+        try:
+            faq = await service.create_faq(command)
         except UnknownReferenceError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+            raise unknown_reference_error(exc) from exc
+        return _to_faq_item(faq)
 
-    @router.get("/{uid}", response_model=FaqResponse)
+    @router.get("/{uid}", response_model=FaqFindResponse)
     async def get_faq(
         uid: UUID,
         increment_view: bool = Query(True),
         principal: Principal = Depends(require_principal),
-    ) -> FaqResponse:
+    ) -> FaqFindResponse:
         faq = await service.get_faq(uid, increment_view=increment_view)
         if faq is None:
             raise HTTPException(status_code=404, detail="FAQ not found")
         if not faq.published and not is_staff(principal):
             raise HTTPException(status_code=404, detail="FAQ not found")
-        return _to_response(faq)
+        return FaqFindResponse(**_to_faq_item(faq).model_dump())
 
-    @router.get("", response_model=PaginatedFaqResponse)
+    @router.get("", response_model=FaqFindAllResponse)
     async def search_faqs(
         category_uid: UUID | None = Query(None),
         q: str | None = Query(None, description="search query"),
@@ -58,7 +62,7 @@ def create_faq_router(service: SupportService) -> APIRouter:
         size: int = Query(20, ge=1, le=100),
         sort: str = Query("view_count:desc"),
         principal: Principal = Depends(require_principal),
-    ) -> PaginatedFaqResponse:
+    ) -> FaqFindAllResponse:
         effective_published_only = published_only or not is_staff(principal)
         option = FaqSearchOption(
             category_uid=category_uid,
@@ -69,28 +73,24 @@ def create_faq_router(service: SupportService) -> APIRouter:
             sort=sort,
         )
         faqs, total = await service.search_faqs(option)
-        return PaginatedFaqResponse(
-            content=[_to_response(f) for f in faqs],
+        return FaqFindAllResponse(
+            items=[_to_faq_item(f) for f in faqs],
             total=total,
-            page=page,
-            size=size,
         )
 
-    @router.patch("/{uid}", response_model=FaqResponse, dependencies=[Depends(require_manager)])
-    async def update_faq(uid: UUID, request: UpdateFaqRequest) -> FaqResponse:
-        command = UpdateFaqCommand(
-            question=request.question,
-            answer=request.answer,
-            category_uid=request.category_uid,
-            published=request.published,
-        )
+    @router.patch("/{uid}", response_model=FaqUpdateResponse, dependencies=[Depends(require_manager)])
+    async def update_faq(uid: UUID, request: FaqUpdateRequest) -> FaqUpdateResponse:
+        try:
+            command = UpdateFaqCommand(**request.model_dump(exclude_unset=True))
+        except ValidationError as e:
+            raise invalid_command_error(e) from e
         try:
             faq = await service.update_faq(uid, command)
         except UnknownReferenceError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+            raise unknown_reference_error(exc) from exc
         if faq is None:
             raise HTTPException(status_code=404, detail="FAQ not found")
-        return _to_response(faq)
+        return FaqUpdateResponse(**_to_faq_item(faq).model_dump())
 
     @router.delete("/{uid}", status_code=204, dependencies=[Depends(require_manager)])
     async def delete_faq(uid: UUID) -> None:
@@ -100,10 +100,10 @@ def create_faq_router(service: SupportService) -> APIRouter:
     return router
 
 
-def _to_response(f: FaqAggregate) -> FaqResponse:
-    return FaqResponse(
-        uid=f.uid,
-        category_uid=f.category_uid,
+def _to_faq_item(f: FaqAggregate) -> FaqItem:
+    return FaqItem(
+        uid=str(f.uid),
+        category_uid=str(f.category_uid) if f.category_uid else None,
         question=f.question,
         answer=f.answer,
         view_count=f.view_count,

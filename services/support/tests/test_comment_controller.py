@@ -62,7 +62,7 @@ def test_list_comments_found_ok_with_all(client: TestClient, service: MagicMock)
     service.list_comments.return_value = [make_comment(), make_comment(internal=True)]
     response = client.get(f"/api/v1/tickets/{uuid4()}/comments")
     assert response.status_code == 200
-    assert len(response.json()) == 2
+    assert len(response.json()["items"]) == 2
 
 
 def test_add_comment_customer_caller_uses_caller_uid_and_customer_role(

@@ -75,7 +75,7 @@ def test_list_categories_found_ok_with_all(client: TestClient, service: MagicMoc
     service.list_categories.return_value = [make_category(), make_category(name="Other")]
     response = client.get("/api/v1/categories")
     assert response.status_code == 200
-    assert len(response.json()) == 2
+    assert len(response.json()["items"]) == 2
 
 
 def test_update_category_missing_not_found(client: TestClient, service: MagicMock) -> None:
