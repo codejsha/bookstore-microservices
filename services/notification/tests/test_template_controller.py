@@ -137,6 +137,29 @@ def test_update_template_blank_title_unprocessable(client: TestClient, service: 
     service.update_template.assert_not_called()
 
 
+def test_create_template_separator_only_title_unprocessable(client: TestClient, service: MagicMock) -> None:
+    response = client.post(
+        "/api/v1/templates",
+        json={
+            "notification_type": "ORDER_PLACED",
+            "channel": "EMAIL",
+            "title_template": "\x1f",
+            "content_template": "Body",
+        },
+    )
+    assert response.status_code == 422
+    service.create_template.assert_not_called()
+
+
+def test_update_template_separator_only_content_unprocessable(client: TestClient, service: MagicMock) -> None:
+    response = client.put(
+        f"/api/v1/templates/{uuid4()}",
+        json={"content_template": "\x1f"},
+    )
+    assert response.status_code == 422
+    service.update_template.assert_not_called()
+
+
 def test_create_template_over_length_title_unprocessable(client: TestClient, service: MagicMock) -> None:
     response = client.post(
         "/api/v1/templates",

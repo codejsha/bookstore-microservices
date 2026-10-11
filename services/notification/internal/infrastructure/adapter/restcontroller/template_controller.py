@@ -1,6 +1,8 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
 from generated.application.port.model.template_create_request import TemplateCreateRequest
@@ -31,7 +33,10 @@ def create_template_router(service: NotificationService) -> APIRouter:
 
     @router.post("", status_code=201, dependencies=[Depends(require_manager)])
     async def create_template(request: TemplateCreateRequest) -> Response:
-        command = CreateTemplateCommand(**request.model_dump())
+        try:
+            command = CreateTemplateCommand(**request.model_dump())
+        except ValidationError as e:
+            raise RequestValidationError(e.errors(include_url=False, include_input=False)) from e
         try:
             aggregate = await service.create_template(command)
         except (TemplateAlreadyExistsError, IntegrityError) as exc:
@@ -71,7 +76,10 @@ def create_template_router(service: NotificationService) -> APIRouter:
 
     @router.put("/{uid}", response_model=TemplateUpdateResponse, dependencies=[Depends(require_manager)])
     async def update_template(uid: UUID, request: TemplateUpdateRequest) -> TemplateUpdateResponse:
-        command = UpdateTemplateCommand(**request.model_dump(exclude_unset=True))
+        try:
+            command = UpdateTemplateCommand(**request.model_dump(exclude_unset=True))
+        except ValidationError as e:
+            raise RequestValidationError(e.errors(include_url=False, include_input=False)) from e
         try:
             aggregate = await service.update_template(uid, command)
         except (TemplateAlreadyExistsError, IntegrityError) as exc:
