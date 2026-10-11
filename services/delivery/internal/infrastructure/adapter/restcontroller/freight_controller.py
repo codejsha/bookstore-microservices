@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import ValidationError
 
 from generated.application.port.model.freight_create_request import FreightCreateRequest
@@ -24,13 +24,14 @@ def create_freight_router(service: FreightService) -> APIRouter:
         dependencies=[Depends(require_staff)],
     )
 
-    @router.post("", status_code=201, response_model=FreightItem)
-    async def create_freight(request: FreightCreateRequest) -> FreightItem:
+    @router.post("", status_code=201)
+    async def create_freight(request: FreightCreateRequest) -> Response:
         try:
             command = CreateFreightCommand(**request.model_dump(exclude_none=True))
         except ValidationError as e:
             raise invalid_command_error(e) from e
-        return _to_freight_item(await service.create_freight(command))
+        freight = await service.create_freight(command)
+        return Response(status_code=201, headers={"Location": f"/api/v1/freights/{freight.uid}"})
 
     @router.get("/{uid}", response_model=FreightFindResponse)
     async def get_freight(uid: UUID) -> FreightFindResponse:

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
@@ -30,8 +30,8 @@ def create_carrier_router(service: CarrierService) -> APIRouter:
         dependencies=[Depends(require_staff)],
     )
 
-    @router.post("", status_code=201, response_model=CarrierItem)
-    async def create_carrier(request: CarrierCreateRequest) -> CarrierItem:
+    @router.post("", status_code=201)
+    async def create_carrier(request: CarrierCreateRequest) -> Response:
         try:
             command = CreateCarrierCommand(**request.model_dump())
         except ValidationError as e:
@@ -42,7 +42,7 @@ def create_carrier_router(service: CarrierService) -> APIRouter:
             raise conflict_error(e) from e
         except IntegrityError as e:
             raise duplicate_key_error(f"Carrier code {command.code} is already in use") from e
-        return _to_carrier_item(carrier)
+        return Response(status_code=201, headers={"Location": f"/api/v1/carriers/{carrier.uid}"})
 
     @router.get("/{uid}", response_model=CarrierFindResponse)
     async def get_carrier(uid: UUID) -> CarrierFindResponse:

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
@@ -37,8 +37,8 @@ def create_shipment_router(service: ShipmentService) -> APIRouter:
         dependencies=[Depends(require_principal)],
     )
 
-    @router.post("", status_code=201, response_model=ShipmentItem, dependencies=[Depends(require_staff)])
-    async def create_shipment(request: ShipmentCreateRequest) -> ShipmentItem:
+    @router.post("", status_code=201, dependencies=[Depends(require_staff)])
+    async def create_shipment(request: ShipmentCreateRequest) -> Response:
         try:
             command = CreateShipmentCommand(**request.model_dump())
         except ValidationError as e:
@@ -49,7 +49,7 @@ def create_shipment_router(service: ShipmentService) -> APIRouter:
             raise conflict_error(e) from e
         except IntegrityError as e:
             raise duplicate_key_error(f"Shipment for order {command.order_uid} already exists") from e
-        return _to_shipment_item(shipment)
+        return Response(status_code=201, headers={"Location": f"/api/v1/shipments/{shipment.uid}"})
 
     @router.get("/{uid}", response_model=ShipmentFindResponse)
     async def get_shipment(uid: UUID) -> ShipmentFindResponse:
@@ -132,13 +132,8 @@ def create_shipment_router(service: ShipmentService) -> APIRouter:
             raise HTTPException(status_code=404, detail="Shipment not found")
         return ShipmentUpdateResponse(**_to_shipment_item(agg).model_dump())
 
-    @router.post(
-        "/{shipment_uid}/tracking",
-        status_code=201,
-        response_model=TrackingItem,
-        dependencies=[Depends(require_staff)],
-    )
-    async def add_tracking(shipment_uid: UUID, request: TrackingCreateRequest) -> TrackingItem:
+    @router.post("/{shipment_uid}/tracking", status_code=201, dependencies=[Depends(require_staff)])
+    async def add_tracking(shipment_uid: UUID, request: TrackingCreateRequest) -> Response:
         try:
             command = AddTrackingCommand(
                 shipment_uid=shipment_uid,
@@ -152,7 +147,10 @@ def create_shipment_router(service: ShipmentService) -> APIRouter:
             agg = await service.add_tracking(command)
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
-        return _to_tracking_item(agg)
+        return Response(
+            status_code=201,
+            headers={"Location": f"/api/v1/shipments/{shipment_uid}/tracking/{agg.uid}"},
+        )
 
     @router.get("/{shipment_uid}/tracking", response_model=TrackingFindAllResponse)
     async def get_tracking_history(shipment_uid: UUID) -> TrackingFindAllResponse:

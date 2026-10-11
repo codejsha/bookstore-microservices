@@ -38,7 +38,7 @@ def test_create_carrier_valid_request_created(client: TestClient, service: Magic
         json={"name": "ACME", "code": "ACME", "base_rate": 1000.0, "rate_per_kg": 500.0},
     )
     assert response.status_code == 201
-    assert response.json()["uid"] == str(carrier.uid)
+    assert response.headers["location"] == f"/api/v1/carriers/{carrier.uid}"
 
 
 def test_create_carrier_duplicate_code_conflict(client: TestClient, service: MagicMock) -> None:
