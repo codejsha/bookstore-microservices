@@ -7,6 +7,6 @@ from ..constant.shipment_status import ShipmentStatus
 
 
 class TrackingCreateRequest(BaseModel):
-    description: str = Field(min_length=1, pattern="[\s\S]*\S[\s\S]*")
-    location: str = Field(min_length=1, max_length=255, pattern="[\s\S]*\S[\s\S]*")
+    description: str = Field(min_length=1, pattern=r"[\s\S]*\S[\s\S]*")
+    location: str = Field(min_length=1, max_length=255, pattern=r"[\s\S]*\S[\s\S]*")
     status: ShipmentStatus
