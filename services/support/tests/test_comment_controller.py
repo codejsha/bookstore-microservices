@@ -81,13 +81,16 @@ def test_add_comment_customer_caller_uses_caller_uid_and_customer_role(
 
 
 def test_add_comment_staff_caller_uses_caller_uid_and_agent_role(client: TestClient, service: MagicMock) -> None:
+    ticket_uid = uuid4()
     service.get_ticket.return_value = make_ticket()
-    service.add_comment.return_value = make_comment(author_role=AuthorRole.AGENT)
+    comment = make_comment(author_role=AuthorRole.AGENT)
+    service.add_comment.return_value = comment
     response = client.post(
-        f"/api/v1/tickets/{uuid4()}/comments",
+        f"/api/v1/tickets/{ticket_uid}/comments",
         json={"body": "Internal note"},
     )
     assert response.status_code == 201
+    assert response.headers["location"] == f"/api/v1/tickets/{ticket_uid}/comments/{comment.uid}"
     command = service.add_comment.call_args[0][0]
     assert command.author_uid == STAFF_UID
     assert command.author_role == AuthorRole.AGENT

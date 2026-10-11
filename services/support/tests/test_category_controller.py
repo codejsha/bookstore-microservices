@@ -31,7 +31,7 @@ def test_create_category_valid_request_created(client: TestClient, service: Magi
         json={"name": "Billing"},
     )
     assert response.status_code == 201
-    assert response.json()["name"] == category.name
+    assert response.headers["location"] == f"/api/v1/categories/{category.uid}"
 
 
 def test_create_category_over_length_name_unprocessable(client: TestClient, service: MagicMock) -> None:

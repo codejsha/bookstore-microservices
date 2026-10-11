@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import ValidationError
 
 from generated.application.port.model.category_create_request import CategoryCreateRequest
@@ -31,8 +31,8 @@ def create_category_router(service: SupportService) -> APIRouter:
         dependencies=[Depends(require_principal)],
     )
 
-    @router.post("", status_code=201, response_model=CategoryItem, dependencies=[Depends(require_manager)])
-    async def create_category(request: CategoryCreateRequest) -> CategoryItem:
+    @router.post("", status_code=201, dependencies=[Depends(require_manager)])
+    async def create_category(request: CategoryCreateRequest) -> Response:
         try:
             command = CreateCategoryCommand(**request.model_dump(exclude_none=True))
         except ValidationError as e:
@@ -43,7 +43,7 @@ def create_category_router(service: SupportService) -> APIRouter:
             raise conflict_error(exc) from exc
         except UnknownReferenceError as exc:
             raise unknown_reference_error(exc) from exc
-        return _to_category_item(category)
+        return Response(status_code=201, headers={"Location": f"/api/v1/categories/{category.uid}"})
 
     @router.get("/{uid}", response_model=CategoryFindResponse)
     async def get_category(uid: UUID) -> CategoryFindResponse:

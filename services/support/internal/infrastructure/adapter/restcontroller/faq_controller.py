@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import ValidationError
 
 from generated.application.port.model.faq_create_request import FaqCreateRequest
@@ -28,8 +28,8 @@ def create_faq_router(service: SupportService) -> APIRouter:
         dependencies=[Depends(require_principal)],
     )
 
-    @router.post("", status_code=201, response_model=FaqItem, dependencies=[Depends(require_manager)])
-    async def create_faq(request: FaqCreateRequest) -> FaqItem:
+    @router.post("", status_code=201, dependencies=[Depends(require_manager)])
+    async def create_faq(request: FaqCreateRequest) -> Response:
         try:
             command = CreateFaqCommand(**request.model_dump(exclude_none=True))
         except ValidationError as e:
@@ -38,7 +38,7 @@ def create_faq_router(service: SupportService) -> APIRouter:
             faq = await service.create_faq(command)
         except UnknownReferenceError as exc:
             raise unknown_reference_error(exc) from exc
-        return _to_faq_item(faq)
+        return Response(status_code=201, headers={"Location": f"/api/v1/faqs/{faq.uid}"})
 
     @router.get("/{uid}", response_model=FaqFindResponse)
     async def get_faq(

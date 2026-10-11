@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import ValidationError
 
 from generated.application.port.model.ticket_create_request import TicketCreateRequest
@@ -49,11 +49,11 @@ def create_ticket_router(service: SupportService) -> APIRouter:
         dependencies=[Depends(require_principal)],
     )
 
-    @router.post("", status_code=201, response_model=TicketItem)
+    @router.post("", status_code=201)
     async def create_ticket(
         request: TicketCreateRequest,
         principal: Principal = Depends(require_principal),
-    ) -> TicketItem:
+    ) -> Response:
         fields = request.model_dump(exclude_none=True)
         if not is_staff(principal):
             fields["customer_uid"] = _caller_customer_uid(principal)
@@ -65,7 +65,7 @@ def create_ticket_router(service: SupportService) -> APIRouter:
             ticket = await service.create_ticket(command)
         except UnknownReferenceError as exc:
             raise unknown_reference_error(exc) from exc
-        return _to_ticket_item(ticket)
+        return Response(status_code=201, headers={"Location": f"/api/v1/tickets/{ticket.uid}"})
 
     @router.get("/{uid}", response_model=TicketFindResponse)
     async def get_ticket(

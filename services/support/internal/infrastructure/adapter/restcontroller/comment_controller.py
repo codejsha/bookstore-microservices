@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 
 from generated.application.port.model.comment_create_request import CommentCreateRequest
 from generated.application.port.model.comment_find_all_response import CommentFindAllResponse
@@ -34,12 +34,12 @@ def create_comment_router(service: SupportService) -> APIRouter:
             raise HTTPException(status_code=403, detail="Forbidden")
         return staff
 
-    @router.post("", status_code=201, response_model=CommentItem)
+    @router.post("", status_code=201)
     async def add_comment(
         ticket_uid: UUID,
         request: CommentCreateRequest,
         principal: Principal = Depends(require_principal),
-    ) -> CommentItem:
+    ) -> Response:
         staff = await _authorize(ticket_uid, principal)
         internal = bool(request.internal)
         if internal and not staff:
@@ -57,7 +57,10 @@ def create_comment_router(service: SupportService) -> APIRouter:
         comment = await service.add_comment(command)
         if comment is None:
             raise HTTPException(status_code=404, detail="Ticket not found")
-        return _to_comment_item(comment, ticket_uid)
+        return Response(
+            status_code=201,
+            headers={"Location": f"/api/v1/tickets/{ticket_uid}/comments/{comment.uid}"},
+        )
 
     @router.get("", response_model=CommentFindAllResponse)
     async def list_comments(
