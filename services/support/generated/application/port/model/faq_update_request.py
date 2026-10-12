@@ -6,7 +6,7 @@ from typing import Optional
 
 
 class FaqUpdateRequest(BaseModel):
-    answer: Optional[str] = Field(default=None, min_length=1, max_length=16000, pattern="[\s\S]*\S[\s\S]*")
+    answer: Optional[str] = Field(default=None, min_length=1, max_length=16000, pattern=r"[\s\S]*\S[\s\S]*")
     category_uid: Optional[str] = Field(default=None)
     published: Optional[bool] = Field(default=None)
-    question: Optional[str] = Field(default=None, min_length=1, max_length=500, pattern="[\s\S]*\S[\s\S]*")
+    question: Optional[str] = Field(default=None, min_length=1, max_length=500, pattern=r"[\s\S]*\S[\s\S]*")

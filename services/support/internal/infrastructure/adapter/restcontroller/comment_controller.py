@@ -1,12 +1,16 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from pydantic import ValidationError
 
+from generated.application.port.model.comment_create_request import CommentCreateRequest
+from generated.application.port.model.comment_find_all_response import CommentFindAllResponse
+from generated.application.port.model.comment_item import CommentItem
 from internal.domain.aggregate.ticket_comment_aggregate import TicketCommentAggregate
 from internal.domain.constant.author_role import AuthorRole
 from internal.domain.model.command.ticket_command import AddCommentCommand
 from internal.domain.service.support_service import SupportService
-from internal.infrastructure.adapter.restcontroller.schemas import AddCommentRequest, CommentResponse
+from internal.infrastructure.adapter.restcontroller.error_mapping import invalid_command_error
 from internal.infrastructure.support.auth import (
     Principal,
     is_staff,
@@ -32,51 +36,58 @@ def create_comment_router(service: SupportService) -> APIRouter:
             raise HTTPException(status_code=403, detail="Forbidden")
         return staff
 
-    @router.post("", status_code=201, response_model=CommentResponse)
+    @router.post("", status_code=201)
     async def add_comment(
         ticket_uid: UUID,
-        request: AddCommentRequest,
+        request: CommentCreateRequest,
         principal: Principal = Depends(require_principal),
-    ) -> CommentResponse:
+    ) -> Response:
         staff = await _authorize(ticket_uid, principal)
-        if request.internal and not staff:
+        internal = bool(request.internal)
+        if internal and not staff:
             raise HTTPException(status_code=403, detail="Internal comments require staff role")
         author_uid = principal_uid(principal)
         if author_uid is None:
             raise HTTPException(status_code=403, detail="Cannot resolve caller identity")
-        command = AddCommentCommand(
-            ticket_uid=ticket_uid,
-            author_uid=author_uid,
-            author_role=AuthorRole.AGENT if staff else AuthorRole.CUSTOMER,
-            body=request.body,
-            internal=request.internal,
-        )
+        try:
+            command = AddCommentCommand(
+                ticket_uid=ticket_uid,
+                author_uid=author_uid,
+                author_role=AuthorRole.AGENT if staff else AuthorRole.CUSTOMER,
+                body=request.body,
+                internal=internal,
+            )
+        except ValidationError as e:
+            raise invalid_command_error(e) from e
         comment = await service.add_comment(command)
         if comment is None:
             raise HTTPException(status_code=404, detail="Ticket not found")
-        return _to_response(comment, ticket_uid)
+        return Response(
+            status_code=201,
+            headers={"Location": f"/api/v1/tickets/{ticket_uid}/comments/{comment.uid}"},
+        )
 
-    @router.get("", response_model=list[CommentResponse])
+    @router.get("", response_model=CommentFindAllResponse)
     async def list_comments(
         ticket_uid: UUID,
         principal: Principal = Depends(require_principal),
         include_internal: bool = Query(False),
-    ) -> list[CommentResponse]:
+    ) -> CommentFindAllResponse:
         staff = await _authorize(ticket_uid, principal)
         effective_internal = include_internal and staff
         comments = await service.list_comments(ticket_uid, include_internal=effective_internal)
         if comments is None:
             raise HTTPException(status_code=404, detail="Ticket not found")
-        return [_to_response(c, ticket_uid) for c in comments]
+        return CommentFindAllResponse(items=[_to_comment_item(c, ticket_uid) for c in comments])
 
     return router
 
 
-def _to_response(c: TicketCommentAggregate, ticket_uid: UUID) -> CommentResponse:
-    return CommentResponse(
-        uid=c.uid,
-        ticket_uid=ticket_uid,
-        author_uid=c.author_uid,
+def _to_comment_item(c: TicketCommentAggregate, ticket_uid: UUID) -> CommentItem:
+    return CommentItem(
+        uid=str(c.uid),
+        ticket_uid=str(ticket_uid),
+        author_uid=str(c.author_uid),
         author_role=c.author_role,
         body=c.body,
         internal=c.internal,

@@ -43,6 +43,12 @@ def test_add_comment_valid_request_created(client: TestClient, service: MagicMoc
     assert response.status_code == 201
 
 
+def test_add_comment_separator_only_body_bad_request(client: TestClient, service: MagicMock) -> None:
+    response = client.post(f"/api/v1/tickets/{uuid4()}/comments", json={"body": "\x1f"})
+    assert response.status_code == 400
+    service.add_comment.assert_not_called()
+
+
 def test_add_comment_missing_ticket_not_found(client: TestClient, service: MagicMock) -> None:
     service.add_comment.return_value = None
     response = client.post(
@@ -62,7 +68,7 @@ def test_list_comments_found_ok_with_all(client: TestClient, service: MagicMock)
     service.list_comments.return_value = [make_comment(), make_comment(internal=True)]
     response = client.get(f"/api/v1/tickets/{uuid4()}/comments")
     assert response.status_code == 200
-    assert len(response.json()) == 2
+    assert len(response.json()["items"]) == 2
 
 
 def test_add_comment_customer_caller_uses_caller_uid_and_customer_role(
@@ -81,13 +87,16 @@ def test_add_comment_customer_caller_uses_caller_uid_and_customer_role(
 
 
 def test_add_comment_staff_caller_uses_caller_uid_and_agent_role(client: TestClient, service: MagicMock) -> None:
+    ticket_uid = uuid4()
     service.get_ticket.return_value = make_ticket()
-    service.add_comment.return_value = make_comment(author_role=AuthorRole.AGENT)
+    comment = make_comment(author_role=AuthorRole.AGENT)
+    service.add_comment.return_value = comment
     response = client.post(
-        f"/api/v1/tickets/{uuid4()}/comments",
+        f"/api/v1/tickets/{ticket_uid}/comments",
         json={"body": "Internal note"},
     )
     assert response.status_code == 201
+    assert response.headers["location"] == f"/api/v1/tickets/{ticket_uid}/comments/{comment.uid}"
     command = service.add_comment.call_args[0][0]
     assert command.author_uid == STAFF_UID
     assert command.author_role == AuthorRole.AGENT

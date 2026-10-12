@@ -47,6 +47,7 @@ def test_create_faq_valid_request_created(client: TestClient, service: MagicMock
         json={"question": "Q?", "answer": "A.", "published": True},
     )
     assert response.status_code == 201
+    assert response.headers["location"] == f"/api/v1/faqs/{faq.uid}"
 
 
 def test_get_faq_missing_not_found(client: TestClient, service: MagicMock) -> None:

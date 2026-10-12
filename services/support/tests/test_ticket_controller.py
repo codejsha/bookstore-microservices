@@ -74,7 +74,7 @@ def test_create_ticket_valid_request_created(client: TestClient, service: MagicM
         },
     )
     assert response.status_code == 201
-    assert response.json()["uid"] == str(ticket.uid)
+    assert response.headers["location"] == f"/api/v1/tickets/{ticket.uid}"
 
 
 def test_get_ticket_missing_not_found(client: TestClient, service: MagicMock) -> None:
@@ -102,9 +102,8 @@ def test_list_tickets_with_filters_passes_them_to_service(client: TestClient, se
         },
     )
     assert response.status_code == 200
-    body = response.json()
-    assert body["size"] == 50
     option = service.list_tickets.call_args[0][0]
+    assert option.size == 50
     assert option.customer_uid == TARGET_CUSTOMER_UID
     assert option.status == TicketStatus.OPEN
     assert option.priority == TicketPriority.URGENT
