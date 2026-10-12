@@ -1,8 +1,17 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
+from generated.application.port.model.template_create_request import TemplateCreateRequest
+from generated.application.port.model.template_find_all_response import TemplateFindAllResponse
+from generated.application.port.model.template_find_response import TemplateFindResponse
+from generated.application.port.model.template_item import TemplateItem
+from generated.application.port.model.template_update_request import TemplateUpdateRequest
+from generated.application.port.model.template_update_response import TemplateUpdateResponse
+from internal.domain.aggregate.template_aggregate import TemplateAggregate
 from internal.domain.constant.channel import Channel
 from internal.domain.constant.notification_type import NotificationType
 from internal.domain.error import TemplateAlreadyExistsError
@@ -12,12 +21,6 @@ from internal.domain.model.command.notification_command import (
 )
 from internal.domain.model.option.notification_option import TemplateFilterOption
 from internal.domain.service.notification_service import NotificationService
-from internal.infrastructure.adapter.restcontroller.schemas import (
-    CreateTemplateRequest,
-    TemplateFindAllResponse,
-    TemplateResponse,
-    UpdateTemplateRequest,
-)
 from internal.infrastructure.support.auth import require_manager, require_principal
 
 
@@ -29,13 +32,11 @@ def create_template_router(service: NotificationService) -> APIRouter:
     )
 
     @router.post("", status_code=201, dependencies=[Depends(require_manager)])
-    async def create_template(request: CreateTemplateRequest) -> Response:
-        command = CreateTemplateCommand(
-            notification_type=request.notification_type,
-            channel=request.channel,
-            title_template=request.title_template,
-            content_template=request.content_template,
-        )
+    async def create_template(request: TemplateCreateRequest) -> Response:
+        try:
+            command = CreateTemplateCommand(**request.model_dump())
+        except ValidationError as e:
+            raise RequestValidationError(e.errors(include_url=False, include_input=False)) from e
         try:
             aggregate = await service.create_template(command)
         except (TemplateAlreadyExistsError, IntegrityError) as exc:
@@ -45,12 +46,12 @@ def create_template_router(service: NotificationService) -> APIRouter:
             headers={"Location": f"/api/v1/templates/{aggregate.uid}"},
         )
 
-    @router.get("/{uid}", response_model=TemplateResponse)
-    async def get_template(uid: UUID) -> TemplateResponse:
+    @router.get("/{uid}", response_model=TemplateFindResponse)
+    async def get_template(uid: UUID) -> TemplateFindResponse:
         aggregate = await service.get_template(uid)
         if aggregate is None:
             raise HTTPException(status_code=404, detail="Template not found")
-        return _to_response(aggregate)
+        return TemplateFindResponse(**_to_template_item(aggregate).model_dump())
 
     @router.get("", response_model=TemplateFindAllResponse)
     async def list_templates(
@@ -70,24 +71,22 @@ def create_template_router(service: NotificationService) -> APIRouter:
         aggregates, total = await service.list_templates(option)
         return TemplateFindAllResponse(
             total=total,
-            items=[_to_response(a) for a in aggregates],
+            items=[_to_template_item(a) for a in aggregates],
         )
 
-    @router.put("/{uid}", response_model=TemplateResponse, dependencies=[Depends(require_manager)])
-    async def update_template(uid: UUID, request: UpdateTemplateRequest) -> TemplateResponse:
-        command = UpdateTemplateCommand(
-            notification_type=request.notification_type,
-            channel=request.channel,
-            title_template=request.title_template,
-            content_template=request.content_template,
-        )
+    @router.put("/{uid}", response_model=TemplateUpdateResponse, dependencies=[Depends(require_manager)])
+    async def update_template(uid: UUID, request: TemplateUpdateRequest) -> TemplateUpdateResponse:
+        try:
+            command = UpdateTemplateCommand(**request.model_dump(exclude_unset=True))
+        except ValidationError as e:
+            raise RequestValidationError(e.errors(include_url=False, include_input=False)) from e
         try:
             aggregate = await service.update_template(uid, command)
         except (TemplateAlreadyExistsError, IntegrityError) as exc:
             raise _conflict(exc) from exc
         if aggregate is None:
             raise HTTPException(status_code=404, detail="Template not found")
-        return _to_response(aggregate)
+        return TemplateUpdateResponse(**_to_template_item(aggregate).model_dump())
 
     @router.delete("/{uid}", status_code=204, dependencies=[Depends(require_manager)])
     async def delete_template(uid: UUID) -> None:
@@ -105,9 +104,9 @@ def _conflict(exc: Exception) -> HTTPException:
     return HTTPException(status_code=409, detail=detail)
 
 
-def _to_response(aggregate) -> TemplateResponse:
-    return TemplateResponse(
-        uid=aggregate.uid,
+def _to_template_item(aggregate: TemplateAggregate) -> TemplateItem:
+    return TemplateItem(
+        uid=str(aggregate.uid),
         notification_type=aggregate.notification_type,
         channel=aggregate.channel,
         title_template=aggregate.title_template,
