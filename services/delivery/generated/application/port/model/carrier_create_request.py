@@ -7,9 +7,9 @@ from typing import Optional
 
 class CarrierCreateRequest(BaseModel):
     base_rate: float = Field(ge=0)
-    code: str = Field(min_length=1, max_length=50, pattern="[\s\S]*\S[\s\S]*")
-    contact_email: Optional[str] = Field(default=None, max_length=255, pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$")
-    contact_name: Optional[str] = Field(default=None, min_length=1, max_length=255, pattern="[\s\S]*\S[\s\S]*")
-    contact_phone: Optional[str] = Field(default=None, min_length=1, max_length=50, pattern="[\s\S]*\S[\s\S]*")
-    name: str = Field(min_length=1, max_length=255, pattern="[\s\S]*\S[\s\S]*")
+    code: str = Field(min_length=1, max_length=50, pattern=r"[\s\S]*\S[\s\S]*")
+    contact_email: Optional[str] = Field(default=None, max_length=255, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    contact_name: Optional[str] = Field(default=None, min_length=1, max_length=255, pattern=r"[\s\S]*\S[\s\S]*")
+    contact_phone: Optional[str] = Field(default=None, min_length=1, max_length=50, pattern=r"[\s\S]*\S[\s\S]*")
+    name: str = Field(min_length=1, max_length=255, pattern=r"[\s\S]*\S[\s\S]*")
     rate_per_kg: float = Field(ge=0)

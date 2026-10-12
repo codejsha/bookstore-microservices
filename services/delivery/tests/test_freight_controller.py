@@ -40,7 +40,7 @@ def test_create_freight_valid_request_created(client: TestClient, service: Magic
         },
     )
     assert response.status_code == 201
-    assert response.json()["uid"] == str(freight.uid)
+    assert response.headers["location"] == f"/api/v1/freights/{freight.uid}"
 
 
 def test_get_freight_missing_not_found(client: TestClient, service: MagicMock) -> None:

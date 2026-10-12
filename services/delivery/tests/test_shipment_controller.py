@@ -46,7 +46,7 @@ def test_create_shipment_valid_request_created(client: TestClient, service: Magi
         },
     )
     assert response.status_code == 201
-    assert response.json()["uid"] == str(shipment.uid)
+    assert response.headers["location"] == f"/api/v1/shipments/{shipment.uid}"
     service.create_shipment.assert_called_once()
 
 
@@ -240,7 +240,7 @@ def test_add_tracking_found_created(client: TestClient, service: MagicMock) -> N
         json={"status": "IN_TRANSIT", "location": "Hub", "description": "Arrived"},
     )
     assert response.status_code == 201
-    assert response.json()["status"] == "IN_TRANSIT"
+    assert response.headers["location"] == f"/api/v1/shipments/{shipment_uid}/tracking/{tracking.uid}"
 
 
 def test_add_tracking_missing_not_found(client: TestClient, service: MagicMock) -> None:
