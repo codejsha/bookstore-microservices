@@ -40,7 +40,7 @@ class PaymentGrpcServer(
             }
 
             val option = PaymentQueryOption(customerId = customerUid)
-            val pageable = buildPageRequest(request.pageSize.takeIf { it > 0 }, 0, request.orderBy)
+            val pageable = buildPageRequest(request.pageSize, 0, request.orderBy)
 
             val payments = paymentUseCase.findAllPayments(option, pageable, context)
             val response = ListPaymentsResponse.newBuilder()
@@ -104,7 +104,7 @@ class PaymentGrpcServer(
                     .takeIf { it != ProtoRefundStatus.REFUND_STATUS_UNSPECIFIED }
                     ?.let { toDomainRefundStatus(it).value },
             )
-            val pageable = buildPageRequest(request.pageSize.takeIf { it > 0 }, 0, request.orderBy)
+            val pageable = buildPageRequest(request.pageSize, 0, request.orderBy)
 
             val refunds = refundUseCase.findAllRefunds(option, pageable, context)
             val response = ListRefundsResponse.newBuilder()
