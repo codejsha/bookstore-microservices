@@ -9,20 +9,23 @@ import org.junit.jupiter.api.Test
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.ResourceAccessException
 import java.net.SocketTimeoutException
+import tools.jackson.databind.json.JsonMapper
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 class AdminExceptionHandlerTest {
 
-    private val handler = AdminExceptionHandler()
+    private val handler = AdminExceptionHandler(JsonMapper.builder().build())
 
     @Test
     fun `an untranslatable caller value is reported as 400`() {
@@ -139,6 +142,79 @@ class AdminExceptionHandlerTest {
         val body = assertIs<Map<*, *>>(response.body)
         assertEquals(502, body["status"])
         assertEquals("Bad Gateway", body["detail"])
+    }
+
+    @Test
+    fun downstreamConflict_problemBody_relaysDetail() {
+        val e = downstream(
+            HttpStatus.CONFLICT,
+            MediaType.APPLICATION_PROBLEM_JSON,
+            """{"type":"about:blank","title":"Conflict","status":409,"detail":"order is already cancelled"}""",
+        )
+
+        val response = handler.handleDownstreamStatus(e)
+
+        assertEquals(409, response.statusCode.value())
+        val body = assertIs<ConflictError>(response.body)
+        assertEquals("order is already cancelled", body.detail)
+    }
+
+    @Test
+    fun downstreamBadRequest_problemErrors_relaysErrors() {
+        val e = downstream(
+            HttpStatus.BAD_REQUEST,
+            MediaType.APPLICATION_PROBLEM_JSON,
+            """{"title":"Bad Request","status":400,"detail":"request validation failed","errors":["title: must not be blank"]}""",
+        )
+
+        val response = handler.handleDownstreamStatus(e)
+
+        val body = assertIs<BadRequestError>(response.body)
+        assertEquals("request validation failed", body.detail)
+        assertEquals(listOf("title: must not be blank"), body.errors)
+    }
+
+    @Test
+    fun downstreamNotFound_nonJsonBody_fallsBackToReasonPhrase() {
+        val e = downstream(HttpStatus.NOT_FOUND, MediaType.TEXT_HTML, "<html>upstream request timeout</html>")
+
+        val response = handler.handleDownstreamStatus(e)
+
+        val body = assertIs<NotFoundError>(response.body)
+        assertEquals("Not Found", body.detail)
+    }
+
+    @Test
+    fun downstreamNotFound_blankDetail_fallsBackToReasonPhrase() {
+        val e = downstream(HttpStatus.NOT_FOUND, MediaType.APPLICATION_PROBLEM_JSON, """{"title":"Not Found","status":404,"detail":" "}""")
+
+        val response = handler.handleDownstreamStatus(e)
+
+        val body = assertIs<NotFoundError>(response.body)
+        assertEquals("Not Found", body.detail)
+    }
+
+    @Test
+    fun downstreamServerError_problemBody_notLeaked() {
+        val e = downstream(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            MediaType.APPLICATION_PROBLEM_JSON,
+            """{"title":"Internal Server Error","status":500,"detail":"SQL syntax error near ORDER BY"}""",
+        )
+
+        val response = handler.handleDownstreamStatus(e)
+
+        val body = assertIs<Map<*, *>>(response.body)
+        assertEquals("Internal Server Error", body["detail"])
+    }
+
+    private fun downstream(status: HttpStatus, contentType: MediaType, body: String): HttpStatusCodeException {
+        val headers = HttpHeaders().apply { this.contentType = contentType }
+        return if (status.is5xxServerError) {
+            HttpServerErrorException.create(status, status.reasonPhrase, headers, body.toByteArray(), null)
+        } else {
+            HttpClientErrorException.create(status, status.reasonPhrase, headers, body.toByteArray(), null)
+        }
     }
 
     private fun methodArgumentNotValid(vararg fieldErrors: FieldError): MethodArgumentNotValidException {
