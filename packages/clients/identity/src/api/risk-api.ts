@@ -39,6 +39,9 @@ export interface RiskApi {
 
   /**
    * List all currently flagged principals
+   * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   riskGetAll(
   ): Promise<RiskEntryListResponse>;
@@ -47,6 +50,8 @@ export interface RiskApi {
    * Flag a principal (restrict = deny writes, block = deny all)
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   riskFlagPrincipal(
     uid: string,
@@ -55,6 +60,9 @@ export interface RiskApi {
 
   /**
    * Remove a principal's risk flag
+   * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   riskUnflagPrincipal(
     uid: string,

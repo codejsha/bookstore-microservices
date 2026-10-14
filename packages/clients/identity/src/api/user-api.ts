@@ -48,6 +48,10 @@ export interface UserApi {
 
   /**
    * Find all users
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   usersGetAll(
     email: string | undefined,
@@ -61,6 +65,7 @@ export interface UserApi {
    * Register a new user (creates in Keycloak + local DB)
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 409 (ConflictError) — The request conflicts with the current state of the server.
    */
   usersRegister(
     body: UserRegisterRequest,
@@ -69,6 +74,8 @@ export interface UserApi {
   /**
    * Find user by email
    * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   usersReadByEmail(
@@ -78,7 +85,10 @@ export interface UserApi {
   /**
    * Sync user data from Keycloak to local DB
    * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 409 (ConflictError) — The request conflicts with the current state of the server.
    */
   usersSyncFromIdp(
     idpUid: string,
@@ -87,6 +97,8 @@ export interface UserApi {
   /**
    * Find user by uid
    * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   usersRead(
@@ -96,6 +108,9 @@ export interface UserApi {
   /**
    * Update user profile
    * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   usersUpdate(
@@ -107,6 +122,8 @@ export interface UserApi {
    * Deactivate user account (delete in Keycloak, soft-delete locally)
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   usersDeactivate(
@@ -117,6 +134,8 @@ export interface UserApi {
    * Reactivate suspended user account (enable in Keycloak)
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   usersReactivate(
@@ -126,6 +145,9 @@ export interface UserApi {
   /**
    * Update user roles
    * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   usersUpdateRoles(
@@ -137,6 +159,8 @@ export interface UserApi {
    * Suspend user account (disable in Keycloak)
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   usersSuspend(
@@ -206,7 +230,6 @@ export class UserApiClient implements UserApi {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...(this.credentials.bearerAuth ? { 'Authorization': `Bearer ${this.credentials.bearerAuth}` } : {}),
       },
       body: JSON.stringify(body),
     });
