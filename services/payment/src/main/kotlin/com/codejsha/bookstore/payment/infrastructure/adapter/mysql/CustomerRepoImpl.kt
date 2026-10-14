@@ -41,7 +41,7 @@ class CustomerRepoImpl(
             .select(c.asterisk())
             .from(c)
             .where(condition)
-            .orderBy(buildOrderBy(pageable))
+            .orderBy(buildOrderBy(pageable, c))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { toCustomerResult(it) }

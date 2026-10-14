@@ -45,7 +45,7 @@ class RefundRepoImpl(
             .select(r.asterisk())
             .from(r)
             .where(condition)
-            .orderBy(buildOrderBy(pageable))
+            .orderBy(buildOrderBy(pageable, r))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { toRefundResult(it) }

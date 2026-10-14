@@ -42,7 +42,7 @@ class OrderRepoImpl(
             .select(o.asterisk())
             .from(o)
             .where(condition)
-            .orderBy(buildOrderBy(pageable))
+            .orderBy(buildOrderBy(pageable, o))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { toOrderResult(it) }

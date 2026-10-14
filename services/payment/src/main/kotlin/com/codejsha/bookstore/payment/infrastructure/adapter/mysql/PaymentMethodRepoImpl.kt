@@ -45,7 +45,7 @@ class PaymentMethodRepoImpl(
             .select(pm.asterisk())
             .from(pm)
             .where(condition)
-            .orderBy(buildOrderBy(pageable))
+            .orderBy(buildOrderBy(pageable, pm))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { toPaymentMethodResult(it) }
