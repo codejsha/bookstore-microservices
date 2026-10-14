@@ -9,6 +9,10 @@ import (
 // Warehouse API
 type WarehouseApi interface {
 	// Find all warehouses
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	WarehousesGetAll(
 		ctx context.Context,
 		name *string,
@@ -20,6 +24,8 @@ type WarehouseApi interface {
 	// Register new warehouse
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	//
 	// Response headers (WarehousesCreateResponseHeaders):
 	//   location (string) — Location of the created resource
@@ -30,6 +36,8 @@ type WarehouseApi interface {
 
 	// Find warehouse
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	WarehousesRead(
 		ctx context.Context,
@@ -39,6 +47,8 @@ type WarehouseApi interface {
 	// Update warehouse
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	WarehousesUpdate(
 		ctx context.Context,

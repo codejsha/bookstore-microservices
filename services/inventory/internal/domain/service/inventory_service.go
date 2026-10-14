@@ -86,14 +86,18 @@ func (s *stockService) FindStock(ctx context.Context, editionUid string) (*aggre
 }
 
 func (s *stockService) FindStockHistory(ctx context.Context, editionUid string, warehouseUid *string, page pagination.PageOption) (int64, []*aggregate.StockHistoryEntry, error) {
-	stock, err := s.findStockRow(ctx, editionUid, warehouseUid)
+	stocks, err := s.findStockRows(ctx, editionUid, warehouseUid)
 	if err != nil {
 		return 0, nil, err
 	}
-	if stock == nil {
-		return 0, nil, nil
+	if len(stocks) == 0 {
+		return 0, nil, fmt.Errorf("stock not found for edition %s: %w", editionUid, repo.ErrStockNotFound)
 	}
-	total, entries, err := s.stockHistoryRepo.FindAll(ctx, stock.Uid, page)
+	stockUids := make([]string, len(stocks))
+	for i, st := range stocks {
+		stockUids[i] = st.Uid
+	}
+	total, entries, err := s.stockHistoryRepo.FindAll(ctx, stockUids, page)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -306,7 +310,7 @@ func (s *stockService) CompleteTransfer(ctx context.Context, uid string) (*aggre
 		return nil, nil
 	}
 	if agg := toTransferAggregate(res); !agg.CanComplete() {
-		return nil, fmt.Errorf("transfer %s cannot be completed in status %s", uid, agg.Status)
+		return nil, fmt.Errorf("transfer %s cannot be completed in status %s: %w", uid, agg.Status, repo.ErrInvalidTransition)
 	}
 	done, err := s.transferRepo.Complete(ctx, uid)
 	if err != nil {
@@ -327,7 +331,7 @@ func (s *stockService) CancelTransfer(ctx context.Context, uid string) (*aggrega
 		return nil, nil
 	}
 	if agg := toTransferAggregate(res); !agg.CanCancel() {
-		return nil, fmt.Errorf("transfer %s cannot be cancelled in status %s", uid, agg.Status)
+		return nil, fmt.Errorf("transfer %s cannot be cancelled in status %s: %w", uid, agg.Status, repo.ErrInvalidTransition)
 	}
 	done, err := s.transferRepo.Cancel(ctx, uid)
 	if err != nil {
@@ -395,7 +399,7 @@ func (s *stockService) CompleteAudit(ctx context.Context, uid string) (*aggregat
 		return nil, nil
 	}
 	if res.Status == string(aggregate.AuditStatusCompleted) {
-		return nil, fmt.Errorf("audit %s is already completed", uid)
+		return nil, fmt.Errorf("audit %s is already completed: %w", uid, repo.ErrInvalidTransition)
 	}
 	done, err := s.auditRepo.Complete(ctx, uid)
 	if err != nil {
@@ -450,6 +454,9 @@ func (s *stockService) FindClosing(ctx context.Context, uid string) (*aggregate.
 // ─── Stock balance ──────────────────────────────────────────────────────────
 
 func (s *stockService) FindStockBalance(ctx context.Context, opt option.BalanceQueryOption) (int64, []*aggregate.StockBalanceEntry, error) {
+	if err := opt.Validate(); err != nil {
+		return 0, nil, err
+	}
 	total, rows, err := s.balanceRepo.FindAll(ctx, opt)
 	if err != nil {
 		return 0, nil, err
@@ -463,7 +470,7 @@ func (s *stockService) FindStockBalance(ctx context.Context, opt option.BalanceQ
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-func (s *stockService) findStockRow(ctx context.Context, editionUid string, warehouseUid *string) (*repo.StockResult, error) {
+func (s *stockService) findStockRows(ctx context.Context, editionUid string, warehouseUid *string) ([]*repo.StockResult, error) {
 	opts := []option.StockQueryOptionFunc{option.StockQueryOption{}.WithEditionUid(&editionUid)}
 	if warehouseUid != nil {
 		opts = append(opts, option.StockQueryOption{}.WithWarehouseUid(warehouseUid))
@@ -472,10 +479,7 @@ func (s *stockService) findStockRow(ctx context.Context, editionUid string, ware
 	if err != nil {
 		return nil, err
 	}
-	if len(stocks) == 0 {
-		return nil, nil
-	}
-	return stocks[0], nil
+	return stocks, nil
 }
 
 func (s *stockService) applyStockChange(

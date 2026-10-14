@@ -18,14 +18,14 @@ interface Closings {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): ClosingFindAllResponse;
+  ): ClosingFindAllResponse | BadRequestError | UnauthorizedError | ForbiddenError;
 
   @doc("Create monthly closing (월 마감)")
   @post
-  create(@body body: ClosingCreateRequest): ClosingFindResponse | BadRequestError | NotFoundError;
+  create(@body body: ClosingCreateRequest): ClosingFindResponse | BadRequestError | NotFoundError | ConflictError | UnauthorizedError | ForbiddenError;
 
   @doc("Find monthly closing")
   @route("{uid}")
   @get
-  read(@path uid: uuid): ClosingFindResponse | NotFoundError;
+  read(@path uid: uuid): ClosingFindResponse | NotFoundError | UnauthorizedError | ForbiddenError;
 }

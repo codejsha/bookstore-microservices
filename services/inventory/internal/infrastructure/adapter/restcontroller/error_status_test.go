@@ -10,10 +10,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/codejsha/shared-library-go/pkg/pagination"
+
 	"github.com/codejsha/bookstore-microservices/inventory/generated/application/port/openapi"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/aggregate"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/command"
+	"github.com/codejsha/bookstore-microservices/inventory/internal/domain/model/option"
 	"github.com/codejsha/bookstore-microservices/inventory/internal/infrastructure/httpx"
 )
 
@@ -190,10 +193,58 @@ func TestStockController_WhenWriteHitsMissingStock_Returns404(t *testing.T) {
 	}
 }
 
-func TestTransferController_WhenCompleteFailsUnexpectedly_Returns500(t *testing.T) {
-	wantErr := errors.New("transfer cannot be completed in status COMPLETED")
+func TestTransferController_completeInvalidTransition_conflict409(t *testing.T) {
+	wantErr := fmt.Errorf("transfer %s cannot be completed in status COMPLETED: %w", uidTransfer1, repo.ErrInvalidTransition)
 	use := &stubUseCase{
 		completeTransfer: func(context.Context, string) (*aggregate.StockTransferAggregate, error) { return nil, wantErr },
+	}
+	ctrl := NewTransferController(use)
+	w := serveController(t, func(ctx context.Context) error {
+		_, err := ctrl.TransfersComplete(ctx, uidTransfer1)
+		return err
+	})
+	if w.Code != http.StatusConflict {
+		t.Fatalf("status = %d, want 409", w.Code)
+	}
+}
+
+func TestTransferController_cancelInvalidTransition_conflict409(t *testing.T) {
+	use := &stubUseCase{
+		cancelTransfer: func(context.Context, string) (*aggregate.StockTransferAggregate, error) {
+			return nil, fmt.Errorf("transfer %s cannot be cancelled in status IN_TRANSIT: %w", uidTransfer1, repo.ErrInvalidTransition)
+		},
+	}
+	ctrl := NewTransferController(use)
+	w := serveController(t, func(ctx context.Context) error {
+		_, err := ctrl.TransfersCancel(ctx, uidTransfer1)
+		return err
+	})
+	if w.Code != http.StatusConflict {
+		t.Fatalf("status = %d, want 409", w.Code)
+	}
+}
+
+func TestAuditController_completeInvalidTransition_conflict409(t *testing.T) {
+	use := &stubUseCase{
+		completeAudit: func(context.Context, string) (*aggregate.StockAuditAggregate, error) {
+			return nil, fmt.Errorf("audit %s is already completed: %w", uidAudit1, repo.ErrInvalidTransition)
+		},
+	}
+	ctrl := NewAuditController(use)
+	w := serveController(t, func(ctx context.Context) error {
+		_, err := ctrl.AuditsComplete(ctx, uidAudit1)
+		return err
+	})
+	if w.Code != http.StatusConflict {
+		t.Fatalf("status = %d, want 409", w.Code)
+	}
+}
+
+func TestTransferController_completeUnexpectedFailure_status500(t *testing.T) {
+	use := &stubUseCase{
+		completeTransfer: func(context.Context, string) (*aggregate.StockTransferAggregate, error) {
+			return nil, errors.New("connection reset")
+		},
 	}
 	ctrl := NewTransferController(use)
 	w := serveController(t, func(ctx context.Context) error {
@@ -203,6 +254,37 @@ func TestTransferController_WhenCompleteFailsUnexpectedly_Returns500(t *testing.
 	if w.Code != http.StatusInternalServerError {
 		t.Fatalf("status = %d, want 500", w.Code)
 	}
+}
+
+func TestBalanceController_malformedYearMonth_badRequest400(t *testing.T) {
+	use := &stubUseCase{
+		findStockBalance: func(context.Context, option.BalanceQueryOption) (int64, []*aggregate.StockBalanceEntry, error) {
+			t.Errorf("usecase must not be called for a malformed year_month")
+			return 0, nil, nil
+		},
+	}
+	ctrl := NewBalanceController(use)
+	ym := "2026-13"
+	w := serveController(t, func(ctx context.Context) error {
+		_, err := ctrl.BalanceGetAll(ctx, nil, nil, &ym, nil, nil, nil)
+		return err
+	})
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400", w.Code)
+	}
+}
+
+func TestStockController_historyForUnknownEdition_notFound404(t *testing.T) {
+	use := &stubUseCase{
+		findStockHistory: func(context.Context, string, *string, pagination.PageOption) (int64, []*aggregate.StockHistoryEntry, error) {
+			return 0, nil, fmt.Errorf("stock not found for edition %s: %w", uidEdition1, repo.ErrStockNotFound)
+		},
+	}
+	ctrl := NewStockController(use)
+	assertStockNotFoundResponse(t, serveController(t, func(ctx context.Context) error {
+		_, err := ctrl.StocksHistory(ctx, uidEdition1, nil, nil, nil, nil)
+		return err
+	}))
 }
 
 func TestTransferController_WhenCreateHitsMissingTargetWarehouse_Returns404(t *testing.T) {

@@ -38,38 +38,43 @@ func NewMonthlyClosingRepository(dataSource *database.DataSource) repo.MonthlyCl
 
 func (r *monthlyClosingRepository) FindAll(ctx context.Context, opt option.ClosingQueryOption) (int64, []*repo.ClosingResult, error) {
 	q := dao.Use(r.db)
-	sortable := map[string]field.OrderExpr{
-		"uid":          q.MonthlyClosingEntity.Uid,
-		"warehouseuid": q.MonthlyClosingEntity.WarehouseUid,
-		"year":         q.MonthlyClosingEntity.Year,
-		"month":        q.MonthlyClosingEntity.Month,
-		"status":       q.MonthlyClosingEntity.Status,
-		"closedat":     q.MonthlyClosingEntity.ClosedAt,
-		"createdat":    q.MonthlyClosingEntity.CreatedAt,
-		"updatedat":    q.MonthlyClosingEntity.UpdatedAt,
-	}
+	sortable := sortableByWireName(map[string]field.OrderExpr{
+		"uid":           q.MonthlyClosingEntity.Uid,
+		"warehouse_uid": q.MonthlyClosingEntity.WarehouseUid,
+		"year":          q.MonthlyClosingEntity.Year,
+		"month":         q.MonthlyClosingEntity.Month,
+		"status":        q.MonthlyClosingEntity.Status,
+		"closed_at":     q.MonthlyClosingEntity.ClosedAt,
+		"created_at":    q.MonthlyClosingEntity.CreatedAt,
+		"updated_at":    q.MonthlyClosingEntity.UpdatedAt,
+	})
 
 	base := q.MonthlyClosingEntity.WithContext(ctx).Scopes(r.buildWhereScope(q, opt))
-
-	closings, err := base.
-		Scopes(gormutils.BuildPageScope(opt.Page(), sortable)).
-		Find()
-	if err != nil {
-		return 0, nil, err
-	}
 
 	total, err := base.Count()
 	if err != nil {
 		return 0, nil, err
 	}
 
+	closings, err := base.
+		Scopes(gormutils.BuildPageScope(resolveSort(opt.Page(), sortable).RowOffset(), sortable)).
+		Find()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	ids := make([]int64, len(closings))
+	for i, c := range closings {
+		ids[i] = c.Id
+	}
+	itemsByClosing, err := r.loadItemsByClosingIDs(ctx, r.db, ids)
+	if err != nil {
+		return 0, nil, err
+	}
+
 	results := make([]*repo.ClosingResult, len(closings))
 	for i, c := range closings {
-		items, err := r.loadItems(ctx, r.db, c.Id)
-		if err != nil {
-			return 0, nil, err
-		}
-		results[i] = toClosingResult(c, items)
+		results[i] = toClosingResult(c, itemsByClosing[c.Id])
 	}
 	return total, results, nil
 }
@@ -227,6 +232,21 @@ func (r *monthlyClosingRepository) loadItems(ctx context.Context, db *gorm.DB, c
 		return nil, err
 	}
 	return items, nil
+}
+
+func (r *monthlyClosingRepository) loadItemsByClosingIDs(ctx context.Context, db *gorm.DB, closingIDs []int64) (map[int64][]entity.MonthlyClosingItemEntity, error) {
+	grouped := make(map[int64][]entity.MonthlyClosingItemEntity, len(closingIDs))
+	if len(closingIDs) == 0 {
+		return grouped, nil
+	}
+	var items []entity.MonthlyClosingItemEntity
+	if err := db.WithContext(ctx).Where("closing_id IN ?", closingIDs).Order("closing_id, id").Find(&items).Error; err != nil {
+		return nil, err
+	}
+	for _, it := range items {
+		grouped[it.ClosingId] = append(grouped[it.ClosingId], it)
+	}
+	return grouped, nil
 }
 
 func toClosingResult(c *entity.MonthlyClosingEntity, items []entity.MonthlyClosingItemEntity) *repo.ClosingResult {

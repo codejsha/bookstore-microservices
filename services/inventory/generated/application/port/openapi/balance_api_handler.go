@@ -19,6 +19,10 @@ func NewBalanceApiHandler(service BalanceApi) *BalanceApiHandler {
 }
 
 // Find stock balance report (수불 현황)
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *BalanceApiHandler) BalanceGetAll(c *gin.Context) {
 	editionUidStr := c.Query("edition_uid")
 	var editionUid *string

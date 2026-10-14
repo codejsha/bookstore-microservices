@@ -38,37 +38,42 @@ func NewStockAuditRepository(dataSource *database.DataSource) repo.StockAuditRep
 
 func (r *stockAuditRepository) FindAll(ctx context.Context, opt option.AuditQueryOption) (int64, []*repo.AuditResult, error) {
 	q := dao.Use(r.db)
-	sortable := map[string]field.OrderExpr{
-		"uid":          q.StockAuditEntity.Uid,
-		"warehouseuid": q.StockAuditEntity.WarehouseUid,
-		"status":       q.StockAuditEntity.Status,
-		"note":         q.StockAuditEntity.Note,
-		"completedat":  q.StockAuditEntity.CompletedAt,
-		"createdat":    q.StockAuditEntity.CreatedAt,
-		"updatedat":    q.StockAuditEntity.UpdatedAt,
-	}
+	sortable := sortableByWireName(map[string]field.OrderExpr{
+		"uid":           q.StockAuditEntity.Uid,
+		"warehouse_uid": q.StockAuditEntity.WarehouseUid,
+		"status":        q.StockAuditEntity.Status,
+		"notes":         q.StockAuditEntity.Note,
+		"completed_at":  q.StockAuditEntity.CompletedAt,
+		"created_at":    q.StockAuditEntity.CreatedAt,
+		"updated_at":    q.StockAuditEntity.UpdatedAt,
+	})
 
 	base := q.StockAuditEntity.WithContext(ctx).Scopes(r.buildWhereScope(q, opt))
-
-	audits, err := base.
-		Scopes(gormutils.BuildPageScope(opt.Page(), sortable)).
-		Find()
-	if err != nil {
-		return 0, nil, err
-	}
 
 	total, err := base.Count()
 	if err != nil {
 		return 0, nil, err
 	}
 
+	audits, err := base.
+		Scopes(gormutils.BuildPageScope(resolveSort(opt.Page(), sortable).RowOffset(), sortable)).
+		Find()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	ids := make([]int64, len(audits))
+	for i, a := range audits {
+		ids[i] = a.Id
+	}
+	itemsByAudit, err := r.loadItemsByAuditIDs(ctx, r.db, ids)
+	if err != nil {
+		return 0, nil, err
+	}
+
 	results := make([]*repo.AuditResult, len(audits))
 	for i, a := range audits {
-		items, err := r.loadItems(ctx, r.db, a.Id)
-		if err != nil {
-			return 0, nil, err
-		}
-		results[i] = toAuditResult(a, items)
+		results[i] = toAuditResult(a, itemsByAudit[a.Id])
 	}
 	return total, results, nil
 }
@@ -185,7 +190,7 @@ func (r *stockAuditRepository) Complete(ctx context.Context, uid string) (*repo.
 				return e
 			}
 			if audit.Status == auditStatusCompleted {
-				return fmt.Errorf("audit %s is already completed", uid)
+				return fmt.Errorf("audit %s is already completed: %w", uid, repo.ErrInvalidTransition)
 			}
 
 			items, err := r.loadItems(ctx, tx, audit.Id)
@@ -260,6 +265,21 @@ func (r *stockAuditRepository) loadItems(ctx context.Context, db *gorm.DB, audit
 		return nil, err
 	}
 	return items, nil
+}
+
+func (r *stockAuditRepository) loadItemsByAuditIDs(ctx context.Context, db *gorm.DB, auditIDs []int64) (map[int64][]entity.StockAuditItemEntity, error) {
+	grouped := make(map[int64][]entity.StockAuditItemEntity, len(auditIDs))
+	if len(auditIDs) == 0 {
+		return grouped, nil
+	}
+	var items []entity.StockAuditItemEntity
+	if err := db.WithContext(ctx).Where("audit_id IN ?", auditIDs).Order("audit_id, id").Find(&items).Error; err != nil {
+		return nil, err
+	}
+	for _, it := range items {
+		grouped[it.AuditId] = append(grouped[it.AuditId], it)
+	}
+	return grouped, nil
 }
 
 func toAuditResult(a *entity.StockAuditEntity, items []entity.StockAuditItemEntity) *repo.AuditResult {

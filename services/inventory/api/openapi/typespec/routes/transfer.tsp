@@ -18,24 +18,24 @@ interface Transfers {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): TransferFindAllResponse;
+  ): TransferFindAllResponse | BadRequestError | UnauthorizedError | ForbiddenError;
 
   @doc("Create stock transfer between warehouses")
   @post
-  create(@body body: TransferCreateRequest): TransferFindResponse | BadRequestError | NotFoundError;
+  create(@body body: TransferCreateRequest): TransferFindResponse | BadRequestError | NotFoundError | UnauthorizedError | ForbiddenError;
 
   @doc("Find stock transfer")
   @route("{uid}")
   @get
-  read(@path uid: uuid): TransferFindResponse | NotFoundError;
+  read(@path uid: uuid): TransferFindResponse | NotFoundError | UnauthorizedError | ForbiddenError;
 
   @doc("Complete stock transfer")
   @route("{uid}/complete")
   @post
-  complete(@path uid: uuid): TransferFindResponse | BadRequestError | NotFoundError;
+  complete(@path uid: uuid): TransferFindResponse | BadRequestError | NotFoundError | ConflictError | UnauthorizedError | ForbiddenError;
 
   @doc("Cancel stock transfer")
   @route("{uid}/cancel")
   @post
-  cancel(@path uid: uuid): TransferFindResponse | BadRequestError | NotFoundError;
+  cancel(@path uid: uuid): TransferFindResponse | BadRequestError | NotFoundError | ConflictError | UnauthorizedError | ForbiddenError;
 }

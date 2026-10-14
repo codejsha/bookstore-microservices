@@ -16,32 +16,32 @@ interface Stocks {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): StockFindAllResponse;
+  ): StockFindAllResponse | BadRequestError | UnauthorizedError | ForbiddenError;
 
   @doc("Find stock by edition UID")
   @route("{edition_uid}")
   @get
-  read(@path edition_uid: uuid): StockFindResponse | NotFoundError;
+  read(@path edition_uid: uuid): StockFindResponse | NotFoundError | UnauthorizedError | ForbiddenError;
 
   @doc("Receive stock into warehouse (inbound)")
   @route("receive")
   @post
-  receive(@body body: StockReceiveRequest): StockFindResponse | BadRequestError | NotFoundError;
+  receive(@body body: StockReceiveRequest): StockFindResponse | BadRequestError | NotFoundError | UnauthorizedError | ForbiddenError;
 
-  @doc("Release stock from warehouse (outbound)")
+  @doc("Release reserved stock back to available (inverse of reserve)")
   @route("release")
   @post
-  release(@body body: StockReleaseRequest): StockFindResponse | BadRequestError | NotFoundError;
+  release(@body body: StockReleaseRequest): StockFindResponse | BadRequestError | NotFoundError | UnauthorizedError | ForbiddenError;
 
   @doc("Adjust stock quantity (correction)")
   @route("adjust")
   @post
-  adjust(@body body: StockAdjustRequest): StockFindResponse | BadRequestError | NotFoundError;
+  adjust(@body body: StockAdjustRequest): StockFindResponse | BadRequestError | NotFoundError | UnauthorizedError | ForbiddenError;
 
   @doc("Reserve stock for an order")
   @route("reserve")
   @post
-  reserve(@body body: StockReserveRequest): StockFindResponse | BadRequestError | NotFoundError;
+  reserve(@body body: StockReserveRequest): StockFindResponse | BadRequestError | NotFoundError | UnauthorizedError | ForbiddenError;
 
   @doc("Find stock change history")
   @route("{edition_uid}/history")
@@ -52,5 +52,5 @@ interface Stocks {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): StockHistoryFindAllResponse | NotFoundError;
+  ): StockHistoryFindAllResponse | BadRequestError | NotFoundError | UnauthorizedError | ForbiddenError;
 }

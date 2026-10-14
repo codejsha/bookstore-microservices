@@ -9,6 +9,10 @@ import (
 // Audit API
 type AuditApi interface {
 	// Find all stock audits
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	AuditsGetAll(
 		ctx context.Context,
 		warehouseUid *string,
@@ -21,6 +25,8 @@ type AuditApi interface {
 	// Create stock audit (실사)
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	AuditsCreate(
 		ctx context.Context,
@@ -29,6 +35,8 @@ type AuditApi interface {
 
 	// Find stock audit
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	AuditsRead(
 		ctx context.Context,
@@ -38,7 +46,10 @@ type AuditApi interface {
 	// Complete stock audit and apply adjustments
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	AuditsComplete(
 		ctx context.Context,
 		uid string,

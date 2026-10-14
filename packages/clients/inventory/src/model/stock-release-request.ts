@@ -3,7 +3,7 @@
 import { z } from 'zod';
 
 /**
- * Release stock from a warehouse (outbound)
+ * Release reserved stock back to available (inverse of reserve)
  */
 
 export interface StockReleaseRequest {

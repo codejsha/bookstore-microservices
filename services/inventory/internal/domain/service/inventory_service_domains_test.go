@@ -167,8 +167,8 @@ func TestCompleteTransfer_WhenTransferNotPending_ReturnsStateError(t *testing.T)
 		},
 	}
 	svc := &stockService{transferRepo: tr}
-	if _, err := svc.CompleteTransfer(context.Background(), uidTransfer1); err == nil {
-		t.Errorf("expected error completing a CANCELLED transfer")
+	if _, err := svc.CompleteTransfer(context.Background(), uidTransfer1); !errors.Is(err, repo.ErrInvalidTransition) {
+		t.Errorf("err = %v, want ErrInvalidTransition completing a CANCELLED transfer", err)
 	}
 }
 
@@ -183,8 +183,8 @@ func TestCancelTransfer_WhenTransferNotPending_ReturnsStateError(t *testing.T) {
 		},
 	}
 	svc := &stockService{transferRepo: tr}
-	if _, err := svc.CancelTransfer(context.Background(), uidTransfer1); err == nil {
-		t.Errorf("expected error cancelling an IN_TRANSIT transfer")
+	if _, err := svc.CancelTransfer(context.Background(), uidTransfer1); !errors.Is(err, repo.ErrInvalidTransition) {
+		t.Errorf("err = %v, want ErrInvalidTransition cancelling an IN_TRANSIT transfer", err)
 	}
 }
 
@@ -247,8 +247,8 @@ func TestCompleteAudit_WhenAuditAlreadyCompleted_ReturnsStateError(t *testing.T)
 		},
 	}
 	svc := &stockService{auditRepo: ar}
-	if _, err := svc.CompleteAudit(context.Background(), uidAudit1); err == nil {
-		t.Errorf("expected error completing an already-completed audit")
+	if _, err := svc.CompleteAudit(context.Background(), uidAudit1); !errors.Is(err, repo.ErrInvalidTransition) {
+		t.Errorf("err = %v, want ErrInvalidTransition completing an already-completed audit", err)
 	}
 }
 
@@ -354,5 +354,47 @@ func TestFindStockBalance_WhenRepoFails_ReturnsRepoError(t *testing.T) {
 	svc := &stockService{balanceRepo: br}
 	if _, _, err := svc.FindStockBalance(context.Background(), option.NewBalanceQueryOption()); !errors.Is(err, wantErr) {
 		t.Errorf("err = %v, want %v", err, wantErr)
+	}
+}
+
+func TestFindStockBalance_malformedYearMonth_invalidCommand(t *testing.T) {
+	br := &stubBalanceRepo{
+		findAllFn: func(context.Context, option.BalanceQueryOption) (int64, []*repo.BalanceResult, error) {
+			t.Errorf("repo must not be called for a malformed year_month")
+			return 0, nil, nil
+		},
+	}
+	svc := &stockService{balanceRepo: br}
+	for _, ym := range []string{"2026-13", "2026-00", "2026-7", "26-07", "2026/07", "abc"} {
+		ym := ym
+		_, _, err := svc.FindStockBalance(context.Background(), option.NewBalanceQueryOption(
+			option.BalanceQueryOption{}.WithYearMonth(&ym),
+		))
+		if !errors.Is(err, command.ErrInvalidCommand) {
+			t.Errorf("year_month %q: err = %v, want ErrInvalidCommand", ym, err)
+		}
+	}
+}
+
+func TestFindStockBalance_wellFormedYearMonth_queriesRepo(t *testing.T) {
+	var called bool
+	br := &stubBalanceRepo{
+		findAllFn: func(_ context.Context, opt option.BalanceQueryOption) (int64, []*repo.BalanceResult, error) {
+			called = true
+			if opt.YearMonth() == nil || *opt.YearMonth() != "2026-12" {
+				t.Errorf("YearMonth = %v", opt.YearMonth())
+			}
+			return 0, nil, nil
+		},
+	}
+	svc := &stockService{balanceRepo: br}
+	ym := "2026-12"
+	if _, _, err := svc.FindStockBalance(context.Background(), option.NewBalanceQueryOption(
+		option.BalanceQueryOption{}.WithYearMonth(&ym),
+	)); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if !called {
+		t.Errorf("repo not called")
 	}
 }

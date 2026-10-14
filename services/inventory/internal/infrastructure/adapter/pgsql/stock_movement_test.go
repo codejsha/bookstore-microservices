@@ -64,8 +64,9 @@ func TestApplyStockDeltaTx_WhenDeltaInboundAndCreateAllowed_CreatesRow(t *testin
 	}
 }
 
-func TestApplyChange_WhenStockMissing_ReturnsWrappedNotFound(t *testing.T) {
+func TestApplyChange_inboundForEditionWithoutStock_wrappedStockNotFound(t *testing.T) {
 	_, db := newTestRepo(t)
+	seedWarehouse(t, db, 9)
 	r := stockRepository{db: db}
 
 	err := r.ApplyChange(context.Background(), repo.ApplyChangeParams{

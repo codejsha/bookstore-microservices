@@ -5,7 +5,7 @@ package com.codejsha.bookstore.generated.application.port.restclient.inventory.m
 import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
- * Release stock from a warehouse (outbound)
+ * Release reserved stock back to available (inverse of reserve)
  */
 data class StockReleaseRequest(
 

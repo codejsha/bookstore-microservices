@@ -46,6 +46,10 @@ export interface ClosingApi {
 
   /**
    * Find all monthly closings
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   closingsGetAll(
     warehouseUid: string | undefined,
@@ -59,7 +63,10 @@ export interface ClosingApi {
    * Create monthly closing (월 마감)
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 409 (ConflictError) — The request conflicts with the current state of the server.
    */
   closingsCreate(
     body: ClosingCreateRequest,
@@ -68,6 +75,8 @@ export interface ClosingApi {
   /**
    * Find monthly closing
    * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   closingsRead(

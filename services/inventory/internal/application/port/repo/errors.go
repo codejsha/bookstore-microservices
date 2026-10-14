@@ -14,4 +14,6 @@ var (
 	ErrWarehouseNotFound = errors.New("warehouse not found")
 
 	ErrDuplicateClosing = errors.New("monthly closing already exists for this warehouse and period")
+
+	ErrInvalidTransition = errors.New("invalid state transition")
 )

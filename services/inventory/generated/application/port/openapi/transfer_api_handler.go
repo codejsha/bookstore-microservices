@@ -19,6 +19,10 @@ func NewTransferApiHandler(service TransferApi) *TransferApiHandler {
 }
 
 // Find all stock transfers
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *TransferApiHandler) TransfersGetAll(c *gin.Context) {
 	editionUidStr := c.Query("edition_uid")
 	var editionUid *string
@@ -83,6 +87,8 @@ func (h *TransferApiHandler) TransfersGetAll(c *gin.Context) {
 // Create stock transfer between warehouses
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *TransferApiHandler) TransfersCreate(c *gin.Context) {
 	var req TransferCreateRequest
@@ -100,6 +106,8 @@ func (h *TransferApiHandler) TransfersCreate(c *gin.Context) {
 
 // Find stock transfer
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *TransferApiHandler) TransfersRead(c *gin.Context) {
 	uid := c.Param("uid")
@@ -114,7 +122,10 @@ func (h *TransferApiHandler) TransfersRead(c *gin.Context) {
 // Cancel stock transfer
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *TransferApiHandler) TransfersCancel(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.TransfersCancel(c.Request.Context(), uid)
@@ -128,7 +139,10 @@ func (h *TransferApiHandler) TransfersCancel(c *gin.Context) {
 // Complete stock transfer
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *TransferApiHandler) TransfersComplete(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.TransfersComplete(c.Request.Context(), uid)

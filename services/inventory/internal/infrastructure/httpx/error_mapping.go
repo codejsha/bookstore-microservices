@@ -59,6 +59,8 @@ func MapBusinessError(ctx context.Context, err error) error {
 		es.status, es.message = http.StatusNotFound, repo.ErrWarehouseNotFound.Error()
 	case errors.Is(err, repo.ErrDuplicateClosing):
 		es.status, es.message = http.StatusConflict, repo.ErrDuplicateClosing.Error()
+	case errors.Is(err, repo.ErrInvalidTransition):
+		es.status, es.message = http.StatusConflict, err.Error()
 	}
 	return err
 }

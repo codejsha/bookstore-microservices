@@ -13,9 +13,9 @@ interface Balance {
   getAll(
     @query edition_uid?: uuid,
     @query warehouse_uid?: uuid,
-    @query year_month?: string,
+    @query @pattern("^\\d{4}-(0[1-9]|1[0-2])$") year_month?: string,
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): BalanceFindAllResponse;
+  ): BalanceFindAllResponse | BadRequestError | UnauthorizedError | ForbiddenError;
 }

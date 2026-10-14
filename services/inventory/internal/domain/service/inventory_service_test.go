@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -106,11 +107,11 @@ func (s *stubWarehouseRepo) Update(ctx context.Context, p repo.WarehouseUpdatePa
 }
 
 type stubStockHistoryRepo struct {
-	findAllFn func(ctx context.Context, stockUid string, page pagination.PageOption) (int64, []*repo.StockHistoryResult, error)
+	findAllFn func(ctx context.Context, stockUids []string, page pagination.PageOption) (int64, []*repo.StockHistoryResult, error)
 }
 
-func (s *stubStockHistoryRepo) FindAll(ctx context.Context, stockUid string, page pagination.PageOption) (int64, []*repo.StockHistoryResult, error) {
-	return s.findAllFn(ctx, stockUid, page)
+func (s *stubStockHistoryRepo) FindAll(ctx context.Context, stockUids []string, page pagination.PageOption) (int64, []*repo.StockHistoryResult, error) {
+	return s.findAllFn(ctx, stockUids, page)
 }
 
 // ─── Stock query tests ──────────────────────────────────────────────────────
@@ -592,9 +593,9 @@ func TestFindStockHistory_WhenStockExists_ReturnsHistory(t *testing.T) {
 		},
 	}
 	hist := &stubStockHistoryRepo{
-		findAllFn: func(_ context.Context, stockUid string, _ pagination.PageOption) (int64, []*repo.StockHistoryResult, error) {
-			if stockUid != "stk-1" {
-				t.Errorf("stockUid = %q", stockUid)
+		findAllFn: func(_ context.Context, stockUids []string, _ pagination.PageOption) (int64, []*repo.StockHistoryResult, error) {
+			if !reflect.DeepEqual(stockUids, []string{"stk-1"}) {
+				t.Errorf("stockUids = %v", stockUids)
 			}
 			reason := "restock"
 			return 2, []*repo.StockHistoryResult{
@@ -617,18 +618,59 @@ func TestFindStockHistory_WhenStockExists_ReturnsHistory(t *testing.T) {
 	}
 }
 
-func TestFindStockHistory_WhenStockMissing_ReturnsNotFoundError(t *testing.T) {
+func TestFindStockHistory_stockMissing_stockNotFound(t *testing.T) {
 	stk := &stubStockRepo{
 		findAllFn: func(context.Context, option.StockQueryOption) (int64, []*repo.StockResult, error) {
 			return 0, nil, nil
 		},
 	}
-	svc := newStockSvc(stk, nil)
+	hist := &stubStockHistoryRepo{
+		findAllFn: func(context.Context, []string, pagination.PageOption) (int64, []*repo.StockHistoryResult, error) {
+			t.Errorf("history must not be read when the edition has no stock")
+			return 0, nil, nil
+		},
+	}
+	svc := newStockSvc(stk, hist)
 	total, entries, err := svc.FindStockHistory(context.Background(), uidEdition5, nil, pagination.NewPageOptionDefault())
-	if err != nil {
-		t.Fatalf("err: %v", err)
+	if !errors.Is(err, repo.ErrStockNotFound) {
+		t.Fatalf("err = %v, want ErrStockNotFound", err)
 	}
 	if total != 0 || entries != nil {
 		t.Errorf("got total=%d entries=%+v", total, entries)
+	}
+}
+
+func TestFindStockHistory_twoWarehouses_pagesBothHistories(t *testing.T) {
+	now := time.Now()
+	stk := &stubStockRepo{
+		findAllFn: func(_ context.Context, opt option.StockQueryOption) (int64, []*repo.StockResult, error) {
+			if opt.WarehouseUid() != nil {
+				t.Errorf("WarehouseUid = %v, want nil", *opt.WarehouseUid())
+			}
+			return 1, []*repo.StockResult{
+				{Id: 1, Uid: "stk-1", EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 4},
+				{Id: 2, Uid: "stk-2", EditionUid: uidEdition1, WarehouseUid: uidWarehouse2, Quantity: 6},
+			}, nil
+		},
+	}
+	hist := &stubStockHistoryRepo{
+		findAllFn: func(_ context.Context, stockUids []string, _ pagination.PageOption) (int64, []*repo.StockHistoryResult, error) {
+			if !reflect.DeepEqual(stockUids, []string{"stk-1", "stk-2"}) {
+				t.Errorf("stockUids = %v, want both warehouses' stock rows", stockUids)
+			}
+			return 3, []*repo.StockHistoryResult{
+				{Uid: "h3", ChangeType: "INBOUND", ChangeQty: 6, CreatedAt: now},
+				{Uid: "h2", ChangeType: "RESERVATION", ChangeQty: -1, CreatedAt: now.Add(-time.Minute)},
+				{Uid: "h1", ChangeType: "INBOUND", ChangeQty: 5, CreatedAt: now.Add(-2 * time.Minute)},
+			}, nil
+		},
+	}
+	svc := newStockSvc(stk, hist)
+	total, entries, err := svc.FindStockHistory(context.Background(), uidEdition1, nil, pagination.NewPageOptionDefault())
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if total != 3 || len(entries) != 3 {
+		t.Fatalf("total=%d entries=%d, want 3/3", total, len(entries))
 	}
 }

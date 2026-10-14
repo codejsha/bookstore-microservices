@@ -23,6 +23,10 @@ interface WarehouseApi {
 
     /**
      * Find all warehouses
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      *
      * GET /api/v1/warehouses
      * @param name @RequestParam(value = "name", required = false)
@@ -46,6 +50,8 @@ interface WarehouseApi {
      * Register new warehouse
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      *
      * POST /api/v1/warehouses
      * @param requestBody @RequestBody
@@ -64,6 +70,8 @@ interface WarehouseApi {
     /**
      * Find warehouse
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * GET /api/v1/warehouses/{uid}
@@ -82,6 +90,8 @@ interface WarehouseApi {
      * Update warehouse
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * PUT /api/v1/warehouses/{uid}

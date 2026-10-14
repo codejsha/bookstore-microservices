@@ -9,6 +9,10 @@ import (
 // Transfer API
 type TransferApi interface {
 	// Find all stock transfers
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	TransfersGetAll(
 		ctx context.Context,
 		editionUid *string,
@@ -23,6 +27,8 @@ type TransferApi interface {
 	// Create stock transfer between warehouses
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	TransfersCreate(
 		ctx context.Context,
@@ -31,6 +37,8 @@ type TransferApi interface {
 
 	// Find stock transfer
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	TransfersRead(
 		ctx context.Context,
@@ -40,7 +48,10 @@ type TransferApi interface {
 	// Cancel stock transfer
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	TransfersCancel(
 		ctx context.Context,
 		uid string,
@@ -49,7 +60,10 @@ type TransferApi interface {
 	// Complete stock transfer
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	TransfersComplete(
 		ctx context.Context,
 		uid string,

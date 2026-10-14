@@ -19,6 +19,10 @@ func NewAuditApiHandler(service AuditApi) *AuditApiHandler {
 }
 
 // Find all stock audits
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *AuditApiHandler) AuditsGetAll(c *gin.Context) {
 	warehouseUidStr := c.Query("warehouse_uid")
 	var warehouseUid *string
@@ -73,6 +77,8 @@ func (h *AuditApiHandler) AuditsGetAll(c *gin.Context) {
 // Create stock audit (실사)
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *AuditApiHandler) AuditsCreate(c *gin.Context) {
 	var req AuditCreateRequest
@@ -90,6 +96,8 @@ func (h *AuditApiHandler) AuditsCreate(c *gin.Context) {
 
 // Find stock audit
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *AuditApiHandler) AuditsRead(c *gin.Context) {
 	uid := c.Param("uid")
@@ -104,7 +112,10 @@ func (h *AuditApiHandler) AuditsRead(c *gin.Context) {
 // Complete stock audit and apply adjustments
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *AuditApiHandler) AuditsComplete(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.AuditsComplete(c.Request.Context(), uid)

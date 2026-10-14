@@ -24,6 +24,10 @@ interface StockApi {
 
     /**
      * Find all stocks grouped by edition
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      *
      * GET /api/v1/stocks
      * @param editionUid @RequestParam(value = "edition_uid", required = false)
@@ -49,6 +53,8 @@ interface StockApi {
      * Adjust stock quantity (correction)
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/stocks/adjust
@@ -68,6 +74,8 @@ interface StockApi {
      * Receive stock into warehouse (inbound)
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/stocks/receive
@@ -84,9 +92,11 @@ interface StockApi {
     ): StockFindResponse
 
     /**
-     * Release stock from warehouse (outbound)
+     * Release reserved stock back to available (inverse of reserve)
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/stocks/release
@@ -106,6 +116,8 @@ interface StockApi {
      * Reserve stock for an order
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/stocks/reserve
@@ -124,6 +136,8 @@ interface StockApi {
     /**
      * Find stock by edition UID
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * GET /api/v1/stocks/{edition_uid}
@@ -141,6 +155,9 @@ interface StockApi {
     /**
      * Find stock change history
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * GET /api/v1/stocks/{edition_uid}/history

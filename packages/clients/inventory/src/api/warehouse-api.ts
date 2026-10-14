@@ -47,6 +47,10 @@ export interface WarehouseApi {
 
   /**
    * Find all warehouses
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   warehousesGetAll(
     name: string | undefined,
@@ -57,6 +61,8 @@ export interface WarehouseApi {
    * Register new warehouse
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    *
    * Response headers (on success; read via `response.headers` — not part of the return value):
    * - `location`: string — Location of the created resource
@@ -68,6 +74,8 @@ export interface WarehouseApi {
   /**
    * Find warehouse
    * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   warehousesRead(
@@ -78,6 +86,8 @@ export interface WarehouseApi {
    * Update warehouse
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   warehousesUpdate(

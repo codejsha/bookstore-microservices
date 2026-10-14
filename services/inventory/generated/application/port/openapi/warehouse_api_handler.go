@@ -19,6 +19,10 @@ func NewWarehouseApiHandler(service WarehouseApi) *WarehouseApiHandler {
 }
 
 // Find all warehouses
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *WarehouseApiHandler) WarehousesGetAll(c *gin.Context) {
 	nameStr := c.Query("name")
 	var name *string
@@ -63,6 +67,8 @@ func (h *WarehouseApiHandler) WarehousesGetAll(c *gin.Context) {
 // Register new warehouse
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 //
 // Response headers (WarehousesCreateResponseHeaders):
 //
@@ -82,6 +88,8 @@ func (h *WarehouseApiHandler) WarehousesCreate(c *gin.Context) {
 
 // Find warehouse
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *WarehouseApiHandler) WarehousesRead(c *gin.Context) {
 	uid := c.Param("uid")
@@ -96,6 +104,8 @@ func (h *WarehouseApiHandler) WarehousesRead(c *gin.Context) {
 // Update warehouse
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *WarehouseApiHandler) WarehousesUpdate(c *gin.Context) {
 	uid := c.Param("uid")

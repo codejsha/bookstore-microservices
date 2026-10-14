@@ -185,7 +185,7 @@ func (c *stockController) StocksHistory(
 		pagination.NewPageOption(size, page, sort),
 	)
 	if err != nil {
-		return nil, err
+		return nil, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err))
 	}
 
 	items := make([]openapi.StockHistoryFindResponse, len(entries))

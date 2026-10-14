@@ -21,6 +21,10 @@ interface AuditApi {
 
     /**
      * Find all stock audits
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      *
      * GET /api/v1/audits
      * @param warehouseUid @RequestParam(value = "warehouse_uid", required = false)
@@ -46,6 +50,8 @@ interface AuditApi {
      * Create stock audit (실사)
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/audits
@@ -64,6 +70,8 @@ interface AuditApi {
     /**
      * Find stock audit
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * GET /api/v1/audits/{uid}
@@ -82,7 +90,10 @@ interface AuditApi {
      * Complete stock audit and apply adjustments
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/audits/{uid}/complete
      * @param uid @PathVariable("uid")
