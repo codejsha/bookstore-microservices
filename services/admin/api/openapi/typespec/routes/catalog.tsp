@@ -28,6 +28,8 @@ interface AdminCatalog {
         @statusCode statusCode: 201;
       }
     | BadRequestError
+    | NotFoundError
+    | ConflictError
     | UnauthorizedError
     | ForbiddenError;
 
@@ -42,7 +44,7 @@ interface AdminCatalog {
   updateWork(
     @path uid: uuid,
     @body body: AdminWorkUpdateRequest,
-  ): AdminWorkResponse | BadRequestError | NotFoundError | UnauthorizedError | ForbiddenError;
+  ): AdminWorkResponse | BadRequestError | NotFoundError | ConflictError | UnauthorizedError | ForbiddenError;
 
   @doc("List authors, for the work form's author picker")
   @route("authors")

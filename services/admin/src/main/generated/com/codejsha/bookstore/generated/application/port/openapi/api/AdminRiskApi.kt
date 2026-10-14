@@ -41,6 +41,7 @@ interface AdminRiskApi {
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      * 401 (UnauthorizedError) — Access is unauthorized.
      * 403 (ForbiddenError) — Access is forbidden.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * PUT /api/v1/admin/risk/{uid}
      * @param uid @PathVariable("uid")
