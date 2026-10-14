@@ -19,6 +19,8 @@ func NewAuthorApiHandler(service AuthorApi) *AuthorApiHandler {
 }
 
 // Find all authors
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 func (h *AuthorApiHandler) AuthorsGetAll(c *gin.Context) {
 	nameStr := c.Query("name")
 	var name *string
@@ -63,6 +65,8 @@ func (h *AuthorApiHandler) AuthorsGetAll(c *gin.Context) {
 // Register new author
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 409 (ConflictError) — The request conflicts with the current state of the server.
 //
 // Response headers (AuthorsCreateResponseHeaders):
@@ -97,6 +101,8 @@ func (h *AuthorApiHandler) AuthorsRead(c *gin.Context) {
 // Update author
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 // 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *AuthorApiHandler) AuthorsUpdate(c *gin.Context) {

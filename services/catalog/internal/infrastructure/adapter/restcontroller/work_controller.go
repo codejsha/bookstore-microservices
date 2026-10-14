@@ -247,6 +247,10 @@ func toSearchSubjectItems(src []repo.WorkSearchSubject) []openapi.SubjectItem {
 	return out
 }
 
+func toEditionWorkRef(w *aggregate.WorkAggregate) openapi.EditionWorkRef {
+	return openapi.EditionWorkRef{Uid: w.Uid, Title: w.Title}
+}
+
 func toEditionItem(e *aggregate.EditionAggregate) openapi.EditionItem {
 	item := openapi.EditionItem{
 		Uid:            e.Uid,
@@ -264,7 +268,7 @@ func toEditionItem(e *aggregate.EditionAggregate) openapi.EditionItem {
 		UpdatedAt:      e.UpdatedAt,
 	}
 	if e.Work != nil {
-		item.Work = toWorkItem(e.Work)
+		item.Work = toEditionWorkRef(e.Work)
 	}
 	if e.Publisher != nil {
 		pub := toPublisherItem(e.Publisher)

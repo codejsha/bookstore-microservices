@@ -110,13 +110,26 @@ func TestBuildListQuery_WhenFiltersBlank_ReturnsMatchAll(t *testing.T) {
 	}
 }
 
-func TestBuildListQuery_WhenPageAndSizeGiven_ReturnsFromAndSize(t *testing.T) {
+func TestBuildListQuery_PageAndSizeGiven_FromIsZeroBasedOffset(t *testing.T) {
 	got := decodeListQuery(t, listOpt(
 		option.WorkQueryOption{}.WithPage(pageOpt(20, 3, "")),
 	))
 
-	if got["from"] != float64(40) {
-		t.Errorf("from = %v, want 40", got["from"])
+	if got["from"] != float64(60) {
+		t.Errorf("from = %v, want 60", got["from"])
+	}
+	if got["size"] != float64(20) {
+		t.Errorf("size = %v, want 20", got["size"])
+	}
+}
+
+func TestBuildListQuery_PageZero_FromIsZero(t *testing.T) {
+	got := decodeListQuery(t, listOpt(
+		option.WorkQueryOption{}.WithPage(pageOpt(20, 0, "")),
+	))
+
+	if got["from"] != float64(0) {
+		t.Errorf("from = %v, want 0", got["from"])
 	}
 	if got["size"] != float64(20) {
 		t.Errorf("size = %v, want 20", got["size"])

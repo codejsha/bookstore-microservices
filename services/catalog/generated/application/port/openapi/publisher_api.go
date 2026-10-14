@@ -9,6 +9,8 @@ import (
 // Publisher API
 type PublisherApi interface {
 	// Find all publishers
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	PublishersGetAll(
 		ctx context.Context,
 		name *string,
@@ -20,6 +22,8 @@ type PublisherApi interface {
 	// Register new publisher
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	//
 	// Response headers (PublishersCreateResponseHeaders):
@@ -40,6 +44,8 @@ type PublisherApi interface {
 	// Update publisher
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	PublishersUpdate(

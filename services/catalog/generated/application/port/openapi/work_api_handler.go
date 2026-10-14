@@ -18,7 +18,9 @@ func NewWorkApiHandler(service WorkApi) *WorkApiHandler {
 	return &WorkApiHandler{service: service}
 }
 
-// Search works
+// Search works. Served from the OpenSearch search index, not the primary database: a newly created or updated work appears here only after the CDC pipeline has indexed it
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 func (h *WorkApiHandler) WorksSearch(c *gin.Context) {
 	titleStr := c.Query("title")
 	var title *string
@@ -78,6 +80,8 @@ func (h *WorkApiHandler) WorksSearch(c *gin.Context) {
 // Create new work
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 // 409 (ConflictError) — The request conflicts with the current state of the server.
 //
@@ -98,6 +102,8 @@ func (h *WorkApiHandler) WorksCreate(c *gin.Context) {
 }
 
 // Full-text search backed by OpenSearch
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 func (h *WorkApiHandler) WorksFullTextSearch(c *gin.Context) {
 	qStr := c.Query("q")
 	var q *string
@@ -160,6 +166,8 @@ func (h *WorkApiHandler) WorksRead(c *gin.Context) {
 // Update work
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 // 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *WorkApiHandler) WorksUpdate(c *gin.Context) {
@@ -178,6 +186,8 @@ func (h *WorkApiHandler) WorksUpdate(c *gin.Context) {
 }
 
 // Find editions of a work
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 func (h *WorkApiHandler) WorksEditions(c *gin.Context) {
 	uid := c.Param("uid")
 	sizeStr := c.Query("size")

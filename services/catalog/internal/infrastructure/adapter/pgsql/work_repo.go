@@ -79,7 +79,7 @@ func (r *workRepository) FindAll(ctx context.Context, opt option.WorkQueryOption
 		"updated_at": w.UpdatedAt,
 	}, w.Id)...)
 
-	offset, limit := utils.PageOffsetLimit(opt.Page())
+	offset, limit := opt.Page().OffsetLimit()
 	entities, total, err := q.FindByPage(offset, limit)
 	if err != nil {
 		return 0, nil, err

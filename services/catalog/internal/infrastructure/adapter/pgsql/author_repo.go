@@ -55,7 +55,7 @@ func (r *authorRepository) FindAll(ctx context.Context, opt option.AuthorQueryOp
 		"updated_at": a.UpdatedAt,
 	}, a.Id)...)
 
-	offset, limit := utils.PageOffsetLimit(opt.Page())
+	offset, limit := opt.Page().OffsetLimit()
 	entities, total, err := q.FindByPage(offset, limit)
 	if err != nil {
 		return 0, nil, err

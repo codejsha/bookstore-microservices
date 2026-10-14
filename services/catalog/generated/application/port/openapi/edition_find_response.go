@@ -21,5 +21,5 @@ type EditionFindResponse struct {
 	Title          string         `json:"title" binding:"required"`
 	Uid            string         `json:"uid" binding:"required"`
 	UpdatedAt      *time.Time     `json:"updated_at,omitempty"`
-	Work           WorkItem       `json:"work" binding:"required"`
+	Work           EditionWorkRef `json:"work" binding:"required"`
 }

@@ -369,7 +369,7 @@ func TestEditionController_WhenEditionExists_ReturnsEditionResponse(t *testing.T
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Work.Uid != "w-1" || resp.Publisher == nil || resp.Publisher.Uid != "p-1" {
+	if resp.Work != (openapi.EditionWorkRef{Uid: "w-1", Title: "W"}) || resp.Publisher == nil || resp.Publisher.Uid != "p-1" {
 		t.Errorf("resp = %+v", resp)
 	}
 }

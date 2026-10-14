@@ -47,6 +47,8 @@ export interface PublisherApi {
 
   /**
    * Find all publishers
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
    */
   publishersGetAll(
     name: string | undefined,
@@ -57,6 +59,8 @@ export interface PublisherApi {
    * Register new publisher
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 409 (ConflictError) — The request conflicts with the current state of the server.
    *
    * Response headers (on success; read via `response.headers` — not part of the return value):
@@ -79,6 +83,8 @@ export interface PublisherApi {
    * Update publisher
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    * 409 (ConflictError) — The request conflicts with the current state of the server.
    */

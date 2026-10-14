@@ -9,6 +9,8 @@ import (
 // Edition API
 type EditionApi interface {
 	// Search editions
+	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
 	EditionsSearch(
 		ctx context.Context,
 		title *string,
@@ -25,6 +27,8 @@ type EditionApi interface {
 	// Create new edition
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	//
@@ -35,7 +39,7 @@ type EditionApi interface {
 		req EditionCreateRequest,
 	) error
 
-	// Find edition with full details
+	// Find edition with its work (uid and title only) and publisher
 	// Errors:
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	EditionsRead(
@@ -46,6 +50,8 @@ type EditionApi interface {
 	// Update edition
 	// Errors:
 	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
 	// 409 (ConflictError) — The request conflicts with the current state of the server.
 	EditionsUpdate(

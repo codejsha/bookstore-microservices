@@ -10,24 +10,26 @@ namespace CatalogService;
 interface Subjects {
   @doc("Find all subjects")
   @get
+  @useAuth(NoAuth | BearerAuth)
   getAll(
     @query name?: string,
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): SubjectFindAllResponse;
+  ): SubjectFindAllResponse | BadRequestError;
 
   @doc("Create subject")
   @post
-  create(@body body: SubjectCreateRequest): CreatedResponse | BadRequestError | ConflictError;
+  create(@body body: SubjectCreateRequest): CreatedResponse | BadRequestError | ConflictError | UnauthorizedError | ForbiddenError;
 
   @doc("Find subject")
   @route("{uid}")
   @get
+  @useAuth(NoAuth | BearerAuth)
   read(@path uid: uuid): SubjectFindResponse | NotFoundError;
 
   @doc("Update subject")
   @route("{uid}")
   @put
-  update(@path uid: uuid, @body body: SubjectUpdateRequest): SubjectUpdateResponse | BadRequestError | NotFoundError | ConflictError;
+  update(@path uid: uuid, @body body: SubjectUpdateRequest): SubjectUpdateResponse | BadRequestError | NotFoundError | ConflictError | UnauthorizedError | ForbiddenError;
 }

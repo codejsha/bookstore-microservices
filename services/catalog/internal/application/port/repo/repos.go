@@ -27,8 +27,18 @@ type EditionRepo interface {
 	FindAll(ctx context.Context, opt option.EditionQueryOption) (int64, []*EditionResult, error)
 	FindOne(ctx context.Context, id int64) (*EditionResult, error)
 	FindByUid(ctx context.Context, uid string) (*EditionResult, error)
-	Create(ctx context.Context, cmd command.EditionCreateCommand, workId int64, publisherId *int64) (int64, error)
-	Update(ctx context.Context, id int64, cmd command.EditionUpdateCommand, workId *int64, publisherId *int64) error
+	Create(ctx context.Context, cmd command.EditionCreateCommand, work EditionWorkRef, publisher *EditionPublisherRef) (int64, error)
+	Update(ctx context.Context, id int64, cmd command.EditionUpdateCommand, work *EditionWorkRef, publisher *EditionPublisherRef) error
+}
+
+type EditionWorkRef struct {
+	Id  int64
+	Uid string
+}
+
+type EditionPublisherRef struct {
+	Id  int64
+	Uid string
 }
 
 type AuthorRepo interface {

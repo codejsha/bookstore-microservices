@@ -190,11 +190,11 @@ func (s catalogService) CreateEdition(ctx context.Context, cmd command.EditionCr
 	if err := cmd.Validate(); err != nil {
 		return nil, err
 	}
-	work, publisherId, err := s.resolveEditionRefs(ctx, cmd.WorkUid, cmd.PublisherUid)
+	work, publisher, err := s.resolveEditionRefs(ctx, cmd.WorkUid, cmd.PublisherUid)
 	if err != nil {
 		return nil, err
 	}
-	id, err := s.editionRepo.Create(ctx, cmd, work.Id, publisherId)
+	id, err := s.editionRepo.Create(ctx, cmd, work, publisher)
 	if err != nil {
 		return nil, err
 	}
@@ -210,9 +210,9 @@ func (s catalogService) UpdateEdition(ctx context.Context, uid string, cmd comma
 		return nil, err
 	}
 	var (
-		existing    *repo.EditionResult
-		workId      *int64
-		publisherId *int64
+		existing  *repo.EditionResult
+		work      *repo.EditionWorkRef
+		publisher *repo.EditionPublisherRef
 	)
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
@@ -230,7 +230,7 @@ func (s catalogService) UpdateEdition(ctx context.Context, uid string, cmd comma
 			if err != nil {
 				return err
 			}
-			workId = &w.Id
+			work = &repo.EditionWorkRef{Id: w.Id, Uid: w.Uid}
 			return nil
 		})
 	}
@@ -241,14 +241,14 @@ func (s catalogService) UpdateEdition(ctx context.Context, uid string, cmd comma
 			if err != nil {
 				return err
 			}
-			publisherId = &p.Id
+			publisher = &repo.EditionPublisherRef{Id: p.Id, Uid: p.Uid}
 			return nil
 		})
 	}
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
-	if err := s.editionRepo.Update(ctx, existing.Id, cmd, workId, publisherId); err != nil {
+	if err := s.editionRepo.Update(ctx, existing.Id, cmd, work, publisher); err != nil {
 		return nil, err
 	}
 	e, err := s.editionRepo.FindOne(ctx, existing.Id)
@@ -260,10 +260,10 @@ func (s catalogService) UpdateEdition(ctx context.Context, uid string, cmd comma
 
 func (s catalogService) resolveEditionRefs(
 	ctx context.Context, workUid string, publisherUid *string,
-) (*repo.WorkResult, *int64, error) {
+) (repo.EditionWorkRef, *repo.EditionPublisherRef, error) {
 	var (
-		work        *repo.WorkResult
-		publisherId *int64
+		work      repo.EditionWorkRef
+		publisher *repo.EditionPublisherRef
 	)
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
@@ -271,7 +271,7 @@ func (s catalogService) resolveEditionRefs(
 		if err != nil {
 			return err
 		}
-		work = w
+		work = repo.EditionWorkRef{Id: w.Id, Uid: w.Uid}
 		return nil
 	})
 	if publisherUid != nil {
@@ -281,14 +281,14 @@ func (s catalogService) resolveEditionRefs(
 			if err != nil {
 				return err
 			}
-			publisherId = &p.Id
+			publisher = &repo.EditionPublisherRef{Id: p.Id, Uid: p.Uid}
 			return nil
 		})
 	}
 	if err := g.Wait(); err != nil {
-		return nil, nil, err
+		return repo.EditionWorkRef{}, nil, err
 	}
-	return work, publisherId, nil
+	return work, publisher, nil
 }
 
 // ─── Author management ──────────────────────────────────────────────────────

@@ -51,5 +51,5 @@ data class EditionFindResponse(
     val updatedAt: OffsetDateTime? = null,
 
     @field:JsonProperty("work")
-    val work: WorkItem,
+    val work: EditionWorkRef,
 )
