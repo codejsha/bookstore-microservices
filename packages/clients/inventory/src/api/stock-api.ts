@@ -49,6 +49,10 @@ export interface StockApi {
 
   /**
    * Find all stocks grouped by edition
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   stocksGetAll(
     editionUid: string | undefined,
@@ -60,6 +64,8 @@ export interface StockApi {
    * Adjust stock quantity (correction)
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   stocksAdjust(
@@ -70,6 +76,8 @@ export interface StockApi {
    * Receive stock into warehouse (inbound)
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   stocksReceive(
@@ -77,9 +85,11 @@ export interface StockApi {
   ): Promise<StockFindResponse>;
 
   /**
-   * Release stock from warehouse (outbound)
+   * Release reserved stock back to available (inverse of reserve)
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   stocksRelease(
@@ -90,6 +100,8 @@ export interface StockApi {
    * Reserve stock for an order
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   stocksReserve(
@@ -99,6 +111,8 @@ export interface StockApi {
   /**
    * Find stock by edition UID
    * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   stocksRead(
@@ -108,6 +122,9 @@ export interface StockApi {
   /**
    * Find stock change history
    * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   stocksHistory(

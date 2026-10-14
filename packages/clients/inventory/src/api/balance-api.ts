@@ -43,6 +43,10 @@ export interface BalanceApi {
 
   /**
    * Find stock balance report (수불 현황)
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   balanceGetAll(
     editionUid: string | undefined,
