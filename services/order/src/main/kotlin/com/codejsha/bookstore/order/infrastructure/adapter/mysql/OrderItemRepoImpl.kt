@@ -47,7 +47,7 @@ class OrderItemRepoImpl(
             .select(oi.asterisk())
             .from(oi)
             .where(oi.ORDER_ID.eq(orderId).and(oi.DELETED_AT.isNull))
-            .orderBy(buildOrderBy(pageable))
+            .orderBy(buildOrderBy(pageable, oi))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { toOrderItemResult(it) }

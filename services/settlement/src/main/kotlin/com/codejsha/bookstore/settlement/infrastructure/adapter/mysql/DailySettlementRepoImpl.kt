@@ -34,7 +34,7 @@ class DailySettlementRepoImpl(
             .select(ds.asterisk())
             .from(ds)
             .where(condition)
-            .orderBy(buildOrderBy(pageable))
+            .orderBy(buildOrderBy(pageable, ds))
         val content = if (pageable.isPaged) {
             baseQuery.limit(pageable.pageSize).offset(pageable.offset)
         } else {

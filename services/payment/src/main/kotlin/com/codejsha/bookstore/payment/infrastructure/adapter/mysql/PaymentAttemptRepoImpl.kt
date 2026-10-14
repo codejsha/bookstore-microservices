@@ -37,7 +37,7 @@ class PaymentAttemptRepoImpl(
             .select(pa.asterisk())
             .from(pa)
             .where(pa.PAYMENT_ID.eq(paymentId).and(pa.DELETED_AT.isNull))
-            .orderBy(buildOrderBy(pageable))
+            .orderBy(buildOrderBy(pageable, pa))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { toPaymentAttemptResult(it) }

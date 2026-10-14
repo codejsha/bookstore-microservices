@@ -11,6 +11,7 @@ import org.jooq.tools.jdbc.MockDataProvider
 import org.jooq.tools.jdbc.MockResult
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import java.util.UUID
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -217,6 +218,32 @@ class PaymentRepoImplUnitTest {
 
         val bindings = capture.bindings.first().toList()
         assertContains(bindings, "updated desc")
+    }
+
+    @Test
+    fun findAll_sortedByCreatedAtDesc_ordersByAliasedColumn() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
+        val repo = PaymentRepoImpl(dsl)
+
+        repo.findAll(PaymentQueryOption(), PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "created_at")), ctx)
+
+        val dataQuery = capture.queries[0].lowercase().replace("`", "")
+        assertContains(dataQuery, "order by")
+        assertContains(dataQuery, "p.created_at desc")
+    }
+
+    @Test
+    fun findAll_unknownSortProperty_omitsOrderBy() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
+        val repo = PaymentRepoImpl(dsl)
+
+        repo.findAll(PaymentQueryOption(), PageRequest.of(0, 10, Sort.by("created_at; drop table payments")), ctx)
+
+        val dataQuery = capture.queries[0].lowercase()
+        assertTrue(!dataQuery.contains("order by"), "unknown sort property should be dropped: $dataQuery")
+        assertTrue(!dataQuery.contains("drop table"), "raw sort text must not reach SQL: $dataQuery")
     }
 
     private class QueryCapture {

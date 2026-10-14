@@ -42,7 +42,7 @@ class MandateRepoImpl(
             .select(m.asterisk())
             .from(m)
             .where(condition)
-            .orderBy(buildOrderBy(pageable))
+            .orderBy(buildOrderBy(pageable, m))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { toMandateResult(it) }

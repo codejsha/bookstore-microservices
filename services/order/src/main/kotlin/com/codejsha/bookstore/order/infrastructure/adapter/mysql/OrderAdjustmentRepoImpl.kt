@@ -48,7 +48,7 @@ class OrderAdjustmentRepoImpl(
             .select(oa.asterisk())
             .from(oa)
             .where(oa.ORDER_ID.eq(orderId).and(oa.DELETED_AT.isNull))
-            .orderBy(buildOrderBy(pageable))
+            .orderBy(buildOrderBy(pageable, oa))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { toOrderAdjustmentResult(it) }
