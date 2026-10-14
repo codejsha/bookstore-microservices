@@ -19,6 +19,10 @@ func NewUserApiHandler(service UserApi) *UserApiHandler {
 }
 
 // Find all users
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *UserApiHandler) UsersGetAll(c *gin.Context) {
 	emailStr := c.Query("email")
 	var email *string
@@ -83,6 +87,7 @@ func (h *UserApiHandler) UsersGetAll(c *gin.Context) {
 // Register a new user (creates in Keycloak + local DB)
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *UserApiHandler) UsersRegister(c *gin.Context) {
 	var req UserRegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -99,6 +104,8 @@ func (h *UserApiHandler) UsersRegister(c *gin.Context) {
 
 // Find user by email
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *UserApiHandler) UsersReadByEmail(c *gin.Context) {
 	email := c.Param("email")
@@ -112,7 +119,10 @@ func (h *UserApiHandler) UsersReadByEmail(c *gin.Context) {
 
 // Sync user data from Keycloak to local DB
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 409 (ConflictError) — The request conflicts with the current state of the server.
 func (h *UserApiHandler) UsersSyncFromIdp(c *gin.Context) {
 	idpUid := c.Param("idp_uid")
 	result, err := h.service.UsersSyncFromIdp(c.Request.Context(), idpUid)
@@ -125,6 +135,8 @@ func (h *UserApiHandler) UsersSyncFromIdp(c *gin.Context) {
 
 // Find user by uid
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *UserApiHandler) UsersRead(c *gin.Context) {
 	uid := c.Param("uid")
@@ -138,6 +150,9 @@ func (h *UserApiHandler) UsersRead(c *gin.Context) {
 
 // Update user profile
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *UserApiHandler) UsersUpdate(c *gin.Context) {
 	uid := c.Param("uid")
@@ -157,6 +172,8 @@ func (h *UserApiHandler) UsersUpdate(c *gin.Context) {
 // Deactivate user account (delete in Keycloak, soft-delete locally)
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *UserApiHandler) UsersDeactivate(c *gin.Context) {
 	uid := c.Param("uid")
@@ -171,6 +188,8 @@ func (h *UserApiHandler) UsersDeactivate(c *gin.Context) {
 // Reactivate suspended user account (enable in Keycloak)
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *UserApiHandler) UsersReactivate(c *gin.Context) {
 	uid := c.Param("uid")
@@ -184,6 +203,9 @@ func (h *UserApiHandler) UsersReactivate(c *gin.Context) {
 
 // Update user roles
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *UserApiHandler) UsersUpdateRoles(c *gin.Context) {
 	uid := c.Param("uid")
@@ -203,6 +225,8 @@ func (h *UserApiHandler) UsersUpdateRoles(c *gin.Context) {
 // Suspend user account (disable in Keycloak)
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *UserApiHandler) UsersSuspend(c *gin.Context) {
 	uid := c.Param("uid")

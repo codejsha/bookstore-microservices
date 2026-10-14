@@ -20,6 +20,9 @@ interface RiskApi {
 
     /**
      * List all currently flagged principals
+     * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      *
      * GET /api/v1/risk
      * @return RiskEntryListResponse
@@ -34,6 +37,8 @@ interface RiskApi {
      * Flag a principal (restrict = deny writes, block = deny all)
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      *
      * PUT /api/v1/risk/{uid}
      * @param uid @PathVariable("uid")
@@ -52,6 +57,9 @@ interface RiskApi {
 
     /**
      * Remove a principal's risk flag
+     * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      *
      * DELETE /api/v1/risk/{uid}
      * @param uid @PathVariable("uid")

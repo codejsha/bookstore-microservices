@@ -30,7 +30,7 @@ func (c *userController) UsersGetAll(
 	email *string,
 	name *string,
 	phone *string,
-	_ *openapi.UserStatus,
+	status *openapi.UserStatus,
 	size *int32,
 	page *int32,
 	sort *string,
@@ -39,6 +39,7 @@ func (c *userController) UsersGetAll(
 		option.UserQueryOption{}.WithEmail(email),
 		option.UserQueryOption{}.WithName(name),
 		option.UserQueryOption{}.WithPhone(phone),
+		option.UserQueryOption{}.WithStatus((*string)(status)),
 		option.UserQueryOption{}.WithPage(pagination.NewPageOption(size, page, sort)),
 	)
 

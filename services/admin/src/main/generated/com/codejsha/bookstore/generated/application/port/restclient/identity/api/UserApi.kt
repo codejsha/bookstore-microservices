@@ -24,6 +24,10 @@ interface UserApi {
 
     /**
      * Find all users
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      *
      * GET /api/v1/users
      * @param email @RequestParam(value = "email", required = false)
@@ -53,6 +57,7 @@ interface UserApi {
      * Register a new user (creates in Keycloak + local DB)
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/users
      * @param requestBody @RequestBody
@@ -70,6 +75,8 @@ interface UserApi {
     /**
      * Find user by email
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * GET /api/v1/users/by-email/{email}
@@ -87,7 +94,10 @@ interface UserApi {
     /**
      * Sync user data from Keycloak to local DB
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/users/sync/{idp_uid}
      * @param idpUid @PathVariable("idp_uid")
@@ -104,6 +114,8 @@ interface UserApi {
     /**
      * Find user by uid
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * GET /api/v1/users/{uid}
@@ -121,6 +133,9 @@ interface UserApi {
     /**
      * Update user profile
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * PUT /api/v1/users/{uid}
@@ -142,6 +157,8 @@ interface UserApi {
      * Deactivate user account (delete in Keycloak, soft-delete locally)
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/users/{uid}/deactivate
@@ -160,6 +177,8 @@ interface UserApi {
      * Reactivate suspended user account (enable in Keycloak)
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/users/{uid}/reactivate
@@ -177,6 +196,9 @@ interface UserApi {
     /**
      * Update user roles
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * PUT /api/v1/users/{uid}/roles
@@ -198,6 +220,8 @@ interface UserApi {
      * Suspend user account (disable in Keycloak)
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/users/{uid}/suspend

@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 
+	"github.com/codejsha/bookstore-microservices/identity/internal/application/port/security"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/command"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/service"
 )
@@ -54,6 +55,14 @@ func MapError(ctx context.Context, err error) error {
 		record(ctx, http.StatusBadRequest, "registration may not grant elevated roles")
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		record(ctx, http.StatusNotFound, "resource not found")
+	case errors.Is(err, service.ErrUserNotFound):
+		record(ctx, http.StatusNotFound, "user not found")
+	case errors.Is(err, security.ErrIdpUserNotFound):
+		record(ctx, http.StatusNotFound, "user not found in identity provider")
+	case errors.Is(err, security.ErrIdpUserConflict):
+		record(ctx, http.StatusConflict, "user conflicts with an existing identity provider user")
+	case errors.Is(err, security.ErrIdpBadRequest):
+		record(ctx, http.StatusBadRequest, "identity provider rejected the request")
 	}
 	return err
 }

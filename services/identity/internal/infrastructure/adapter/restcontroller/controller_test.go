@@ -129,6 +129,43 @@ func TestUsersGetAll_WhenFiltersGiven_ReturnsPagedUsers(t *testing.T) {
 	}
 }
 
+func TestUsersGetAll_statusGiven_passesStatusToUsecase(t *testing.T) {
+	var captured *string
+	use := &stubUseCase{
+		findAllUsers: func(_ context.Context, opt option.UserQueryOption) (int64, []*aggregate.UserAggregate, error) {
+			captured = opt.Status()
+			return 0, nil, nil
+		},
+	}
+	ctrl := NewUserController(use)
+	status := openapi.USERSTATUS_SUSPENDED
+	if _, err := ctrl.UsersGetAll(context.Background(), nil, nil, nil, &status, nil, nil, nil); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if captured == nil || *captured != "SUSPENDED" {
+		t.Errorf("Status = %v, want SUSPENDED", captured)
+	}
+}
+
+func TestUsersGetAll_statusOmitted_passesNilStatus(t *testing.T) {
+	var captured *string
+	called := false
+	use := &stubUseCase{
+		findAllUsers: func(_ context.Context, opt option.UserQueryOption) (int64, []*aggregate.UserAggregate, error) {
+			called = true
+			captured = opt.Status()
+			return 0, nil, nil
+		},
+	}
+	ctrl := NewUserController(use)
+	if _, err := ctrl.UsersGetAll(context.Background(), nil, nil, nil, nil, nil, nil, nil); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if !called || captured != nil {
+		t.Errorf("called = %v, Status = %v, want nil", called, captured)
+	}
+}
+
 func TestUsersGetAll_WhenUsecaseFails_PropagatesError(t *testing.T) {
 	wantErr := errors.New("repo down")
 	use := &stubUseCase{

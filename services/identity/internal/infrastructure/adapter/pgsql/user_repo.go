@@ -41,20 +41,24 @@ func NewUserRepository(dataSource *database.DataSource) repo.UserRepo {
 
 func (r userRepository) FindAll(ctx context.Context, opt option.UserQueryOption) (int64, []*repo.UserResult, error) {
 	q := dao.Use(r.db)
-	sortable := map[string]field.OrderExpr{
-		"uid":         q.UsersEntity.Uid,
-		"email":       q.UsersEntity.Email,
-		"firstname":   q.UsersEntity.FirstName,
-		"lastname":    q.UsersEntity.LastName,
-		"phone":       q.UsersEntity.Phone,
-		"role":        q.UsersEntity.Role,
-		"status":      q.UsersEntity.Status,
-		"lastloginat": q.UsersEntity.LastLoginAt,
-		"createdat":   q.UsersEntity.CreatedAt,
-		"updatedat":   q.UsersEntity.UpdatedAt,
-	}
+	sortable := sortableWithAliases(map[string]field.OrderExpr{
+		"uid":           q.UsersEntity.IdpUid,
+		"email":         q.UsersEntity.Email,
+		"first_name":    q.UsersEntity.FirstName,
+		"last_name":     q.UsersEntity.LastName,
+		"phone":         q.UsersEntity.Phone,
+		"roles":         q.UsersEntity.Role,
+		"status":        q.UsersEntity.Status,
+		"last_login_at": q.UsersEntity.LastLoginAt,
+		"created_at":    q.UsersEntity.CreatedAt,
+		"updated_at":    q.UsersEntity.UpdatedAt,
+	})
 
-	base := q.UsersEntity.WithContext(ctx).Scopes(r.buildWhereScope(q, opt))
+	base := q.UsersEntity.WithContext(ctx)
+	if v := opt.Status(); v != nil && *v == string(constant.USERSTATUS_DEACTIVATED_VALUE) {
+		base = base.Unscoped()
+	}
+	base = base.Scopes(r.buildWhereScope(q, opt))
 
 	total, err := base.Count()
 	if err != nil {
@@ -62,7 +66,7 @@ func (r userRepository) FindAll(ctx context.Context, opt option.UserQueryOption)
 	}
 
 	entities, err := base.
-		Scopes(gormutils.BuildPageScope(opt.Page(), sortable)).
+		Scopes(gormutils.BuildPageScope(resolveSort(opt.Page(), sortable).RowOffset(), sortable)).
 		Find()
 	if err != nil {
 		return 0, nil, err
@@ -85,6 +89,9 @@ func (r userRepository) buildWhereScope(q *dao.Query, opt option.UserQueryOption
 	}
 	if v := opt.Phone(); v != nil && *v != "" {
 		conds = append(conds, q.UsersEntity.Phone.Eq(*v))
+	}
+	if v := opt.Status(); v != nil && *v != "" {
+		conds = append(conds, q.UsersEntity.Status.Eq(*v))
 	}
 
 	return func(d gen.Dao) gen.Dao {
@@ -155,7 +162,9 @@ func (r userRepository) Upsert(ctx context.Context, profile repo.UserUpsert) (*r
 	existing.Email = profile.Email
 	existing.FirstName = profile.FirstName
 	existing.LastName = profile.LastName
-	existing.Phone = profile.Phone
+	if profile.Phone != nil {
+		existing.Phone = profile.Phone
+	}
 	if profile.Roles != nil {
 		existing.Role = rolesJSON
 	}

@@ -18,6 +18,16 @@ model BadRequestError {
 }
 
 @error
+model ConflictError {
+  @statusCode statusCode: 409;
+  @header contentType: "application/problem+json";
+  type?: string;
+  title: string;
+  status: int32;
+  detail?: string;
+}
+
+@error
 model ForbiddenError {
   @statusCode statusCode: 403;
   @header contentType: "application/problem+json";

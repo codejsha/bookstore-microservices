@@ -3,6 +3,7 @@ package protosvc
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,6 +18,8 @@ import (
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/constant"
 	"github.com/codejsha/bookstore-microservices/identity/internal/domain/model/option"
 )
+
+var errInvalidPageToken = errors.New("invalid page token")
 
 var _ userpb.UserServiceServer = (*UserGrpcServer)(nil)
 
@@ -47,7 +50,14 @@ func (s *UserGrpcServer) ListUsers(ctx context.Context, req *userpb.ListUsersReq
 		phone := req.GetPhone()
 		opts = append(opts, option.UserQueryOption{}.WithPhone(&phone))
 	}
-	opts = append(opts, option.UserQueryOption{}.WithPage(newPageOption(req.GetPageSize(), req.GetPageToken(), req.GetOrderBy())))
+	if st, ok := fromUserStatusProto(req.GetStatus()); ok {
+		opts = append(opts, option.UserQueryOption{}.WithStatus(&st))
+	}
+	page, err := newPageOption(req.GetPageSize(), req.GetPageToken(), req.GetOrderBy())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	opts = append(opts, option.UserQueryOption{}.WithPage(page))
 	opt := option.NewUserQueryOption(opts...)
 
 	total, users, err := s.identityUseCase.FindAllUsers(ctx, opt)
@@ -61,8 +71,9 @@ func (s *UserGrpcServer) ListUsers(ctx context.Context, req *userpb.ListUsersReq
 	}
 
 	return &userpb.ListUsersResponse{
-		Users:     resps,
-		TotalSize: int32(total),
+		Users:         resps,
+		NextPageToken: nextPageToken(page, total),
+		TotalSize:     int32(total),
 	}, nil
 }
 
@@ -120,14 +131,44 @@ func toUserStatusProto(s string) userpb.UserStatus {
 	}
 }
 
-func newPageOption(pageSize int32, _pageToken, orderBy string) pagination.PageOption {
+func fromUserStatusProto(s userpb.UserStatus) (string, bool) {
+	switch s {
+	case userpb.UserStatus_USER_STATUS_ACTIVE:
+		return string(constant.USERSTATUS_ACTIVE_VALUE), true
+	case userpb.UserStatus_USER_STATUS_SUSPENDED:
+		return string(constant.USERSTATUS_SUSPENDED_VALUE), true
+	case userpb.UserStatus_USER_STATUS_INACTIVE:
+		return string(constant.USERSTATUS_DEACTIVATED_VALUE), true
+	default:
+		return "", false
+	}
+}
+
+func newPageOption(pageSize int32, pageToken, orderBy string) (pagination.PageOption, error) {
 	var size *int32
 	if pageSize != 0 {
 		size = ptr.Int32(pageSize)
+	}
+	var page *int32
+	if pageToken != "" {
+		n, err := strconv.ParseInt(pageToken, 10, 32)
+		if err != nil || n < 0 {
+			return pagination.NewPageOption(nil, nil, nil), errInvalidPageToken
+		}
+		page = ptr.Int32(int32(n))
 	}
 	var sortPtr *string
 	if orderBy != "" {
 		sortPtr = &orderBy
 	}
-	return pagination.NewPageOption(size, nil, sortPtr)
+	return pagination.NewPageOption(size, page, sortPtr), nil
+}
+
+func nextPageToken(page pagination.PageOption, total int64) string {
+	normalized := page.RowOffset()
+	offset, size := int64(normalized.GetPage()), int64(normalized.GetSize())
+	if offset+size >= total {
+		return ""
+	}
+	return strconv.FormatInt(offset/size+1, 10)
 }
