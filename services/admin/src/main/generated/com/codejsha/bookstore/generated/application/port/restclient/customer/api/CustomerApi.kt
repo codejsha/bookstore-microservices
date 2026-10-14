@@ -4,15 +4,10 @@ package com.codejsha.bookstore.generated.application.port.restclient.customer.ap
 
 import com.codejsha.bookstore.generated.application.port.restclient.customer.model.CustomerFindAllResponse
 import com.codejsha.bookstore.generated.application.port.restclient.customer.model.CustomerFindResponse
-import com.codejsha.bookstore.generated.application.port.restclient.customer.model.CustomerUpdateRequest
-import com.codejsha.bookstore.generated.application.port.restclient.customer.model.CustomerUpdateResponse
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.service.annotation.DeleteExchange
 import org.springframework.web.service.annotation.GetExchange
 import org.springframework.web.service.annotation.HttpExchange
-import org.springframework.web.service.annotation.PutExchange
 
 /**
  * Customer API
@@ -22,6 +17,12 @@ interface CustomerApi {
 
     /**
      * Find all customers
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
+     * 503 (ServiceUnavailableError) — Service unavailable.
+     * 504 (GatewayTimeoutError) — Server error
      *
      * GET /api/v1/customers
      * @param email @RequestParam(value = "email", required = false)
@@ -48,7 +49,11 @@ interface CustomerApi {
     /**
      * Find customer
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 503 (ServiceUnavailableError) — Service unavailable.
+     * 504 (GatewayTimeoutError) — Server error
      *
      * GET /api/v1/customers/{uid}
      * @param uid @PathVariable("uid")
@@ -61,37 +66,4 @@ interface CustomerApi {
     fun customersRead(
         @PathVariable("uid") uid: String
     ): CustomerFindResponse
-
-    /**
-     * Update customer
-     * Errors:
-     * 404 (NotFoundError) — The server cannot find the requested resource.
-     *
-     * PUT /api/v1/customers/{uid}
-     * @param uid @PathVariable("uid")
-     * @param requestBody @RequestBody
-     * @return CustomerUpdateResponse
-     */
-    @PutExchange(
-        url = "/api/v1/customers/{uid}",
-        contentType = "application/json",
-        accept = ["application/json"]
-    )
-    fun customersUpdate(
-        @PathVariable("uid") uid: String,
-        @RequestBody requestBody: CustomerUpdateRequest
-    ): CustomerUpdateResponse
-
-    /**
-     * Delete customer
-     * Errors:
-     * 404 (NotFoundError) — The server cannot find the requested resource.
-     *
-     * DELETE /api/v1/customers/{uid}
-     * @param uid @PathVariable("uid")
-     */
-    @DeleteExchange("/api/v1/customers/{uid}")
-    fun customersDelete(
-        @PathVariable("uid") uid: String
-    ): Unit
 }

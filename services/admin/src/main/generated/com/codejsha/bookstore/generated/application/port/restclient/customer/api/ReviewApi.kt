@@ -23,6 +23,8 @@ interface ReviewApi {
 
     /**
      * Get all reviews for a book
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      *
      * GET /api/v1/books/{book_uid}/reviews
      * @param bookUid @PathVariable("book_uid")
@@ -47,7 +49,9 @@ interface ReviewApi {
     /**
      * Get all reviews by a customer
      * Errors:
-     * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      *
      * GET /api/v1/customers/{uid}/reviews
      * @param uid @PathVariable("uid")
@@ -71,7 +75,10 @@ interface ReviewApi {
      * Write a review for a book
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/customers/{uid}/reviews
      * @param uid @PathVariable("uid")
@@ -92,6 +99,8 @@ interface ReviewApi {
     /**
      * Get a specific review
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * GET /api/v1/customers/{uid}/reviews/{review_uid}
@@ -112,6 +121,8 @@ interface ReviewApi {
      * Edit a review
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * PUT /api/v1/customers/{uid}/reviews/{review_uid}
@@ -134,6 +145,8 @@ interface ReviewApi {
     /**
      * Delete a review
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * DELETE /api/v1/customers/{uid}/reviews/{review_uid}
