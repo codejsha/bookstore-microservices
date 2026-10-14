@@ -21,6 +21,10 @@ interface TransferApi {
 
     /**
      * Find all stock transfers
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      *
      * GET /api/v1/transfers
      * @param editionUid @RequestParam(value = "edition_uid", required = false)
@@ -50,6 +54,8 @@ interface TransferApi {
      * Create stock transfer between warehouses
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * POST /api/v1/transfers
@@ -68,6 +74,8 @@ interface TransferApi {
     /**
      * Find stock transfer
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      *
      * GET /api/v1/transfers/{uid}
@@ -86,7 +94,10 @@ interface TransferApi {
      * Cancel stock transfer
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/transfers/{uid}/cancel
      * @param uid @PathVariable("uid")
@@ -104,7 +115,10 @@ interface TransferApi {
      * Complete stock transfer
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
      * POST /api/v1/transfers/{uid}/complete
      * @param uid @PathVariable("uid")
