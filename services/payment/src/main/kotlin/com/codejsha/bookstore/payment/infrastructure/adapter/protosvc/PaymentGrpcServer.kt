@@ -40,15 +40,18 @@ class PaymentGrpcServer(
             }
 
             val option = PaymentQueryOption(customerId = customerUid)
-            val pageable = buildPageRequest(request.pageSize, 0, request.orderBy)
+            val page = request.pageToken.takeIf { it.isNotBlank() }?.toIntOrNull() ?: 0
+            val pageable = buildPageRequest(request.pageSize, page, request.orderBy)
 
             val payments = paymentUseCase.findAllPayments(option, pageable, context)
-            val response = ListPaymentsResponse.newBuilder()
+            val responseBuilder = ListPaymentsResponse.newBuilder()
                 .addAllPayments(payments.content.map { it.toPaymentProto() })
                 .setTotalSize(payments.totalElements.toInt())
-                .build()
+            if (payments.hasNext()) {
+                responseBuilder.nextPageToken = (page + 1).toString()
+            }
 
-            responseObserver.onNext(response)
+            responseObserver.onNext(responseBuilder.build())
             responseObserver.onCompleted()
         } catch (e: Exception) {
             responseObserver.onError(toStatusException(e))
@@ -104,15 +107,18 @@ class PaymentGrpcServer(
                     .takeIf { it != ProtoRefundStatus.REFUND_STATUS_UNSPECIFIED }
                     ?.let { toDomainRefundStatus(it).value },
             )
-            val pageable = buildPageRequest(request.pageSize, 0, request.orderBy)
+            val page = request.pageToken.takeIf { it.isNotBlank() }?.toIntOrNull() ?: 0
+            val pageable = buildPageRequest(request.pageSize, page, request.orderBy)
 
             val refunds = refundUseCase.findAllRefunds(option, pageable, context)
-            val response = ListRefundsResponse.newBuilder()
+            val responseBuilder = ListRefundsResponse.newBuilder()
                 .addAllRefunds(refunds.content.map { it.toRefundProto() })
                 .setTotalSize(refunds.totalElements.toInt())
-                .build()
+            if (refunds.hasNext()) {
+                responseBuilder.nextPageToken = (page + 1).toString()
+            }
 
-            responseObserver.onNext(response)
+            responseObserver.onNext(responseBuilder.build())
             responseObserver.onCompleted()
         } catch (e: Exception) {
             responseObserver.onError(toStatusException(e))

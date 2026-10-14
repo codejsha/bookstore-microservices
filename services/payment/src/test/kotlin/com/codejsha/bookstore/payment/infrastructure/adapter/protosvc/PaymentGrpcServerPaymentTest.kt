@@ -40,13 +40,17 @@ class PaymentGrpcServerPaymentTest {
         var findResult: PaymentAggregate? = null,
         var findError: Throwable? = null,
         var listError: Throwable? = null,
+        var listTotal: Long? = null,
     ) : PaymentUseCase {
         var capturedListOption: PaymentQueryOption? = null
+        var capturedPageable: Pageable? = null
 
         override fun findAllPayments(option: PaymentQueryOption, pageable: Pageable, context: ActorContext): Page<PaymentAggregate> {
             capturedListOption = option
+            capturedPageable = pageable
             listError?.let { throw it }
-            return PageImpl(listOfNotNull(findResult))
+            val content = listOfNotNull(findResult)
+            return PageImpl(content, pageable, listTotal ?: content.size.toLong())
         }
 
         override fun findPayment(uid: UUID, context: ActorContext): PaymentAggregate {
@@ -219,6 +223,38 @@ class PaymentGrpcServerPaymentTest {
         }
 
         assertEquals(null, useCase.capturedListOption?.customerId)
+    }
+
+    @Test
+    fun `listPayments_pageTokenGiven_requestsThatPageAndEmitsNextToken`() {
+        val useCase = FakePaymentUseCase(findResult = PaymentTestFixtures.paymentAggregate(), listTotal = 50)
+        val server = PaymentGrpcServer(useCase, UnusedRefundUseCase())
+
+        val observer = CapturingObserver<ListPaymentsResponse>()
+        withActor(ACTOR_UID, admin = false) {
+            server.listPayments(
+                ListPaymentsRequest.newBuilder().setPageSize(10).setPageToken("2").build(),
+                observer,
+            )
+        }
+
+        assertEquals(2, useCase.capturedPageable?.pageNumber)
+        assertEquals(10, useCase.capturedPageable?.pageSize)
+        assertEquals("3", observer.values.single().nextPageToken)
+    }
+
+    @Test
+    fun `listPayments_pageTokenOmitted_requestsFirstPageWithoutNextToken`() {
+        val useCase = FakePaymentUseCase(findResult = PaymentTestFixtures.paymentAggregate())
+        val server = PaymentGrpcServer(useCase, UnusedRefundUseCase())
+
+        val observer = CapturingObserver<ListPaymentsResponse>()
+        withActor(ACTOR_UID, admin = false) {
+            server.listPayments(ListPaymentsRequest.newBuilder().setPageSize(10).build(), observer)
+        }
+
+        assertEquals(0, useCase.capturedPageable?.pageNumber)
+        assertEquals("", observer.values.single().nextPageToken)
     }
 
     @Test
