@@ -18,7 +18,7 @@ interface AdminRisk {
   flagRisk(
     @path uid: uuid,
     @body body: AdminRiskFlagRequest,
-  ): AdminRiskEntryResponse | BadRequestError | UnauthorizedError | ForbiddenError;
+  ): AdminRiskEntryResponse | BadRequestError | UnauthorizedError | ForbiddenError | ConflictError;
 
   @doc("Remove a principal's risk flag")
   @route("{uid}")

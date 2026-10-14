@@ -56,5 +56,5 @@ interface AdminUsers {
   @post
   deactivateUser(
     @path uid: uuid,
-  ): AdminUserResponse | BadRequestError | UnauthorizedError | ForbiddenError | NotFoundError;
+  ): AdminUserResponse | BadRequestError | UnauthorizedError | ForbiddenError | NotFoundError | ConflictError;
 }

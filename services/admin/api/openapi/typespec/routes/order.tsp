@@ -32,5 +32,5 @@ interface AdminOrders {
   @post
   cancelOrder(
     @path uid: uuid,
-  ): AdminOrderResponse | BadRequestError | UnauthorizedError | ForbiddenError | NotFoundError;
+  ): AdminOrderResponse | BadRequestError | UnauthorizedError | ForbiddenError | NotFoundError | ConflictError;
 }
