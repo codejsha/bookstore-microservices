@@ -24,7 +24,9 @@ import org.springframework.web.service.annotation.PutExchange
 interface WorkApi {
 
     /**
-     * Search works
+     * Search works. Served from the OpenSearch search index, not the primary database: a newly created or updated work appears here only after the CDC pipeline has indexed it
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      *
      * GET /api/v1/works
      * @param title @RequestParam(value = "title", required = false)
@@ -54,6 +56,8 @@ interface WorkApi {
      * Create new work
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
@@ -73,6 +77,8 @@ interface WorkApi {
 
     /**
      * Full-text search backed by OpenSearch
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      *
      * GET /api/v1/works/search
      * @param q @RequestParam(value = "q", required = false)
@@ -115,6 +121,8 @@ interface WorkApi {
      * Update work
      * Errors:
      * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
      * 409 (ConflictError) — The request conflicts with the current state of the server.
      *
@@ -135,6 +143,8 @@ interface WorkApi {
 
     /**
      * Find editions of a work
+     * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
      *
      * GET /api/v1/works/{uid}/editions
      * @param uid @PathVariable("uid")
