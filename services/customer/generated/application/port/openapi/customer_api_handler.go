@@ -19,6 +19,12 @@ func NewCustomerApiHandler(service CustomerApi) *CustomerApiHandler {
 }
 
 // Find all customers
+// Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
+// 503 (ServiceUnavailableError) — Service unavailable.
+// 504 (GatewayTimeoutError) — Server error
 func (h *CustomerApiHandler) CustomersGetAll(c *gin.Context) {
 	emailStr := c.Query("email")
 	var email *string
@@ -72,7 +78,11 @@ func (h *CustomerApiHandler) CustomersGetAll(c *gin.Context) {
 
 // Find customer
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 503 (ServiceUnavailableError) — Service unavailable.
+// 504 (GatewayTimeoutError) — Server error
 func (h *CustomerApiHandler) CustomersRead(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.CustomersRead(c.Request.Context(), uid)
@@ -83,46 +93,12 @@ func (h *CustomerApiHandler) CustomersRead(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// Update customer
-// Errors:
-// 404 (NotFoundError) — The server cannot find the requested resource.
-func (h *CustomerApiHandler) CustomersUpdate(c *gin.Context) {
-	uid := c.Param("uid")
-	var req CustomerUpdateRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		writeProblem(c, http.StatusBadRequest, bindingError(err))
-		return
-	}
-	result, err := h.service.CustomersUpdate(c.Request.Context(), uid, req)
-	if err != nil {
-		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
-		return
-	}
-	c.JSON(http.StatusOK, result)
-}
-
-// Delete customer
-// Errors:
-// 404 (NotFoundError) — The server cannot find the requested resource.
-func (h *CustomerApiHandler) CustomersDelete(c *gin.Context) {
-	uid := c.Param("uid")
-	if err := h.service.CustomersDelete(c.Request.Context(), uid); err != nil {
-		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
-		return
-	}
-	c.Status(http.StatusNoContent)
-}
-
 // RegisterRoutes registers all CustomerApi routes on the given router.
 func (h *CustomerApiHandler) RegisterRoutes(r gin.IRouter) {
 	r.GET("/api/v1/customers", h.CustomersGetAll)
 	r.GET("/api/v1/customers/:uid", h.CustomersRead)
-	r.PUT("/api/v1/customers/:uid", h.CustomersUpdate)
-	r.DELETE("/api/v1/customers/:uid", h.CustomersDelete)
 }
 
 // Per-operation content-type contracts derived from the OpenAPI spec.
 var CustomersGetAllProduces = []string{"application/json"}
 var CustomersReadProduces = []string{"application/json"}
-var CustomersUpdateConsumes = []string{"application/json"}
-var CustomersUpdateProduces = []string{"application/json"}

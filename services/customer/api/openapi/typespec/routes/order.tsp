@@ -18,10 +18,23 @@ interface CustomerOrders {
     @query size?: Size,
     @query page?: Page,
     @query sort?: Sort,
-  ): OrderFindAllResponse | NotFoundError;
+  ):
+    | OrderFindAllResponse
+    | NotFoundError
+    | BadRequestError
+    | UnauthorizedError
+    | ForbiddenError
+    | ServiceUnavailableError
+    | GatewayTimeoutError;
 
   @doc("Find customer's order")
   @route("{order_uid}")
   @get
-  read(@path uid: uuid, @path order_uid: uuid): OrderFindResponse | NotFoundError;
+  read(@path uid: uuid, @path order_uid: uuid):
+    | OrderFindResponse
+    | NotFoundError
+    | UnauthorizedError
+    | ForbiddenError
+    | ServiceUnavailableError
+    | GatewayTimeoutError;
 }

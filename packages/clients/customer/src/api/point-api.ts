@@ -47,7 +47,8 @@ export interface PointApi {
   /**
    * Get customer's point balance
    * Errors:
-   * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   pointsGetBalance(
     uid: string,
@@ -57,7 +58,8 @@ export interface PointApi {
    * Earn points for a customer
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
-   * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   pointsEarn(
     uid: string,
@@ -67,7 +69,9 @@ export interface PointApi {
   /**
    * Get point change history
    * Errors:
-   * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   pointsHistory(
     uid: string,
@@ -78,6 +82,8 @@ export interface PointApi {
    * Spend points for a customer
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   pointsSpend(

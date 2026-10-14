@@ -20,7 +20,8 @@ func NewPointApiHandler(service PointApi) *PointApiHandler {
 
 // Get customer's point balance
 // Errors:
-// 404 (NotFoundError) — The server cannot find the requested resource.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *PointApiHandler) PointsGetBalance(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.PointsGetBalance(c.Request.Context(), uid)
@@ -34,7 +35,8 @@ func (h *PointApiHandler) PointsGetBalance(c *gin.Context) {
 // Earn points for a customer
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
-// 404 (NotFoundError) — The server cannot find the requested resource.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *PointApiHandler) PointsEarn(c *gin.Context) {
 	uid := c.Param("uid")
 	var req PointEarnRequest
@@ -52,7 +54,9 @@ func (h *PointApiHandler) PointsEarn(c *gin.Context) {
 
 // Get point change history
 // Errors:
-// 404 (NotFoundError) — The server cannot find the requested resource.
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 func (h *PointApiHandler) PointsHistory(c *gin.Context) {
 	uid := c.Param("uid")
 	sizeStr := c.Query("size")
@@ -93,6 +97,8 @@ func (h *PointApiHandler) PointsHistory(c *gin.Context) {
 // Spend points for a customer
 // Errors:
 // 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
 func (h *PointApiHandler) PointsSpend(c *gin.Context) {
 	uid := c.Param("uid")

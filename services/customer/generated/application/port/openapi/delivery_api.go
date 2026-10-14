@@ -10,7 +10,12 @@ import (
 type DeliveryApi interface {
 	// List shipments for an order
 	// Errors:
+	// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 503 (ServiceUnavailableError) — Service unavailable.
+	// 504 (GatewayTimeoutError) — Server error
 	DeliveryList(
 		ctx context.Context,
 		orderUid string,
@@ -20,7 +25,11 @@ type DeliveryApi interface {
 
 	// Track a shipment by its uid
 	// Errors:
+	// 401 (UnauthorizedError) — Access is unauthorized.
+	// 403 (ForbiddenError) — Access is forbidden.
 	// 404 (NotFoundError) — The server cannot find the requested resource.
+	// 503 (ServiceUnavailableError) — Service unavailable.
+	// 504 (GatewayTimeoutError) — Server error
 	DeliveryTrack(
 		ctx context.Context,
 		uid string,

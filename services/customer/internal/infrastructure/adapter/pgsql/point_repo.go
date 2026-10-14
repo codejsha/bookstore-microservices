@@ -18,7 +18,6 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/generated/infrastructure/port/entity"
 	genrepo "github.com/codejsha/bookstore-microservices/customer/generated/infrastructure/port/repo"
 	"github.com/codejsha/bookstore-microservices/customer/internal/application/port/repo"
-	"github.com/codejsha/bookstore-microservices/customer/internal/infrastructure/support/utils"
 )
 
 var (
@@ -161,7 +160,7 @@ func (r *pointHistoryRepository) FindAll(ctx context.Context, userUid string, pa
 	h := r.q.CustomerPointHistoryEntity
 	q := h.WithContext(ctx).Where(h.UserUid.Eq(userUid)).Order(h.CreatedAt.Desc())
 
-	offset, limit := utils.PageOffsetLimit(page)
+	offset, limit := page.OffsetLimit()
 	entities, total, err := q.FindByPage(offset, limit)
 	if err != nil {
 		return 0, nil, err

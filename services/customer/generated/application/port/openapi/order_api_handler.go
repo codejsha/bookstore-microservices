@@ -20,7 +20,12 @@ func NewOrderApiHandler(service OrderApi) *OrderApiHandler {
 
 // Find all customer's orders
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 503 (ServiceUnavailableError) — Service unavailable.
+// 504 (GatewayTimeoutError) — Server error
 func (h *OrderApiHandler) CustomerOrdersGetAll(c *gin.Context) {
 	uid := c.Param("uid")
 	statusStr := c.Query("status")
@@ -70,7 +75,11 @@ func (h *OrderApiHandler) CustomerOrdersGetAll(c *gin.Context) {
 
 // Find customer's order
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 503 (ServiceUnavailableError) — Service unavailable.
+// 504 (GatewayTimeoutError) — Server error
 func (h *OrderApiHandler) CustomerOrdersRead(c *gin.Context) {
 	uid := c.Param("uid")
 	orderUid := c.Param("order_uid")

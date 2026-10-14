@@ -3,15 +3,12 @@ package restcontroller
 import (
 	"context"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/codejsha/shared-library-go/pkg/pagination"
 
 	"github.com/codejsha/bookstore-microservices/customer/generated/application/port/openapi"
 	"github.com/codejsha/bookstore-microservices/customer/internal/application/usecase"
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/aggregate"
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/constant"
-	"github.com/codejsha/bookstore-microservices/customer/internal/domain/model/command"
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/model/option"
 	"github.com/codejsha/bookstore-microservices/customer/internal/infrastructure/httpx"
 )
@@ -67,41 +64,6 @@ func (c *customerController) CustomersRead(ctx context.Context, uid string) (*op
 	return &resp, nil
 }
 
-func (c *customerController) CustomersUpdate(
-	ctx context.Context,
-	uid string,
-	req openapi.CustomerUpdateRequest,
-) (*openapi.CustomerUpdateResponse, error) {
-	cmd := command.CustomerUpdateCommand{
-		Uid:       uid,
-		Email:     req.Email,
-		Password:  req.Password,
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		Phone:     req.Phone,
-		Roles:     toAuthRoles(req.Roles),
-	}
-
-	customer, err := c.customerUseCase.UpdateCustomer(ctx, cmd)
-	if err != nil {
-		return nil, httpx.MapBusinessError(ctx, httpx.MapNotImplemented(ctx, err))
-	}
-
-	dispatchSideEffects(context.WithoutCancel(ctx), "customer", uid, "updated", logrus.Fields{})
-
-	resp := toCustomerUpdateResponse(customer)
-	return &resp, nil
-}
-
-func (c *customerController) CustomersDelete(ctx context.Context, uid string) error {
-	if err := c.customerUseCase.DeleteCustomer(ctx, uid); err != nil {
-		return httpx.MapNotImplemented(ctx, err)
-	}
-
-	dispatchSideEffects(context.WithoutCancel(ctx), "customer", uid, "deleted", logrus.Fields{})
-	return nil
-}
-
 // ─── mapping helpers ────────────────────────────────────────────────────────
 
 func toCustomerFindResponse(a *aggregate.CustomerAggregate) openapi.CustomerFindResponse {
@@ -114,29 +76,6 @@ func toCustomerFindResponse(a *aggregate.CustomerAggregate) openapi.CustomerFind
 		Phone:     a.Phone,
 		Roles:     &roles,
 	}
-}
-
-func toCustomerUpdateResponse(a *aggregate.CustomerAggregate) openapi.CustomerUpdateResponse {
-	roles := authRolesToRest(a.Roles)
-	return openapi.CustomerUpdateResponse{
-		Uid:       a.Uid,
-		Email:     &a.Email,
-		FirstName: &a.FirstName,
-		LastName:  &a.LastName,
-		Phone:     a.Phone,
-		Roles:     &roles,
-	}
-}
-
-func toAuthRoles(roles *[]openapi.AuthRole) []constant.AuthRole {
-	if roles == nil {
-		return nil
-	}
-	out := make([]constant.AuthRole, len(*roles))
-	for i, r := range *roles {
-		out[i] = constant.AuthRoleFromString(string(r))
-	}
-	return out
 }
 
 func authRolesToRest(roles []constant.AuthRole) []openapi.AuthRole {

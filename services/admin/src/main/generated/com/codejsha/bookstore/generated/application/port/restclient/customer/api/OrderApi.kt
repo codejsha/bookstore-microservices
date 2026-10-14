@@ -19,7 +19,12 @@ interface OrderApi {
     /**
      * Find all customer's orders
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 503 (ServiceUnavailableError) — Service unavailable.
+     * 504 (GatewayTimeoutError) — Server error
      *
      * GET /api/v1/customers/{uid}/orders
      * @param uid @PathVariable("uid")
@@ -44,7 +49,11 @@ interface OrderApi {
     /**
      * Find customer's order
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 503 (ServiceUnavailableError) — Service unavailable.
+     * 504 (GatewayTimeoutError) — Server error
      *
      * GET /api/v1/customers/{uid}/orders/{order_uid}
      * @param uid @PathVariable("uid")

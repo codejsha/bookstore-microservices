@@ -39,6 +39,7 @@ type ReviewRepo interface {
 
 type WishlistRepo interface {
 	FindAll(ctx context.Context, opt option.WishlistQueryOption) (int64, []*WishlistResult, error)
+	FindAllByUserUid(ctx context.Context, userUid string) ([]*WishlistResult, error)
 	FindOne(ctx context.Context, id int64) (*WishlistResult, error)
 	AddBooks(ctx context.Context, userUid string, bookUids []string) error
 	genrepo.CustomerWishlistRepo

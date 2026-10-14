@@ -20,14 +20,14 @@ func NewPaymentApiHandler(service PaymentApi) *PaymentApiHandler {
 
 // Find customer's payments
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 503 (ServiceUnavailableError) — Service unavailable.
+// 504 (GatewayTimeoutError) — Server error
 func (h *PaymentApiHandler) CustomerPaymentsGetAll(c *gin.Context) {
 	uid := c.Param("uid")
-	orderUidStr := c.Query("order_uid")
-	var orderUid *string
-	if orderUidStr != "" {
-		orderUid = &orderUidStr
-	}
 	sizeStr := c.Query("size")
 	var size *int32
 	if sizeStr != "" {
@@ -55,7 +55,7 @@ func (h *PaymentApiHandler) CustomerPaymentsGetAll(c *gin.Context) {
 	if sortStr != "" {
 		sort = &sortStr
 	}
-	result, err := h.service.CustomerPaymentsGetAll(c.Request.Context(), uid, orderUid, size, page, sort)
+	result, err := h.service.CustomerPaymentsGetAll(c.Request.Context(), uid, size, page, sort)
 	if err != nil {
 		writeProblem(c, http.StatusInternalServerError, apiError(http.StatusInternalServerError, err.Error()))
 		return
@@ -65,7 +65,11 @@ func (h *PaymentApiHandler) CustomerPaymentsGetAll(c *gin.Context) {
 
 // Find customer's payment
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 503 (ServiceUnavailableError) — Service unavailable.
+// 504 (GatewayTimeoutError) — Server error
 func (h *PaymentApiHandler) CustomerPaymentsRead(c *gin.Context) {
 	uid := c.Param("uid")
 	paymentUid := c.Param("payment_uid")

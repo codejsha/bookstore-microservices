@@ -5,6 +5,8 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
+	"github.com/codejsha/shared-library-go/pkg/pagination"
+
 	"github.com/codejsha/bookstore-microservices/customer/generated/application/port/pb/userpb"
 	port "github.com/codejsha/bookstore-microservices/customer/internal/application/port/protostub"
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/aggregate"
@@ -31,13 +33,16 @@ func NewUserClient(c *UserGrpcClient) port.UserClient {
 	return &userClient{client: c.Client}
 }
 
-func (g *userClient) ListUsers(ctx context.Context, email, name, phone string, pageSize int32) (int64, []*aggregate.CustomerAggregate, error) {
+func (g *userClient) ListUsers(ctx context.Context, email, name, phone string, page pagination.PageOption) (int64, []*aggregate.CustomerAggregate, error) {
 	ctx = withUserAuthorization(ctx)
+	pr := toPageRequest(page)
 	resp, err := g.client.ListUsers(ctx, &userpb.ListUsersRequest{
-		Email:    email,
-		Name:     name,
-		Phone:    phone,
-		PageSize: pageSize,
+		Email:     email,
+		Name:      name,
+		Phone:     phone,
+		PageSize:  pr.pageSize,
+		PageToken: pr.pageToken,
+		OrderBy:   pr.orderBy,
 	})
 	if err != nil {
 		return 0, nil, err

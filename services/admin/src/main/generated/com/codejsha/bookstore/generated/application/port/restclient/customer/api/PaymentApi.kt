@@ -18,11 +18,15 @@ interface PaymentApi {
     /**
      * Find customer's payments
      * Errors:
+     * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 503 (ServiceUnavailableError) — Service unavailable.
+     * 504 (GatewayTimeoutError) — Server error
      *
      * GET /api/v1/customers/{uid}/payments
      * @param uid @PathVariable("uid")
-     * @param orderUid @RequestParam(value = "order_uid", required = false)
      * @param size @RequestParam(value = "size", required = false)
      * @param page @RequestParam(value = "page", required = false)
      * @param sort @RequestParam(value = "sort", required = false)
@@ -34,7 +38,6 @@ interface PaymentApi {
     )
     fun customerPaymentsGetAll(
         @PathVariable("uid") uid: String,
-        @RequestParam(value = "order_uid", required = false) orderUid: String?,
         @RequestParam(value = "size", required = false) size: Int?,
         @RequestParam(value = "page", required = false) page: Int?,
         @RequestParam(value = "sort", required = false) sort: String?
@@ -43,7 +46,11 @@ interface PaymentApi {
     /**
      * Find customer's payment
      * Errors:
+     * 401 (UnauthorizedError) — Access is unauthorized.
+     * 403 (ForbiddenError) — Access is forbidden.
      * 404 (NotFoundError) — The server cannot find the requested resource.
+     * 503 (ServiceUnavailableError) — Service unavailable.
+     * 504 (GatewayTimeoutError) — Server error
      *
      * GET /api/v1/customers/{uid}/payments/{payment_uid}
      * @param uid @PathVariable("uid")

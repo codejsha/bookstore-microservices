@@ -3,21 +3,23 @@ package protostub
 import (
 	"context"
 
+	"github.com/codejsha/shared-library-go/pkg/pagination"
+
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/aggregate"
 )
 
 type UserClient interface {
-	ListUsers(ctx context.Context, email, name, phone string, pageSize int32) (int64, []*aggregate.CustomerAggregate, error)
+	ListUsers(ctx context.Context, email, name, phone string, page pagination.PageOption) (int64, []*aggregate.CustomerAggregate, error)
 	FindUser(ctx context.Context, uid string) (*aggregate.CustomerAggregate, error)
 }
 
 type OrderClient interface {
-	ListOrders(ctx context.Context, userUid string, status *string, pageSize int32) (int64, []*aggregate.OrderAggregate, error)
+	ListOrders(ctx context.Context, userUid string, status *string, page pagination.PageOption) (int64, []*aggregate.OrderAggregate, error)
 	FindOrder(ctx context.Context, uid string) (*aggregate.OrderAggregate, error)
 }
 
 type PaymentClient interface {
-	ListPayments(ctx context.Context, customerUid string, pageSize int32) (int64, []*aggregate.PaymentAggregate, error)
+	ListPayments(ctx context.Context, customerUid string, page pagination.PageOption) (int64, []*aggregate.PaymentAggregate, error)
 	FindPayment(ctx context.Context, uid string) (*aggregate.PaymentAggregate, error)
 }
 

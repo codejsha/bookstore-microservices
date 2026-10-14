@@ -3,8 +3,6 @@ package command
 import (
 	"errors"
 	"testing"
-
-	"github.com/codejsha/bookstore-microservices/customer/internal/domain/constant"
 )
 
 func ptr[T any](v T) *T { return &v }
@@ -21,45 +19,6 @@ func longText(n int) string {
 		out[i] = 'x'
 	}
 	return string(out)
-}
-
-func TestCustomerUpdateCommand_Validate(t *testing.T) {
-	valid := CustomerUpdateCommand{Uid: "u-1"}
-	tests := []struct {
-		name    string
-		mutate  func(c *CustomerUpdateCommand)
-		wantErr bool
-	}{
-		{"onlyUidSet_noError", func(c *CustomerUpdateCommand) {}, false},
-		{"everyFieldSet_noError", func(c *CustomerUpdateCommand) {
-			c.Email = ptr("a@b.co")
-			c.FirstName = ptr("Jin")
-			c.Roles = []constant.AuthRole{constant.AUTHROLE_STAFF, constant.AUTHROLE_MANAGER}
-		}, false},
-		{"uidBlank_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Uid = " " }, true},
-		{"emailMalformed_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Email = ptr("not-an-email") }, true},
-		{"passwordBlank_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Password = ptr("  ") }, true},
-		{"phoneBlank_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Phone = ptr("") }, true},
-		{"roleUnknown_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Roles = []constant.AuthRole{constant.AUTHROLE_UNKNOWN} }, true},
-		{"roleNotAKnownMember_errInvalidCommand", func(c *CustomerUpdateCommand) { c.Roles = []constant.AuthRole{99} }, true},
-		{"rolesDuplicated_errInvalidCommand", func(c *CustomerUpdateCommand) {
-			c.Roles = []constant.AuthRole{constant.AUTHROLE_USER, constant.AUTHROLE_USER}
-		}, true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cmd := valid
-			tt.mutate(&cmd)
-			err := cmd.Validate()
-			if tt.wantErr {
-				if !errors.Is(err, ErrInvalidCommand) {
-					t.Fatalf("want ErrInvalidCommand, got %v", err)
-				}
-			} else if err != nil {
-				t.Fatalf("want nil, got %v", err)
-			}
-		})
-	}
 }
 
 // Earn and spend share one rule set, so both commands run here: a non-positive or

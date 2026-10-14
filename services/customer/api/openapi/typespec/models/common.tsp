@@ -18,6 +18,16 @@ model BadRequestError {
 }
 
 @error
+model UnauthorizedError {
+  @statusCode statusCode: 401;
+  @header contentType: "application/problem+json";
+  type?: string;
+  title: string;
+  status: int32;
+  detail?: string;
+}
+
+@error
 model ForbiddenError {
   @statusCode statusCode: 403;
   @header contentType: "application/problem+json";
@@ -30,6 +40,36 @@ model ForbiddenError {
 @error
 model NotFoundError {
   @statusCode statusCode: 404;
+  @header contentType: "application/problem+json";
+  type?: string;
+  title: string;
+  status: int32;
+  detail?: string;
+}
+
+@error
+model ConflictError {
+  @statusCode statusCode: 409;
+  @header contentType: "application/problem+json";
+  type?: string;
+  title: string;
+  status: int32;
+  detail?: string;
+}
+
+@error
+model ServiceUnavailableError {
+  @statusCode statusCode: 503;
+  @header contentType: "application/problem+json";
+  type?: string;
+  title: string;
+  status: int32;
+  detail?: string;
+}
+
+@error
+model GatewayTimeoutError {
+  @statusCode statusCode: 504;
   @header contentType: "application/problem+json";
   type?: string;
   title: string;

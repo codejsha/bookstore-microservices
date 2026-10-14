@@ -20,7 +20,12 @@ func NewDeliveryApiHandler(service DeliveryApi) *DeliveryApiHandler {
 
 // List shipments for an order
 // Errors:
+// 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 503 (ServiceUnavailableError) — Service unavailable.
+// 504 (GatewayTimeoutError) — Server error
 func (h *DeliveryApiHandler) DeliveryList(c *gin.Context) {
 	orderUid := c.Param("order_uid")
 	statusStr := c.Query("status")
@@ -54,7 +59,11 @@ func (h *DeliveryApiHandler) DeliveryList(c *gin.Context) {
 
 // Track a shipment by its uid
 // Errors:
+// 401 (UnauthorizedError) — Access is unauthorized.
+// 403 (ForbiddenError) — Access is forbidden.
 // 404 (NotFoundError) — The server cannot find the requested resource.
+// 503 (ServiceUnavailableError) — Service unavailable.
+// 504 (GatewayTimeoutError) — Server error
 func (h *DeliveryApiHandler) DeliveryTrack(c *gin.Context) {
 	uid := c.Param("uid")
 	result, err := h.service.DeliveryTrack(c.Request.Context(), uid)

@@ -46,6 +46,8 @@ export interface ReviewApi {
 
   /**
    * Get all reviews for a book
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
    */
   bookReviewsGetAll(
     bookUid: string,
@@ -56,7 +58,9 @@ export interface ReviewApi {
   /**
    * Get all reviews by a customer
    * Errors:
-   * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   customerReviewsGetAll(
     uid: string,
@@ -67,7 +71,10 @@ export interface ReviewApi {
    * Write a review for a book
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 409 (ConflictError) — The request conflicts with the current state of the server.
    *
    * Response headers (on success; read via `response.headers` — not part of the return value):
    * - `location`: string — Location of the created resource
@@ -80,6 +87,8 @@ export interface ReviewApi {
   /**
    * Get a specific review
    * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   customerReviewsRead(
@@ -91,6 +100,8 @@ export interface ReviewApi {
    * Edit a review
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   customerReviewsEdit(
@@ -102,6 +113,8 @@ export interface ReviewApi {
   /**
    * Delete a review
    * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
    */
   customerReviewsRemove(

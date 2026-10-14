@@ -65,7 +65,7 @@ func (s *customerService) FindAllCustomers(ctx context.Context, opt option.UserQ
 	callCtx, cancel := withGrpcTimeout(ctx)
 	defer cancel()
 	total, out, err := s.userClient.ListUsers(
-		callCtx, derefString(opt.Email()), derefString(opt.Name()), derefString(opt.Phone()), opt.Page().GetSize())
+		callCtx, derefString(opt.Email()), derefString(opt.Name()), derefString(opt.Phone()), opt.Page())
 	if err != nil {
 		return 0, nil, fmt.Errorf("list users via grpc: %w", err)
 	}
@@ -82,23 +82,12 @@ func (s *customerService) FindCustomer(ctx context.Context, uid string) (*aggreg
 	return customer, nil
 }
 
-func (s *customerService) UpdateCustomer(ctx context.Context, cmd command.CustomerUpdateCommand) (*aggregate.CustomerAggregate, error) {
-	if err := cmd.Validate(); err != nil {
-		return nil, err
-	}
-	return nil, fmt.Errorf("update customer: %w (UserService has no UpdateUser RPC)", usecase.ErrNotImplemented)
-}
-
-func (s *customerService) DeleteCustomer(ctx context.Context, uid string) error {
-	return fmt.Errorf("delete customer: %w (UserService has no DeleteUser RPC)", usecase.ErrNotImplemented)
-}
-
 // ─── Orders (via order gRPC) ────────────────────────────────────────
 
 func (s *customerService) FindAllCustomerOrders(ctx context.Context, opt option.OrderQueryOption) (int64, []*aggregate.OrderAggregate, error) {
 	callCtx, cancel := withGrpcTimeout(ctx)
 	defer cancel()
-	total, out, err := s.orderClient.ListOrders(callCtx, derefString(opt.UserUid()), opt.Status(), opt.Page().GetSize())
+	total, out, err := s.orderClient.ListOrders(callCtx, derefString(opt.UserUid()), opt.Status(), opt.Page())
 	if err != nil {
 		return 0, nil, fmt.Errorf("list orders via grpc: %w", err)
 	}
@@ -126,16 +115,9 @@ func (s *customerService) FindCustomerOrder(ctx context.Context, uid string, ord
 func (s *customerService) FindAllCustomerPayments(ctx context.Context, opt option.PaymentQueryOption) (int64, []*aggregate.PaymentAggregate, error) {
 	callCtx, cancel := withGrpcTimeout(ctx)
 	defer cancel()
-	total, payments, err := s.paymentClient.ListPayments(callCtx, derefString(opt.UserUid()), opt.Page().GetSize())
+	total, out, err := s.paymentClient.ListPayments(callCtx, derefString(opt.UserUid()), opt.Page())
 	if err != nil {
 		return 0, nil, fmt.Errorf("list payments via grpc: %w", err)
-	}
-	out := make([]*aggregate.PaymentAggregate, 0, len(payments))
-	for _, p := range payments {
-		if orderUid := opt.OrderUid(); orderUid != nil && *orderUid != "" {
-			_ = orderUid
-		}
-		out = append(out, p)
 	}
 	return total, out, nil
 }
@@ -216,8 +198,7 @@ func (s *customerService) ListOrderShipments(ctx context.Context, orderUid strin
 // ─── Wishlist ───────────────────────────────────────────────────────
 
 func (s *customerService) GetWishlist(ctx context.Context, userUid string) (*aggregate.WishlistAggregate, error) {
-	opt := option.NewWishlistQueryOption(option.WishlistQueryOption{}.WithUserUid(&userUid))
-	_, results, err := s.wishlistRepo.FindAll(ctx, opt)
+	results, err := s.wishlistRepo.FindAllByUserUid(ctx, userUid)
 	if err != nil {
 		return nil, err
 	}
@@ -420,11 +401,11 @@ func (s *customerService) RemoveReview(ctx context.Context, userUid string, revi
 		return err
 	}
 	if len(rows) == 0 {
-		return nil
+		return fmt.Errorf("remove review %s: %w", reviewUid, usecase.ErrNotFound)
 	}
 	ent := rows[0]
 	if ent.UserUid != userUid {
-		return nil
+		return fmt.Errorf("remove review %s: %w", reviewUid, usecase.ErrNotFound)
 	}
 	return s.reviewRepo.Delete(ctx, ent)
 }

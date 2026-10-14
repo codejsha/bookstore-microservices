@@ -11,7 +11,7 @@ import (
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/model/option"
 )
 
-var ErrNotImplemented = errors.New("operation not supported by upstream service")
+var ErrNotFound = errors.New("resource not found")
 
 type Caller struct {
 	UserUid string
@@ -26,8 +26,6 @@ type CustomerUseCase interface {
 	// ─── Customer profile ──────────────
 	FindAllCustomers(ctx context.Context, opt option.UserQueryOption) (int64, []*aggregate.CustomerAggregate, error)
 	FindCustomer(ctx context.Context, uid string) (*aggregate.CustomerAggregate, error)
-	UpdateCustomer(ctx context.Context, cmd command.CustomerUpdateCommand) (*aggregate.CustomerAggregate, error)
-	DeleteCustomer(ctx context.Context, uid string) error
 
 	// ─── Orders ─────────────────────────
 	FindAllCustomerOrders(ctx context.Context, opt option.OrderQueryOption) (int64, []*aggregate.OrderAggregate, error)

@@ -14,7 +14,6 @@ import (
 	genrepo "github.com/codejsha/bookstore-microservices/customer/generated/infrastructure/port/repo"
 	"github.com/codejsha/bookstore-microservices/customer/internal/application/port/repo"
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/model/option"
-	"github.com/codejsha/bookstore-microservices/customer/internal/infrastructure/support/utils"
 )
 
 var _ repo.WishlistRepo = (*wishlistRepository)(nil)
@@ -44,7 +43,7 @@ func (r *wishlistRepository) FindAll(ctx context.Context, opt option.WishlistQue
 	}
 	q = q.Order(w.CreatedAt.Desc())
 
-	offset, limit := utils.PageOffsetLimit(opt.Page())
+	offset, limit := opt.Page().OffsetLimit()
 	entities, total, err := q.FindByPage(offset, limit)
 	if err != nil {
 		return 0, nil, err
@@ -55,6 +54,23 @@ func (r *wishlistRepository) FindAll(ctx context.Context, opt option.WishlistQue
 		results[i] = toWishlistResult(e)
 	}
 	return total, results, nil
+}
+
+func (r *wishlistRepository) FindAllByUserUid(ctx context.Context, userUid string) ([]*repo.WishlistResult, error) {
+	w := r.q.CustomerWishlistEntity
+	entities, err := w.WithContext(ctx).
+		Where(w.UserUid.Eq(userUid)).
+		Order(w.CreatedAt.Desc(), w.Id.Desc()).
+		Find()
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*repo.WishlistResult, len(entities))
+	for i, e := range entities {
+		results[i] = toWishlistResult(e)
+	}
+	return results, nil
 }
 
 func (r *wishlistRepository) AddBooks(ctx context.Context, userUid string, bookUids []string) error {

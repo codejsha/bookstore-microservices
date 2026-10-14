@@ -38,38 +38,11 @@ func TestToCustomerFindResponse_AggregateFullyPopulated_MapsEveryField(t *testin
 	}
 }
 
-func TestToCustomerUpdateResponse_AggregateGiven_MapsEveryField(t *testing.T) {
-	a := &aggregate.CustomerAggregate{
-		Uid:       "u-1",
-		Email:     "a@b.com",
-		FirstName: "A",
-		LastName:  "B",
-		Roles:     []constant.AuthRole{constant.AUTHROLE_MANAGER},
-	}
-	got := toCustomerUpdateResponse(a)
-	if got.Uid != "u-1" || *got.Email != "a@b.com" {
-		t.Errorf("got = %+v", got)
-	}
-	if got.Roles == nil || len(*got.Roles) != 1 || (*got.Roles)[0] != openapi.AUTHROLE_MANAGER {
-		t.Errorf("Roles = %v", got.Roles)
-	}
-}
-
-func TestAuthRoles_ConvertedBothWays_RoundTripUnchanged(t *testing.T) {
-	in := []openapi.AuthRole{openapi.AUTHROLE_USER, openapi.AUTHROLE_MANAGER}
-	domain := toAuthRoles(&in)
-	if !reflect.DeepEqual(domain, []constant.AuthRole{constant.AUTHROLE_USER, constant.AUTHROLE_MANAGER}) {
-		t.Errorf("toAuthRoles = %v", domain)
-	}
-	rest := authRolesToRest(domain)
-	if !reflect.DeepEqual(rest, in) {
-		t.Errorf("authRolesToRest = %v, want %v", rest, in)
-	}
-}
-
-func TestToAuthRoles_RolesNil_NilSlice(t *testing.T) {
-	if got := toAuthRoles(nil); got != nil {
-		t.Errorf("nil -> %v, want nil", got)
+func TestAuthRolesToRest_DomainRolesGiven_RestRolesInOrder(t *testing.T) {
+	got := authRolesToRest([]constant.AuthRole{constant.AUTHROLE_USER, constant.AUTHROLE_MANAGER})
+	want := []openapi.AuthRole{openapi.AUTHROLE_USER, openapi.AUTHROLE_MANAGER}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("authRolesToRest = %v, want %v", got, want)
 	}
 }
 
@@ -120,6 +93,7 @@ func TestToOrderStatusRest_WhenDomainStatusGiven_ReturnsRestStatus(t *testing.T)
 func TestToPaymentFindResponse_WhenAggregateFullyPopulated_MapsEveryField(t *testing.T) {
 	errMsg := "card declined"
 	a := &aggregate.PaymentAggregate{
+		Uid:          "p-1",
 		PaymentUid:   "px-1",
 		CustomerUid:  "u-1",
 		Currency:     "USD",
@@ -128,7 +102,7 @@ func TestToPaymentFindResponse_WhenAggregateFullyPopulated_MapsEveryField(t *tes
 		ErrorMessage: &errMsg,
 	}
 	got := toPaymentFindResponse(a)
-	if got.Uid != "px-1" || *got.UserUid != "u-1" || *got.Currency != "USD" || *got.Amount != 50 {
+	if got.Uid != "p-1" || *got.UserUid != "u-1" || *got.Currency != "USD" || *got.Amount != 50 {
 		t.Errorf("got = %+v", got)
 	}
 	if got.Status == nil || *got.Status != "PAYMENT_STATUS_FAILED" {

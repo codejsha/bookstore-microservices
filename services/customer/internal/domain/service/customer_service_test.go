@@ -36,12 +36,12 @@ var (
 )
 
 type stubUserClient struct {
-	listUsersFn func(ctx context.Context, email, name, phone string, pageSize int32) (int64, []*aggregate.CustomerAggregate, error)
+	listUsersFn func(ctx context.Context, email, name, phone string, page pagination.PageOption) (int64, []*aggregate.CustomerAggregate, error)
 	findUserFn  func(ctx context.Context, uid string) (*aggregate.CustomerAggregate, error)
 }
 
-func (s *stubUserClient) ListUsers(ctx context.Context, email, name, phone string, pageSize int32) (int64, []*aggregate.CustomerAggregate, error) {
-	return s.listUsersFn(ctx, email, name, phone, pageSize)
+func (s *stubUserClient) ListUsers(ctx context.Context, email, name, phone string, page pagination.PageOption) (int64, []*aggregate.CustomerAggregate, error) {
+	return s.listUsersFn(ctx, email, name, phone, page)
 }
 
 func (s *stubUserClient) FindUser(ctx context.Context, uid string) (*aggregate.CustomerAggregate, error) {
@@ -49,12 +49,12 @@ func (s *stubUserClient) FindUser(ctx context.Context, uid string) (*aggregate.C
 }
 
 type stubOrderClient struct {
-	listOrdersFn func(ctx context.Context, userUid string, status *string, pageSize int32) (int64, []*aggregate.OrderAggregate, error)
+	listOrdersFn func(ctx context.Context, userUid string, status *string, page pagination.PageOption) (int64, []*aggregate.OrderAggregate, error)
 	findOrderFn  func(ctx context.Context, uid string) (*aggregate.OrderAggregate, error)
 }
 
-func (s *stubOrderClient) ListOrders(ctx context.Context, userUid string, status *string, pageSize int32) (int64, []*aggregate.OrderAggregate, error) {
-	return s.listOrdersFn(ctx, userUid, status, pageSize)
+func (s *stubOrderClient) ListOrders(ctx context.Context, userUid string, status *string, page pagination.PageOption) (int64, []*aggregate.OrderAggregate, error) {
+	return s.listOrdersFn(ctx, userUid, status, page)
 }
 
 func (s *stubOrderClient) FindOrder(ctx context.Context, uid string) (*aggregate.OrderAggregate, error) {
@@ -62,12 +62,12 @@ func (s *stubOrderClient) FindOrder(ctx context.Context, uid string) (*aggregate
 }
 
 type stubPaymentClient struct {
-	listPaymentsFn func(ctx context.Context, customerUid string, pageSize int32) (int64, []*aggregate.PaymentAggregate, error)
+	listPaymentsFn func(ctx context.Context, customerUid string, page pagination.PageOption) (int64, []*aggregate.PaymentAggregate, error)
 	findPaymentFn  func(ctx context.Context, uid string) (*aggregate.PaymentAggregate, error)
 }
 
-func (s *stubPaymentClient) ListPayments(ctx context.Context, customerUid string, pageSize int32) (int64, []*aggregate.PaymentAggregate, error) {
-	return s.listPaymentsFn(ctx, customerUid, pageSize)
+func (s *stubPaymentClient) ListPayments(ctx context.Context, customerUid string, page pagination.PageOption) (int64, []*aggregate.PaymentAggregate, error) {
+	return s.listPaymentsFn(ctx, customerUid, page)
 }
 
 func (s *stubPaymentClient) FindPayment(ctx context.Context, uid string) (*aggregate.PaymentAggregate, error) {
@@ -131,20 +131,18 @@ func (s *stubPointHistoryRepo) Create(ctx context.Context, ent *entity.CustomerP
 
 type stubWishlistRepo struct {
 	repo.WishlistRepo
-	findAllFn        func(ctx context.Context, opt option.WishlistQueryOption) (int64, []*repo.WishlistResult, error)
-	fetchByUserUidFn func(ctx context.Context, userUid string) ([]*entity.CustomerWishlistEntity, error)
-	deleteFn         func(ctx context.Context, ent *entity.CustomerWishlistEntity) error
-	addBooksFn       func(ctx context.Context, userUid string, bookUids []string) error
+	findAllByUserUidFn func(ctx context.Context, userUid string) ([]*repo.WishlistResult, error)
+	fetchByUserUidFn   func(ctx context.Context, userUid string) ([]*entity.CustomerWishlistEntity, error)
+	deleteFn           func(ctx context.Context, ent *entity.CustomerWishlistEntity) error
+	addBooksFn         func(ctx context.Context, userUid string, bookUids []string) error
 }
 
 func (s *stubWishlistRepo) AddBooks(ctx context.Context, userUid string, bookUids []string) error {
 	return s.addBooksFn(ctx, userUid, bookUids)
 }
 
-func (s *stubWishlistRepo) FindAll(
-	ctx context.Context, opt option.WishlistQueryOption,
-) (int64, []*repo.WishlistResult, error) {
-	return s.findAllFn(ctx, opt)
+func (s *stubWishlistRepo) FindAllByUserUid(ctx context.Context, userUid string) ([]*repo.WishlistResult, error) {
+	return s.findAllByUserUidFn(ctx, userUid)
 }
 
 func (s *stubWishlistRepo) FetchByUserUid(
@@ -197,7 +195,7 @@ func (s *stubReviewRepo) Delete(ctx context.Context, ent *entity.CustomerReviewE
 
 func TestFindAllCustomers_WhenIdentityReturnsRows_ReturnsAggregates(t *testing.T) {
 	userClient := &stubUserClient{
-		listUsersFn: func(context.Context, string, string, string, int32) (int64, []*aggregate.CustomerAggregate, error) {
+		listUsersFn: func(context.Context, string, string, string, pagination.PageOption) (int64, []*aggregate.CustomerAggregate, error) {
 			return 2, []*aggregate.CustomerAggregate{
 				{Uid: testUserUid, Email: "a@b.com"},
 				{Uid: testUserUid2, Email: "c@d.com"},
@@ -220,7 +218,7 @@ func TestFindAllCustomers_WhenIdentityReturnsRows_ReturnsAggregates(t *testing.T
 func TestFindAllCustomers_WhenIdentityFails_ReturnsClientError(t *testing.T) {
 	wantErr := errors.New("identity down")
 	svc := &customerService{userClient: &stubUserClient{
-		listUsersFn: func(context.Context, string, string, string, int32) (int64, []*aggregate.CustomerAggregate, error) {
+		listUsersFn: func(context.Context, string, string, string, pagination.PageOption) (int64, []*aggregate.CustomerAggregate, error) {
 			return 0, nil, wantErr
 		},
 	}}
@@ -262,14 +260,21 @@ func TestFindCustomer_WhenCustomerMissing_ReturnsNilWithoutError(t *testing.T) {
 	}
 }
 
-// Both write paths are stubs against the identity service, so they are asserted together.
-func TestUpdateAndDeleteCustomer_WhenCalled_ReturnErrNotImplemented(t *testing.T) {
-	svc := &customerService{}
-	if _, err := svc.UpdateCustomer(context.Background(), command.CustomerUpdateCommand{Uid: testUserUid}); !errors.Is(err, usecase.ErrNotImplemented) {
-		t.Errorf("UpdateCustomer err = %v, want ErrNotImplemented", err)
+func TestFindAllCustomers_PageAndSortGiven_ForwardsPageOption(t *testing.T) {
+	size, page, sort := int32(5), int32(2), "email,asc"
+	var got pagination.PageOption
+	svc := &customerService{userClient: &stubUserClient{
+		listUsersFn: func(_ context.Context, _, _, _ string, p pagination.PageOption) (int64, []*aggregate.CustomerAggregate, error) {
+			got = p
+			return 0, nil, nil
+		},
+	}}
+	opt := option.NewUserQueryOption(option.UserQueryOption{}.WithPage(pagination.NewPageOption(&size, &page, &sort)))
+	if _, _, err := svc.FindAllCustomers(context.Background(), opt); err != nil {
+		t.Fatalf("FindAllCustomers err: %v", err)
 	}
-	if err := svc.DeleteCustomer(context.Background(), testUserUid); !errors.Is(err, usecase.ErrNotImplemented) {
-		t.Errorf("DeleteCustomer err = %v, want ErrNotImplemented", err)
+	if got.GetSize() != 5 || got.GetPage() != 2 || got.GetSort() != "email,asc" {
+		t.Errorf("page = size %d page %d sort %q, want 5/2/email,asc", got.GetSize(), got.GetPage(), got.GetSort())
 	}
 }
 
@@ -277,7 +282,7 @@ func TestUpdateAndDeleteCustomer_WhenCalled_ReturnErrNotImplemented(t *testing.T
 
 func TestFindAllCustomerOrders_WhenOrderClientReturnsRows_ReturnsAggregates(t *testing.T) {
 	svc := &customerService{orderClient: &stubOrderClient{
-		listOrdersFn: func(context.Context, string, *string, int32) (int64, []*aggregate.OrderAggregate, error) {
+		listOrdersFn: func(context.Context, string, *string, pagination.PageOption) (int64, []*aggregate.OrderAggregate, error) {
 			return 1, []*aggregate.OrderAggregate{{Uid: "o-1", UserUid: testUserUid}}, nil
 		},
 	}}
@@ -287,6 +292,48 @@ func TestFindAllCustomerOrders_WhenOrderClientReturnsRows_ReturnsAggregates(t *t
 	}
 	if total != 1 || len(aggs) != 1 || aggs[0].Uid != "o-1" {
 		t.Errorf("got total=%d aggs=%+v", total, aggs)
+	}
+}
+
+func TestFindAllCustomerOrders_PageGiven_ForwardsPageOption(t *testing.T) {
+	size, page, sort := int32(10), int32(3), "created_at,asc"
+	var got pagination.PageOption
+	svc := &customerService{orderClient: &stubOrderClient{
+		listOrdersFn: func(_ context.Context, _ string, _ *string, p pagination.PageOption) (int64, []*aggregate.OrderAggregate, error) {
+			got = p
+			return 0, nil, nil
+		},
+	}}
+	opt := option.NewOrderQueryOption(option.OrderQueryOption{}.WithPage(pagination.NewPageOption(&size, &page, &sort)))
+	if _, _, err := svc.FindAllCustomerOrders(context.Background(), opt); err != nil {
+		t.Fatalf("FindAllCustomerOrders err: %v", err)
+	}
+	if got.GetSize() != 10 || got.GetPage() != 3 || got.GetSort() != "created_at,asc" {
+		t.Errorf("page = size %d page %d sort %q, want 10/3/created_at,asc", got.GetSize(), got.GetPage(), got.GetSort())
+	}
+}
+
+func TestFindAllCustomerPayments_PageGiven_ForwardsPageOption(t *testing.T) {
+	size, page := int32(25), int32(1)
+	var got pagination.PageOption
+	var gotUser string
+	svc := &customerService{paymentClient: &stubPaymentClient{
+		listPaymentsFn: func(_ context.Context, customerUid string, p pagination.PageOption) (int64, []*aggregate.PaymentAggregate, error) {
+			gotUser = customerUid
+			got = p
+			return 0, nil, nil
+		},
+	}}
+	uid := testUserUid
+	opt := option.NewPaymentQueryOption(
+		option.PaymentQueryOption{}.WithUserUid(&uid),
+		option.PaymentQueryOption{}.WithPage(pagination.NewPageOption(&size, &page, nil)),
+	)
+	if _, _, err := svc.FindAllCustomerPayments(context.Background(), opt); err != nil {
+		t.Fatalf("FindAllCustomerPayments err: %v", err)
+	}
+	if gotUser != testUserUid || got.GetSize() != 25 || got.GetPage() != 1 {
+		t.Errorf("user %q page size %d page %d, want %q/25/1", gotUser, got.GetSize(), got.GetPage(), testUserUid)
 	}
 }
 
@@ -327,7 +374,7 @@ func TestFindCustomerOrder_WhenOrderBelongsToCaller_ReturnsAggregate(t *testing.
 
 func TestFindAllCustomerPayments_WhenPaymentClientReturnsRows_ReturnsAggregates(t *testing.T) {
 	svc := &customerService{paymentClient: &stubPaymentClient{
-		listPaymentsFn: func(context.Context, string, int32) (int64, []*aggregate.PaymentAggregate, error) {
+		listPaymentsFn: func(context.Context, string, pagination.PageOption) (int64, []*aggregate.PaymentAggregate, error) {
 			return 1, []*aggregate.PaymentAggregate{{Uid: "p-1", CustomerUid: testUserUid}}, nil
 		},
 	}}
@@ -359,8 +406,11 @@ func TestFindCustomerPayment_WhenPaymentBelongsToAnotherCustomer_ReturnsNil(t *t
 
 func TestGetWishlist_WhenWishlistHasBooks_ReturnsAggregate(t *testing.T) {
 	svc := &customerService{wishlistRepo: &stubWishlistRepo{
-		findAllFn: func(_ context.Context, _ option.WishlistQueryOption) (int64, []*repo.WishlistResult, error) {
-			return 2, []*repo.WishlistResult{
+		findAllByUserUidFn: func(_ context.Context, userUid string) ([]*repo.WishlistResult, error) {
+			if userUid != testUserUid {
+				t.Errorf("userUid = %q, want %q", userUid, testUserUid)
+			}
+			return []*repo.WishlistResult{
 				{Uid: "w-1", BookUid: testBookUid1},
 				{Uid: "w-2", BookUid: testBookUid2},
 			}, nil
@@ -375,6 +425,23 @@ func TestGetWishlist_WhenWishlistHasBooks_ReturnsAggregate(t *testing.T) {
 	}
 }
 
+func TestGetWishlist_MoreRowsThanDefaultPage_ReturnsEveryBook(t *testing.T) {
+	rows := make([]*repo.WishlistResult, 45)
+	for i := range rows {
+		rows[i] = &repo.WishlistResult{Uid: fmt.Sprintf("w-%d", i), BookUid: fmt.Sprintf("b-%d", i)}
+	}
+	svc := &customerService{wishlistRepo: &stubWishlistRepo{
+		findAllByUserUidFn: func(context.Context, string) ([]*repo.WishlistResult, error) { return rows, nil },
+	}}
+	got, err := svc.GetWishlist(context.Background(), testUserUid)
+	if err != nil {
+		t.Fatalf("GetWishlist err: %v", err)
+	}
+	if len(got.BookUids) != 45 || got.BookUids[0] != "b-0" || got.BookUids[44] != "b-44" {
+		t.Errorf("bookUids len = %d, want all 45 in repository order", len(got.BookUids))
+	}
+}
+
 func TestAddBooksToWishlist_WhenBooksValid_ReturnsRefreshedWishlist(t *testing.T) {
 	var gotUser string
 	var gotBooks []string
@@ -384,8 +451,8 @@ func TestAddBooksToWishlist_WhenBooksValid_ReturnsRefreshedWishlist(t *testing.T
 			gotBooks = bookUids
 			return nil
 		},
-		findAllFn: func(context.Context, option.WishlistQueryOption) (int64, []*repo.WishlistResult, error) {
-			return 2, []*repo.WishlistResult{
+		findAllByUserUidFn: func(context.Context, string) ([]*repo.WishlistResult, error) {
+			return []*repo.WishlistResult{
 				{Uid: "w-1", BookUid: testBookUid1},
 				{Uid: "w-2", BookUid: testBookUid2},
 			}, nil
@@ -455,8 +522,8 @@ func TestRemoveBooksFromWishlist_WhenBooksRequested_DeletesOnlyThoseBooks(t *tes
 			deleted = append(deleted, ent.BookUid)
 			return nil
 		},
-		findAllFn: func(context.Context, option.WishlistQueryOption) (int64, []*repo.WishlistResult, error) {
-			return 1, []*repo.WishlistResult{{Uid: "w-2", BookUid: testBookUid2}}, nil
+		findAllByUserUidFn: func(context.Context, string) ([]*repo.WishlistResult, error) {
+			return []*repo.WishlistResult{{Uid: "w-2", BookUid: testBookUid2}}, nil
 		},
 	}
 	svc := &customerService{wishlistRepo: wishlistRepo}
@@ -834,7 +901,7 @@ func TestRemoveReview_WhenReviewBelongsToCaller_DeletesReview(t *testing.T) {
 		}
 	})
 
-	t.Run("whenOwnedByAnotherUser_skipsDelete", func(t *testing.T) {
+	t.Run("ownedByAnotherUser_errNotFoundWithoutDelete", func(t *testing.T) {
 		svc := &customerService{reviewRepo: &stubReviewRepo{
 			fetchByUidFn: func(context.Context, string) ([]*entity.CustomerReviewEntity, error) {
 				return []*entity.CustomerReviewEntity{{Id: 1, Uid: "r-1", UserUid: "other"}}, nil
@@ -844,10 +911,25 @@ func TestRemoveReview_WhenReviewBelongsToCaller_DeletesReview(t *testing.T) {
 				return nil
 			},
 		}}
-		if err := svc.RemoveReview(context.Background(), testUserUid, "r-1"); err != nil {
-			t.Errorf("err = %v, want nil", err)
+		if err := svc.RemoveReview(context.Background(), testUserUid, "r-1"); !errors.Is(err, usecase.ErrNotFound) {
+			t.Errorf("err = %v, want ErrNotFound", err)
 		}
 	})
+}
+
+func TestRemoveReview_ReviewMissing_ErrNotFoundWithoutDelete(t *testing.T) {
+	svc := &customerService{reviewRepo: &stubReviewRepo{
+		fetchByUidFn: func(context.Context, string) ([]*entity.CustomerReviewEntity, error) {
+			return nil, nil
+		},
+		deleteFn: func(context.Context, *entity.CustomerReviewEntity) error {
+			t.Error("Delete must not run for a missing review")
+			return nil
+		},
+	}}
+	if err := svc.RemoveReview(context.Background(), testUserUid, "missing"); !errors.Is(err, usecase.ErrNotFound) {
+		t.Errorf("err = %v, want ErrNotFound", err)
+	}
 }
 
 // ─── package-level helpers ──────────────────────────────────────────────────

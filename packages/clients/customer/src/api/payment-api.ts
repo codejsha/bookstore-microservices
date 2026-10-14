@@ -45,18 +45,26 @@ export interface PaymentApi {
   /**
    * Find customer's payments
    * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 503 (ServiceUnavailableError) — Service unavailable.
+   * 504 (GatewayTimeoutError) — Server error
    */
   customerPaymentsGetAll(
     uid: string,
-    orderUid: string | undefined,
     pageable: Pageable,
   ): Promise<PaymentFindAllResponse>;
 
   /**
    * Find customer's payment
    * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 503 (ServiceUnavailableError) — Service unavailable.
+   * 504 (GatewayTimeoutError) — Server error
    */
   customerPaymentsRead(
     uid: string,
@@ -75,11 +83,9 @@ export class PaymentApiClient implements PaymentApi {
 
   async customerPaymentsGetAll(
     uid: string,
-    orderUid: string | undefined,
     pageable: Pageable,
   ): Promise<PaymentFindAllResponse> {
     const params = new URLSearchParams();
-    if (orderUid !== undefined) params.append('order_uid', Array.isArray(orderUid) ? (orderUid as readonly unknown[]).join(',') : String(orderUid));
     if (pageable.page !== undefined) params.append('page', String(pageable.page));
     if (pageable.size !== undefined) params.append('size', String(pageable.size));
     if (pageable.sort !== undefined) params.append('sort', pageable.sort);
