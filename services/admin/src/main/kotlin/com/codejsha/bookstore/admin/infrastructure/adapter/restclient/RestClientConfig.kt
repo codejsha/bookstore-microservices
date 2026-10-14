@@ -12,8 +12,12 @@ import com.codejsha.bookstore.generated.application.port.restclient.order.api.Or
 import com.codejsha.bookstore.generated.application.port.restclient.payment.api.PaymentApi
 import com.codejsha.bookstore.generated.application.port.restclient.payment.api.RefundApi
 import com.codejsha.bookstore.generated.application.port.restclient.settlement.api.SettlementApi
+import com.codejsha.platform.shared.web.EnumToWireValueConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.convert.ConversionService
+import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar
+import org.springframework.format.support.DefaultFormattingConversionService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.client.ClientHttpRequestFactory
@@ -21,6 +25,7 @@ import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.support.RestClientAdapter
 import org.springframework.web.service.invoker.HttpServiceProxyFactory
+import tools.jackson.databind.ObjectMapper
 import java.net.http.HttpClient
 import java.time.Duration
 
@@ -28,7 +33,10 @@ import java.time.Duration
 class RestClientConfig(
     private val config: RestClientProperties,
     private val tokenPropagation: BearerTokenPropagationInterceptor,
+    objectMapper: ObjectMapper,
 ) {
+
+    private val conversionService: ConversionService = queryConversionService(objectMapper)
 
     @Bean
     fun catalogWorkApi(): WorkApi = client(config.catalogBaseUrl).createClient(WorkApi::class.java)
@@ -72,7 +80,9 @@ class RestClientConfig(
             .requestInterceptor(tokenPropagation)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .build()
-        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient)).build()
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
+            .conversionService(conversionService)
+            .build()
     }
 
     private companion object {
@@ -83,5 +93,11 @@ class RestClientConfig(
             JdkClientHttpRequestFactory(
                 HttpClient.newBuilder().connectTimeout(CONNECT_TIMEOUT).build(),
             ).apply { setReadTimeout(READ_TIMEOUT) }
+
+        private fun queryConversionService(objectMapper: ObjectMapper): ConversionService =
+            DefaultFormattingConversionService(false).apply {
+                DateTimeFormatterRegistrar().apply { setUseIsoFormat(true) }.registerFormatters(this)
+                addConverter(Enum::class.java, String::class.java, EnumToWireValueConverter(objectMapper))
+            }
     }
 }
