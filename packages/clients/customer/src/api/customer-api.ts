@@ -18,8 +18,6 @@ export class ApiError extends Error {
 }
 import type { CustomerFindAllResponse } from '../model/customer-find-all-response';
 import type { CustomerFindResponse } from '../model/customer-find-response';
-import type { CustomerUpdateRequest } from '../model/customer-update-request';
-import type { CustomerUpdateResponse } from '../model/customer-update-response';
 
 export interface Pageable {
   page?: number;
@@ -46,6 +44,12 @@ export interface CustomerApi {
 
   /**
    * Find all customers
+   * Errors:
+   * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
+   * 503 (ServiceUnavailableError) — Service unavailable.
+   * 504 (GatewayTimeoutError) — Server error
    */
   customersGetAll(
     email: string | undefined,
@@ -57,30 +61,15 @@ export interface CustomerApi {
   /**
    * Find customer
    * Errors:
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 503 (ServiceUnavailableError) — Service unavailable.
+   * 504 (GatewayTimeoutError) — Server error
    */
   customersRead(
     uid: string,
   ): Promise<CustomerFindResponse>;
-
-  /**
-   * Update customer
-   * Errors:
-   * 404 (NotFoundError) — The server cannot find the requested resource.
-   */
-  customersUpdate(
-    uid: string,
-    body: CustomerUpdateRequest,
-  ): Promise<CustomerUpdateResponse>;
-
-  /**
-   * Delete customer
-   * Errors:
-   * 404 (NotFoundError) — The server cannot find the requested resource.
-   */
-  customersDelete(
-    uid: string,
-  ): Promise<void>;
 }
 
 export class CustomerApiClient implements CustomerApi {
@@ -163,69 +152,5 @@ export class CustomerApiClient implements CustomerApi {
       throw new ApiError(response.status, response.statusText, body);
     }
     return await response.json() as CustomerFindResponse;
-  }
-
-  async customersUpdate(
-    uid: string,
-    body: CustomerUpdateRequest,
-  ): Promise<CustomerUpdateResponse> {
-    const url = `${this.baseUrl}/api/v1/customers/${uid}`;
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        ...(this.credentials.bearerAuth ? { 'Authorization': `Bearer ${this.credentials.bearerAuth}` } : {}),
-      },
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) {
-      const contentType = response.headers.get('content-type') ?? '';
-      let body: unknown;
-      try {
-        if (contentType.includes('json')) {
-          body = await response.json();
-        } else if (contentType.startsWith('text/')) {
-          body = await response.text();
-        } else if (response.headers.get('content-length') !== '0') {
-          body = await response.blob();
-        }
-      } catch {
-        // Response body was unreadable / malformed — leave `body` undefined so the
-        // caller still gets the status and can inspect headers if needed.
-      }
-      throw new ApiError(response.status, response.statusText, body);
-    }
-    return await response.json() as CustomerUpdateResponse;
-  }
-
-  async customersDelete(
-    uid: string,
-  ): Promise<void> {
-    const url = `${this.baseUrl}/api/v1/customers/${uid}`;
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json',
-        ...(this.credentials.bearerAuth ? { 'Authorization': `Bearer ${this.credentials.bearerAuth}` } : {}),
-      },
-    });
-    if (!response.ok) {
-      const contentType = response.headers.get('content-type') ?? '';
-      let body: unknown;
-      try {
-        if (contentType.includes('json')) {
-          body = await response.json();
-        } else if (contentType.startsWith('text/')) {
-          body = await response.text();
-        } else if (response.headers.get('content-length') !== '0') {
-          body = await response.blob();
-        }
-      } catch {
-        // Response body was unreadable / malformed — leave `body` undefined so the
-        // caller still gets the status and can inspect headers if needed.
-      }
-      throw new ApiError(response.status, response.statusText, body);
-    }
   }
 }

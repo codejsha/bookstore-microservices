@@ -40,7 +40,8 @@ export interface WishlistApi {
   /**
    * Get customer's wishlist
    * Errors:
-   * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   wishlistsGet(
     uid: string,
@@ -50,7 +51,8 @@ export interface WishlistApi {
    * Add books to customer's wishlist
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
-   * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   wishlistsAddBooks(
     uid: string,
@@ -61,7 +63,8 @@ export interface WishlistApi {
    * Remove books from customer's wishlist
    * Errors:
    * 400 (BadRequestError) — The server could not understand the request due to invalid syntax.
-   * 404 (NotFoundError) — The server cannot find the requested resource.
+   * 401 (UnauthorizedError) — Access is unauthorized.
+   * 403 (ForbiddenError) — Access is forbidden.
    */
   wishlistsRemoveBooks(
     uid: string,
