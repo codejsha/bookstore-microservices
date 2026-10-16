@@ -209,7 +209,7 @@ func (r *workRepository) Update(ctx context.Context, id int64, cmd command.WorkU
 		w := tx.WorkEntity
 		now := time.Now()
 
-		assigns := []field.AssignExpr{w.UpdatedAt.Value(now)}
+		var assigns []field.AssignExpr
 		if cmd.Title != nil {
 			assigns = append(assigns, w.Title.Value(*cmd.Title))
 		}
@@ -227,8 +227,14 @@ func (r *workRepository) Update(ctx context.Context, id int64, cmd command.WorkU
 		if cmd.OlKey != nil {
 			assigns = append(assigns, w.OlKey.Value(*cmd.OlKey))
 		}
-		if _, err := w.WithContext(ctx).Where(w.Id.Eq(id)).UpdateSimple(assigns...); err != nil {
-			return err
+		if len(assigns) > 0 {
+			if _, err := w.WithContext(ctx).Where(w.Id.Eq(id)).UpdateSimple(assigns...); err != nil {
+				return err
+			}
+		} else if cmd.AuthorUids != nil || cmd.SubjectNames != nil {
+			if _, err := w.WithContext(ctx).Where(w.Id.Eq(id)).Update(w.UpdatedAt, now); err != nil {
+				return err
+			}
 		}
 
 		if cmd.AuthorUids != nil {
