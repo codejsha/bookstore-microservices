@@ -29,17 +29,17 @@ const (
 func (a AuthRole) ToAuthRoleRest() openapi.AuthRole {
 	switch a {
 	case AUTHROLE_UNKNOWN:
-		return openapi.AUTHROLE_UNKNOWN
+		return openapi.AuthRoleUnknown
 	case AUTHROLE_USER:
-		return openapi.AUTHROLE_USER
+		return openapi.AuthRoleUser
 	case AUTHROLE_STAFF:
-		return openapi.AUTHROLE_STAFF
+		return openapi.AuthRoleStaff
 	case AUTHROLE_MANAGER:
-		return openapi.AUTHROLE_MANAGER
+		return openapi.AuthRoleManager
 	case AUTHROLE_SYSTEM:
-		return openapi.AUTHROLE_SYSTEM
+		return openapi.AuthRoleSystem
 	default:
-		return openapi.AUTHROLE_UNKNOWN
+		return openapi.AuthRoleUnknown
 	}
 }
 

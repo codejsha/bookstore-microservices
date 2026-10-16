@@ -60,35 +60,35 @@ func TestControllers_WhenPathParamNotUuid_ReturnBadRequest(t *testing.T) {
 
 	calls := map[string]func() error{
 		"StocksRead": func() error {
-			_, err := NewStockController(use).StocksRead(context.Background(), bad)
+			_, err := NewStockController(use).StocksRead(context.Background(), openapi.StockApiCredentials{}, bad)
 			return err
 		},
 		"StocksHistory": func() error {
-			_, err := NewStockController(use).StocksHistory(context.Background(), bad, nil, nil, nil, nil)
+			_, err := NewStockController(use).StocksHistory(context.Background(), openapi.StockApiCredentials{}, bad, nil, nil, nil, nil)
 			return err
 		},
 		"WarehousesRead": func() error {
-			_, err := NewWarehouseController(use).WarehousesRead(context.Background(), bad)
+			_, err := NewWarehouseController(use).WarehousesRead(context.Background(), openapi.WarehouseApiCredentials{}, bad)
 			return err
 		},
 		"WarehousesUpdate": func() error {
-			_, err := NewWarehouseController(use).WarehousesUpdate(context.Background(), bad, openapi.WarehouseUpdateRequest{})
+			_, err := NewWarehouseController(use).WarehousesUpdate(context.Background(), openapi.WarehouseApiCredentials{}, bad, openapi.WarehouseUpdateRequest{})
 			return err
 		},
 		"TransfersRead": func() error {
-			_, err := NewTransferController(use).TransfersRead(context.Background(), bad)
+			_, err := NewTransferController(use).TransfersRead(context.Background(), openapi.TransferApiCredentials{}, bad)
 			return err
 		},
 		"TransfersComplete": func() error {
-			_, err := NewTransferController(use).TransfersComplete(context.Background(), bad)
+			_, err := NewTransferController(use).TransfersComplete(context.Background(), openapi.TransferApiCredentials{}, bad)
 			return err
 		},
 		"AuditsRead": func() error {
-			_, err := NewAuditController(use).AuditsRead(context.Background(), bad)
+			_, err := NewAuditController(use).AuditsRead(context.Background(), openapi.AuditApiCredentials{}, bad)
 			return err
 		},
 		"ClosingsRead": func() error {
-			_, err := NewClosingController(use).ClosingsRead(context.Background(), bad)
+			_, err := NewClosingController(use).ClosingsRead(context.Background(), openapi.ClosingApiCredentials{}, bad)
 			return err
 		},
 	}
@@ -108,11 +108,11 @@ func TestControllers_WhenQueryParamNotUuid_ReturnBadRequest(t *testing.T) {
 
 	calls := map[string]func() error{
 		"StocksGetAll": func() error {
-			_, err := NewStockController(use).StocksGetAll(context.Background(), &bad, nil, nil, nil, nil)
+			_, err := NewStockController(use).StocksGetAll(context.Background(), openapi.StockApiCredentials{}, &bad, nil, nil, nil, nil)
 			return err
 		},
 		"BalanceGetAll": func() error {
-			_, err := NewBalanceController(use).BalanceGetAll(context.Background(), nil, &bad, nil, nil, nil, nil)
+			_, err := NewBalanceController(use).BalanceGetAll(context.Background(), openapi.BalanceApiCredentials{}, nil, &bad, nil, nil, nil, nil)
 			return err
 		},
 	}

@@ -27,6 +27,7 @@ func NewClosingController(inventoryUseCase usecase.InventoryUseCase) openapi.Clo
 
 func (c *closingController) ClosingsGetAll(
 	ctx context.Context,
+	_ openapi.ClosingApiCredentials,
 	warehouseUid *string,
 	year *int32,
 	month *int32,
@@ -34,7 +35,7 @@ func (c *closingController) ClosingsGetAll(
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.ClosingFindAllResponse, error) {
+) (openapi.ClosingsGetAllResponse, error) {
 	if err := optionalUidParam(ctx, "warehouse_uid", warehouseUid); err != nil {
 		return nil, err
 	}
@@ -56,10 +57,10 @@ func (c *closingController) ClosingsGetAll(
 	for i, cl := range closings {
 		items[i] = toClosingFindResponse(cl)
 	}
-	return &openapi.ClosingFindAllResponse{Items: items, Total: total}, nil
+	return openapi.ClosingsGetAllOk{Body: openapi.ClosingFindAllResponse{Items: items, Total: total}}, nil
 }
 
-func (c *closingController) ClosingsCreate(ctx context.Context, req openapi.ClosingCreateRequest) (*openapi.ClosingFindResponse, error) {
+func (c *closingController) ClosingsCreate(ctx context.Context, _ openapi.ClosingApiCredentials, req openapi.ClosingCreateRequest) (openapi.ClosingsCreateResponse, error) {
 	cmd := command.MonthlyClosingCommand{
 		WarehouseUid: req.WarehouseUid,
 		Year:         req.Year,
@@ -77,10 +78,10 @@ func (c *closingController) ClosingsCreate(ctx context.Context, req openapi.Clos
 		"month":         req.Month,
 	})
 	resp := toClosingFindResponse(closing)
-	return &resp, nil
+	return openapi.ClosingsCreateOk{Body: resp}, nil
 }
 
-func (c *closingController) ClosingsRead(ctx context.Context, uid string) (*openapi.ClosingFindResponse, error) {
+func (c *closingController) ClosingsRead(ctx context.Context, _ openapi.ClosingApiCredentials, uid string) (openapi.ClosingsReadResponse, error) {
 	if err := requireUidParam(ctx, "uid", uid); err != nil {
 		return nil, err
 	}
@@ -93,7 +94,7 @@ func (c *closingController) ClosingsRead(ctx context.Context, uid string) (*open
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
 	resp := toClosingFindResponse(closing)
-	return &resp, nil
+	return openapi.ClosingsReadOk{Body: resp}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────

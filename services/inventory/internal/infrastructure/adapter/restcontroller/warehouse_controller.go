@@ -27,11 +27,12 @@ func NewWarehouseController(inventoryUseCase usecase.InventoryUseCase) openapi.W
 
 func (c *warehouseController) WarehousesGetAll(
 	ctx context.Context,
+	_ openapi.WarehouseApiCredentials,
 	name *string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.WarehouseFindAllResponse, error) {
+) (openapi.WarehousesGetAllResponse, error) {
 	opt := option.NewWarehouseQueryOption(
 		option.WarehouseQueryOption{}.WithName(name),
 		option.WarehouseQueryOption{}.WithPage(pagination.NewPageOption(size, page, sort)),
@@ -46,10 +47,10 @@ func (c *warehouseController) WarehousesGetAll(
 	for i, w := range warehouses {
 		items[i] = toWarehouseFindResponse(w)
 	}
-	return &openapi.WarehouseFindAllResponse{Items: items, Total: total}, nil
+	return openapi.WarehousesGetAllOk{Body: openapi.WarehouseFindAllResponse{Items: items, Total: total}}, nil
 }
 
-func (c *warehouseController) WarehousesCreate(ctx context.Context, req openapi.WarehouseCreateRequest) error {
+func (c *warehouseController) WarehousesCreate(ctx context.Context, _ openapi.WarehouseApiCredentials, req openapi.WarehouseCreateRequest) (openapi.WarehousesCreateResponse, error) {
 	cmd := command.WarehouseCreateCommand{
 		Name:     req.Name,
 		Address:  req.Address,
@@ -58,14 +59,14 @@ func (c *warehouseController) WarehousesCreate(ctx context.Context, req openapi.
 
 	warehouse, err := c.inventoryUseCase.RegisterWarehouse(ctx, cmd)
 	if err != nil {
-		return httpx.MapBusinessError(ctx, err)
+		return nil, httpx.MapBusinessError(ctx, err)
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "warehouse", warehouse.Uid, "created", logrus.Fields{"name": req.Name})
-	return nil
+	return openapi.WarehousesCreateCreated{Location: "/api/v1/warehouses/" + warehouse.Uid}, nil
 }
 
-func (c *warehouseController) WarehousesRead(ctx context.Context, uid string) (*openapi.WarehouseFindResponse, error) {
+func (c *warehouseController) WarehousesRead(ctx context.Context, _ openapi.WarehouseApiCredentials, uid string) (openapi.WarehousesReadResponse, error) {
 	if err := requireUidParam(ctx, "uid", uid); err != nil {
 		return nil, err
 	}
@@ -78,14 +79,15 @@ func (c *warehouseController) WarehousesRead(ctx context.Context, uid string) (*
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
 	resp := toWarehouseFindResponse(warehouse)
-	return &resp, nil
+	return openapi.WarehousesReadOk{Body: resp}, nil
 }
 
 func (c *warehouseController) WarehousesUpdate(
 	ctx context.Context,
+	_ openapi.WarehouseApiCredentials,
 	uid string,
 	req openapi.WarehouseUpdateRequest,
-) (*openapi.WarehouseUpdateResponse, error) {
+) (openapi.WarehousesUpdateResponse, error) {
 	if err := requireUidParam(ctx, "uid", uid); err != nil {
 		return nil, err
 	}
@@ -106,14 +108,14 @@ func (c *warehouseController) WarehousesUpdate(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "warehouse", uid, "updated", logrus.Fields{})
 
-	return &openapi.WarehouseUpdateResponse{
+	return openapi.WarehousesUpdateOk{Body: openapi.WarehouseUpdateResponse{
 		Uid:       warehouse.Uid,
 		Name:      warehouse.Name,
 		Address:   warehouse.Address,
 		Capacity:  warehouse.Capacity,
 		CreatedAt: warehouse.CreatedAt,
 		UpdatedAt: warehouse.UpdatedAt,
-	}, nil
+	}}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────

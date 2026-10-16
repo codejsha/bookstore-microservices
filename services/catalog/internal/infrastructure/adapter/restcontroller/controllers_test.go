@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 
 	"gorm.io/gorm"
@@ -124,12 +125,16 @@ func TestWorkController_WhenSearchFiltersGiven_ReturnsPagedWorks(t *testing.T) {
 	}
 	ctrl := NewWorkController(use)
 	title := "hobbit"
-	resp, err := ctrl.WorksSearch(context.Background(), &title, nil, nil, nil, nil, nil, nil)
+	res, err := ctrl.WorksSearch(context.Background(), openapi.WorkApiCredentials{}, &title, nil, nil, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Total != 1 || len(resp.Items) != 1 || resp.Items[0].Uid != "w-1" {
-		t.Errorf("resp = %+v", resp)
+	got, ok := res.(openapi.WorksSearchOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.WorksSearchOk", res)
+	}
+	if got.Body.Total != 1 || len(got.Body.Items) != 1 || got.Body.Items[0].Uid != "w-1" {
+		t.Errorf("resp = %+v", got.Body)
 	}
 }
 
@@ -141,7 +146,7 @@ func TestWorkController_WhenSearchUsecaseFails_PropagatesError(t *testing.T) {
 		},
 	}
 	ctrl := NewWorkController(use)
-	_, err := ctrl.WorksSearch(context.Background(), nil, nil, nil, nil, nil, nil, nil)
+	_, err := ctrl.WorksSearch(context.Background(), openapi.WorkApiCredentials{}, nil, nil, nil, nil, nil, nil, nil)
 	if !errors.Is(err, wantErr) {
 		t.Errorf("err = %v, want %v", err, wantErr)
 	}
@@ -163,21 +168,25 @@ func TestWorkController_WhenWorkExists_ReturnsWorkResponse(t *testing.T) {
 		},
 	}
 	ctrl := NewWorkController(use)
-	resp, err := ctrl.WorksRead(context.Background(), "w-1")
+	res, err := ctrl.WorksRead(context.Background(), openapi.WorkApiCredentials{}, "w-1")
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Uid != "w-1" || resp.Title != "T" {
-		t.Errorf("resp = %+v", resp)
+	got, ok := res.(openapi.WorksReadOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.WorksReadOk", res)
 	}
-	if resp.CoverUids == nil || len(*resp.CoverUids) != 1 {
-		t.Errorf("CoverUids = %+v, want [c1]", resp.CoverUids)
+	if got.Body.Uid != "w-1" || got.Body.Title != "T" {
+		t.Errorf("resp = %+v", got.Body)
 	}
-	if len(resp.Authors) != 1 || resp.Authors[0].Uid != "a-1" {
-		t.Errorf("Authors = %+v", resp.Authors)
+	if got.Body.CoverUids == nil || len(*got.Body.CoverUids) != 1 {
+		t.Errorf("CoverUids = %+v, want [c1]", got.Body.CoverUids)
 	}
-	if len(resp.Subjects) != 1 || resp.Subjects[0].Name != "SS" {
-		t.Errorf("Subjects = %+v", resp.Subjects)
+	if len(got.Body.Authors) != 1 || got.Body.Authors[0].Uid != "a-1" {
+		t.Errorf("Authors = %+v", got.Body.Authors)
+	}
+	if len(got.Body.Subjects) != 1 || got.Body.Subjects[0].Name != "SS" {
+		t.Errorf("Subjects = %+v", got.Body.Subjects)
 	}
 }
 
@@ -200,8 +209,16 @@ func TestWorkController_WhenCreateRequestValid_PassesCommandToUsecase(t *testing
 		AuthorUids:   []string{"a-1"},
 		SubjectNames: &subjects,
 	}
-	if err := ctrl.WorksCreate(context.Background(), req); err != nil {
+	res, err := ctrl.WorksCreate(context.Background(), openapi.WorkApiCredentials{}, req)
+	if err != nil {
 		t.Fatalf("err: %v", err)
+	}
+	got, ok := res.(openapi.WorksCreateCreated)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.WorksCreateCreated", res)
+	}
+	if !strings.HasSuffix(got.Location, "/w-new") {
+		t.Errorf("Location = %q, want suffix /w-new", got.Location)
 	}
 	if captured.Title != "New" || !reflect.DeepEqual(captured.CoverUids, covers) {
 		t.Errorf("captured = %+v", captured)
@@ -222,12 +239,16 @@ func TestWorkController_WhenUpdateRequestValid_ReturnsUpdatedWork(t *testing.T) 
 	}
 	ctrl := NewWorkController(use)
 	title := "Renamed"
-	resp, err := ctrl.WorksUpdate(context.Background(), "w-9", openapi.WorkUpdateRequest{Title: &title})
+	res, err := ctrl.WorksUpdate(context.Background(), openapi.WorkApiCredentials{}, "w-9", openapi.WorkUpdateRequest{Title: &title})
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Title != "Renamed" {
-		t.Errorf("Title = %q", resp.Title)
+	got, ok := res.(openapi.WorksUpdateOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.WorksUpdateOk", res)
+	}
+	if got.Body.Title != "Renamed" {
+		t.Errorf("Title = %q", got.Body.Title)
 	}
 }
 
@@ -238,7 +259,7 @@ func TestWorkController_WhenCreateHitsMissingReference_PreservesNotFoundError(t 
 		},
 	}
 	ctrl := NewWorkController(use)
-	err := ctrl.WorksCreate(context.Background(), openapi.WorkCreateRequest{Title: "x", AuthorUids: []string{"missing"}})
+	_, err := ctrl.WorksCreate(context.Background(), openapi.WorkApiCredentials{}, openapi.WorkCreateRequest{Title: "x", AuthorUids: []string{"missing"}})
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		t.Errorf("err = %v, want gorm.ErrRecordNotFound preserved", err)
 	}
@@ -251,7 +272,7 @@ func TestEditionController_WhenCreateHitsMissingReference_PreservesNotFoundError
 		},
 	}
 	ctrl := NewEditionController(use)
-	err := ctrl.EditionsCreate(context.Background(), openapi.EditionCreateRequest{Title: "x", WorkUid: "missing"})
+	_, err := ctrl.EditionsCreate(context.Background(), openapi.EditionApiCredentials{}, openapi.EditionCreateRequest{Title: "x", WorkUid: "missing"})
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		t.Errorf("err = %v, want gorm.ErrRecordNotFound preserved", err)
 	}
@@ -266,15 +287,19 @@ func TestAuthorController_WhenAuthorExists_ReturnsAuthorResponse(t *testing.T) {
 		},
 	}
 	ctrl := NewAuthorController(use)
-	resp, err := ctrl.AuthorsRead(context.Background(), "a-1")
+	res, err := ctrl.AuthorsRead(context.Background(), openapi.AuthorApiCredentials{}, "a-1")
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Name != "Asimov" {
-		t.Errorf("Name = %q", resp.Name)
+	got, ok := res.(openapi.AuthorsReadOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.AuthorsReadOk", res)
 	}
-	if resp.AlternateNames == nil || (*resp.AlternateNames)[0] != "Paul French" {
-		t.Errorf("AlternateNames = %+v", resp.AlternateNames)
+	if got.Body.Name != "Asimov" {
+		t.Errorf("Name = %q", got.Body.Name)
+	}
+	if got.Body.AlternateNames == nil || (*got.Body.AlternateNames)[0] != "Paul French" {
+		t.Errorf("AlternateNames = %+v", got.Body.AlternateNames)
 	}
 }
 
@@ -288,8 +313,16 @@ func TestAuthorController_WhenCreateRequestValid_PassesCommandToUsecase(t *testi
 		},
 	}
 	ctrl := NewAuthorController(use)
-	if err := ctrl.AuthorsCreate(context.Background(), openapi.AuthorCreateRequest{Name: "Le Guin"}); err != nil {
+	res, err := ctrl.AuthorsCreate(context.Background(), openapi.AuthorApiCredentials{}, openapi.AuthorCreateRequest{Name: "Le Guin"})
+	if err != nil {
 		t.Fatalf("err: %v", err)
+	}
+	got, ok := res.(openapi.AuthorsCreateCreated)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.AuthorsCreateCreated", res)
+	}
+	if !strings.HasSuffix(got.Location, "/a-new") {
+		t.Errorf("Location = %q, want suffix /a-new", got.Location)
 	}
 }
 
@@ -306,15 +339,19 @@ func TestPublisherController_WhenNameFilterGiven_ReturnsPagedPublishers(t *testi
 	}
 	ctrl := NewPublisherController(use)
 	name := "Acme"
-	resp, err := ctrl.PublishersGetAll(context.Background(), &name, nil, nil, nil)
+	res, err := ctrl.PublishersGetAll(context.Background(), openapi.PublisherApiCredentials{}, &name, nil, nil, nil)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Total != 1 || len(resp.Items) != 1 {
-		t.Fatalf("resp = %+v", resp)
+	got, ok := res.(openapi.PublishersGetAllOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.PublishersGetAllOk", res)
 	}
-	if resp.Items[0].Address == nil || *resp.Items[0].Address != "Mars" {
-		t.Errorf("Address = %v", resp.Items[0].Address)
+	if got.Body.Total != 1 || len(got.Body.Items) != 1 {
+		t.Fatalf("resp = %+v", got.Body)
+	}
+	if got.Body.Items[0].Address == nil || *got.Body.Items[0].Address != "Mars" {
+		t.Errorf("Address = %v", got.Body.Items[0].Address)
 	}
 }
 
@@ -330,8 +367,16 @@ func TestSubjectController_WhenCreateRequestValid_PassesCommandToUsecase(t *test
 		},
 	}
 	ctrl := NewSubjectController(use)
-	if err := ctrl.SubjectsCreate(context.Background(), openapi.SubjectCreateRequest{Name: "Drama"}); err != nil {
+	res, err := ctrl.SubjectsCreate(context.Background(), openapi.SubjectApiCredentials{}, openapi.SubjectCreateRequest{Name: "Drama"})
+	if err != nil {
 		t.Fatalf("err: %v", err)
+	}
+	got, ok := res.(openapi.SubjectsCreateCreated)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.SubjectsCreateCreated", res)
+	}
+	if !strings.HasSuffix(got.Location, "/s-new") {
+		t.Errorf("Location = %q, want suffix /s-new", got.Location)
 	}
 }
 
@@ -342,12 +387,16 @@ func TestSubjectController_WhenSubjectExists_ReturnsSubjectResponse(t *testing.T
 		},
 	}
 	ctrl := NewSubjectController(use)
-	resp, err := ctrl.SubjectsRead(context.Background(), "s-1")
+	res, err := ctrl.SubjectsRead(context.Background(), openapi.SubjectApiCredentials{}, "s-1")
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Name != "Sci-Fi" {
-		t.Errorf("Name = %q", resp.Name)
+	got, ok := res.(openapi.SubjectsReadOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.SubjectsReadOk", res)
+	}
+	if got.Body.Name != "Sci-Fi" {
+		t.Errorf("Name = %q", got.Body.Name)
 	}
 }
 
@@ -365,12 +414,16 @@ func TestEditionController_WhenEditionExists_ReturnsEditionResponse(t *testing.T
 		},
 	}
 	ctrl := NewEditionController(use)
-	resp, err := ctrl.EditionsRead(context.Background(), "e-1")
+	res, err := ctrl.EditionsRead(context.Background(), openapi.EditionApiCredentials{}, "e-1")
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Work != (openapi.EditionWorkRef{Uid: "w-1", Title: "W"}) || resp.Publisher == nil || resp.Publisher.Uid != "p-1" {
-		t.Errorf("resp = %+v", resp)
+	got, ok := res.(openapi.EditionsReadOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.EditionsReadOk", res)
+	}
+	if got.Body.Work != (openapi.EditionWorkRef{Uid: "w-1", Title: "W"}) || got.Body.Publisher == nil || got.Body.Publisher.Uid != "p-1" {
+		t.Errorf("resp = %+v", got.Body)
 	}
 }
 
@@ -381,12 +434,16 @@ func TestEditionController_WhenEditionHasNoPublisher_OmitsPublisherFromResponse(
 		},
 	}
 	ctrl := NewEditionController(use)
-	resp, err := ctrl.EditionsRead(context.Background(), "e-1")
+	res, err := ctrl.EditionsRead(context.Background(), openapi.EditionApiCredentials{}, "e-1")
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Publisher != nil {
-		t.Errorf("Publisher = %+v, want nil", resp.Publisher)
+	got, ok := res.(openapi.EditionsReadOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.EditionsReadOk", res)
+	}
+	if got.Body.Publisher != nil {
+		t.Errorf("Publisher = %+v, want nil", got.Body.Publisher)
 	}
 }
 

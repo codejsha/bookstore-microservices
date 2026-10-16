@@ -215,10 +215,10 @@ func GinAccessLogMiddleware(logHelper *logging.LogHelper) gin.HandlerFunc {
 }
 
 func (s *GinServer) RegisterRoutes() {
-	openapi.NewStockApiHandler(s.stockAPI).RegisterRoutes(s.engine)
-	openapi.NewWarehouseApiHandler(s.warehouseAPI).RegisterRoutes(s.engine)
-	openapi.NewTransferApiHandler(s.transferAPI).RegisterRoutes(s.engine)
-	openapi.NewAuditApiHandler(s.auditAPI).RegisterRoutes(s.engine)
-	openapi.NewClosingApiHandler(s.closingAPI).RegisterRoutes(s.engine)
-	openapi.NewBalanceApiHandler(s.balanceAPI).RegisterRoutes(s.engine)
+	openapi.RegisterStockApiGinRoutes(s.engine, s.stockAPI)
+	openapi.RegisterWarehouseApiGinRoutes(s.engine, s.warehouseAPI)
+	openapi.RegisterTransferApiGinRoutes(s.engine, s.transferAPI)
+	openapi.RegisterAuditApiGinRoutes(s.engine, s.auditAPI)
+	openapi.RegisterClosingApiGinRoutes(s.engine, s.closingAPI)
+	openapi.RegisterBalanceApiGinRoutes(s.engine, s.balanceAPI)
 }

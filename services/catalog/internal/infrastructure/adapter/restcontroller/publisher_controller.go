@@ -26,11 +26,12 @@ func NewPublisherController(catalogUseCase usecase.CatalogUseCase) openapi.Publi
 
 func (c *publisherController) PublishersGetAll(
 	ctx context.Context,
+	_ openapi.PublisherApiCredentials,
 	name *string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.PublisherFindAllResponse, error) {
+) (openapi.PublishersGetAllResponse, error) {
 	opt := option.NewPublisherQueryOption(
 		option.PublisherQueryOption{}.WithName(name),
 		option.PublisherQueryOption{}.WithPage(pagination.NewPageOption(size, page, sort)),
@@ -45,10 +46,10 @@ func (c *publisherController) PublishersGetAll(
 	for i, p := range publishers {
 		items[i] = toPublisherItem(p)
 	}
-	return &openapi.PublisherFindAllResponse{Items: items, Total: total}, nil
+	return openapi.PublishersGetAllOk{Body: openapi.PublisherFindAllResponse{Items: items, Total: total}}, nil
 }
 
-func (c *publisherController) PublishersCreate(ctx context.Context, req openapi.PublisherCreateRequest) error {
+func (c *publisherController) PublishersCreate(ctx context.Context, _ openapi.PublisherApiCredentials, req openapi.PublisherCreateRequest) (openapi.PublishersCreateResponse, error) {
 	cmd := command.PublisherCreateCommand{
 		Name:    req.Name,
 		Address: req.Address,
@@ -57,32 +58,33 @@ func (c *publisherController) PublishersCreate(ctx context.Context, req openapi.
 
 	publisher, err := c.catalogUseCase.CreatePublisher(ctx, cmd)
 	if err != nil {
-		return httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, err))
+		return nil, httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, err))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "publisher", publisher.Uid, "created", logrus.Fields{"name": req.Name})
-	return nil
+	return openapi.PublishersCreateCreated{Location: "/api/v1/publishers/" + publisher.Uid}, nil
 }
 
-func (c *publisherController) PublishersRead(ctx context.Context, uid string) (*openapi.PublisherFindResponse, error) {
+func (c *publisherController) PublishersRead(ctx context.Context, _ openapi.PublisherApiCredentials, uid string) (openapi.PublishersReadResponse, error) {
 	publisher, err := c.catalogUseCase.FindPublisher(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapNotFound(ctx, err)
 	}
 
-	return &openapi.PublisherFindResponse{
+	return openapi.PublishersReadOk{Body: openapi.PublisherFindResponse{
 		Uid:     publisher.Uid,
 		Name:    publisher.Name,
 		Address: publisher.Address,
 		OlKey:   publisher.OlKey,
-	}, nil
+	}}, nil
 }
 
 func (c *publisherController) PublishersUpdate(
 	ctx context.Context,
+	_ openapi.PublisherApiCredentials,
 	uid string,
 	req openapi.PublisherUpdateRequest,
-) (*openapi.PublisherUpdateResponse, error) {
+) (openapi.PublishersUpdateResponse, error) {
 	cmd := command.PublisherUpdateCommand{
 		Name:    req.Name,
 		Address: req.Address,
@@ -96,10 +98,10 @@ func (c *publisherController) PublishersUpdate(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "publisher", uid, "updated", logrus.Fields{})
 
-	return &openapi.PublisherUpdateResponse{
+	return openapi.PublishersUpdateOk{Body: openapi.PublisherUpdateResponse{
 		Uid:     publisher.Uid,
 		Name:    publisher.Name,
 		Address: publisher.Address,
 		OlKey:   publisher.OlKey,
-	}, nil
+	}}, nil
 }

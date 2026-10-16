@@ -33,14 +33,14 @@ func TestToCustomerFindResponse_AggregateFullyPopulated_MapsEveryField(t *testin
 	if got.Roles == nil || len(*got.Roles) != 2 {
 		t.Fatalf("Roles = %v", got.Roles)
 	}
-	if (*got.Roles)[0] != openapi.AUTHROLE_USER || (*got.Roles)[1] != openapi.AUTHROLE_STAFF {
+	if (*got.Roles)[0] != openapi.AuthRoleUser || (*got.Roles)[1] != openapi.AuthRoleStaff {
 		t.Errorf("Roles = %+v", *got.Roles)
 	}
 }
 
 func TestAuthRolesToRest_DomainRolesGiven_RestRolesInOrder(t *testing.T) {
 	got := authRolesToRest([]constant.AuthRole{constant.AUTHROLE_USER, constant.AUTHROLE_MANAGER})
-	want := []openapi.AuthRole{openapi.AUTHROLE_USER, openapi.AUTHROLE_MANAGER}
+	want := []openapi.AuthRole{openapi.AuthRoleUser, openapi.AuthRoleManager}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("authRolesToRest = %v, want %v", got, want)
 	}
@@ -66,7 +66,7 @@ func TestToOrderFindResponse_WhenAggregateFullyPopulated_MapsEveryField(t *testi
 	if got.TotalPrice == nil || *got.TotalPrice != 99.99 {
 		t.Errorf("TotalPrice = %v", got.TotalPrice)
 	}
-	if got.Status == nil || *got.Status != openapi.ORDERSTATUS_SHIPPING {
+	if got.Status == nil || *got.Status != openapi.OrderStatusShipping {
 		t.Errorf("Status = %v", got.Status)
 	}
 }
@@ -76,12 +76,12 @@ func TestToOrderStatusRest_WhenDomainStatusGiven_ReturnsRestStatus(t *testing.T)
 		in   aggregate.OrderStatus
 		want openapi.OrderStatus
 	}{
-		{aggregate.ORDERSTATUS_PENDING, openapi.ORDERSTATUS_PENDING},
-		{aggregate.ORDERSTATUS_PAID, openapi.ORDERSTATUS_PAID},
-		{aggregate.ORDERSTATUS_SHIPPING, openapi.ORDERSTATUS_SHIPPING},
-		{aggregate.ORDERSTATUS_COMPLETED, openapi.ORDERSTATUS_COMPLETED},
-		{aggregate.ORDERSTATUS_CANCELLED, openapi.ORDERSTATUS_CANCELLED},
-		{aggregate.ORDERSTATUS_UNKNOWN, openapi.ORDERSTATUS_UNKNOWN},
+		{aggregate.ORDERSTATUS_PENDING, openapi.OrderStatusPending},
+		{aggregate.ORDERSTATUS_PAID, openapi.OrderStatusPaid},
+		{aggregate.ORDERSTATUS_SHIPPING, openapi.OrderStatusShipping},
+		{aggregate.ORDERSTATUS_COMPLETED, openapi.OrderStatusCompleted},
+		{aggregate.ORDERSTATUS_CANCELLED, openapi.OrderStatusCancelled},
+		{aggregate.ORDERSTATUS_UNKNOWN, openapi.OrderStatusUnknown},
 	}
 	for _, c := range cases {
 		if got := toOrderStatusRest(c.in); got != c.want {

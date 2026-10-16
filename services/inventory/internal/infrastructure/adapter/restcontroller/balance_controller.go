@@ -24,13 +24,14 @@ func NewBalanceController(inventoryUseCase usecase.InventoryUseCase) openapi.Bal
 
 func (c *balanceController) BalanceGetAll(
 	ctx context.Context,
+	_ openapi.BalanceApiCredentials,
 	editionUid *string,
 	warehouseUid *string,
 	yearMonth *string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.BalanceFindAllResponse, error) {
+) (openapi.BalanceGetAllResponse, error) {
 	if err := optionalUidParam(ctx, "edition_uid", editionUid); err != nil {
 		return nil, err
 	}
@@ -58,7 +59,7 @@ func (c *balanceController) BalanceGetAll(
 	for i, e := range entries {
 		items[i] = toBalanceFindResponse(e)
 	}
-	return &openapi.BalanceFindAllResponse{Items: items, Total: total}, nil
+	return openapi.BalanceGetAllOk{Body: openapi.BalanceFindAllResponse{Items: items, Total: total}}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────

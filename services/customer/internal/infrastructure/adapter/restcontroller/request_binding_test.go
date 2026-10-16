@@ -16,38 +16,45 @@ type recordingPointApi struct {
 	called bool
 }
 
-func (a *recordingPointApi) PointsGetBalance(_ context.Context, uid string) (*openapi.PointBalanceResponse, error) {
+func (a *recordingPointApi) PointsGetBalance(
+	_ context.Context,
+	_ openapi.PointApiCredentials,
+	uid string,
+) (openapi.PointsGetBalanceResponse, error) {
 	a.called = true
-	return &openapi.PointBalanceResponse{UserUid: uid}, nil
+	return openapi.PointsGetBalanceOk{Body: openapi.PointBalanceResponse{UserUid: uid}}, nil
 }
 
 func (a *recordingPointApi) PointsEarn(
 	_ context.Context,
+	_ openapi.PointApiCredentials,
 	uid string,
 	_ openapi.PointEarnRequest,
-) (*openapi.PointBalanceResponse, error) {
+) (openapi.PointsEarnResponse, error) {
 	a.called = true
-	return &openapi.PointBalanceResponse{UserUid: uid}, nil
+	return openapi.PointsEarnOk{Body: openapi.PointBalanceResponse{UserUid: uid}}, nil
 }
 
 func (a *recordingPointApi) PointsHistory(
 	_ context.Context,
+	_ openapi.PointApiCredentials,
 	_ string,
 	_ *int32,
 	_ *int32,
 	_ *string,
-) (*openapi.PointHistoryFindAllResponse, error) {
+) (openapi.PointsHistoryResponse, error) {
 	a.called = true
-	return &openapi.PointHistoryFindAllResponse{}, nil
+	return openapi.PointsHistoryOk{Body: openapi.PointHistoryFindAllResponse{}}, nil
 }
 
 func (a *recordingPointApi) PointsSpend(
 	_ context.Context,
+	_ openapi.PointApiCredentials,
 	uid string,
 	_ openapi.PointSpendRequest,
-) (*openapi.PointBalanceResponse, error) {
+) (openapi.PointsSpendResponse, error) {
 	a.called = true
-	return &openapi.PointBalanceResponse{UserUid: uid}, nil
+	return openapi.PointsSpendOk{Body: openapi.PointBalanceResponse{UserUid: uid}}, nil
 }
 
 func postPointsEarn(t *testing.T, body string) (*httptest.ResponseRecorder, *recordingPointApi) {
@@ -55,10 +62,9 @@ func postPointsEarn(t *testing.T, body string) (*httptest.ResponseRecorder, *rec
 
 	gin.SetMode(gin.TestMode)
 	api := &recordingPointApi{}
-	handler := openapi.NewPointApiHandler(api)
 
 	r := gin.New()
-	r.POST("/api/v1/customers/:uid/points/earn", handler.PointsEarn)
+	openapi.RegisterPointApiGinRoutes(r, api)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(
@@ -67,6 +73,7 @@ func postPointsEarn(t *testing.T, body string) (*httptest.ResponseRecorder, *rec
 		strings.NewReader(body),
 	)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer test-token")
 	r.ServeHTTP(w, req)
 
 	return w, api

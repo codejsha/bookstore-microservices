@@ -26,6 +26,7 @@ func NewEditionController(catalogUseCase usecase.CatalogUseCase) openapi.Edition
 
 func (c *editionController) EditionsSearch(
 	ctx context.Context,
+	_ openapi.EditionApiCredentials,
 	title *string,
 	isbn *string,
 	workUid *string,
@@ -35,7 +36,7 @@ func (c *editionController) EditionsSearch(
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.EditionFindAllResponse, error) {
+) (openapi.EditionsSearchResponse, error) {
 	opt := option.NewEditionQueryOption(
 		option.EditionQueryOption{}.WithTitle(title),
 		option.EditionQueryOption{}.WithWorkUid(workUid),
@@ -55,10 +56,10 @@ func (c *editionController) EditionsSearch(
 	for i, e := range editions {
 		items[i] = toEditionItem(e)
 	}
-	return &openapi.EditionFindAllResponse{Items: items, Total: total}, nil
+	return openapi.EditionsSearchOk{Body: openapi.EditionFindAllResponse{Items: items, Total: total}}, nil
 }
 
-func (c *editionController) EditionsCreate(ctx context.Context, req openapi.EditionCreateRequest) error {
+func (c *editionController) EditionsCreate(ctx context.Context, _ openapi.EditionApiCredentials, req openapi.EditionCreateRequest) (openapi.EditionsCreateResponse, error) {
 	cmd := command.EditionCreateCommand{
 		Title:          req.Title,
 		Isbn10:         req.Isbn10,
@@ -76,20 +77,20 @@ func (c *editionController) EditionsCreate(ctx context.Context, req openapi.Edit
 
 	edition, err := c.catalogUseCase.CreateEdition(ctx, cmd)
 	if err != nil {
-		return httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err)))
+		return nil, httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err)))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "edition", edition.Uid, "created", logrus.Fields{"title": req.Title})
-	return nil
+	return openapi.EditionsCreateCreated{Location: "/api/v1/editions/" + edition.Uid}, nil
 }
 
-func (c *editionController) EditionsRead(ctx context.Context, uid string) (*openapi.EditionFindResponse, error) {
+func (c *editionController) EditionsRead(ctx context.Context, _ openapi.EditionApiCredentials, uid string) (openapi.EditionsReadResponse, error) {
 	edition, err := c.catalogUseCase.FindEdition(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapNotFound(ctx, err)
 	}
 
-	resp := &openapi.EditionFindResponse{
+	resp := openapi.EditionFindResponse{
 		Uid:            edition.Uid,
 		Title:          edition.Title,
 		Isbn10:         edition.Isbn10,
@@ -111,14 +112,15 @@ func (c *editionController) EditionsRead(ctx context.Context, uid string) (*open
 		pub := toPublisherItem(edition.Publisher)
 		resp.Publisher = &pub
 	}
-	return resp, nil
+	return openapi.EditionsReadOk{Body: resp}, nil
 }
 
 func (c *editionController) EditionsUpdate(
 	ctx context.Context,
+	_ openapi.EditionApiCredentials,
 	uid string,
 	req openapi.EditionUpdateRequest,
-) (*openapi.EditionUpdateResponse, error) {
+) (openapi.EditionsUpdateResponse, error) {
 	cmd := command.EditionUpdateCommand{
 		Title:          req.Title,
 		Isbn10:         req.Isbn10,
@@ -141,7 +143,7 @@ func (c *editionController) EditionsUpdate(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "edition", uid, "updated", logrus.Fields{})
 
-	resp := &openapi.EditionUpdateResponse{
+	resp := openapi.EditionUpdateResponse{
 		Uid:            edition.Uid,
 		Title:          edition.Title,
 		Isbn10:         edition.Isbn10,
@@ -163,5 +165,5 @@ func (c *editionController) EditionsUpdate(
 		pub := toPublisherItem(edition.Publisher)
 		resp.Publisher = &pub
 	}
-	return resp, nil
+	return openapi.EditionsUpdateOk{Body: resp}, nil
 }

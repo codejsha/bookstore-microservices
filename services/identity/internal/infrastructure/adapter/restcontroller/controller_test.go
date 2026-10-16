@@ -87,16 +87,20 @@ func TestUsersRegister_WhenRequestValid_ReturnsRegisteredUser(t *testing.T) {
 		},
 	}
 	ctrl := NewUserController(use)
-	roles := []openapi.AuthRole{openapi.AUTHROLE_USER, openapi.AUTHROLE_STAFF}
+	roles := []openapi.AuthRole{openapi.AuthRoleUser, openapi.AuthRoleStaff}
 	req := openapi.UserRegisterRequest{
 		Email: "u@x.com", Password: "secret", FirstName: "F", LastName: "L", Roles: &roles,
 	}
-	resp, err := ctrl.UsersRegister(context.Background(), req)
+	res, err := ctrl.UsersRegister(context.Background(), openapi.UserApiCredentials{}, req)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Email != "u@x.com" || resp.FirstName != "F" {
-		t.Errorf("resp = %+v", resp)
+	got, ok := res.(openapi.UsersRegisterCreated)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.UsersRegisterCreated", res)
+	}
+	if got.Body.Email != "u@x.com" || got.Body.FirstName != "F" {
+		t.Errorf("got.Body = %+v", got.Body)
 	}
 	if captured.Email != "u@x.com" || len(captured.Roles) != 2 {
 		t.Errorf("captured = %+v", captured)
@@ -117,15 +121,19 @@ func TestUsersGetAll_WhenFiltersGiven_ReturnsPagedUsers(t *testing.T) {
 	}
 	ctrl := NewUserController(use)
 	email := "x@x.com"
-	resp, err := ctrl.UsersGetAll(context.Background(), &email, nil, nil, nil, nil, nil, nil)
+	res, err := ctrl.UsersGetAll(context.Background(), openapi.UserApiCredentials{}, &email, nil, nil, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Total != 1 || len(resp.Items) != 1 {
-		t.Fatalf("resp = %+v", resp)
+	got, ok := res.(openapi.UsersGetAllOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.UsersGetAllOk", res)
 	}
-	if resp.Items[0].Email != "x@x.com" || resp.Items[0].Status != openapi.USERSTATUS_ACTIVE {
-		t.Errorf("Items[0] = %+v", resp.Items[0])
+	if got.Body.Total != 1 || len(got.Body.Items) != 1 {
+		t.Fatalf("got.Body = %+v", got.Body)
+	}
+	if got.Body.Items[0].Email != "x@x.com" || got.Body.Items[0].Status != openapi.UserStatusActive {
+		t.Errorf("Items[0] = %+v", got.Body.Items[0])
 	}
 }
 
@@ -138,8 +146,8 @@ func TestUsersGetAll_statusGiven_passesStatusToUsecase(t *testing.T) {
 		},
 	}
 	ctrl := NewUserController(use)
-	status := openapi.USERSTATUS_SUSPENDED
-	if _, err := ctrl.UsersGetAll(context.Background(), nil, nil, nil, &status, nil, nil, nil); err != nil {
+	status := openapi.UserStatusSuspended
+	if _, err := ctrl.UsersGetAll(context.Background(), openapi.UserApiCredentials{}, nil, nil, nil, &status, nil, nil, nil); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 	if captured == nil || *captured != "SUSPENDED" {
@@ -158,7 +166,7 @@ func TestUsersGetAll_statusOmitted_passesNilStatus(t *testing.T) {
 		},
 	}
 	ctrl := NewUserController(use)
-	if _, err := ctrl.UsersGetAll(context.Background(), nil, nil, nil, nil, nil, nil, nil); err != nil {
+	if _, err := ctrl.UsersGetAll(context.Background(), openapi.UserApiCredentials{}, nil, nil, nil, nil, nil, nil, nil); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 	if !called || captured != nil {
@@ -174,7 +182,7 @@ func TestUsersGetAll_WhenUsecaseFails_PropagatesError(t *testing.T) {
 		},
 	}
 	ctrl := NewUserController(use)
-	_, err := ctrl.UsersGetAll(context.Background(), nil, nil, nil, nil, nil, nil, nil)
+	_, err := ctrl.UsersGetAll(context.Background(), openapi.UserApiCredentials{}, nil, nil, nil, nil, nil, nil, nil)
 	if !errors.Is(err, wantErr) {
 		t.Errorf("err = %v, want %v", err, wantErr)
 	}
@@ -194,12 +202,16 @@ func TestUsersUpdate_WhenRequestValid_ReturnsUpdatedUser(t *testing.T) {
 	}
 	ctrl := NewUserController(use)
 	first := "New"
-	resp, err := ctrl.UsersUpdate(context.Background(), "uid-1", openapi.UserUpdateRequest{FirstName: &first})
+	res, err := ctrl.UsersUpdate(context.Background(), openapi.UserApiCredentials{}, "uid-1", openapi.UserUpdateRequest{FirstName: &first})
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.FirstName != "New" {
-		t.Errorf("FirstName = %q", resp.FirstName)
+	got, ok := res.(openapi.UsersUpdateOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.UsersUpdateOk", res)
+	}
+	if got.Body.FirstName != "New" {
+		t.Errorf("FirstName = %q", got.Body.FirstName)
 	}
 }
 
@@ -210,12 +222,16 @@ func TestUsersDeactivate_WhenUsecaseSucceeds_ReturnsDeactivatedStatus(t *testing
 		},
 	}
 	ctrl := NewUserController(use)
-	resp, err := ctrl.UsersDeactivate(context.Background(), "uid-1")
+	res, err := ctrl.UsersDeactivate(context.Background(), openapi.UserApiCredentials{}, "uid-1")
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Status != openapi.USERSTATUS_DEACTIVATED {
-		t.Errorf("Status = %v, want DEACTIVATED (controller must override)", resp.Status)
+	got, ok := res.(openapi.UsersDeactivateOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.UsersDeactivateOk", res)
+	}
+	if got.Body.Status != openapi.UserStatusDeactivated {
+		t.Errorf("Status = %v, want DEACTIVATED (controller must override)", got.Body.Status)
 	}
 }
 
@@ -226,12 +242,16 @@ func TestUsersSuspend_WhenUsecaseSucceeds_ReturnsSuspendedStatus(t *testing.T) {
 		},
 	}
 	ctrl := NewUserController(use)
-	resp, err := ctrl.UsersSuspend(context.Background(), "uid-1")
+	res, err := ctrl.UsersSuspend(context.Background(), openapi.UserApiCredentials{}, "uid-1")
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Status != openapi.USERSTATUS_SUSPENDED {
-		t.Errorf("Status = %v, want SUSPENDED", resp.Status)
+	got, ok := res.(openapi.UsersSuspendOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.UsersSuspendOk", res)
+	}
+	if got.Body.Status != openapi.UserStatusSuspended {
+		t.Errorf("Status = %v, want SUSPENDED", got.Body.Status)
 	}
 }
 
@@ -242,12 +262,16 @@ func TestUsersReactivate_WhenUsecaseSucceeds_ReturnsActiveStatus(t *testing.T) {
 		},
 	}
 	ctrl := NewUserController(use)
-	resp, err := ctrl.UsersReactivate(context.Background(), "uid-1")
+	res, err := ctrl.UsersReactivate(context.Background(), openapi.UserApiCredentials{}, "uid-1")
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Status != openapi.USERSTATUS_ACTIVE {
-		t.Errorf("Status = %v, want ACTIVE", resp.Status)
+	got, ok := res.(openapi.UsersReactivateOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.UsersReactivateOk", res)
+	}
+	if got.Body.Status != openapi.UserStatusActive {
+		t.Errorf("Status = %v, want ACTIVE", got.Body.Status)
 	}
 }
 
@@ -260,8 +284,8 @@ func TestUsersUpdateRoles_WhenRequestValid_PassesRolesToUsecase(t *testing.T) {
 		},
 	}
 	ctrl := NewUserController(use)
-	_, err := ctrl.UsersUpdateRoles(context.Background(), "uid-1", openapi.UserRolesRequest{
-		Roles: []openapi.AuthRole{openapi.AUTHROLE_MANAGER, openapi.AUTHROLE_USER},
+	_, err := ctrl.UsersUpdateRoles(context.Background(), openapi.UserApiCredentials{}, "uid-1", openapi.UserRolesRequest{
+		Roles: []openapi.AuthRole{openapi.AuthRoleManager, openapi.AuthRoleUser},
 	})
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -281,12 +305,16 @@ func TestUsersSyncFromIdp_WhenStatusMissing_ReturnsActiveStatus(t *testing.T) {
 		},
 	}
 	ctrl := NewUserController(use)
-	resp, err := ctrl.UsersSyncFromIdp(context.Background(), "idp-99")
+	res, err := ctrl.UsersSyncFromIdp(context.Background(), openapi.UserApiCredentials{}, "idp-99")
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Status != openapi.USERSTATUS_ACTIVE {
-		t.Errorf("default status = %v, want ACTIVE (parseStatusOrDefault)", resp.Status)
+	got, ok := res.(openapi.UsersSyncFromIdpOk)
+	if !ok {
+		t.Fatalf("response = %T, want openapi.UsersSyncFromIdpOk", res)
+	}
+	if got.Body.Status != openapi.UserStatusActive {
+		t.Errorf("default status = %v, want ACTIVE (parseStatusOrDefault)", got.Body.Status)
 	}
 }
 
@@ -298,11 +326,11 @@ func TestParseStatusOrDefault_WhenStatusBlankOrUnknown_ReturnsActive(t *testing.
 		in   string
 		want openapi.UserStatus
 	}{
-		{"", openapi.USERSTATUS_ACTIVE},
-		{"BOGUS", openapi.USERSTATUS_ACTIVE},
-		{"ACTIVE", openapi.USERSTATUS_ACTIVE},
-		{"SUSPENDED", openapi.USERSTATUS_SUSPENDED},
-		{"DEACTIVATED", openapi.USERSTATUS_DEACTIVATED},
+		{"", openapi.UserStatusActive},
+		{"BOGUS", openapi.UserStatusActive},
+		{"ACTIVE", openapi.UserStatusActive},
+		{"SUSPENDED", openapi.UserStatusSuspended},
+		{"DEACTIVATED", openapi.UserStatusDeactivated},
 	}
 	for _, c := range cases {
 		if got := parseStatusOrDefault(c.in); got != c.want {
@@ -316,7 +344,7 @@ func TestAuthRolesToStrings_WhenRolesNil_ReturnsNil(t *testing.T) {
 	if got := authRolesToStrings(nil); got != nil {
 		t.Errorf("nil -> %v, want nil", got)
 	}
-	in := []openapi.AuthRole{openapi.AUTHROLE_STAFF, openapi.AUTHROLE_USER}
+	in := []openapi.AuthRole{openapi.AuthRoleStaff, openapi.AuthRoleUser}
 	if got := authRolesToStrings(&in); len(got) != 2 || got[0] != "STAFF" || got[1] != "USER" {
 		t.Errorf("got = %v", got)
 	}

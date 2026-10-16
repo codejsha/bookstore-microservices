@@ -32,7 +32,7 @@ func (c *reviewController) BookReviewsGetAll(
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.ReviewFindAllResponse, error) {
+) (openapi.BookReviewsGetAllResponse, error) {
 	opts := []option.ReviewQueryOptionFunc{
 		option.WithReviewBookUid(bookUid),
 		option.WithReviewPage(pagination.NewPageOption(size, page, sort)),
@@ -51,16 +51,17 @@ func (c *reviewController) BookReviewsGetAll(
 	for i, r := range reviews {
 		items[i] = toReviewFindResponse(r)
 	}
-	return &openapi.ReviewFindAllResponse{Items: items, Total: total}, nil
+	return openapi.BookReviewsGetAllOk{Body: openapi.ReviewFindAllResponse{Items: items, Total: total}}, nil
 }
 
 func (c *reviewController) CustomerReviewsGetAll(
 	ctx context.Context,
+	_ openapi.ReviewApiCredentials,
 	uid string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.ReviewFindAllResponse, error) {
+) (openapi.CustomerReviewsGetAllResponse, error) {
 	opt := option.NewReviewQueryOption(
 		option.WithReviewUserUid(uid),
 		option.WithReviewPage(pagination.NewPageOption(size, page, sort)),
@@ -75,14 +76,15 @@ func (c *reviewController) CustomerReviewsGetAll(
 	for i, r := range reviews {
 		items[i] = toReviewFindResponse(r)
 	}
-	return &openapi.ReviewFindAllResponse{Items: items, Total: total}, nil
+	return openapi.CustomerReviewsGetAllOk{Body: openapi.ReviewFindAllResponse{Items: items, Total: total}}, nil
 }
 
 func (c *reviewController) CustomerReviewsWrite(
 	ctx context.Context,
+	_ openapi.ReviewApiCredentials,
 	uid string,
 	req openapi.ReviewCreateRequest,
-) error {
+) (openapi.CustomerReviewsWriteResponse, error) {
 	cmd := command.ReviewWriteCommand{
 		UserUid: uid,
 		BookUid: req.BookUid,
@@ -93,18 +95,19 @@ func (c *reviewController) CustomerReviewsWrite(
 
 	review, err := c.customerUseCase.WriteReview(ctx, cmd)
 	if err != nil {
-		return httpx.MapBusinessError(ctx, httpx.MapReviewExists(ctx, err))
+		return nil, httpx.MapBusinessError(ctx, httpx.MapReviewExists(ctx, err))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "review", review.Uid, "created", logrus.Fields{"book_uid": req.BookUid})
-	return nil
+	return openapi.CustomerReviewsWriteCreated{Location: "/api/v1/customers/" + uid + "/reviews/" + review.Uid}, nil
 }
 
 func (c *reviewController) CustomerReviewsRead(
 	ctx context.Context,
+	_ openapi.ReviewApiCredentials,
 	uid string,
 	reviewUid string,
-) (*openapi.ReviewFindResponse, error) {
+) (openapi.CustomerReviewsReadResponse, error) {
 	review, err := c.customerUseCase.GetReview(ctx, uid, reviewUid)
 	if err != nil {
 		return nil, httpx.MapNotFound(ctx, err)
@@ -113,16 +116,16 @@ func (c *reviewController) CustomerReviewsRead(
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
 
-	resp := toReviewFindResponse(review)
-	return &resp, nil
+	return openapi.CustomerReviewsReadOk{Body: toReviewFindResponse(review)}, nil
 }
 
 func (c *reviewController) CustomerReviewsEdit(
 	ctx context.Context,
+	_ openapi.ReviewApiCredentials,
 	uid string,
 	reviewUid string,
 	req openapi.ReviewUpdateRequest,
-) (*openapi.ReviewFindResponse, error) {
+) (openapi.CustomerReviewsEditResponse, error) {
 	cmd := command.ReviewEditCommand{
 		Rating:  req.Rating,
 		Title:   req.Title,
@@ -139,17 +142,21 @@ func (c *reviewController) CustomerReviewsEdit(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "review", reviewUid, "updated", logrus.Fields{})
 
-	resp := toReviewFindResponse(review)
-	return &resp, nil
+	return openapi.CustomerReviewsEditOk{Body: toReviewFindResponse(review)}, nil
 }
 
-func (c *reviewController) CustomerReviewsRemove(ctx context.Context, uid string, reviewUid string) error {
+func (c *reviewController) CustomerReviewsRemove(
+	ctx context.Context,
+	_ openapi.ReviewApiCredentials,
+	uid string,
+	reviewUid string,
+) (openapi.CustomerReviewsRemoveResponse, error) {
 	if err := c.customerUseCase.RemoveReview(ctx, uid, reviewUid); err != nil {
-		return httpx.MapNotFound(ctx, err)
+		return nil, httpx.MapNotFound(ctx, err)
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "review", reviewUid, "deleted", logrus.Fields{})
-	return nil
+	return openapi.CustomerReviewsRemoveNoContent{}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────

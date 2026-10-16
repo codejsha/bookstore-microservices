@@ -29,7 +29,7 @@ func TestToShipmentResponse_WhenAggregateFullyPopulated_MapsEveryField(t *testin
 		if got.Uid != "sh-1" {
 			t.Errorf("Uid = %q, want sh-1", got.Uid)
 		}
-		if got.Status == nil || *got.Status != openapi.SHIPMENTSTATUS_OUT_FOR_DELIVERY {
+		if got.Status == nil || *got.Status != openapi.ShipmentStatusOutForDelivery {
 			t.Errorf("Status = %v, want OUT_FOR_DELIVERY", got.Status)
 		}
 		assertStrPtr(t, "OrderUid", got.OrderUid, "o-1")
@@ -68,7 +68,7 @@ func TestToShipmentResponse_WhenAggregateFullyPopulated_MapsEveryField(t *testin
 				t.Errorf("%s = %q, want nil for empty string", field, *ptr)
 			}
 		}
-		if got.Status == nil || *got.Status != openapi.SHIPMENTSTATUS_UNKNOWN {
+		if got.Status == nil || *got.Status != openapi.ShipmentStatusUnknown {
 			t.Errorf("Status = %v, want UNKNOWN", got.Status)
 		}
 	})
@@ -79,15 +79,15 @@ func TestToShipmentStatusRest_WhenDomainStatusGiven_ReturnsRestStatus(t *testing
 		in   aggregate.ShipmentStatus
 		want openapi.ShipmentStatus
 	}{
-		{aggregate.SHIPMENTSTATUS_PLANNED, openapi.SHIPMENTSTATUS_PLANNED},
-		{aggregate.SHIPMENTSTATUS_DISPATCHED, openapi.SHIPMENTSTATUS_DISPATCHED},
-		{aggregate.SHIPMENTSTATUS_PICKED_UP, openapi.SHIPMENTSTATUS_PICKED_UP},
-		{aggregate.SHIPMENTSTATUS_IN_TRANSIT, openapi.SHIPMENTSTATUS_IN_TRANSIT},
-		{aggregate.SHIPMENTSTATUS_OUT_FOR_DELIVERY, openapi.SHIPMENTSTATUS_OUT_FOR_DELIVERY},
-		{aggregate.SHIPMENTSTATUS_DELIVERED, openapi.SHIPMENTSTATUS_DELIVERED},
-		{aggregate.SHIPMENTSTATUS_FAILED, openapi.SHIPMENTSTATUS_FAILED},
-		{aggregate.SHIPMENTSTATUS_CANCELLED, openapi.SHIPMENTSTATUS_CANCELLED},
-		{aggregate.SHIPMENTSTATUS_UNKNOWN, openapi.SHIPMENTSTATUS_UNKNOWN},
+		{aggregate.SHIPMENTSTATUS_PLANNED, openapi.ShipmentStatusPlanned},
+		{aggregate.SHIPMENTSTATUS_DISPATCHED, openapi.ShipmentStatusDispatched},
+		{aggregate.SHIPMENTSTATUS_PICKED_UP, openapi.ShipmentStatusPickedUp},
+		{aggregate.SHIPMENTSTATUS_IN_TRANSIT, openapi.ShipmentStatusInTransit},
+		{aggregate.SHIPMENTSTATUS_OUT_FOR_DELIVERY, openapi.ShipmentStatusOutForDelivery},
+		{aggregate.SHIPMENTSTATUS_DELIVERED, openapi.ShipmentStatusDelivered},
+		{aggregate.SHIPMENTSTATUS_FAILED, openapi.ShipmentStatusFailed},
+		{aggregate.SHIPMENTSTATUS_CANCELLED, openapi.ShipmentStatusCancelled},
+		{aggregate.SHIPMENTSTATUS_UNKNOWN, openapi.ShipmentStatusUnknown},
 	}
 	for _, c := range cases {
 		if got := toShipmentStatusRest(c.in); got != c.want {

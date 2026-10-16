@@ -28,7 +28,7 @@ func deleteReview(t *testing.T, uc usecase.CustomerUseCase) *httptest.ResponseRe
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	r.Use(httpx.GinResponseMapping())
-	openapi.NewReviewApiHandler(NewReviewController(uc)).RegisterRoutes(r)
+	openapi.RegisterReviewApiGinRoutes(r, NewReviewController(uc))
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(
@@ -36,6 +36,7 @@ func deleteReview(t *testing.T, uc usecase.CustomerUseCase) *httptest.ResponseRe
 		"/api/v1/customers/6f1e3a2c-0a1b-4c2d-8e3f-9a0b1c2d3e4f/reviews/7a2b3c4d-0a1b-4c2d-8e3f-9a0b1c2d3e4f",
 		nil,
 	)
+	req.Header.Set("Authorization", "Bearer test-token")
 	r.ServeHTTP(w, req)
 	return w
 }

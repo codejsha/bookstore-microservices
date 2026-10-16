@@ -27,6 +27,7 @@ func NewTransferController(inventoryUseCase usecase.InventoryUseCase) openapi.Tr
 
 func (c *transferController) TransfersGetAll(
 	ctx context.Context,
+	_ openapi.TransferApiCredentials,
 	editionUid *string,
 	sourceWarehouseUid *string,
 	targetWarehouseUid *string,
@@ -34,7 +35,7 @@ func (c *transferController) TransfersGetAll(
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.TransferFindAllResponse, error) {
+) (openapi.TransfersGetAllResponse, error) {
 	if err := optionalUidParam(ctx, "edition_uid", editionUid); err != nil {
 		return nil, err
 	}
@@ -62,10 +63,10 @@ func (c *transferController) TransfersGetAll(
 	for i, t := range transfers {
 		items[i] = toTransferFindResponse(t)
 	}
-	return &openapi.TransferFindAllResponse{Items: items, Total: total}, nil
+	return openapi.TransfersGetAllOk{Body: openapi.TransferFindAllResponse{Items: items, Total: total}}, nil
 }
 
-func (c *transferController) TransfersCreate(ctx context.Context, req openapi.TransferCreateRequest) (*openapi.TransferFindResponse, error) {
+func (c *transferController) TransfersCreate(ctx context.Context, _ openapi.TransferApiCredentials, req openapi.TransferCreateRequest) (openapi.TransfersCreateResponse, error) {
 	cmd := command.StockTransferCommand{
 		EditionUid:         req.EditionUid,
 		SourceWarehouseUid: req.SourceWarehouseUid,
@@ -86,10 +87,10 @@ func (c *transferController) TransfersCreate(ctx context.Context, req openapi.Tr
 		"quantity":             req.Quantity,
 	})
 	resp := toTransferFindResponse(transfer)
-	return &resp, nil
+	return openapi.TransfersCreateOk{Body: resp}, nil
 }
 
-func (c *transferController) TransfersRead(ctx context.Context, uid string) (*openapi.TransferFindResponse, error) {
+func (c *transferController) TransfersRead(ctx context.Context, _ openapi.TransferApiCredentials, uid string) (openapi.TransfersReadResponse, error) {
 	if err := requireUidParam(ctx, "uid", uid); err != nil {
 		return nil, err
 	}
@@ -102,10 +103,10 @@ func (c *transferController) TransfersRead(ctx context.Context, uid string) (*op
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
 	resp := toTransferFindResponse(transfer)
-	return &resp, nil
+	return openapi.TransfersReadOk{Body: resp}, nil
 }
 
-func (c *transferController) TransfersComplete(ctx context.Context, uid string) (*openapi.TransferFindResponse, error) {
+func (c *transferController) TransfersComplete(ctx context.Context, _ openapi.TransferApiCredentials, uid string) (openapi.TransfersCompleteResponse, error) {
 	if err := requireUidParam(ctx, "uid", uid); err != nil {
 		return nil, err
 	}
@@ -119,10 +120,10 @@ func (c *transferController) TransfersComplete(ctx context.Context, uid string) 
 	}
 	dispatchSideEffects(context.WithoutCancel(ctx), "transfer", uid, "completed", logrus.Fields{})
 	resp := toTransferFindResponse(transfer)
-	return &resp, nil
+	return openapi.TransfersCompleteOk{Body: resp}, nil
 }
 
-func (c *transferController) TransfersCancel(ctx context.Context, uid string) (*openapi.TransferFindResponse, error) {
+func (c *transferController) TransfersCancel(ctx context.Context, _ openapi.TransferApiCredentials, uid string) (openapi.TransfersCancelResponse, error) {
 	if err := requireUidParam(ctx, "uid", uid); err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ func (c *transferController) TransfersCancel(ctx context.Context, uid string) (*
 	}
 	dispatchSideEffects(context.WithoutCancel(ctx), "transfer", uid, "cancelled", logrus.Fields{})
 	resp := toTransferFindResponse(transfer)
-	return &resp, nil
+	return openapi.TransfersCancelOk{Body: resp}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────

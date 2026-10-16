@@ -24,23 +24,24 @@ func NewPointController(customerUseCase usecase.CustomerUseCase) openapi.PointAp
 	return &pointController{customerUseCase: customerUseCase}
 }
 
-func (c *pointController) PointsGetBalance(ctx context.Context, uid string) (*openapi.PointBalanceResponse, error) {
+func (c *pointController) PointsGetBalance(ctx context.Context, _ openapi.PointApiCredentials, uid string) (openapi.PointsGetBalanceResponse, error) {
 	point, err := c.customerUseCase.GetPointBalance(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
 
-	return &openapi.PointBalanceResponse{
+	return openapi.PointsGetBalanceOk{Body: openapi.PointBalanceResponse{
 		UserUid: uid,
 		Balance: point.Balance,
-	}, nil
+	}}, nil
 }
 
 func (c *pointController) PointsEarn(
 	ctx context.Context,
+	_ openapi.PointApiCredentials,
 	uid string,
 	req openapi.PointEarnRequest,
-) (*openapi.PointBalanceResponse, error) {
+) (openapi.PointsEarnResponse, error) {
 	cmd := command.PointEarnCommand{
 		UserUid: uid,
 		Amount:  req.Amount,
@@ -54,17 +55,18 @@ func (c *pointController) PointsEarn(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "point", uid, "earned", logrus.Fields{"amount": req.Amount})
 
-	return &openapi.PointBalanceResponse{
+	return openapi.PointsEarnOk{Body: openapi.PointBalanceResponse{
 		UserUid: uid,
 		Balance: point.Balance,
-	}, nil
+	}}, nil
 }
 
 func (c *pointController) PointsSpend(
 	ctx context.Context,
+	_ openapi.PointApiCredentials,
 	uid string,
 	req openapi.PointSpendRequest,
-) (*openapi.PointBalanceResponse, error) {
+) (openapi.PointsSpendResponse, error) {
 	cmd := command.PointSpendCommand{
 		UserUid: uid,
 		Amount:  req.Amount,
@@ -78,19 +80,20 @@ func (c *pointController) PointsSpend(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "point", uid, "spent", logrus.Fields{"amount": req.Amount})
 
-	return &openapi.PointBalanceResponse{
+	return openapi.PointsSpendOk{Body: openapi.PointBalanceResponse{
 		UserUid: uid,
 		Balance: point.Balance,
-	}, nil
+	}}, nil
 }
 
 func (c *pointController) PointsHistory(
 	ctx context.Context,
+	_ openapi.PointApiCredentials,
 	uid string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.PointHistoryFindAllResponse, error) {
+) (openapi.PointsHistoryResponse, error) {
 	pageOpt := pagination.NewPageOption(size, page, sort)
 
 	total, entries, err := c.customerUseCase.GetPointHistory(ctx, uid, pageOpt)
@@ -102,7 +105,7 @@ func (c *pointController) PointsHistory(
 	for i, e := range entries {
 		items[i] = toPointHistoryResponse(e)
 	}
-	return &openapi.PointHistoryFindAllResponse{Items: items, Total: total}, nil
+	return openapi.PointsHistoryOk{Body: openapi.PointHistoryFindAllResponse{Items: items, Total: total}}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────

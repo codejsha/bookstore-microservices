@@ -207,7 +207,7 @@ func GinAccessLogMiddleware(logHelper *logging.LogHelper) gin.HandlerFunc {
 }
 
 func (s *GinServer) RegisterRoutes() {
-	openapi.NewUserApiHandler(s.userAPI).RegisterRoutes(s.engine)
+	openapi.RegisterUserApiGinRoutes(s.engine, s.userAPI)
 	s.authzAPI.RegisterRoutes(s.engine)
-	openapi.NewRiskApiHandler(s.riskAPI).RegisterRoutes(s.engine)
+	openapi.RegisterRiskApiGinRoutes(s.engine, s.riskAPI)
 }

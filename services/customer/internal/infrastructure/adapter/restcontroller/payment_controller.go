@@ -24,11 +24,12 @@ func NewPaymentController(customerUseCase usecase.CustomerUseCase) openapi.Payme
 
 func (c *paymentController) CustomerPaymentsGetAll(
 	ctx context.Context,
+	_ openapi.PaymentApiCredentials,
 	uid string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.PaymentFindAllResponse, error) {
+) (openapi.CustomerPaymentsGetAllResponse, error) {
 	opt := option.NewPaymentQueryOption(
 		option.PaymentQueryOption{}.WithUserUid(&uid),
 		option.PaymentQueryOption{}.WithPage(pagination.NewPageOption(size, page, sort)),
@@ -43,14 +44,15 @@ func (c *paymentController) CustomerPaymentsGetAll(
 	for i, payment := range payments {
 		items[i] = toPaymentFindResponse(payment)
 	}
-	return &openapi.PaymentFindAllResponse{Items: items, Total: total}, nil
+	return openapi.CustomerPaymentsGetAllOk{Body: openapi.PaymentFindAllResponse{Items: items, Total: total}}, nil
 }
 
 func (c *paymentController) CustomerPaymentsRead(
 	ctx context.Context,
+	_ openapi.PaymentApiCredentials,
 	uid string,
 	paymentUid string,
-) (*openapi.PaymentFindResponse, error) {
+) (openapi.CustomerPaymentsReadResponse, error) {
 	payment, err := c.customerUseCase.FindCustomerPayment(ctx, uid, paymentUid)
 	if err != nil {
 		return nil, httpx.MapGrpcStatus(ctx, httpx.MapNotFound(ctx, err))
@@ -59,8 +61,7 @@ func (c *paymentController) CustomerPaymentsRead(
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
 
-	resp := toPaymentFindResponse(payment)
-	return &resp, nil
+	return openapi.CustomerPaymentsReadOk{Body: toPaymentFindResponse(payment)}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────

@@ -23,16 +23,16 @@ import (
 
 type stubRiskApi struct{}
 
-func (stubRiskApi) RiskGetAll(context.Context) (*openapi.RiskEntryListResponse, error) {
-	return &openapi.RiskEntryListResponse{Entries: []openapi.RiskEntryResponse{}}, nil
+func (stubRiskApi) RiskGetAll(context.Context, openapi.RiskApiCredentials) (openapi.RiskGetAllResponse, error) {
+	return openapi.RiskGetAllOk{Body: openapi.RiskEntryListResponse{Entries: []openapi.RiskEntryResponse{}}}, nil
 }
 
-func (stubRiskApi) RiskFlagPrincipal(context.Context, string, openapi.RiskFlagRequest) (*openapi.RiskEntryResponse, error) {
-	return nil, nil
+func (stubRiskApi) RiskFlagPrincipal(context.Context, openapi.RiskApiCredentials, string, openapi.RiskFlagRequest) (openapi.RiskFlagPrincipalResponse, error) {
+	return openapi.RiskFlagPrincipalOk{}, nil
 }
 
-func (stubRiskApi) RiskUnflagPrincipal(context.Context, string) error {
-	return nil
+func (stubRiskApi) RiskUnflagPrincipal(context.Context, openapi.RiskApiCredentials, string) (openapi.RiskUnflagPrincipalResponse, error) {
+	return openapi.RiskUnflagPrincipalNoContent{}, nil
 }
 
 func TestNewGinServer_riskRoute_servesInjectedRiskApi(t *testing.T) {
@@ -50,6 +50,7 @@ func TestNewGinServer_riskRoute_servesInjectedRiskApi(t *testing.T) {
 	)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/risk", nil)
+	req.Header.Set("Authorization", "Bearer test-token")
 	req.Header.Set(HeaderUserID, "manager-1")
 	req.Header.Set(HeaderUserRoles, "MANAGER,STAFF,USER")
 	rec := httptest.NewRecorder()
@@ -165,6 +166,7 @@ func TestGinServerBeginDrain_readyCheckSucceeds_readyIs503AndOtherRoutesServed(t
 		t.Fatalf("GET /health = %d, want %d", code, http.StatusOK)
 	}
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/risk", nil)
+	req.Header.Set("Authorization", "Bearer test-token")
 	req.Header.Set(HeaderUserID, "manager-1")
 	req.Header.Set(HeaderUserRoles, "MANAGER,STAFF,USER")
 	rec := httptest.NewRecorder()

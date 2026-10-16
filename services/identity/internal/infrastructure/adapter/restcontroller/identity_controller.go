@@ -27,6 +27,7 @@ func NewUserController(identityUseCase usecase.IdentityUseCase) openapi.UserApi 
 
 func (c *userController) UsersGetAll(
 	ctx context.Context,
+	_ openapi.UserApiCredentials,
 	email *string,
 	name *string,
 	phone *string,
@@ -34,7 +35,7 @@ func (c *userController) UsersGetAll(
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.UserFindAllResponse, error) {
+) (openapi.UsersGetAllResponse, error) {
 	opt := option.NewUserQueryOption(
 		option.UserQueryOption{}.WithEmail(email),
 		option.UserQueryOption{}.WithName(name),
@@ -52,13 +53,14 @@ func (c *userController) UsersGetAll(
 	for i, u := range users {
 		items[i] = toUserFindResponse(u)
 	}
-	return &openapi.UserFindAllResponse{Items: items, Total: total}, nil
+	return openapi.UsersGetAllOk{Body: openapi.UserFindAllResponse{Items: items, Total: total}}, nil
 }
 
 func (c *userController) UsersRegister(
 	ctx context.Context,
+	_ openapi.UserApiCredentials,
 	req openapi.UserRegisterRequest,
-) (*openapi.UserFindResponse, error) {
+) (openapi.UsersRegisterResponse, error) {
 	cmd := command.UserRegisterCommand{
 		Email:     req.Email,
 		Password:  req.Password,
@@ -75,26 +77,26 @@ func (c *userController) UsersRegister(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "user", user.Email(), "registered", logrus.Fields{})
 
-	resp := toUserFindResponse(user)
-	return &resp, nil
+	return openapi.UsersRegisterCreated{Body: toUserFindResponse(user)}, nil
 }
 
 func (c *userController) UsersReadByEmail(
 	ctx context.Context,
+	_ openapi.UserApiCredentials,
 	email string,
-) (*openapi.UserFindResponse, error) {
+) (openapi.UsersReadByEmailResponse, error) {
 	user, err := c.identityUseCase.FindUserByEmail(ctx, email)
 	if err != nil {
 		return nil, httpx.MapError(ctx, err)
 	}
-	resp := toUserFindResponse(user)
-	return &resp, nil
+	return openapi.UsersReadByEmailOk{Body: toUserFindResponse(user)}, nil
 }
 
 func (c *userController) UsersSyncFromIdp(
 	ctx context.Context,
+	_ openapi.UserApiCredentials,
 	idpUid string,
-) (*openapi.UserFindResponse, error) {
+) (openapi.UsersSyncFromIdpResponse, error) {
 	user, err := c.identityUseCase.SyncUserFromIdp(ctx, idpUid)
 	if err != nil {
 		return nil, httpx.MapError(ctx, err)
@@ -102,27 +104,27 @@ func (c *userController) UsersSyncFromIdp(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "user", idpUid, "synced", logrus.Fields{})
 
-	resp := toUserFindResponse(user)
-	return &resp, nil
+	return openapi.UsersSyncFromIdpOk{Body: toUserFindResponse(user)}, nil
 }
 
 func (c *userController) UsersRead(
 	ctx context.Context,
+	_ openapi.UserApiCredentials,
 	uid string,
-) (*openapi.UserFindResponse, error) {
+) (openapi.UsersReadResponse, error) {
 	user, err := c.identityUseCase.FindUser(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapError(ctx, err)
 	}
-	resp := toUserFindResponse(user)
-	return &resp, nil
+	return openapi.UsersReadOk{Body: toUserFindResponse(user)}, nil
 }
 
 func (c *userController) UsersUpdate(
 	ctx context.Context,
+	_ openapi.UserApiCredentials,
 	uid string,
 	req openapi.UserUpdateRequest,
-) (*openapi.UserFindResponse, error) {
+) (openapi.UsersUpdateResponse, error) {
 	cmd := command.UserUpdateCommand{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
@@ -136,14 +138,14 @@ func (c *userController) UsersUpdate(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "user", uid, "updated", logrus.Fields{})
 
-	resp := toUserFindResponse(user)
-	return &resp, nil
+	return openapi.UsersUpdateOk{Body: toUserFindResponse(user)}, nil
 }
 
 func (c *userController) UsersDeactivate(
 	ctx context.Context,
+	_ openapi.UserApiCredentials,
 	uid string,
-) (*openapi.UserFindResponse, error) {
+) (openapi.UsersDeactivateResponse, error) {
 	user, err := c.identityUseCase.DeactivateUser(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapError(ctx, err)
@@ -151,14 +153,14 @@ func (c *userController) UsersDeactivate(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "user", uid, "deactivated", logrus.Fields{})
 
-	resp := toUserFindResponseWithStatus(user, openapi.USERSTATUS_DEACTIVATED)
-	return &resp, nil
+	return openapi.UsersDeactivateOk{Body: toUserFindResponseWithStatus(user, openapi.UserStatusDeactivated)}, nil
 }
 
 func (c *userController) UsersReactivate(
 	ctx context.Context,
+	_ openapi.UserApiCredentials,
 	uid string,
-) (*openapi.UserFindResponse, error) {
+) (openapi.UsersReactivateResponse, error) {
 	user, err := c.identityUseCase.ReactivateUser(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapError(ctx, err)
@@ -166,15 +168,15 @@ func (c *userController) UsersReactivate(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "user", uid, "reactivated", logrus.Fields{})
 
-	resp := toUserFindResponseWithStatus(user, openapi.USERSTATUS_ACTIVE)
-	return &resp, nil
+	return openapi.UsersReactivateOk{Body: toUserFindResponseWithStatus(user, openapi.UserStatusActive)}, nil
 }
 
 func (c *userController) UsersUpdateRoles(
 	ctx context.Context,
+	_ openapi.UserApiCredentials,
 	uid string,
 	req openapi.UserRolesRequest,
-) (*openapi.UserFindResponse, error) {
+) (openapi.UsersUpdateRolesResponse, error) {
 	cmd := command.UserRolesCommand{Roles: authRoleSliceToStrings(req.Roles)}
 
 	user, err := c.identityUseCase.UpdateUserRoles(ctx, uid, cmd)
@@ -184,14 +186,14 @@ func (c *userController) UsersUpdateRoles(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "user", uid, "roles_updated", logrus.Fields{"roles": req.Roles})
 
-	resp := toUserFindResponse(user)
-	return &resp, nil
+	return openapi.UsersUpdateRolesOk{Body: toUserFindResponse(user)}, nil
 }
 
 func (c *userController) UsersSuspend(
 	ctx context.Context,
+	_ openapi.UserApiCredentials,
 	uid string,
-) (*openapi.UserFindResponse, error) {
+) (openapi.UsersSuspendResponse, error) {
 	user, err := c.identityUseCase.SuspendUser(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapError(ctx, err)
@@ -199,8 +201,7 @@ func (c *userController) UsersSuspend(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "user", uid, "suspended", logrus.Fields{})
 
-	resp := toUserFindResponseWithStatus(user, openapi.USERSTATUS_SUSPENDED)
-	return &resp, nil
+	return openapi.UsersSuspendOk{Body: toUserFindResponseWithStatus(user, openapi.UserStatusSuspended)}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────
@@ -231,11 +232,11 @@ func toUserFindResponseWithStatus(a *aggregate.UserAggregate, status openapi.Use
 
 func parseStatusOrDefault(s string) openapi.UserStatus {
 	if s == "" {
-		return openapi.USERSTATUS_ACTIVE
+		return openapi.UserStatusActive
 	}
 	v, err := openapi.ParseUserStatus(s)
 	if err != nil {
-		return openapi.USERSTATUS_ACTIVE
+		return openapi.UserStatusActive
 	}
 	return v
 }

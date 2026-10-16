@@ -26,11 +26,12 @@ func NewAuthorController(catalogUseCase usecase.CatalogUseCase) openapi.AuthorAp
 
 func (c *authorController) AuthorsGetAll(
 	ctx context.Context,
+	_ openapi.AuthorApiCredentials,
 	name *string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.AuthorFindAllResponse, error) {
+) (openapi.AuthorsGetAllResponse, error) {
 	opt := option.NewAuthorQueryOption(
 		option.AuthorQueryOption{}.WithName(name),
 		option.AuthorQueryOption{}.WithPage(pagination.NewPageOption(size, page, sort)),
@@ -45,10 +46,10 @@ func (c *authorController) AuthorsGetAll(
 	for i, a := range authors {
 		items[i] = toAuthorItem(a)
 	}
-	return &openapi.AuthorFindAllResponse{Items: items, Total: total}, nil
+	return openapi.AuthorsGetAllOk{Body: openapi.AuthorFindAllResponse{Items: items, Total: total}}, nil
 }
 
-func (c *authorController) AuthorsCreate(ctx context.Context, req openapi.AuthorCreateRequest) error {
+func (c *authorController) AuthorsCreate(ctx context.Context, _ openapi.AuthorApiCredentials, req openapi.AuthorCreateRequest) (openapi.AuthorsCreateResponse, error) {
 	cmd := command.AuthorCreateCommand{
 		Name:           req.Name,
 		Bio:            req.Bio,
@@ -61,20 +62,20 @@ func (c *authorController) AuthorsCreate(ctx context.Context, req openapi.Author
 
 	author, err := c.catalogUseCase.CreateAuthor(ctx, cmd)
 	if err != nil {
-		return httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, err))
+		return nil, httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, err))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "author", author.Uid, "created", logrus.Fields{"name": req.Name})
-	return nil
+	return openapi.AuthorsCreateCreated{Location: "/api/v1/authors/" + author.Uid}, nil
 }
 
-func (c *authorController) AuthorsRead(ctx context.Context, uid string) (*openapi.AuthorFindResponse, error) {
+func (c *authorController) AuthorsRead(ctx context.Context, _ openapi.AuthorApiCredentials, uid string) (openapi.AuthorsReadResponse, error) {
 	author, err := c.catalogUseCase.FindAuthor(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapNotFound(ctx, err)
 	}
 
-	return &openapi.AuthorFindResponse{
+	return openapi.AuthorsReadOk{Body: openapi.AuthorFindResponse{
 		Uid:            author.Uid,
 		Name:           author.Name,
 		Bio:            author.Bio,
@@ -83,14 +84,15 @@ func (c *authorController) AuthorsRead(ctx context.Context, uid string) (*openap
 		PhotoUids:      ptrStringSlice(author.PhotoUids),
 		AlternateNames: ptrStringSlice(author.AlternateNames),
 		OlKey:          author.OlKey,
-	}, nil
+	}}, nil
 }
 
 func (c *authorController) AuthorsUpdate(
 	ctx context.Context,
+	_ openapi.AuthorApiCredentials,
 	uid string,
 	req openapi.AuthorUpdateRequest,
-) (*openapi.AuthorUpdateResponse, error) {
+) (openapi.AuthorsUpdateResponse, error) {
 	cmd := command.AuthorUpdateCommand{
 		Name:           req.Name,
 		Bio:            req.Bio,
@@ -108,7 +110,7 @@ func (c *authorController) AuthorsUpdate(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "author", uid, "updated", logrus.Fields{})
 
-	return &openapi.AuthorUpdateResponse{
+	return openapi.AuthorsUpdateOk{Body: openapi.AuthorUpdateResponse{
 		Uid:            author.Uid,
 		Name:           author.Name,
 		Bio:            author.Bio,
@@ -117,5 +119,5 @@ func (c *authorController) AuthorsUpdate(
 		PhotoUids:      ptrStringSlice(author.PhotoUids),
 		AlternateNames: ptrStringSlice(author.AlternateNames),
 		OlKey:          author.OlKey,
-	}, nil
+	}}, nil
 }

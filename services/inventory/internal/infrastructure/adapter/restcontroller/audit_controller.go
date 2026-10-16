@@ -27,12 +27,13 @@ func NewAuditController(inventoryUseCase usecase.InventoryUseCase) openapi.Audit
 
 func (c *auditController) AuditsGetAll(
 	ctx context.Context,
+	_ openapi.AuditApiCredentials,
 	warehouseUid *string,
 	status *openapi.AuditStatus,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.AuditFindAllResponse, error) {
+) (openapi.AuditsGetAllResponse, error) {
 	if err := optionalUidParam(ctx, "warehouse_uid", warehouseUid); err != nil {
 		return nil, err
 	}
@@ -52,10 +53,10 @@ func (c *auditController) AuditsGetAll(
 	for i, a := range audits {
 		items[i] = toAuditFindResponse(a)
 	}
-	return &openapi.AuditFindAllResponse{Items: items, Total: total}, nil
+	return openapi.AuditsGetAllOk{Body: openapi.AuditFindAllResponse{Items: items, Total: total}}, nil
 }
 
-func (c *auditController) AuditsCreate(ctx context.Context, req openapi.AuditCreateRequest) (*openapi.AuditFindResponse, error) {
+func (c *auditController) AuditsCreate(ctx context.Context, _ openapi.AuditApiCredentials, req openapi.AuditCreateRequest) (openapi.AuditsCreateResponse, error) {
 	items := make([]command.StockAuditItemCommand, len(req.Items))
 	for i, it := range req.Items {
 		items[i] = command.StockAuditItemCommand{
@@ -79,10 +80,10 @@ func (c *auditController) AuditsCreate(ctx context.Context, req openapi.AuditCre
 		"item_count":    len(req.Items),
 	})
 	resp := toAuditFindResponse(audit)
-	return &resp, nil
+	return openapi.AuditsCreateOk{Body: resp}, nil
 }
 
-func (c *auditController) AuditsRead(ctx context.Context, uid string) (*openapi.AuditFindResponse, error) {
+func (c *auditController) AuditsRead(ctx context.Context, _ openapi.AuditApiCredentials, uid string) (openapi.AuditsReadResponse, error) {
 	if err := requireUidParam(ctx, "uid", uid); err != nil {
 		return nil, err
 	}
@@ -95,10 +96,10 @@ func (c *auditController) AuditsRead(ctx context.Context, uid string) (*openapi.
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
 	resp := toAuditFindResponse(audit)
-	return &resp, nil
+	return openapi.AuditsReadOk{Body: resp}, nil
 }
 
-func (c *auditController) AuditsComplete(ctx context.Context, uid string) (*openapi.AuditFindResponse, error) {
+func (c *auditController) AuditsComplete(ctx context.Context, _ openapi.AuditApiCredentials, uid string) (openapi.AuditsCompleteResponse, error) {
 	if err := requireUidParam(ctx, "uid", uid); err != nil {
 		return nil, err
 	}
@@ -112,7 +113,7 @@ func (c *auditController) AuditsComplete(ctx context.Context, uid string) (*open
 	}
 	dispatchSideEffects(context.WithoutCancel(ctx), "audit", uid, "completed", logrus.Fields{})
 	resp := toAuditFindResponse(audit)
-	return &resp, nil
+	return openapi.AuditsCompleteOk{Body: resp}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────
