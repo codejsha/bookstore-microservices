@@ -8,5 +8,5 @@ from .notification_item import NotificationItem
 
 
 class NotificationFindAllResponse(BaseModel):
-    items: list[NotificationItem]
+    items: list[NotificationItem] = Field(min_length=0)
     total: int = Field(ge=0)

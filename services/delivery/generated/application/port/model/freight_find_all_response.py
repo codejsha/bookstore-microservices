@@ -8,5 +8,5 @@ from .freight_item import FreightItem
 
 
 class FreightFindAllResponse(BaseModel):
-    items: list[FreightItem]
+    items: list[FreightItem] = Field(min_length=0)
     total: int = Field(ge=0)

@@ -8,5 +8,5 @@ from .ticket_item import TicketItem
 
 
 class TicketFindAllResponse(BaseModel):
-    items: list[TicketItem]
+    items: list[TicketItem] = Field(min_length=0)
     total: int = Field(ge=0)

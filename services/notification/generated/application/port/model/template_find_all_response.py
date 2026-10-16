@@ -8,5 +8,5 @@ from .template_item import TemplateItem
 
 
 class TemplateFindAllResponse(BaseModel):
-    items: list[TemplateItem]
+    items: list[TemplateItem] = Field(min_length=0)
     total: int = Field(ge=0)
