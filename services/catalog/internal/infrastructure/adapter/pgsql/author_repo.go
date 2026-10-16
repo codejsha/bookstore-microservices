@@ -107,7 +107,7 @@ func (r *authorRepository) Create(ctx context.Context, cmd command.AuthorCreateC
 
 func (r *authorRepository) Update(ctx context.Context, id int64, cmd command.AuthorUpdateCommand) error {
 	a := r.q.AuthorEntity
-	assigns := []field.AssignExpr{a.UpdatedAt.Value(time.Now())}
+	var assigns []field.AssignExpr
 	if cmd.Name != nil {
 		assigns = append(assigns, a.Name.Value(*cmd.Name))
 	}
@@ -132,6 +132,9 @@ func (r *authorRepository) Update(ctx context.Context, id int64, cmd command.Aut
 	}
 	if cmd.OlKey != nil {
 		assigns = append(assigns, a.OlKey.Value(*cmd.OlKey))
+	}
+	if len(assigns) == 0 {
+		return nil
 	}
 	_, err := a.WithContext(ctx).Where(a.Id.Eq(id)).UpdateSimple(assigns...)
 	return err

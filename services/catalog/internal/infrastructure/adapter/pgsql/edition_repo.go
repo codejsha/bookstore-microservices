@@ -174,7 +174,7 @@ func newEditionEntity(
 
 func (r *editionRepository) Update(ctx context.Context, id int64, cmd command.EditionUpdateCommand, work *repo.EditionWorkRef, publisher *repo.EditionPublisherRef) error {
 	e := r.q.EditionEntity
-	assigns := []field.AssignExpr{e.UpdatedAt.Value(time.Now())}
+	var assigns []field.AssignExpr
 	if cmd.Title != nil {
 		assigns = append(assigns, e.Title.Value(*cmd.Title))
 	}
@@ -214,6 +214,9 @@ func (r *editionRepository) Update(ctx context.Context, id int64, cmd command.Ed
 	}
 	if cmd.OlKey != nil {
 		assigns = append(assigns, e.OlKey.Value(*cmd.OlKey))
+	}
+	if len(assigns) == 0 {
+		return nil
 	}
 	_, err := e.WithContext(ctx).Where(e.Id.Eq(id)).UpdateSimple(assigns...)
 	return err

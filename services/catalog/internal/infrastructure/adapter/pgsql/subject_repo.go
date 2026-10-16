@@ -122,9 +122,12 @@ func (r *subjectRepository) Create(ctx context.Context, cmd command.SubjectCreat
 
 func (r *subjectRepository) Update(ctx context.Context, id int64, cmd command.SubjectUpdateCommand) error {
 	s := r.q.SubjectEntity
-	assigns := []field.AssignExpr{s.UpdatedAt.Value(time.Now())}
+	var assigns []field.AssignExpr
 	if cmd.Name != nil {
 		assigns = append(assigns, s.Name.Value(*cmd.Name))
+	}
+	if len(assigns) == 0 {
+		return nil
 	}
 	_, err := s.WithContext(ctx).Where(s.Id.Eq(id)).UpdateSimple(assigns...)
 	return err

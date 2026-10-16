@@ -93,7 +93,7 @@ func (r *publisherRepository) Create(ctx context.Context, cmd command.PublisherC
 
 func (r *publisherRepository) Update(ctx context.Context, id int64, cmd command.PublisherUpdateCommand) error {
 	p := r.q.PublisherEntity
-	assigns := []field.AssignExpr{p.UpdatedAt.Value(time.Now())}
+	var assigns []field.AssignExpr
 	if cmd.Name != nil {
 		assigns = append(assigns, p.Name.Value(*cmd.Name))
 	}
@@ -102,6 +102,9 @@ func (r *publisherRepository) Update(ctx context.Context, id int64, cmd command.
 	}
 	if cmd.OlKey != nil {
 		assigns = append(assigns, p.OlKey.Value(*cmd.OlKey))
+	}
+	if len(assigns) == 0 {
+		return nil
 	}
 	_, err := p.WithContext(ctx).Where(p.Id.Eq(id)).UpdateSimple(assigns...)
 	return err
