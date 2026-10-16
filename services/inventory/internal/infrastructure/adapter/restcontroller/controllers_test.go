@@ -167,15 +167,19 @@ func TestStockController_WhenFiltersGiven_ReturnsPagedStocks(t *testing.T) {
 	}
 	ctrl := NewStockController(use)
 	editionUid := uidEdition1
-	resp, err := ctrl.StocksGetAll(context.Background(), &editionUid, nil, nil, nil, nil)
+	resp, err := ctrl.StocksGetAll(context.Background(), openapi.StockApiCredentials{}, &editionUid, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Total != 1 || len(resp.Items) != 1 {
-		t.Fatalf("resp = %+v", resp)
+	got, ok := resp.(openapi.StocksGetAllOk)
+	if !ok {
+		t.Fatalf("resp = %T, want openapi.StocksGetAllOk", resp)
 	}
-	if resp.Items[0].TotalQuantity != 9 || resp.Items[0].Warehouses[0].WarehouseName != "Main" {
-		t.Errorf("Items[0] = %+v", resp.Items[0])
+	if got.Body.Total != 1 || len(got.Body.Items) != 1 {
+		t.Fatalf("resp = %+v", got.Body)
+	}
+	if got.Body.Items[0].TotalQuantity != 9 || got.Body.Items[0].Warehouses[0].WarehouseName != "Main" {
+		t.Errorf("Items[0] = %+v", got.Body.Items[0])
 	}
 }
 
@@ -189,12 +193,16 @@ func TestStockController_WhenStockExists_ReturnsStockResponse(t *testing.T) {
 		},
 	}
 	ctrl := NewStockController(use)
-	resp, err := ctrl.StocksRead(context.Background(), uidEdition1)
+	resp, err := ctrl.StocksRead(context.Background(), openapi.StockApiCredentials{}, uidEdition1)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.EditionUid != uidEdition1 || resp.TotalQuantity != 5 {
-		t.Errorf("resp = %+v", resp)
+	got, ok := resp.(openapi.StocksReadOk)
+	if !ok {
+		t.Fatalf("resp = %T, want openapi.StocksReadOk", resp)
+	}
+	if got.Body.EditionUid != uidEdition1 || got.Body.TotalQuantity != 5 {
+		t.Errorf("resp = %+v", got.Body)
 	}
 }
 
@@ -208,7 +216,7 @@ func TestStockController_WhenReceiveRequestValid_PassesCommandToUsecase(t *testi
 	}
 	ctrl := NewStockController(use)
 	reason := "restock"
-	resp, err := ctrl.StocksReceive(context.Background(), openapi.StockReceiveRequest{
+	resp, err := ctrl.StocksReceive(context.Background(), openapi.StockApiCredentials{}, openapi.StockReceiveRequest{
 		EditionUid:   uidEdition1,
 		WarehouseUid: uidWarehouse1,
 		Quantity:     10,
@@ -217,14 +225,18 @@ func TestStockController_WhenReceiveRequestValid_PassesCommandToUsecase(t *testi
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
+	got, ok := resp.(openapi.StocksReceiveOk)
+	if !ok {
+		t.Fatalf("resp = %T, want openapi.StocksReceiveOk", resp)
+	}
 	if captured.EditionUid != uidEdition1 || captured.WarehouseUid != uidWarehouse1 || captured.Quantity != 10 {
 		t.Errorf("captured = %+v", captured)
 	}
 	if captured.Reason == nil || *captured.Reason != reason {
 		t.Errorf("Reason = %v", captured.Reason)
 	}
-	if resp.TotalQuantity != 10 {
-		t.Errorf("TotalQuantity = %d", resp.TotalQuantity)
+	if got.Body.TotalQuantity != 10 {
+		t.Errorf("TotalQuantity = %d", got.Body.TotalQuantity)
 	}
 }
 
@@ -236,7 +248,7 @@ func TestStockController_WhenReceiveUsecaseFails_PropagatesError(t *testing.T) {
 		},
 	}
 	ctrl := NewStockController(use)
-	_, err := ctrl.StocksReceive(context.Background(), openapi.StockReceiveRequest{EditionUid: "x", WarehouseUid: "w", Quantity: 1})
+	_, err := ctrl.StocksReceive(context.Background(), openapi.StockApiCredentials{}, openapi.StockReceiveRequest{EditionUid: "x", WarehouseUid: "w", Quantity: 1})
 	if !errors.Is(err, wantErr) {
 		t.Errorf("err = %v, want %v", err, wantErr)
 	}
@@ -251,7 +263,7 @@ func TestStockController_WhenAdjustRequestValid_ForwardsRequiredReason(t *testin
 		},
 	}
 	ctrl := NewStockController(use)
-	_, err := ctrl.StocksAdjust(context.Background(), openapi.StockAdjustRequest{
+	_, err := ctrl.StocksAdjust(context.Background(), openapi.StockApiCredentials{}, openapi.StockAdjustRequest{
 		EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: -5, Reason: "damaged",
 	})
 	if err != nil {
@@ -278,10 +290,10 @@ func TestStockController_WhenReserveAndReleaseRequested_PassCommandsToUsecase(t 
 		},
 	}
 	ctrl := NewStockController(use)
-	if _, err := ctrl.StocksReserve(context.Background(), openapi.StockReserveRequest{EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: 3}); err != nil {
+	if _, err := ctrl.StocksReserve(context.Background(), openapi.StockApiCredentials{}, openapi.StockReserveRequest{EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: 3}); err != nil {
 		t.Errorf("reserve err: %v", err)
 	}
-	if _, err := ctrl.StocksRelease(context.Background(), openapi.StockReleaseRequest{EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: 2}); err != nil {
+	if _, err := ctrl.StocksRelease(context.Background(), openapi.StockApiCredentials{}, openapi.StockReleaseRequest{EditionUid: uidEdition3, WarehouseUid: uidWarehouse3, Quantity: 2}); err != nil {
 		t.Errorf("release err: %v", err)
 	}
 }
@@ -303,15 +315,19 @@ func TestStockController_WhenHistoryRequested_ReturnsPagedHistory(t *testing.T) 
 	}
 	ctrl := NewStockController(use)
 	wh := uidWarehouse1
-	resp, err := ctrl.StocksHistory(context.Background(), uidEdition1, &wh, nil, nil, nil)
+	resp, err := ctrl.StocksHistory(context.Background(), openapi.StockApiCredentials{}, uidEdition1, &wh, nil, nil, nil)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Total != 1 || len(resp.Items) != 1 {
-		t.Fatalf("resp = %+v", resp)
+	got, ok := resp.(openapi.StocksHistoryOk)
+	if !ok {
+		t.Fatalf("resp = %T, want openapi.StocksHistoryOk", resp)
 	}
-	if resp.Items[0].ChangeType != openapi.StockChangeType("INBOUND") {
-		t.Errorf("ChangeType = %v", resp.Items[0].ChangeType)
+	if got.Body.Total != 1 || len(got.Body.Items) != 1 {
+		t.Fatalf("resp = %+v", got.Body)
+	}
+	if got.Body.Items[0].ChangeType != openapi.StockChangeType("INBOUND") {
+		t.Errorf("ChangeType = %v", got.Body.Items[0].ChangeType)
 	}
 }
 
@@ -328,12 +344,16 @@ func TestWarehouseController_WhenFiltersGiven_ReturnsPagedWarehouses(t *testing.
 	}
 	ctrl := NewWarehouseController(use)
 	name := "Main"
-	resp, err := ctrl.WarehousesGetAll(context.Background(), &name, nil, nil, nil)
+	resp, err := ctrl.WarehousesGetAll(context.Background(), openapi.WarehouseApiCredentials{}, &name, nil, nil, nil)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Total != 1 || resp.Items[0].Capacity != 1000 {
-		t.Errorf("resp = %+v", resp)
+	got, ok := resp.(openapi.WarehousesGetAllOk)
+	if !ok {
+		t.Fatalf("resp = %T, want openapi.WarehousesGetAllOk", resp)
+	}
+	if got.Body.Total != 1 || got.Body.Items[0].Capacity != 1000 {
+		t.Errorf("resp = %+v", got.Body)
 	}
 }
 
@@ -347,10 +367,18 @@ func TestWarehouseController_WhenRequestValid_PassesCommandToUsecase(t *testing.
 	}
 	ctrl := NewWarehouseController(use)
 	addr := "Mars"
-	if err := ctrl.WarehousesCreate(context.Background(), openapi.WarehouseCreateRequest{
+	resp, err := ctrl.WarehousesCreate(context.Background(), openapi.WarehouseApiCredentials{}, openapi.WarehouseCreateRequest{
 		Name: "New", Address: &addr, Capacity: 500,
-	}); err != nil {
+	})
+	if err != nil {
 		t.Fatalf("err: %v", err)
+	}
+	got, ok := resp.(openapi.WarehousesCreateCreated)
+	if !ok {
+		t.Fatalf("resp = %T, want openapi.WarehousesCreateCreated", resp)
+	}
+	if got.Location != "/api/v1/warehouses/"+uidWarehouse4 {
+		t.Errorf("Location = %q", got.Location)
 	}
 	if captured.Name != "New" || captured.Capacity != 500 {
 		t.Errorf("captured = %+v", captured)
@@ -374,12 +402,16 @@ func TestWarehouseController_WhenRequestValid_ReturnsUpdatedWarehouse(t *testing
 	}
 	ctrl := NewWarehouseController(use)
 	name := "Renamed"
-	resp, err := ctrl.WarehousesUpdate(context.Background(), uidWarehouse1, openapi.WarehouseUpdateRequest{Name: &name})
+	resp, err := ctrl.WarehousesUpdate(context.Background(), openapi.WarehouseApiCredentials{}, uidWarehouse1, openapi.WarehouseUpdateRequest{Name: &name})
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if resp.Name != "Renamed" {
-		t.Errorf("Name = %q", resp.Name)
+	got, ok := resp.(openapi.WarehousesUpdateOk)
+	if !ok {
+		t.Fatalf("resp = %T, want openapi.WarehousesUpdateOk", resp)
+	}
+	if got.Body.Name != "Renamed" {
+		t.Errorf("Name = %q", got.Body.Name)
 	}
 }
 

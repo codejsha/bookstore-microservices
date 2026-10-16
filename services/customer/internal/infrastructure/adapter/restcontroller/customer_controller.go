@@ -25,13 +25,14 @@ func NewCustomerController(customerUseCase usecase.CustomerUseCase) openapi.Cust
 
 func (c *customerController) CustomersGetAll(
 	ctx context.Context,
+	_ openapi.CustomerApiCredentials,
 	email *string,
 	name *string,
 	phone *string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.CustomerFindAllResponse, error) {
+) (openapi.CustomersGetAllResponse, error) {
 	opt := option.NewUserQueryOption(
 		option.UserQueryOption{}.WithEmail(email),
 		option.UserQueryOption{}.WithName(name),
@@ -48,10 +49,10 @@ func (c *customerController) CustomersGetAll(
 	for i, customer := range customers {
 		items[i] = toCustomerFindResponse(customer)
 	}
-	return &openapi.CustomerFindAllResponse{Items: items, Total: total}, nil
+	return openapi.CustomersGetAllOk{Body: openapi.CustomerFindAllResponse{Items: items, Total: total}}, nil
 }
 
-func (c *customerController) CustomersRead(ctx context.Context, uid string) (*openapi.CustomerFindResponse, error) {
+func (c *customerController) CustomersRead(ctx context.Context, _ openapi.CustomerApiCredentials, uid string) (openapi.CustomersReadResponse, error) {
 	customer, err := c.customerUseCase.FindCustomer(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapGrpcStatus(ctx, httpx.MapNotFound(ctx, err))
@@ -60,8 +61,7 @@ func (c *customerController) CustomersRead(ctx context.Context, uid string) (*op
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
 
-	resp := toCustomerFindResponse(customer)
-	return &resp, nil
+	return openapi.CustomersReadOk{Body: toCustomerFindResponse(customer)}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────

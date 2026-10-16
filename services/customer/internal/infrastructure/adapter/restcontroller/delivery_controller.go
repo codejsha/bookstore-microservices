@@ -26,8 +26,9 @@ func NewDeliveryController(customerUseCase usecase.CustomerUseCase) openapi.Deli
 
 func (c *deliveryController) DeliveryTrack(
 	ctx context.Context,
+	_ openapi.DeliveryApiCredentials,
 	uid string,
-) (*openapi.ShipmentResponse, error) {
+) (openapi.DeliveryTrackResponse, error) {
 	shipment, err := c.customerUseCase.TrackShipment(ctx, uid, callerFrom(ctx))
 	if err != nil {
 		return nil, httpx.MapGrpcStatus(ctx, httpx.MapNotFound(ctx, err))
@@ -35,16 +36,16 @@ func (c *deliveryController) DeliveryTrack(
 	if shipment == nil {
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
-	resp := toShipmentResponse(shipment)
-	return &resp, nil
+	return openapi.DeliveryTrackOk{Body: toShipmentResponse(shipment)}, nil
 }
 
 func (c *deliveryController) DeliveryList(
 	ctx context.Context,
+	_ openapi.DeliveryApiCredentials,
 	orderUid string,
 	status *openapi.ShipmentStatus,
 	size *int32,
-) (*openapi.ShipmentFindAllResponse, error) {
+) (openapi.DeliveryListResponse, error) {
 	var statusStr *string
 	if status != nil {
 		s := string(*status)
@@ -60,7 +61,7 @@ func (c *deliveryController) DeliveryList(
 	for i, shipment := range shipments {
 		items[i] = toShipmentResponse(shipment)
 	}
-	return &openapi.ShipmentFindAllResponse{Items: items, Total: total}, nil
+	return openapi.DeliveryListOk{Body: openapi.ShipmentFindAllResponse{Items: items, Total: total}}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────
@@ -87,23 +88,23 @@ func toShipmentResponse(a *aggregate.ShipmentAggregate) openapi.ShipmentResponse
 func toShipmentStatusRest(s aggregate.ShipmentStatus) openapi.ShipmentStatus {
 	switch s {
 	case aggregate.SHIPMENTSTATUS_PLANNED:
-		return openapi.SHIPMENTSTATUS_PLANNED
+		return openapi.ShipmentStatusPlanned
 	case aggregate.SHIPMENTSTATUS_DISPATCHED:
-		return openapi.SHIPMENTSTATUS_DISPATCHED
+		return openapi.ShipmentStatusDispatched
 	case aggregate.SHIPMENTSTATUS_PICKED_UP:
-		return openapi.SHIPMENTSTATUS_PICKED_UP
+		return openapi.ShipmentStatusPickedUp
 	case aggregate.SHIPMENTSTATUS_IN_TRANSIT:
-		return openapi.SHIPMENTSTATUS_IN_TRANSIT
+		return openapi.ShipmentStatusInTransit
 	case aggregate.SHIPMENTSTATUS_OUT_FOR_DELIVERY:
-		return openapi.SHIPMENTSTATUS_OUT_FOR_DELIVERY
+		return openapi.ShipmentStatusOutForDelivery
 	case aggregate.SHIPMENTSTATUS_DELIVERED:
-		return openapi.SHIPMENTSTATUS_DELIVERED
+		return openapi.ShipmentStatusDelivered
 	case aggregate.SHIPMENTSTATUS_FAILED:
-		return openapi.SHIPMENTSTATUS_FAILED
+		return openapi.ShipmentStatusFailed
 	case aggregate.SHIPMENTSTATUS_CANCELLED:
-		return openapi.SHIPMENTSTATUS_CANCELLED
+		return openapi.ShipmentStatusCancelled
 	default:
-		return openapi.SHIPMENTSTATUS_UNKNOWN
+		return openapi.ShipmentStatusUnknown
 	}
 }
 

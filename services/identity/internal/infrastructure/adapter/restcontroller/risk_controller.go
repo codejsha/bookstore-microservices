@@ -23,7 +23,7 @@ func NewRiskController(store security.RiskStore) openapi.RiskApi {
 	return &RiskController{store: store}
 }
 
-func (c *RiskController) RiskGetAll(ctx context.Context) (*openapi.RiskEntryListResponse, error) {
+func (c *RiskController) RiskGetAll(ctx context.Context, _ openapi.RiskApiCredentials) (openapi.RiskGetAllResponse, error) {
 	entries, err := c.store.List(ctx)
 	if err != nil {
 		return nil, httpx.MapError(ctx, err)
@@ -32,14 +32,15 @@ func (c *RiskController) RiskGetAll(ctx context.Context) (*openapi.RiskEntryList
 	for _, e := range entries {
 		out = append(out, toRiskEntryResponse(e))
 	}
-	return &openapi.RiskEntryListResponse{Entries: out}, nil
+	return openapi.RiskGetAllOk{Body: openapi.RiskEntryListResponse{Entries: out}}, nil
 }
 
 func (c *RiskController) RiskFlagPrincipal(
 	ctx context.Context,
+	_ openapi.RiskApiCredentials,
 	uid string,
 	req openapi.RiskFlagRequest,
-) (*openapi.RiskEntryResponse, error) {
+) (openapi.RiskFlagPrincipalResponse, error) {
 	if _, err := uuid.Parse(uid); err != nil {
 		return nil, httpx.MapError(ctx, fmt.Errorf("%w: uid must be a UUID", httpx.ErrBadRequest))
 	}
@@ -70,16 +71,15 @@ func (c *RiskController) RiskFlagPrincipal(
 	logrus.WithContext(ctx).
 		WithField("user_uid", uid).WithField("level", string(level)).
 		WithField("flagged_by", entry.FlaggedBy).Warn("principal flagged in risk store")
-	resp := toRiskEntryResponse(entry)
-	return &resp, nil
+	return openapi.RiskFlagPrincipalOk{Body: toRiskEntryResponse(entry)}, nil
 }
 
-func (c *RiskController) RiskUnflagPrincipal(ctx context.Context, uid string) error {
+func (c *RiskController) RiskUnflagPrincipal(ctx context.Context, _ openapi.RiskApiCredentials, uid string) (openapi.RiskUnflagPrincipalResponse, error) {
 	if err := c.store.Unflag(ctx, uid); err != nil {
-		return httpx.MapError(ctx, err)
+		return nil, httpx.MapError(ctx, err)
 	}
 	logrus.WithContext(ctx).WithField("user_uid", uid).Info("principal unflagged in risk store")
-	return nil
+	return openapi.RiskUnflagPrincipalNoContent{}, nil
 }
 
 func toRiskEntryResponse(e security.RiskEntry) openapi.RiskEntryResponse {

@@ -27,12 +27,13 @@ func NewStockController(inventoryUseCase usecase.InventoryUseCase) openapi.Stock
 
 func (c *stockController) StocksGetAll(
 	ctx context.Context,
+	_ openapi.StockApiCredentials,
 	editionUid *string,
 	warehouseUid *string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.StockFindAllResponse, error) {
+) (openapi.StocksGetAllResponse, error) {
 	if err := optionalUidParam(ctx, "edition_uid", editionUid); err != nil {
 		return nil, err
 	}
@@ -55,10 +56,10 @@ func (c *stockController) StocksGetAll(
 	for i, s := range stocks {
 		items[i] = toStockFindResponse(s)
 	}
-	return &openapi.StockFindAllResponse{Items: items, Total: total}, nil
+	return openapi.StocksGetAllOk{Body: openapi.StockFindAllResponse{Items: items, Total: total}}, nil
 }
 
-func (c *stockController) StocksReceive(ctx context.Context, req openapi.StockReceiveRequest) (*openapi.StockFindResponse, error) {
+func (c *stockController) StocksReceive(ctx context.Context, _ openapi.StockApiCredentials, req openapi.StockReceiveRequest) (openapi.StocksReceiveResponse, error) {
 	cmd := command.StockReceiveCommand{
 		EditionUid:   req.EditionUid,
 		WarehouseUid: req.WarehouseUid,
@@ -77,10 +78,10 @@ func (c *stockController) StocksReceive(ctx context.Context, req openapi.StockRe
 		"quantity":      req.Quantity,
 	})
 	resp := toStockFindResponse(stock)
-	return &resp, nil
+	return openapi.StocksReceiveOk{Body: resp}, nil
 }
 
-func (c *stockController) StocksRelease(ctx context.Context, req openapi.StockReleaseRequest) (*openapi.StockFindResponse, error) {
+func (c *stockController) StocksRelease(ctx context.Context, _ openapi.StockApiCredentials, req openapi.StockReleaseRequest) (openapi.StocksReleaseResponse, error) {
 	cmd := command.StockReleaseCommand{
 		EditionUid:   req.EditionUid,
 		WarehouseUid: req.WarehouseUid,
@@ -99,10 +100,10 @@ func (c *stockController) StocksRelease(ctx context.Context, req openapi.StockRe
 		"quantity":      req.Quantity,
 	})
 	resp := toStockFindResponse(stock)
-	return &resp, nil
+	return openapi.StocksReleaseOk{Body: resp}, nil
 }
 
-func (c *stockController) StocksAdjust(ctx context.Context, req openapi.StockAdjustRequest) (*openapi.StockFindResponse, error) {
+func (c *stockController) StocksAdjust(ctx context.Context, _ openapi.StockApiCredentials, req openapi.StockAdjustRequest) (openapi.StocksAdjustResponse, error) {
 	cmd := command.StockAdjustCommand{
 		EditionUid:   req.EditionUid,
 		WarehouseUid: req.WarehouseUid,
@@ -122,10 +123,10 @@ func (c *stockController) StocksAdjust(ctx context.Context, req openapi.StockAdj
 		"reason":        req.Reason,
 	})
 	resp := toStockFindResponse(stock)
-	return &resp, nil
+	return openapi.StocksAdjustOk{Body: resp}, nil
 }
 
-func (c *stockController) StocksReserve(ctx context.Context, req openapi.StockReserveRequest) (*openapi.StockFindResponse, error) {
+func (c *stockController) StocksReserve(ctx context.Context, _ openapi.StockApiCredentials, req openapi.StockReserveRequest) (openapi.StocksReserveResponse, error) {
 	cmd := command.StockReserveCommand{
 		EditionUid:   req.EditionUid,
 		WarehouseUid: req.WarehouseUid,
@@ -144,10 +145,10 @@ func (c *stockController) StocksReserve(ctx context.Context, req openapi.StockRe
 		"quantity":      req.Quantity,
 	})
 	resp := toStockFindResponse(stock)
-	return &resp, nil
+	return openapi.StocksReserveOk{Body: resp}, nil
 }
 
-func (c *stockController) StocksRead(ctx context.Context, editionUid string) (*openapi.StockFindResponse, error) {
+func (c *stockController) StocksRead(ctx context.Context, _ openapi.StockApiCredentials, editionUid string) (openapi.StocksReadResponse, error) {
 	if err := requireUidParam(ctx, "edition_uid", editionUid); err != nil {
 		return nil, err
 	}
@@ -160,17 +161,18 @@ func (c *stockController) StocksRead(ctx context.Context, editionUid string) (*o
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
 	resp := toStockFindResponse(stock)
-	return &resp, nil
+	return openapi.StocksReadOk{Body: resp}, nil
 }
 
 func (c *stockController) StocksHistory(
 	ctx context.Context,
+	_ openapi.StockApiCredentials,
 	editionUid string,
 	warehouseUid *string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.StockHistoryFindAllResponse, error) {
+) (openapi.StocksHistoryResponse, error) {
 	if err := requireUidParam(ctx, "edition_uid", editionUid); err != nil {
 		return nil, err
 	}
@@ -192,7 +194,7 @@ func (c *stockController) StocksHistory(
 	for i, e := range entries {
 		items[i] = toStockHistoryItem(e)
 	}
-	return &openapi.StockHistoryFindAllResponse{Items: items, Total: total}, nil
+	return openapi.StocksHistoryOk{Body: openapi.StockHistoryFindAllResponse{Items: items, Total: total}}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────

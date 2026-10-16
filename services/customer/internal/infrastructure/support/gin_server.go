@@ -221,11 +221,11 @@ func GinAccessLogMiddleware(logHelper *logging.LogHelper) gin.HandlerFunc {
 }
 
 func (s *GinServer) RegisterRoutes() {
-	openapi.NewCustomerApiHandler(s.customerAPI).RegisterRoutes(s.engine)
-	openapi.NewOrderApiHandler(s.orderAPI).RegisterRoutes(s.engine)
-	openapi.NewPaymentApiHandler(s.paymentAPI).RegisterRoutes(s.engine)
-	openapi.NewDeliveryApiHandler(s.deliveryAPI).RegisterRoutes(s.engine)
-	openapi.NewPointApiHandler(s.pointAPI).RegisterRoutes(s.engine)
-	openapi.NewReviewApiHandler(s.reviewAPI).RegisterRoutes(s.engine)
-	openapi.NewWishlistApiHandler(s.wishlistAPI).RegisterRoutes(s.engine)
+	openapi.RegisterCustomerApiGinRoutes(s.engine, s.customerAPI)
+	openapi.RegisterOrderApiGinRoutes(s.engine, s.orderAPI)
+	openapi.RegisterPaymentApiGinRoutes(s.engine, s.paymentAPI)
+	openapi.RegisterDeliveryApiGinRoutes(s.engine, s.deliveryAPI)
+	openapi.RegisterPointApiGinRoutes(s.engine, s.pointAPI)
+	openapi.RegisterReviewApiGinRoutes(s.engine, s.reviewAPI)
+	openapi.RegisterWishlistApiGinRoutes(s.engine, s.wishlistAPI)
 }

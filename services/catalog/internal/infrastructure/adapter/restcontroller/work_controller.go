@@ -28,6 +28,7 @@ func NewWorkController(catalogUseCase usecase.CatalogUseCase) openapi.WorkApi {
 
 func (c *workController) WorksSearch(
 	ctx context.Context,
+	_ openapi.WorkApiCredentials,
 	title *string,
 	authorUid *string,
 	subjectUid *string,
@@ -35,7 +36,7 @@ func (c *workController) WorksSearch(
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.WorkFindAllResponse, error) {
+) (openapi.WorksSearchResponse, error) {
 	opt := option.NewWorkQueryOption(
 		option.WorkQueryOption{}.WithTitle(title),
 		option.WorkQueryOption{}.WithAuthorUid(authorUid),
@@ -53,10 +54,10 @@ func (c *workController) WorksSearch(
 	for i, w := range works {
 		items[i] = toWorkItem(w)
 	}
-	return &openapi.WorkFindAllResponse{Items: items, Total: total}, nil
+	return openapi.WorksSearchOk{Body: openapi.WorkFindAllResponse{Items: items, Total: total}}, nil
 }
 
-func (c *workController) WorksCreate(ctx context.Context, req openapi.WorkCreateRequest) error {
+func (c *workController) WorksCreate(ctx context.Context, _ openapi.WorkApiCredentials, req openapi.WorkCreateRequest) (openapi.WorksCreateResponse, error) {
 	cmd := command.WorkCreateCommand{
 		Title:            req.Title,
 		Description:      req.Description,
@@ -69,20 +70,20 @@ func (c *workController) WorksCreate(ctx context.Context, req openapi.WorkCreate
 
 	work, err := c.catalogUseCase.CreateWork(ctx, cmd)
 	if err != nil {
-		return httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err)))
+		return nil, httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, httpx.MapNotFound(ctx, err)))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "work", work.Uid, "created", logrus.Fields{"title": req.Title})
-	return nil
+	return openapi.WorksCreateCreated{Location: "/api/v1/works/" + work.Uid}, nil
 }
 
-func (c *workController) WorksRead(ctx context.Context, uid string) (*openapi.WorkFindResponse, error) {
+func (c *workController) WorksRead(ctx context.Context, _ openapi.WorkApiCredentials, uid string) (openapi.WorksReadResponse, error) {
 	work, err := c.catalogUseCase.FindWork(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapNotFound(ctx, err)
 	}
 
-	return &openapi.WorkFindResponse{
+	return openapi.WorksReadOk{Body: openapi.WorkFindResponse{
 		Uid:              work.Uid,
 		Title:            work.Title,
 		Description:      work.Description,
@@ -93,14 +94,15 @@ func (c *workController) WorksRead(ctx context.Context, uid string) (*openapi.Wo
 		Subjects:         toSubjectItems(work.Subjects),
 		CreatedAt:        work.CreatedAt,
 		UpdatedAt:        work.UpdatedAt,
-	}, nil
+	}}, nil
 }
 
 func (c *workController) WorksUpdate(
 	ctx context.Context,
+	_ openapi.WorkApiCredentials,
 	uid string,
 	req openapi.WorkUpdateRequest,
-) (*openapi.WorkUpdateResponse, error) {
+) (openapi.WorksUpdateResponse, error) {
 	cmd := command.WorkUpdateCommand{
 		Title:            req.Title,
 		Description:      req.Description,
@@ -118,7 +120,7 @@ func (c *workController) WorksUpdate(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "work", uid, "updated", logrus.Fields{})
 
-	return &openapi.WorkUpdateResponse{
+	return openapi.WorksUpdateOk{Body: openapi.WorkUpdateResponse{
 		Uid:              work.Uid,
 		Title:            work.Title,
 		Description:      work.Description,
@@ -129,17 +131,18 @@ func (c *workController) WorksUpdate(
 		Subjects:         toSubjectItems(work.Subjects),
 		CreatedAt:        work.CreatedAt,
 		UpdatedAt:        work.UpdatedAt,
-	}, nil
+	}}, nil
 }
 
 func (c *workController) WorksFullTextSearch(
 	ctx context.Context,
+	_ openapi.WorkApiCredentials,
 	q *string,
 	authorUid *string,
 	subjectUid *string,
 	size *int32,
 	page *int32,
-) (*openapi.WorkSearchResponse, error) {
+) (openapi.WorksFullTextSearchResponse, error) {
 	opt := option.NewWorkSearchOption(
 		option.WorkSearchOption{}.WithQuery(q),
 		option.WorkSearchOption{}.WithAuthorUid(authorUid),
@@ -156,16 +159,17 @@ func (c *workController) WorksFullTextSearch(
 	for i, h := range hits {
 		items[i] = toWorkSearchItem(h)
 	}
-	return &openapi.WorkSearchResponse{Items: items, Total: total}, nil
+	return openapi.WorksFullTextSearchOk{Body: openapi.WorkSearchResponse{Items: items, Total: total}}, nil
 }
 
 func (c *workController) WorksEditions(
 	ctx context.Context,
+	_ openapi.WorkApiCredentials,
 	uid string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.EditionFindAllResponse, error) {
+) (openapi.WorksEditionsResponse, error) {
 	opt := option.NewEditionQueryOption(
 		option.EditionQueryOption{}.WithWorkUid(&uid),
 		option.EditionQueryOption{}.WithPage(pagination.NewPageOption(size, page, sort)),
@@ -180,7 +184,7 @@ func (c *workController) WorksEditions(
 	for i, e := range editions {
 		items[i] = toEditionItem(e)
 	}
-	return &openapi.EditionFindAllResponse{Items: items, Total: total}, nil
+	return openapi.WorksEditionsOk{Body: openapi.EditionFindAllResponse{Items: items, Total: total}}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────

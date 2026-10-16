@@ -92,13 +92,13 @@ var ErrElevatedRoleOnRegister = errors.New("identity: registration may not grant
 var ErrUserAlreadyExists = errors.New("identity: user already exists")
 var ErrUserNotFound = errors.New("identity: user not found")
 var selfServiceRolesAllowed = map[string]bool{
-	string(openapi.AUTHROLE_USER): true,
+	string(openapi.AuthRoleUser): true,
 }
 
 func selfServiceRoles(requested []string) ([]string, error) {
 	if len(requested) == 0 {
 		return []string{
-			string(openapi.AUTHROLE_USER),
+			string(openapi.AuthRoleUser),
 		}, nil
 	}
 	for _, role := range requested {

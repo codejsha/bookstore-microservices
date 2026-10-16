@@ -26,9 +26,8 @@ func postUsersRegister(t *testing.T, body string) (*httptest.ResponseRecorder, *
 	}
 
 	gin.SetMode(gin.TestMode)
-	handler := openapi.NewUserApiHandler(NewUserController(use))
 	r := gin.New()
-	r.POST("/api/v1/users", handler.UsersRegister)
+	openapi.RegisterUserApiGinRoutes(r, NewUserController(use))
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/users", strings.NewReader(body))
@@ -61,11 +60,11 @@ func TestUsersRegisterBinding_WhenEmailOverLength_Returns400WithoutCallingUsecas
 	}
 }
 
-func TestUsersRegisterBinding_WhenRequestValid_Returns200AndCallsUsecase(t *testing.T) {
+func TestUsersRegisterBinding_requestValid_created201AndCallsUsecase(t *testing.T) {
 	w, reached := postUsersRegister(t, `{"email":"u@x.com","password":"secret","first_name":"F","last_name":"L"}`)
 
-	if w.Code != http.StatusOK {
-		t.Fatalf("status = %d, want 200", w.Code)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("status = %d, want 201", w.Code)
 	}
 	if !*reached {
 		t.Error("use case was not invoked for a valid request")

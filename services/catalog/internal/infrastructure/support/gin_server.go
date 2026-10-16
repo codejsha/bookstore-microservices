@@ -215,9 +215,9 @@ func GinAccessLogMiddleware(logHelper *logging.LogHelper) gin.HandlerFunc {
 }
 
 func (s *GinServer) RegisterRoutes() {
-	openapi.NewWorkApiHandler(s.workAPI).RegisterRoutes(s.engine)
-	openapi.NewEditionApiHandler(s.editionAPI).RegisterRoutes(s.engine)
-	openapi.NewAuthorApiHandler(s.authorAPI).RegisterRoutes(s.engine)
-	openapi.NewPublisherApiHandler(s.publisherAPI).RegisterRoutes(s.engine)
-	openapi.NewSubjectApiHandler(s.subjectAPI).RegisterRoutes(s.engine)
+	openapi.RegisterWorkApiGinRoutes(s.engine, s.workAPI)
+	openapi.RegisterEditionApiGinRoutes(s.engine, s.editionAPI)
+	openapi.RegisterAuthorApiGinRoutes(s.engine, s.authorAPI)
+	openapi.RegisterPublisherApiGinRoutes(s.engine, s.publisherAPI)
+	openapi.RegisterSubjectApiGinRoutes(s.engine, s.subjectAPI)
 }

@@ -22,21 +22,21 @@ func NewWishlistController(customerUseCase usecase.CustomerUseCase) openapi.Wish
 	return &wishlistController{customerUseCase: customerUseCase}
 }
 
-func (c *wishlistController) WishlistsGet(ctx context.Context, uid string) (*openapi.WishlistResponse, error) {
+func (c *wishlistController) WishlistsGet(ctx context.Context, _ openapi.WishlistApiCredentials, uid string) (openapi.WishlistsGetResponse, error) {
 	wishlist, err := c.customerUseCase.GetWishlist(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
 
-	resp := toWishlistResponse(wishlist)
-	return &resp, nil
+	return openapi.WishlistsGetOk{Body: toWishlistResponse(wishlist)}, nil
 }
 
 func (c *wishlistController) WishlistsAddBooks(
 	ctx context.Context,
+	_ openapi.WishlistApiCredentials,
 	uid string,
 	req openapi.WishlistAddRequest,
-) (*openapi.WishlistResponse, error) {
+) (openapi.WishlistsAddBooksResponse, error) {
 	cmd := command.WishlistAddCommand{
 		UserUid:  uid,
 		BookUids: req.BookUids,
@@ -49,15 +49,15 @@ func (c *wishlistController) WishlistsAddBooks(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "wishlist", uid, "added", logrus.Fields{"books": len(req.BookUids)})
 
-	resp := toWishlistResponse(wishlist)
-	return &resp, nil
+	return openapi.WishlistsAddBooksOk{Body: toWishlistResponse(wishlist)}, nil
 }
 
 func (c *wishlistController) WishlistsRemoveBooks(
 	ctx context.Context,
+	_ openapi.WishlistApiCredentials,
 	uid string,
 	req openapi.WishlistRemoveRequest,
-) (*openapi.WishlistResponse, error) {
+) (openapi.WishlistsRemoveBooksResponse, error) {
 	cmd := command.WishlistRemoveCommand{
 		UserUid:  uid,
 		BookUids: req.BookUids,
@@ -70,8 +70,7 @@ func (c *wishlistController) WishlistsRemoveBooks(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "wishlist", uid, "removed", logrus.Fields{"books": len(req.BookUids)})
 
-	resp := toWishlistResponse(wishlist)
-	return &resp, nil
+	return openapi.WishlistsRemoveBooksOk{Body: toWishlistResponse(wishlist)}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────

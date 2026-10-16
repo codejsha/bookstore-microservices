@@ -26,11 +26,12 @@ func NewSubjectController(catalogUseCase usecase.CatalogUseCase) openapi.Subject
 
 func (c *subjectController) SubjectsGetAll(
 	ctx context.Context,
+	_ openapi.SubjectApiCredentials,
 	name *string,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.SubjectFindAllResponse, error) {
+) (openapi.SubjectsGetAllResponse, error) {
 	opt := option.NewSubjectQueryOption(
 		option.SubjectQueryOption{}.WithName(name),
 		option.SubjectQueryOption{}.WithPage(pagination.NewPageOption(size, page, sort)),
@@ -45,40 +46,41 @@ func (c *subjectController) SubjectsGetAll(
 	for i, s := range subjects {
 		items[i] = toSubjectItem(s)
 	}
-	return &openapi.SubjectFindAllResponse{Items: items, Total: total}, nil
+	return openapi.SubjectsGetAllOk{Body: openapi.SubjectFindAllResponse{Items: items, Total: total}}, nil
 }
 
-func (c *subjectController) SubjectsCreate(ctx context.Context, req openapi.SubjectCreateRequest) error {
+func (c *subjectController) SubjectsCreate(ctx context.Context, _ openapi.SubjectApiCredentials, req openapi.SubjectCreateRequest) (openapi.SubjectsCreateResponse, error) {
 	cmd := command.SubjectCreateCommand{
 		Name: req.Name,
 	}
 
 	subject, err := c.catalogUseCase.CreateSubject(ctx, cmd)
 	if err != nil {
-		return httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, err))
+		return nil, httpx.MapConflict(ctx, httpx.MapBusinessError(ctx, err))
 	}
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "subject", subject.Uid, "created", logrus.Fields{"name": req.Name})
-	return nil
+	return openapi.SubjectsCreateCreated{Location: "/api/v1/subjects/" + subject.Uid}, nil
 }
 
-func (c *subjectController) SubjectsRead(ctx context.Context, uid string) (*openapi.SubjectFindResponse, error) {
+func (c *subjectController) SubjectsRead(ctx context.Context, _ openapi.SubjectApiCredentials, uid string) (openapi.SubjectsReadResponse, error) {
 	subject, err := c.catalogUseCase.FindSubject(ctx, uid)
 	if err != nil {
 		return nil, httpx.MapNotFound(ctx, err)
 	}
 
-	return &openapi.SubjectFindResponse{
+	return openapi.SubjectsReadOk{Body: openapi.SubjectFindResponse{
 		Uid:  subject.Uid,
 		Name: subject.Name,
-	}, nil
+	}}, nil
 }
 
 func (c *subjectController) SubjectsUpdate(
 	ctx context.Context,
+	_ openapi.SubjectApiCredentials,
 	uid string,
 	req openapi.SubjectUpdateRequest,
-) (*openapi.SubjectUpdateResponse, error) {
+) (openapi.SubjectsUpdateResponse, error) {
 	cmd := command.SubjectUpdateCommand{
 		Name: req.Name,
 	}
@@ -90,8 +92,8 @@ func (c *subjectController) SubjectsUpdate(
 
 	dispatchSideEffects(context.WithoutCancel(ctx), "subject", uid, "updated", logrus.Fields{})
 
-	return &openapi.SubjectUpdateResponse{
+	return openapi.SubjectsUpdateOk{Body: openapi.SubjectUpdateResponse{
 		Uid:  subject.Uid,
 		Name: subject.Name,
-	}, nil
+	}}, nil
 }

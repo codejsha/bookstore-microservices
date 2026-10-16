@@ -24,12 +24,13 @@ func NewOrderController(customerUseCase usecase.CustomerUseCase) openapi.OrderAp
 
 func (c *orderController) CustomerOrdersGetAll(
 	ctx context.Context,
+	_ openapi.OrderApiCredentials,
 	uid string,
 	status *openapi.OrderStatus,
 	size *int32,
 	page *int32,
 	sort *string,
-) (*openapi.OrderFindAllResponse, error) {
+) (openapi.CustomerOrdersGetAllResponse, error) {
 	opt := option.NewOrderQueryOption(
 		option.OrderQueryOption{}.WithUserUid(&uid),
 		option.OrderQueryOption{}.WithStatusRest(status),
@@ -45,14 +46,15 @@ func (c *orderController) CustomerOrdersGetAll(
 	for i, order := range orders {
 		items[i] = toOrderFindResponse(order)
 	}
-	return &openapi.OrderFindAllResponse{Items: items, Total: total}, nil
+	return openapi.CustomerOrdersGetAllOk{Body: openapi.OrderFindAllResponse{Items: items, Total: total}}, nil
 }
 
 func (c *orderController) CustomerOrdersRead(
 	ctx context.Context,
+	_ openapi.OrderApiCredentials,
 	uid string,
 	orderUid string,
-) (*openapi.OrderFindResponse, error) {
+) (openapi.CustomerOrdersReadResponse, error) {
 	order, err := c.customerUseCase.FindCustomerOrder(ctx, uid, orderUid)
 	if err != nil {
 		return nil, httpx.MapGrpcStatus(ctx, httpx.MapNotFound(ctx, err))
@@ -61,8 +63,7 @@ func (c *orderController) CustomerOrdersRead(
 		return nil, httpx.MapNotFound(ctx, httpx.ErrNotFound)
 	}
 
-	resp := toOrderFindResponse(order)
-	return &resp, nil
+	return openapi.CustomerOrdersReadOk{Body: toOrderFindResponse(order)}, nil
 }
 
 // ─── mapping helpers ────────────────────────────────────────────────────────
@@ -86,16 +87,16 @@ func toOrderFindResponse(a *aggregate.OrderAggregate) openapi.OrderFindResponse 
 func toOrderStatusRest(s aggregate.OrderStatus) openapi.OrderStatus {
 	switch s {
 	case aggregate.ORDERSTATUS_PENDING:
-		return openapi.ORDERSTATUS_PENDING
+		return openapi.OrderStatusPending
 	case aggregate.ORDERSTATUS_PAID:
-		return openapi.ORDERSTATUS_PAID
+		return openapi.OrderStatusPaid
 	case aggregate.ORDERSTATUS_SHIPPING:
-		return openapi.ORDERSTATUS_SHIPPING
+		return openapi.OrderStatusShipping
 	case aggregate.ORDERSTATUS_COMPLETED:
-		return openapi.ORDERSTATUS_COMPLETED
+		return openapi.OrderStatusCompleted
 	case aggregate.ORDERSTATUS_CANCELLED:
-		return openapi.ORDERSTATUS_CANCELLED
+		return openapi.OrderStatusCancelled
 	default:
-		return openapi.ORDERSTATUS_UNKNOWN
+		return openapi.OrderStatusUnknown
 	}
 }

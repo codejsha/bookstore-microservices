@@ -51,17 +51,17 @@ func (OrderQueryOption) WithStatusRest(status *openapi.OrderStatus) OrderQueryOp
 		var orderStatus string
 		if status != nil {
 			switch *status {
-			case openapi.ORDERSTATUS_UNKNOWN:
+			case openapi.OrderStatusUnknown:
 				orderStatus = "UNKNOWN"
-			case openapi.ORDERSTATUS_PENDING:
+			case openapi.OrderStatusPending:
 				orderStatus = "PENDING"
-			case openapi.ORDERSTATUS_PAID:
+			case openapi.OrderStatusPaid:
 				orderStatus = "PAID"
-			case openapi.ORDERSTATUS_SHIPPING:
+			case openapi.OrderStatusShipping:
 				orderStatus = "SHIPPING"
-			case openapi.ORDERSTATUS_COMPLETED:
+			case openapi.OrderStatusCompleted:
 				orderStatus = "COMPLETED"
-			case openapi.ORDERSTATUS_CANCELLED:
+			case openapi.OrderStatusCancelled:
 				orderStatus = "CANCELLED"
 			default:
 				orderStatus = "UNKNOWN"

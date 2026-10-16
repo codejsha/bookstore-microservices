@@ -73,7 +73,7 @@ func TestTransferController_WhenCompleteHitsMissingStock_Returns404(t *testing.T
 	}
 	ctrl := NewTransferController(use)
 	assertStockNotFoundResponse(t, serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.TransfersComplete(ctx, uidTransfer1)
+		_, err := ctrl.TransfersComplete(ctx, openapi.TransferApiCredentials{}, uidTransfer1)
 		return err
 	}))
 }
@@ -86,7 +86,7 @@ func TestTransferController_WhenCancelHitsMissingStock_Returns404(t *testing.T) 
 	}
 	ctrl := NewTransferController(use)
 	assertStockNotFoundResponse(t, serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.TransfersCancel(ctx, uidTransfer1)
+		_, err := ctrl.TransfersCancel(ctx, openapi.TransferApiCredentials{}, uidTransfer1)
 		return err
 	}))
 }
@@ -99,7 +99,7 @@ func TestTransferController_WhenCreateHitsMissingStock_Returns404(t *testing.T) 
 	}
 	ctrl := NewTransferController(use)
 	assertStockNotFoundResponse(t, serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.TransfersCreate(ctx, openapi.TransferCreateRequest{
+		_, err := ctrl.TransfersCreate(ctx, openapi.TransferApiCredentials{}, openapi.TransferCreateRequest{
 			EditionUid: uidEdition1, SourceWarehouseUid: uidWarehouse1, TargetWarehouseUid: uidWarehouse2, Quantity: 3,
 		})
 		return err
@@ -114,7 +114,7 @@ func TestAuditController_WhenCompleteHitsMissingStock_Returns404(t *testing.T) {
 	}
 	ctrl := NewAuditController(use)
 	assertStockNotFoundResponse(t, serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.AuditsComplete(ctx, uidAudit1)
+		_, err := ctrl.AuditsComplete(ctx, openapi.AuditApiCredentials{}, uidAudit1)
 		return err
 	}))
 }
@@ -127,7 +127,7 @@ func TestAuditController_WhenCreateHitsMissingStock_Returns404(t *testing.T) {
 	}
 	ctrl := NewAuditController(use)
 	assertStockNotFoundResponse(t, serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.AuditsCreate(ctx, openapi.AuditCreateRequest{
+		_, err := ctrl.AuditsCreate(ctx, openapi.AuditApiCredentials{}, openapi.AuditCreateRequest{
 			WarehouseUid: uidWarehouse1,
 			Items:        []openapi.AuditItemRequest{{EditionUid: uidEdition1, ActualQuantity: 2}},
 		})
@@ -148,7 +148,7 @@ func TestStockController_WhenWriteHitsMissingStock_Returns404(t *testing.T) {
 				return nil, stockNotFoundErr()
 			}},
 			invoke: func(ctrl openapi.StockApi, ctx context.Context) error {
-				_, err := ctrl.StocksReceive(ctx, openapi.StockReceiveRequest{EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 1})
+				_, err := ctrl.StocksReceive(ctx, openapi.StockApiCredentials{}, openapi.StockReceiveRequest{EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 1})
 				return err
 			},
 		},
@@ -158,7 +158,7 @@ func TestStockController_WhenWriteHitsMissingStock_Returns404(t *testing.T) {
 				return nil, stockNotFoundErr()
 			}},
 			invoke: func(ctrl openapi.StockApi, ctx context.Context) error {
-				_, err := ctrl.StocksRelease(ctx, openapi.StockReleaseRequest{EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 1})
+				_, err := ctrl.StocksRelease(ctx, openapi.StockApiCredentials{}, openapi.StockReleaseRequest{EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 1})
 				return err
 			},
 		},
@@ -168,7 +168,7 @@ func TestStockController_WhenWriteHitsMissingStock_Returns404(t *testing.T) {
 				return nil, stockNotFoundErr()
 			}},
 			invoke: func(ctrl openapi.StockApi, ctx context.Context) error {
-				_, err := ctrl.StocksAdjust(ctx, openapi.StockAdjustRequest{EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: -1, Reason: "damaged"})
+				_, err := ctrl.StocksAdjust(ctx, openapi.StockApiCredentials{}, openapi.StockAdjustRequest{EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: -1, Reason: "damaged"})
 				return err
 			},
 		},
@@ -178,7 +178,7 @@ func TestStockController_WhenWriteHitsMissingStock_Returns404(t *testing.T) {
 				return nil, stockNotFoundErr()
 			}},
 			invoke: func(ctrl openapi.StockApi, ctx context.Context) error {
-				_, err := ctrl.StocksReserve(ctx, openapi.StockReserveRequest{EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 1})
+				_, err := ctrl.StocksReserve(ctx, openapi.StockApiCredentials{}, openapi.StockReserveRequest{EditionUid: uidEdition1, WarehouseUid: uidWarehouse1, Quantity: 1})
 				return err
 			},
 		},
@@ -200,7 +200,7 @@ func TestTransferController_completeInvalidTransition_conflict409(t *testing.T) 
 	}
 	ctrl := NewTransferController(use)
 	w := serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.TransfersComplete(ctx, uidTransfer1)
+		_, err := ctrl.TransfersComplete(ctx, openapi.TransferApiCredentials{}, uidTransfer1)
 		return err
 	})
 	if w.Code != http.StatusConflict {
@@ -216,7 +216,7 @@ func TestTransferController_cancelInvalidTransition_conflict409(t *testing.T) {
 	}
 	ctrl := NewTransferController(use)
 	w := serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.TransfersCancel(ctx, uidTransfer1)
+		_, err := ctrl.TransfersCancel(ctx, openapi.TransferApiCredentials{}, uidTransfer1)
 		return err
 	})
 	if w.Code != http.StatusConflict {
@@ -232,7 +232,7 @@ func TestAuditController_completeInvalidTransition_conflict409(t *testing.T) {
 	}
 	ctrl := NewAuditController(use)
 	w := serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.AuditsComplete(ctx, uidAudit1)
+		_, err := ctrl.AuditsComplete(ctx, openapi.AuditApiCredentials{}, uidAudit1)
 		return err
 	})
 	if w.Code != http.StatusConflict {
@@ -248,7 +248,7 @@ func TestTransferController_completeUnexpectedFailure_status500(t *testing.T) {
 	}
 	ctrl := NewTransferController(use)
 	w := serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.TransfersComplete(ctx, uidTransfer1)
+		_, err := ctrl.TransfersComplete(ctx, openapi.TransferApiCredentials{}, uidTransfer1)
 		return err
 	})
 	if w.Code != http.StatusInternalServerError {
@@ -266,7 +266,7 @@ func TestBalanceController_malformedYearMonth_badRequest400(t *testing.T) {
 	ctrl := NewBalanceController(use)
 	ym := "2026-13"
 	w := serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.BalanceGetAll(ctx, nil, nil, &ym, nil, nil, nil)
+		_, err := ctrl.BalanceGetAll(ctx, openapi.BalanceApiCredentials{}, nil, nil, &ym, nil, nil, nil)
 		return err
 	})
 	if w.Code != http.StatusBadRequest {
@@ -282,7 +282,7 @@ func TestStockController_historyForUnknownEdition_notFound404(t *testing.T) {
 	}
 	ctrl := NewStockController(use)
 	assertStockNotFoundResponse(t, serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.StocksHistory(ctx, uidEdition1, nil, nil, nil, nil)
+		_, err := ctrl.StocksHistory(ctx, openapi.StockApiCredentials{}, uidEdition1, nil, nil, nil, nil)
 		return err
 	}))
 }
@@ -295,7 +295,7 @@ func TestTransferController_WhenCreateHitsMissingTargetWarehouse_Returns404(t *t
 	}
 	ctrl := NewTransferController(use)
 	assertWarehouseNotFoundResponse(t, serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.TransfersCreate(ctx, openapi.TransferCreateRequest{
+		_, err := ctrl.TransfersCreate(ctx, openapi.TransferApiCredentials{}, openapi.TransferCreateRequest{
 			EditionUid: uidEdition1, SourceWarehouseUid: uidWarehouse1, TargetWarehouseUid: uidWarehouse2, Quantity: 3,
 		})
 		return err
@@ -310,7 +310,7 @@ func TestAuditController_WhenCreateHitsMissingWarehouse_Returns404(t *testing.T)
 	}
 	ctrl := NewAuditController(use)
 	assertWarehouseNotFoundResponse(t, serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.AuditsCreate(ctx, openapi.AuditCreateRequest{
+		_, err := ctrl.AuditsCreate(ctx, openapi.AuditApiCredentials{}, openapi.AuditCreateRequest{
 			WarehouseUid: uidWarehouse1,
 			Items:        []openapi.AuditItemRequest{{EditionUid: uidEdition1, ActualQuantity: 2}},
 		})
@@ -326,7 +326,7 @@ func TestClosingController_WhenCreateHitsMissingWarehouse_Returns404(t *testing.
 	}
 	ctrl := NewClosingController(use)
 	assertWarehouseNotFoundResponse(t, serveController(t, func(ctx context.Context) error {
-		_, err := ctrl.ClosingsCreate(ctx, openapi.ClosingCreateRequest{
+		_, err := ctrl.ClosingsCreate(ctx, openapi.ClosingApiCredentials{}, openapi.ClosingCreateRequest{
 			WarehouseUid: uidWarehouse1, Year: 2026, Month: 7,
 		})
 		return err
