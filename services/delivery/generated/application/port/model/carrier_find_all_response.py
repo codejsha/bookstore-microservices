@@ -8,5 +8,5 @@ from .carrier_item import CarrierItem
 
 
 class CarrierFindAllResponse(BaseModel):
-    items: list[CarrierItem]
+    items: list[CarrierItem] = Field(min_length=0)
     total: int = Field(ge=0)

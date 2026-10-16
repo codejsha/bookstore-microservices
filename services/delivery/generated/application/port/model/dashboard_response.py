@@ -10,8 +10,8 @@ from .shipment_status_count import ShipmentStatusCount
 
 class DashboardResponse(BaseModel):
     avg_delivery_hours: Optional[float] = Field(default=None)
-    carrier_performances: list[CarrierPerformance]
+    carrier_performances: list[CarrierPerformance] = Field(min_length=0)
     on_time_delivery_rate: Optional[float] = Field(default=None)
-    status_counts: list[ShipmentStatusCount]
+    status_counts: list[ShipmentStatusCount] = Field(min_length=0)
     total_freight_cost: float
     total_shipments: int

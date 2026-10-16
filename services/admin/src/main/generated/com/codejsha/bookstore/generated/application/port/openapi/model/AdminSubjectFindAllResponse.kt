@@ -6,11 +6,13 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 data class AdminSubjectFindAllResponse(
 
     @field:NotNull
     @field:Valid
+    @field:Size(min = 0)
     @field:JsonProperty("items")
     val items: List<AdminSubjectItem>,
 

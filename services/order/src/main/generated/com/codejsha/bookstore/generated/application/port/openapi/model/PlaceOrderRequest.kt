@@ -24,6 +24,7 @@ data class PlaceOrderRequest(
 
     @field:NotNull
     @field:Valid
+    @field:Size(min = 1)
     @field:JsonProperty("items")
     val items: List<OrderItemCreateRequest>,
 

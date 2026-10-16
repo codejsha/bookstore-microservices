@@ -8,5 +8,5 @@ from .faq_item import FaqItem
 
 
 class FaqFindAllResponse(BaseModel):
-    items: list[FaqItem]
+    items: list[FaqItem] = Field(min_length=0)
     total: int = Field(ge=0)

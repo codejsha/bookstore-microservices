@@ -17,4 +17,4 @@ class ShipmentCreateRequest(BaseModel):
     origin_address: str = Field(min_length=1, max_length=500, pattern=r"[\s\S]*\S[\s\S]*")
     planned_delivery_at: Optional[datetime] = Field(default=None)
     planned_pickup_at: Optional[datetime] = Field(default=None)
-    weight_kg: Optional[float] = Field(default=None)
+    weight_kg: Optional[float] = Field(default=None, gt=0)
