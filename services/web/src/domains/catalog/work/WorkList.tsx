@@ -57,6 +57,14 @@ export function WorkList() {
   );
 
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    },
+    [],
+  );
 
   const handleIntersect = useCallback(
     (entries: IntersectionObserverEntry[]) => {
@@ -79,11 +87,8 @@ export function WorkList() {
 
   function handleSearch(value: string) {
     setTitle(value);
-    clearTimeout((handleSearch as { _t?: ReturnType<typeof setTimeout> })._t);
-    (handleSearch as { _t?: ReturnType<typeof setTimeout> })._t = setTimeout(
-      () => setDebouncedTitle(value),
-      400,
-    );
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => setDebouncedTitle(value), 400);
   }
 
   const allWorks = data?.pages.flatMap((p) => p.items) ?? [];
