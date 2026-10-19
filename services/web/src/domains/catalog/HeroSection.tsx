@@ -71,16 +71,23 @@ export function HeroSection() {
                 View all
               </Button>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <ul
+              aria-label="Trending books"
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            >
               {isLoading
                 ? Array.from({ length: TRENDING_SIZE }).map((_, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
-                    <WorkCardSkeleton key={i} />
+                    <li key={i}>
+                      <WorkCardSkeleton />
+                    </li>
                   ))
                 : trending.map((work) => (
-                    <WorkCard key={work.uid} work={work} />
+                    <li key={work.uid}>
+                      <WorkCard work={work} />
+                    </li>
                   ))}
-            </div>
+            </ul>
           </div>
         </section>
       )}

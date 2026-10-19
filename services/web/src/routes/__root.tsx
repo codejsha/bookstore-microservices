@@ -82,7 +82,7 @@ const navLinkClass =
 
 function LeftSidebar() {
   return (
-    <HoverStripSidebar side="left">
+    <HoverStripSidebar side="left" label="Browse">
       <Link to="/books" className={navLinkClass}>
         <StripRow icon={<LayoutGrid className="size-5" />} label="Books" />
       </Link>
@@ -112,8 +112,16 @@ function RightSidebar() {
   const cartCount = cart?.total_items ?? 0;
 
   return (
-    <HoverStripSidebar side="right">
-      <Link to="/cart" className={navLinkClass}>
+    <HoverStripSidebar side="right" label="Account">
+      <Link
+        to="/cart"
+        className={navLinkClass}
+        aria-label={
+          cartCount > 0
+            ? `Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`
+            : "Cart"
+        }
+      >
         <StripRow
           icon={<ShoppingCart className="size-5" />}
           label="Cart"
@@ -169,7 +177,7 @@ function Footer() {
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-semibold">Browse</h4>
-            <nav className="flex flex-col gap-1">
+            <nav aria-label="Browse" className="flex flex-col gap-1">
               <Link
                 to="/books"
                 className="text-sm text-muted-foreground hover:text-foreground"
@@ -192,7 +200,7 @@ function Footer() {
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-semibold">Account</h4>
-            <nav className="flex flex-col gap-1">
+            <nav aria-label="Account" className="flex flex-col gap-1">
               <Link
                 to="/account"
                 className="text-sm text-muted-foreground hover:text-foreground"

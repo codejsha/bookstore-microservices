@@ -3,6 +3,7 @@ import { cn } from "@/shared/lib/utils";
 
 interface HoverStripSidebarProps {
   side: "left" | "right";
+  label?: string;
   expandDelayMs?: number;
   collapseDelayMs?: number;
   stripWidthClass?: string;
@@ -13,6 +14,7 @@ interface HoverStripSidebarProps {
 
 export function HoverStripSidebar({
   side,
+  label,
   expandDelayMs = 350,
   collapseDelayMs = 120,
   stripWidthClass = "w-12",
@@ -78,6 +80,7 @@ export function HoverStripSidebar({
 
   return (
     <aside
+      aria-label={label}
       data-expanded={expanded}
       data-side={side}
       onMouseEnter={handleEnter}
