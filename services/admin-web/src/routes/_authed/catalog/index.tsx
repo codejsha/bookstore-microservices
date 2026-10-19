@@ -76,6 +76,7 @@ function WorksPage() {
       </div>
 
       <Input
+        aria-label="Filter by title"
         placeholder="Filter by title…"
         defaultValue={search.title ?? ""}
         onChange={(e) =>

@@ -1,46 +1,49 @@
-import type { AdminIdentity, Dashboard } from "@/domains/admin";
-import type { Author, Subject, Work } from "@/domains/catalog";
-import type { Stock, Warehouse } from "@/domains/inventory";
+import type { AdminIdentity, Dashboard } from "@/domains/admin/types";
+import type { Author, Subject, Work } from "@/domains/catalog/types";
+import type { Stock, Warehouse } from "@/domains/inventory/types";
 import {
   ORDER_STATUSES,
   type Order,
   type OrderLine,
   type OrderStatus,
-} from "@/domains/order";
+} from "@/domains/order/types";
 import {
   PAYMENT_STATUSES,
   type Payment,
   REFUND_STATUSES,
   type Refund,
-} from "@/domains/payment";
-import type { Settlement, SettlementDetailLine } from "@/domains/settlement";
-import type { User, UserStatus } from "@/domains/user";
+} from "@/domains/payment/types";
+import type {
+  Settlement,
+  SettlementDetailLine,
+} from "@/domains/settlement/types";
+import type { User, UserStatus } from "@/domains/user/types";
 
-export const identity: AdminIdentity = {
+const identity: AdminIdentity = {
   uid: "11111111-1111-1111-1111-111111111111",
   email: "admin@example.com",
   name: "root",
   roles: ["MANAGER", "STAFF", "USER"],
 };
 
-export const dashboard: Dashboard = {
+const dashboard: Dashboard = {
   works: { count: "1284", available: true },
   orders: { count: "0", available: false },
   warehouses: { count: "3", available: true },
 };
 
-export const authors: Author[] = [
+const authors: Author[] = [
   { uid: "33333333-3333-3333-3333-333333333331", name: "Frank Herbert" },
   { uid: "33333333-3333-3333-3333-333333333332", name: "Ursula K. Le Guin" },
   { uid: "33333333-3333-3333-3333-333333333333", name: "Octavia E. Butler" },
 ];
 
-export const subjects: Subject[] = [
+const subjects: Subject[] = [
   { uid: "44444444-4444-4444-4444-444444444441", name: "Science Fiction" },
   { uid: "44444444-4444-4444-4444-444444444442", name: "Fantasy" },
 ];
 
-export const works: Work[] = Array.from({ length: 43 }, (_, i) => ({
+const works: Work[] = Array.from({ length: 43 }, (_, i) => ({
   uid: `22222222-2222-2222-2222-${String(i).padStart(12, "0")}`,
   title: `Work ${i + 1}`,
   description: i % 3 === 0 ? `A description for work ${i + 1}.` : undefined,
@@ -52,7 +55,7 @@ export const works: Work[] = Array.from({ length: 43 }, (_, i) => ({
   updated_at: undefined,
 }));
 
-export const riskEntries = [
+const riskEntries = [
   {
     user_uid: "7c9e6679-7425-40de-944b-e07fc1f90ae7",
     level: "restrict",
@@ -81,7 +84,7 @@ const LAST_NAMES = ["Lovelace", "Hopper", "Turing", "Liskov", "Dijkstra"];
 const userStatus = (i: number): UserStatus =>
   i % 11 === 7 ? "SUSPENDED" : i % 13 === 12 ? "DEACTIVATED" : "ACTIVE";
 
-export const users: User[] = Array.from({ length: 32 }, (_, i) => {
+const users: User[] = Array.from({ length: 32 }, (_, i) => {
   const first = FIRST_NAMES[i % FIRST_NAMES.length];
   const last = LAST_NAMES[i % LAST_NAMES.length];
   return {
@@ -107,7 +110,7 @@ const PRODUCTS = [
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-export const orders: Order[] = Array.from({ length: 45 }, (_, i) => {
+const orders: Order[] = Array.from({ length: 45 }, (_, i) => {
   const currency = i % 4 === 0 ? "KRW" : "USD";
   const user = users[i % 12];
   const lineCount = 1 + (i % 3);
@@ -164,7 +167,7 @@ export const orders: Order[] = Array.from({ length: 45 }, (_, i) => {
 const CONNECTORS = ["stripe", "adyen"];
 const PAYMENT_METHODS = ["card", "wallet", "bank_transfer", "pay_later"];
 
-export const payments: Payment[] = Array.from({ length: 30 }, (_, i) => {
+const payments: Payment[] = Array.from({ length: 30 }, (_, i) => {
   const currency = i % 4 === 0 ? "KRW" : "USD";
   const status = PAYMENT_STATUSES[i % PAYMENT_STATUSES.length];
   const amount = currency === "KRW" ? 15_000 + i * 1_000 : 1_999 + i * 250;
@@ -196,7 +199,7 @@ export const payments: Payment[] = Array.from({ length: 30 }, (_, i) => {
   };
 });
 
-export const refunds: Refund[] = Array.from({ length: 14 }, (_, i) => {
+const refunds: Refund[] = Array.from({ length: 14 }, (_, i) => {
   const payment = payments[(i * 2) % payments.length];
   return {
     uid: `99999999-9999-4999-8999-${pad(i)}`,
@@ -221,7 +224,7 @@ const SETTLEMENT_BUCKETS = [
   { currency: "KRW", method: "card" },
 ];
 
-export const settlements: Settlement[] = Array.from({ length: 24 }, (_, i) => {
+const settlements: Settlement[] = Array.from({ length: 24 }, (_, i) => {
   const day = 1 + Math.floor(i / SETTLEMENT_BUCKETS.length);
   const bucket = SETTLEMENT_BUCKETS[i % SETTLEMENT_BUCKETS.length];
   const date = `2026-09-${String(day).padStart(2, "0")}`;
@@ -269,7 +272,7 @@ export const settlements: Settlement[] = Array.from({ length: 24 }, (_, i) => {
   };
 });
 
-export const warehouses: Warehouse[] = [
+const warehouses: Warehouse[] = [
   {
     uid: "cccccccc-cccc-4ccc-8ccc-000000000001",
     name: "Incheon Central",
@@ -296,7 +299,7 @@ export const warehouses: Warehouse[] = [
   },
 ];
 
-export const stocks: Stock[] = Array.from({ length: 28 }, (_, i) => {
+const stocks: Stock[] = Array.from({ length: 28 }, (_, i) => {
   const held = warehouses.filter((_, w) => (i + w) % 3 !== 2 || w === i % 3);
   const items = held.map((w, w2) => ({
     warehouse_uid: w.uid,
@@ -310,3 +313,25 @@ export const stocks: Stock[] = Array.from({ length: 28 }, (_, i) => {
     warehouses: items,
   };
 });
+
+const seed = {
+  authors,
+  dashboard,
+  identity,
+  orders,
+  payments,
+  refunds,
+  riskEntries,
+  settlements,
+  stocks,
+  subjects,
+  users,
+  warehouses,
+  works,
+};
+
+export type MockData = typeof seed;
+
+export function createMockData(): MockData {
+  return structuredClone(seed);
+}
