@@ -23,9 +23,9 @@ function buildWorkSearchParams(
 ) {
   const search = new URLSearchParams();
   if (params?.title) search.set("title", params.title);
-  if (params?.authorUid) search.set("authorUid", params.authorUid);
-  if (params?.subjectUid) search.set("subjectUid", params.subjectUid);
-  if (params?.olKey) search.set("olKey", params.olKey);
+  if (params?.authorUid) search.set("author_uid", params.authorUid);
+  if (params?.subjectUid) search.set("subject_uid", params.subjectUid);
+  if (params?.olKey) search.set("ol_key", params.olKey);
   search.set("size", String(params?.size ?? PAGE_SIZE));
   search.set("page", String(page));
   if (params?.sort) search.set("sort", params.sort);
@@ -65,8 +65,8 @@ export const workFullTextSearchQueryOptions = (params: WorkSearchParams) =>
     queryFn: () => {
       const search = new URLSearchParams();
       if (params.q) search.set("q", params.q);
-      if (params.authorUid) search.set("authorUid", params.authorUid);
-      if (params.subjectUid) search.set("subjectUid", params.subjectUid);
+      if (params.authorUid) search.set("author_uid", params.authorUid);
+      if (params.subjectUid) search.set("subject_uid", params.subjectUid);
       if (params.size != null) search.set("size", String(params.size));
       if (params.page != null) search.set("page", String(params.page));
       const qs = search.toString();

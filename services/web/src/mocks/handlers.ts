@@ -27,8 +27,8 @@ export const handlers = [
   http.get("/api/v1/works/search", ({ request }) => {
     const url = new URL(request.url);
     const q = url.searchParams.get("q");
-    const authorUid = url.searchParams.get("authorUid");
-    const subjectUid = url.searchParams.get("subjectUid");
+    const authorUid = url.searchParams.get("author_uid");
+    const subjectUid = url.searchParams.get("subject_uid");
     const size = Number(url.searchParams.get("size")) || 12;
     const page = Number(url.searchParams.get("page")) || 0;
 
@@ -69,9 +69,9 @@ export const handlers = [
   http.get("/api/v1/works", ({ request }) => {
     const url = new URL(request.url);
     const title = url.searchParams.get("title");
-    const authorUid = url.searchParams.get("authorUid");
-    const subjectUid = url.searchParams.get("subjectUid");
-    const olKey = url.searchParams.get("olKey");
+    const authorUid = url.searchParams.get("author_uid");
+    const subjectUid = url.searchParams.get("subject_uid");
+    const olKey = url.searchParams.get("ol_key");
     const size = Number(url.searchParams.get("size")) || 12;
     const page = Number(url.searchParams.get("page")) || 0;
 
@@ -108,8 +108,8 @@ export const handlers = [
     const url = new URL(request.url);
     const title = url.searchParams.get("title");
     const isbn = url.searchParams.get("isbn");
-    const workUid = url.searchParams.get("workUid");
-    const publisherUid = url.searchParams.get("publisherUid");
+    const workUid = url.searchParams.get("work_uid");
+    const publisherUid = url.searchParams.get("publisher_uid");
     const size = Number(url.searchParams.get("size")) || 12;
     const page = Number(url.searchParams.get("page")) || 0;
 
