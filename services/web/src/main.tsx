@@ -7,12 +7,14 @@ import { AuthProvider } from "react-oidc-context";
 import "./index.css";
 import { queryClient } from "@/shared/api/queryClient";
 import { userManager } from "@/shared/auth/userManager";
+import { RouteError } from "@/shared/components/RouteError";
 import { routeTree } from "./routeTree.gen";
 
 const router = createRouter({
   routeTree,
   context: { queryClient },
   defaultPreloadStaleTime: 0,
+  defaultErrorComponent: RouteError,
 });
 
 declare module "@tanstack/react-router" {

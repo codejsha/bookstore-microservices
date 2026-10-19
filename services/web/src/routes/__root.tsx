@@ -21,11 +21,12 @@ import {
 import { Suspense } from "react";
 import { useAuth } from "react-oidc-context";
 import { cartQueryOptions } from "@/domains/cart";
-import { ErrorState } from "@/shared/components/ErrorState";
 import {
   HoverStripSidebar,
   StripRow,
 } from "@/shared/components/HoverStripSidebar";
+import { NotFoundState } from "@/shared/components/NotFoundState";
+import { RouteError } from "@/shared/components/RouteError";
 import { ThemeToggle } from "@/shared/components/ThemeToggle";
 import { ToastProvider } from "@/shared/components/toast";
 
@@ -35,27 +36,12 @@ interface RouterContext {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
-  errorComponent: ({ reset }) => (
+  errorComponent: (props) => (
     <RootShell>
-      <div className="container mx-auto px-4">
-        <ErrorState
-          title="Unable to load this page"
-          message="An unexpected error occurred. Please try again or head back home."
-          onRetry={reset}
-        />
-      </div>
+      <RouteError {...props} />
     </RootShell>
   ),
-  notFoundComponent: () => (
-    <RootShell>
-      <div className="container mx-auto px-4">
-        <ErrorState
-          title="Page not found"
-          message="The page you're looking for doesn't exist or has moved."
-        />
-      </div>
-    </RootShell>
-  ),
+  notFoundComponent: NotFoundState,
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {

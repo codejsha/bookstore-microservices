@@ -4,12 +4,14 @@ import {
   OrderDetailSkeleton,
   orderDetailQueryOptions,
 } from "@/domains/order";
+import { NotFoundState } from "@/shared/components/NotFoundState";
 
 export const Route = createFileRoute("/orders/$uid")({
   loader: ({ context: { queryClient }, params: { uid } }) =>
     queryClient.ensureQueryData(orderDetailQueryOptions(uid)),
   component: OrderDetailPage,
   pendingComponent: OrderDetailSkeleton,
+  notFoundComponent: NotFoundState,
 });
 
 function OrderDetailPage() {
