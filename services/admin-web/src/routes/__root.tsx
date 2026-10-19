@@ -1,5 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import {
+  createRootRouteWithContext,
+  Outlet,
+  useRouter,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Suspense } from "react";
 import { ErrorState } from "@/shared/components/ErrorState";
@@ -10,13 +14,7 @@ export interface RouterContext {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
-  errorComponent: ({ reset }) => (
-    <ErrorState
-      title="Unable to load this page"
-      message="An unexpected error occurred. Please try again."
-      onRetry={reset}
-    />
-  ),
+  errorComponent: RootError,
   notFoundComponent: () => (
     <ErrorState
       title="Page not found"
@@ -24,6 +22,17 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     />
   ),
 });
+
+function RootError() {
+  const router = useRouter();
+  return (
+    <ErrorState
+      title="Unable to load this page"
+      message="An unexpected error occurred. Please try again."
+      onRetry={() => router.invalidate()}
+    />
+  );
+}
 
 function RootComponent() {
   return (
