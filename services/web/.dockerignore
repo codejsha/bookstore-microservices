@@ -10,3 +10,7 @@ temp/
 .vscode/
 .history/
 *.log
+tests/
+playwright.config.ts
+test-results/
+playwright-report/
