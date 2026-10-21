@@ -375,7 +375,7 @@ const pointHistory = [
   },
 ];
 
-export {
+const seed = {
   authors,
   cartItems,
   customer,
@@ -389,3 +389,9 @@ export {
   wishlist,
   works,
 };
+
+export type MockData = typeof seed;
+
+export function createMockData(): MockData {
+  return structuredClone(seed);
+}

@@ -146,6 +146,7 @@ export function OrderList() {
           <button
             key={f.label}
             type="button"
+            aria-pressed={status === f.value}
             onClick={() => {
               setStatus(f.value);
               setPage(0);
@@ -210,6 +211,7 @@ export function OrderList() {
           <Button
             variant="outline"
             size="icon-sm"
+            aria-label="Previous page"
             disabled={page === 0}
             onClick={() => setPage((p) => p - 1)}
           >
@@ -221,6 +223,7 @@ export function OrderList() {
           <Button
             variant="outline"
             size="icon-sm"
+            aria-label="Next page"
             disabled={page >= totalPages - 1}
             onClick={() => setPage((p) => p + 1)}
           >

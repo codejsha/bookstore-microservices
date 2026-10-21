@@ -21,11 +21,12 @@ import {
 import { Suspense } from "react";
 import { useAuth } from "react-oidc-context";
 import { cartQueryOptions } from "@/domains/cart";
-import { ErrorState } from "@/shared/components/ErrorState";
 import {
   HoverStripSidebar,
   StripRow,
 } from "@/shared/components/HoverStripSidebar";
+import { NotFoundState } from "@/shared/components/NotFoundState";
+import { RouteError } from "@/shared/components/RouteError";
 import { ThemeToggle } from "@/shared/components/ThemeToggle";
 import { ToastProvider } from "@/shared/components/toast";
 
@@ -35,27 +36,12 @@ interface RouterContext {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
-  errorComponent: ({ reset }) => (
+  errorComponent: (props) => (
     <RootShell>
-      <div className="container mx-auto px-4">
-        <ErrorState
-          title="Unable to load this page"
-          message="An unexpected error occurred. Please try again or head back home."
-          onRetry={reset}
-        />
-      </div>
+      <RouteError {...props} />
     </RootShell>
   ),
-  notFoundComponent: () => (
-    <RootShell>
-      <div className="container mx-auto px-4">
-        <ErrorState
-          title="Page not found"
-          message="The page you're looking for doesn't exist or has moved."
-        />
-      </div>
-    </RootShell>
-  ),
+  notFoundComponent: NotFoundState,
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
@@ -96,7 +82,7 @@ const navLinkClass =
 
 function LeftSidebar() {
   return (
-    <HoverStripSidebar side="left">
+    <HoverStripSidebar side="left" label="Browse">
       <Link to="/books" className={navLinkClass}>
         <StripRow icon={<LayoutGrid className="size-5" />} label="Books" />
       </Link>
@@ -126,8 +112,16 @@ function RightSidebar() {
   const cartCount = cart?.total_items ?? 0;
 
   return (
-    <HoverStripSidebar side="right">
-      <Link to="/cart" className={navLinkClass}>
+    <HoverStripSidebar side="right" label="Account">
+      <Link
+        to="/cart"
+        className={navLinkClass}
+        aria-label={
+          cartCount > 0
+            ? `Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`
+            : "Cart"
+        }
+      >
         <StripRow
           icon={<ShoppingCart className="size-5" />}
           label="Cart"
@@ -183,7 +177,7 @@ function Footer() {
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-semibold">Browse</h4>
-            <nav className="flex flex-col gap-1">
+            <nav aria-label="Browse" className="flex flex-col gap-1">
               <Link
                 to="/books"
                 className="text-sm text-muted-foreground hover:text-foreground"
@@ -206,7 +200,7 @@ function Footer() {
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-semibold">Account</h4>
-            <nav className="flex flex-col gap-1">
+            <nav aria-label="Account" className="flex flex-col gap-1">
               <Link
                 to="/account"
                 className="text-sm text-muted-foreground hover:text-foreground"

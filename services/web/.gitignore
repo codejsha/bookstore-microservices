@@ -540,3 +540,9 @@ api/openapi/schema/*.json
 api/payapi/*.json
 api/payapi/schema/*.json
 db/flyway.conf
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

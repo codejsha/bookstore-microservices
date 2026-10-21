@@ -55,46 +55,54 @@ export function WishlistPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <ul
+          aria-label="Wishlist items"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+        >
           {wishlistWorks.map((work) => (
-            <Card key={work.uid}>
-              <CardContent className="flex items-center gap-4 py-4">
-                <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md bg-muted">
-                  <BookOpen className="size-6 text-muted-foreground" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <Link
-                    to="/books/$uid"
-                    params={{ uid: work.uid }}
-                    className="line-clamp-2 font-medium hover:underline"
+            <li key={work.uid}>
+              <Card>
+                <CardContent className="flex items-center gap-4 py-4">
+                  <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md bg-muted">
+                    <BookOpen className="size-6 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      to="/books/$uid"
+                      params={{ uid: work.uid }}
+                      className="line-clamp-2 font-medium hover:underline"
+                    >
+                      {work.title}
+                    </Link>
+                    <p className="mt-1 truncate text-sm text-muted-foreground">
+                      {work.authors?.map((a) => a.name).join(", ")}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-destructive hover:text-destructive"
+                    aria-label={`Remove ${work.title} from wishlist`}
+                    disabled={remove.isPending}
+                    onClick={() =>
+                      remove.mutate(
+                        { book_uids: [work.uid] },
+                        {
+                          onSuccess: () =>
+                            toast.success("Removed from wishlist"),
+                          onError: () =>
+                            toast.error("Couldn't update wishlist"),
+                        },
+                      )
+                    }
                   >
-                    {work.title}
-                  </Link>
-                  <p className="mt-1 truncate text-sm text-muted-foreground">
-                    {work.authors?.map((a) => a.name).join(", ")}
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 text-destructive hover:text-destructive"
-                  disabled={remove.isPending}
-                  onClick={() =>
-                    remove.mutate(
-                      { book_uids: [work.uid] },
-                      {
-                        onSuccess: () => toast.success("Removed from wishlist"),
-                        onError: () => toast.error("Couldn't update wishlist"),
-                      },
-                    )
-                  }
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </CardContent>
-            </Card>
+                    <Trash2 className="size-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

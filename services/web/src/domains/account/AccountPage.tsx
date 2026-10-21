@@ -173,11 +173,17 @@ function ProfileSection() {
                   id={field.name}
                   type="email"
                   value={field.state.value}
+                  aria-invalid={field.state.meta.errors.length > 0}
+                  aria-describedby={`${field.name}-error`}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
                 />
                 {field.state.meta.errors.length > 0 && (
-                  <p className="text-sm text-destructive">
+                  <p
+                    id={`${field.name}-error`}
+                    role="alert"
+                    className="text-sm text-destructive"
+                  >
                     {field.state.meta.errors[0]}
                   </p>
                 )}

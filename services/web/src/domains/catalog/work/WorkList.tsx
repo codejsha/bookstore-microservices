@@ -57,6 +57,14 @@ export function WorkList() {
   );
 
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    },
+    [],
+  );
 
   const handleIntersect = useCallback(
     (entries: IntersectionObserverEntry[]) => {
@@ -79,11 +87,8 @@ export function WorkList() {
 
   function handleSearch(value: string) {
     setTitle(value);
-    clearTimeout((handleSearch as { _t?: ReturnType<typeof setTimeout> })._t);
-    (handleSearch as { _t?: ReturnType<typeof setTimeout> })._t = setTimeout(
-      () => setDebouncedTitle(value),
-      400,
-    );
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => setDebouncedTitle(value), 400);
   }
 
   const allWorks = data?.pages.flatMap((p) => p.items) ?? [];
@@ -104,6 +109,7 @@ export function WorkList() {
             <button
               key={subject.uid ?? "all"}
               type="button"
+              aria-pressed={subjectUid === subject.uid}
               onClick={() => setSubjectUid(subject.uid)}
               className={`inline-flex h-8 items-center rounded-md border px-3 text-sm font-medium transition-colors ${
                 subjectUid === subject.uid
@@ -119,6 +125,7 @@ export function WorkList() {
           <div className="relative w-80">
             <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              aria-label="Search by title"
               placeholder="Search by title..."
               value={title}
               onChange={(e) => handleSearch(e.target.value)}
@@ -127,6 +134,7 @@ export function WorkList() {
           </div>
           <div className="flex items-center gap-2">
             <select
+              aria-label="Sort by"
               value={sort}
               onChange={(e) => setSort(e.target.value)}
               className="h-8 rounded-md border bg-background px-2 text-sm text-foreground outline-none"
@@ -141,6 +149,8 @@ export function WorkList() {
               <Button
                 variant={viewMode === "card" ? "secondary" : "ghost"}
                 size="icon-sm"
+                aria-label="Grid view"
+                aria-pressed={viewMode === "card"}
                 onClick={() => setViewMode("card")}
               >
                 <Grid3X3 className="size-4" />
@@ -148,6 +158,8 @@ export function WorkList() {
               <Button
                 variant={viewMode === "list" ? "secondary" : "ghost"}
                 size="icon-sm"
+                aria-label="List view"
+                aria-pressed={viewMode === "list"}
                 onClick={() => setViewMode("list")}
               >
                 <List className="size-4" />
@@ -188,17 +200,27 @@ export function WorkList() {
                 </p>
               </div>
             ) : viewMode === "card" ? (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-in fade-in duration-300">
+              <ul
+                aria-label="Books"
+                className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-in fade-in duration-300"
+              >
                 {allWorks.map((work) => (
-                  <WorkCard key={work.uid} work={work} />
+                  <li key={work.uid}>
+                    <WorkCard work={work} />
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
-              <div className="space-y-2 animate-in fade-in duration-300">
+              <ul
+                aria-label="Books"
+                className="space-y-2 animate-in fade-in duration-300"
+              >
                 {allWorks.map((work) => (
-                  <WorkListItem key={work.uid} work={work} />
+                  <li key={work.uid}>
+                    <WorkListItem work={work} />
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </div>
         )}

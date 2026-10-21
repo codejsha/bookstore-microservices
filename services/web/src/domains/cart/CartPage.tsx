@@ -85,97 +85,104 @@ export function CartPage() {
         </Card>
       ) : (
         <>
-          <div className="space-y-4">
-            {items.map((item) => (
-              <Card key={item.uid}>
-                <CardContent className="flex items-center justify-between gap-4 py-4">
-                  <div className="flex h-16 w-12 shrink-0 items-center justify-center rounded-md bg-muted">
-                    <BookOpen className="size-5 text-muted-foreground" />
-                  </div>
+          <ul aria-label="Cart items" className="space-y-4">
+            {items.map((item) => {
+              const name = item.product_name ?? `Product #${item.product_id}`;
+              return (
+                <li key={item.uid}>
+                  <Card>
+                    <CardContent className="flex items-center justify-between gap-4 py-4">
+                      <div className="flex h-16 w-12 shrink-0 items-center justify-center rounded-md bg-muted">
+                        <BookOpen className="size-5 text-muted-foreground" />
+                      </div>
 
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">
-                      {item.product_name ?? `Product #${item.product_id}`}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      ${item.price.toFixed(2)} each
-                    </p>
-                  </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          ${item.price.toFixed(2)} each
+                        </p>
+                      </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="size-8"
-                      disabled={updateItem.isPending}
-                      onClick={() =>
-                        item.quantity <= 1
-                          ? removeItem.mutate(item.uid, {
-                              onSuccess: () => toast.success("Item removed"),
-                              onError: () =>
-                                toast.error("Couldn't remove item"),
-                            })
-                          : updateItem.mutate(
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="size-8"
+                          aria-label={`Decrease quantity of ${name}`}
+                          disabled={updateItem.isPending}
+                          onClick={() =>
+                            item.quantity <= 1
+                              ? removeItem.mutate(item.uid, {
+                                  onSuccess: () =>
+                                    toast.success("Item removed"),
+                                  onError: () =>
+                                    toast.error("Couldn't remove item"),
+                                })
+                              : updateItem.mutate(
+                                  {
+                                    uid: item.uid,
+                                    data: { quantity: item.quantity - 1 },
+                                  },
+                                  {
+                                    onError: () =>
+                                      toast.error("Couldn't update quantity"),
+                                  },
+                                )
+                          }
+                        >
+                          <Minus className="size-3.5" />
+                        </Button>
+                        <span className="w-8 text-center text-sm font-medium">
+                          {item.quantity}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="size-8"
+                          aria-label={`Increase quantity of ${name}`}
+                          disabled={updateItem.isPending}
+                          onClick={() =>
+                            updateItem.mutate(
                               {
                                 uid: item.uid,
-                                data: { quantity: item.quantity - 1 },
+                                data: { quantity: item.quantity + 1 },
                               },
                               {
                                 onError: () =>
                                   toast.error("Couldn't update quantity"),
                               },
                             )
-                      }
-                    >
-                      <Minus className="size-3.5" />
-                    </Button>
-                    <span className="w-8 text-center text-sm font-medium">
-                      {item.quantity}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="size-8"
-                      disabled={updateItem.isPending}
-                      onClick={() =>
-                        updateItem.mutate(
-                          {
-                            uid: item.uid,
-                            data: { quantity: item.quantity + 1 },
-                          },
-                          {
-                            onError: () =>
-                              toast.error("Couldn't update quantity"),
-                          },
-                        )
-                      }
-                    >
-                      <Plus className="size-3.5" />
-                    </Button>
-                  </div>
+                          }
+                        >
+                          <Plus className="size-3.5" />
+                        </Button>
+                      </div>
 
-                  <div className="w-24 text-right font-medium">
-                    ${item.subtotal.toFixed(2)}
-                  </div>
+                      <div className="w-24 text-right font-medium">
+                        ${item.subtotal.toFixed(2)}
+                      </div>
 
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-destructive hover:text-destructive"
-                    disabled={removeItem.isPending}
-                    onClick={() =>
-                      removeItem.mutate(item.uid, {
-                        onSuccess: () => toast.success("Item removed"),
-                        onError: () => toast.error("Couldn't remove item"),
-                      })
-                    }
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-destructive hover:text-destructive"
+                        aria-label={`Remove ${name}`}
+                        disabled={removeItem.isPending}
+                        onClick={() =>
+                          removeItem.mutate(item.uid, {
+                            onSuccess: () => toast.success("Item removed"),
+                            onError: () => toast.error("Couldn't remove item"),
+                          })
+                        }
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </li>
+              );
+            })}
+          </ul>
 
           <Separator />
           <div className="flex items-center justify-between">

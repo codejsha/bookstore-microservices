@@ -25,26 +25,42 @@ function StarRating({
   onRate?: (r: number) => void;
   interactive?: boolean;
 }) {
+  const stars = [1, 2, 3, 4, 5].map((star) => (
+    <button
+      key={star}
+      type="button"
+      disabled={!interactive}
+      aria-label={`Rate ${star} star${star === 1 ? "" : "s"}`}
+      aria-pressed={interactive ? star === rating : undefined}
+      onClick={() => onRate?.(star)}
+      className={interactive ? "cursor-pointer" : "cursor-default"}
+    >
+      <Star
+        className={`size-4 ${
+          star <= rating
+            ? "fill-yellow-400 text-yellow-400"
+            : "text-muted-foreground/30"
+        }`}
+      />
+    </button>
+  ));
+
+  if (!interactive) {
+    return (
+      <div
+        role="img"
+        aria-label={`${rating} out of 5 stars`}
+        className="flex gap-0.5"
+      >
+        {stars}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          disabled={!interactive}
-          onClick={() => onRate?.(star)}
-          className={interactive ? "cursor-pointer" : "cursor-default"}
-        >
-          <Star
-            className={`size-4 ${
-              star <= rating
-                ? "fill-yellow-400 text-yellow-400"
-                : "text-muted-foreground/30"
-            }`}
-          />
-        </button>
-      ))}
-    </div>
+    <fieldset aria-label="Your rating" className="flex gap-0.5">
+      {stars}
+    </fieldset>
   );
 }
 
@@ -116,11 +132,13 @@ function ReviewForm({
         <StarRating rating={rating} onRate={setRating} interactive />
       </div>
       <Input
+        aria-label="Review title"
         placeholder="Review title (optional)"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
       <Textarea
+        aria-label="Review content"
         placeholder="Write your review..."
         value={content}
         onChange={(e) => setContent(e.target.value)}
