@@ -45,6 +45,7 @@ readinessProbe:
   httpGet:
     path: /actuator/health
     port: http
+  timeoutSeconds: 3
 autoscaling:
   enabled: false
   minReplicas: 1
