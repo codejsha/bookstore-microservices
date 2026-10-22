@@ -155,6 +155,13 @@ otelcol.exporter.kafka "log_bookstore" {
   topic            = "bookstore.pod.log"
   encoding         = "otlp_json"
 
+  metadata {
+    retry {
+      max_retries = 120
+      backoff     = "5s"
+    }
+  }
+
   sending_queue {
     enabled = true
   }
@@ -180,6 +187,13 @@ otelcol.exporter.kafka "log_infra" {
   protocol_version = "3.0.0"
   topic            = "infra.pod.log"
   encoding         = "otlp_json"
+
+  metadata {
+    retry {
+      max_retries = 120
+      backoff     = "5s"
+    }
+  }
 
   sending_queue {
     enabled = true
@@ -208,6 +222,13 @@ otelcol.exporter.kafka "risk_access" {
   protocol_version = "3.0.0"
   topic            = "bookstore.access-log"
   encoding         = "raw"
+
+  metadata {
+    retry {
+      max_retries = 120
+      backoff     = "5s"
+    }
+  }
 
   sending_queue {
     enabled = true

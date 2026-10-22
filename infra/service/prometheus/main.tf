@@ -215,6 +215,22 @@ module "alertrules" {
       summary     = "Container OOM killed ({{ $labels.namespace }}/{{ $labels.pod }})"
       description = "Container {{ $labels.container }} in pod {{ $labels.pod }} was OOM killed. Consider increasing memory limits."
     },
+    {
+      name        = "AlloyComponentUnhealthy"
+      expr        = "max by (job, pod) (alloy_component_controller_running_components{health_type=\"unhealthy\"}) > 0"
+      for         = "10m"
+      severity    = "warning"
+      summary     = "Alloy has unhealthy components ({{ $labels.pod }})"
+      description = "{{ $values.B.Value }} component(s) in {{ $labels.pod }} ({{ $labels.job }}) have been unhealthy for 10 minutes. A component that failed to start is not retried; check /api/v0/web/components and restart the pod."
+    },
+    {
+      name        = "AlloyExporterEnqueueFailing"
+      expr        = "sum by (job, component_id) (rate({__name__=~\"otelcol_exporter_enqueue_failed_.+\"}[5m])) > 0"
+      for         = "10m"
+      severity    = "warning"
+      summary     = "Alloy exporter is dropping data ({{ $labels.component_id }})"
+      description = "Exporter {{ $labels.component_id }} in {{ $labels.job }} is rejecting {{ $values.B.Value | humanize }} items/s because its sending queue is full. The downstream backend is unreachable or the exporter is stuck."
+    },
   ]
   providers = {
     grafana = grafana
