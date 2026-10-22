@@ -8,8 +8,9 @@ terraform {
 
 locals {
   agent_config = templatefile("${path.module}/agent.alloy.tftpl", {
-    gateway_endpoint    = "${var.gateway_target_fqdn}:4317"
-    pyroscope_write_url = var.pyroscope_write_url
+    gateway_endpoint       = "${var.gateway_target_fqdn}:4317"
+    pyroscope_write_url    = var.pyroscope_write_url
+    pod_logs_tail_from_end = var.pod_logs_tail_from_end
   })
 
   gateway_config = templatefile("${path.module}/gateway.alloy.tftpl", {

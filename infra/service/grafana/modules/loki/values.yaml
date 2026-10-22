@@ -28,9 +28,14 @@ loki:
       s3ForcePathStyle: true
       insecure: true
 
+  compactor:
+    retention_enabled: true
+    delete_request_store: s3
+
   limits_config:
     allow_structured_metadata: true
     volume_enabled: true
+    retention_period: 720h
     otlp_config:
       resource_attributes:
         attributes_config:

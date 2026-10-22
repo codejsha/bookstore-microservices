@@ -27,3 +27,9 @@ variable "pyroscope_write_url" {
   description = "Pyroscope push URL (ingester)"
   type        = string
 }
+
+variable "pod_logs_tail_from_end" {
+  description = "Start tailing pod log files from the end when no stored position exists. Keep true for the first rollout of file-based tailing so existing files are not replayed into Loki, then set false so new containers are read from their first line."
+  type        = bool
+  default     = true
+}

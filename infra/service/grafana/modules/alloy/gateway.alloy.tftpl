@@ -51,6 +51,24 @@ otelcol.processor.k8sattributes "logs" {
     metadata = ["k8s.namespace.name"]
   }
 
+  pod_association {
+    source {
+      from = "resource_attribute"
+      name = "k8s.pod.uid"
+    }
+  }
+  pod_association {
+    source {
+      from = "resource_attribute"
+      name = "k8s.node.name"
+    }
+  }
+  pod_association {
+    source {
+      from = "connection"
+    }
+  }
+
   output {
     logs = [otelcol.processor.transform.logs.input]
   }
@@ -63,6 +81,7 @@ otelcol.processor.transform "logs" {
     context    = "log"
     statements = [
       `set(resource.attributes["k8s.namespace.name"], attributes["namespace"]) where attributes["namespace"] != nil`,
+      `delete_matching_keys(resource.attributes, "^(process\\.|os\\.|telemetry\\.|host\\.arch$)")`,
       `replace_pattern(body, "(?i)('password'\\s*:\\s*')[^']*(')", "$${1}****$${2}")`,
       `replace_all_patterns(attributes, "value", "(?i)('password'\\s*:\\s*')[^']*(')", "$${1}****$${2}")`,
     ]
@@ -135,13 +154,16 @@ otelcol.exporter.otlp "tempo" {
   }
 }
 
-// --- Logs → Kafka ------------------------------------------------------------
+// --- Logs → Kafka (pod logs only: events, journal, audit stay Loki-only) -----
 
 otelcol.processor.filter "log_bookstore" {
   error_mode = "ignore"
 
   logs {
-    log_record = [`resource.attributes["k8s.namespace.name"] != "bookstore"`]
+    log_record = [
+      `resource.attributes["k8s.namespace.name"] != "bookstore"`,
+      `attributes["job"] != nil and attributes["job"] != "pod-logs"`,
+    ]
   }
 
   output {
@@ -167,6 +189,7 @@ otelcol.processor.filter "log_infra" {
     log_record = [
       `resource.attributes["k8s.namespace.name"] == nil`,
       `resource.attributes["k8s.namespace.name"] == "bookstore"`,
+      `attributes["job"] != nil and attributes["job"] != "pod-logs"`,
     ]
   }
 
