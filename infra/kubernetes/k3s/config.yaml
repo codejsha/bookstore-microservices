@@ -10,6 +10,11 @@ node-name: "workstation.internal"
 
 kube-apiserver-arg:
   - "authentication-config=/etc/rancher/k3s/authentication-config.yaml"
+  - "audit-policy-file=/etc/rancher/k3s/audit-policy.yaml"
+  - "audit-log-path=/var/lib/rancher/k3s/server/logs/audit.log"
+  - "audit-log-maxage=7"
+  - "audit-log-maxbackup=3"
+  - "audit-log-maxsize=100"
 
 kube-controller-manager-arg:
   - "bind-address=0.0.0.0"

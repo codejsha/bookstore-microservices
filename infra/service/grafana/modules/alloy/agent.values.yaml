@@ -1,5 +1,6 @@
 alloy:
   stabilityLevel: "public-preview"
+  storagePath: /var/lib/alloy
 
   extraEnv:
     - name: K8S_NODE_NAME
@@ -23,17 +24,47 @@ alloy:
 
   mounts:
     varlog: true
+    extra:
+      - name: alloy-data
+        mountPath: /var/lib/alloy
+      - name: run-journal
+        mountPath: /run/log/journal
+        readOnly: true
+      - name: k3s-containerd
+        mountPath: /var/lib/rancher/k3s/agent/containerd
+        readOnly: true
+      - name: k3s-server-logs
+        mountPath: /var/lib/rancher/k3s/server/logs
+        readOnly: true
 
   resources:
     limits:
       cpu: 500m
-      memory: 768Mi
+      memory: 1Gi
     requests:
       cpu: 50m
       memory: 256Mi
 
 controller:
   type: daemonset
+  volumes:
+    extra:
+      - name: alloy-data
+        hostPath:
+          path: /var/lib/alloy-agent
+          type: DirectoryOrCreate
+      - name: run-journal
+        hostPath:
+          path: /run/log/journal
+          type: DirectoryOrCreate
+      - name: k3s-containerd
+        hostPath:
+          path: /var/lib/rancher/k3s/agent/containerd
+          type: Directory
+      - name: k3s-server-logs
+        hostPath:
+          path: /var/lib/rancher/k3s/server/logs
+          type: DirectoryOrCreate
 
 service:
   enabled: true

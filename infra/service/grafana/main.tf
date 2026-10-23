@@ -96,6 +96,9 @@ module "alloy" {
   tempo_otlp_endpoint = "tempo.${kubernetes_namespace_v1.grafana.metadata[0].name}.svc.cluster.local:4317"
   prometheus_otlp_url = "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090/api/v1/otlp"
   pyroscope_write_url = "http://pyroscope.${kubernetes_namespace_v1.grafana.metadata[0].name}.svc.cluster.local:4040"
+
+  pod_logs_tail_from_end = var.pod_logs_tail_from_end
+
   providers = {
     helm = helm
   }

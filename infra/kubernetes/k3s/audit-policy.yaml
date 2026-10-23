@@ -1,0 +1,64 @@
+apiVersion: audit.k8s.io/v1
+kind: Policy
+omitStages:
+  - RequestReceived
+rules:
+  - level: None
+    nonResourceURLs:
+      - /healthz*
+      - /readyz*
+      - /livez*
+      - /version
+      - /metrics
+      - /openapi*
+      - /api
+      - /api/*
+      - /apis
+      - /apis/*
+  - level: None
+    verbs: ["watch"]
+  - level: None
+    verbs: ["get", "list"]
+    resources:
+      - group: ""
+        resources: ["events", "endpoints", "nodes", "nodes/status", "pods", "pods/status", "services"]
+      - group: "coordination.k8s.io"
+        resources: ["leases"]
+      - group: "discovery.k8s.io"
+        resources: ["endpointslices"]
+      - group: "apps"
+      - group: "batch"
+  - level: None
+    verbs: ["create", "update", "patch"]
+    resources:
+      - group: ""
+        resources: ["events"]
+      - group: "coordination.k8s.io"
+        resources: ["leases"]
+      - group: "events.k8s.io"
+        resources: ["events"]
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["secrets", "configmaps", "serviceaccounts/token"]
+      - group: "authentication.k8s.io"
+        resources: ["tokenreviews"]
+      - group: "authorization.k8s.io"
+        resources: ["subjectaccessreviews", "selfsubjectaccessreviews", "selfsubjectrulesreviews"]
+  - level: RequestResponse
+    verbs: ["create", "update", "patch", "delete", "deletecollection"]
+    resources:
+      - group: "rbac.authorization.k8s.io"
+      - group: "admissionregistration.k8s.io"
+      - group: "apiextensions.k8s.io"
+      - group: "certificates.k8s.io"
+      - group: "kyverno.io"
+      - group: "policies.kyverno.io"
+      - group: "security.istio.io"
+      - group: "networking.istio.io"
+      - group: "crd.projectcalico.org"
+      - group: ""
+        resources: ["namespaces", "nodes", "persistentvolumes", "serviceaccounts"]
+  - level: Request
+    verbs: ["create", "update", "patch", "delete", "deletecollection"]
+  - level: Metadata

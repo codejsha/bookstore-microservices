@@ -286,7 +286,7 @@ module "database_alerts" {
       name            = "MysqlAccessDenied"
       datasource_uid  = "loki"
       datasource_type = "loki"
-      expr            = "sum by (pod) (count_over_time({namespace=\"bookstore\", container=\"mysql\"} |= \"Access denied for user\" [5m])) > 10"
+      expr            = "sum by (k8s_pod_name) (count_over_time({k8s_namespace_name=\"bookstore\", k8s_container_name=\"mysql\"} |= \"Access denied for user\" [5m])) > 10"
       for             = "5m"
       severity        = "warning"
       summary         = "MySQL is rejecting logins"
@@ -296,7 +296,7 @@ module "database_alerts" {
       name            = "PostgresAuthFailed"
       datasource_uid  = "loki"
       datasource_type = "loki"
-      expr            = "sum by (pod) (count_over_time({namespace=\"bookstore\", container=\"postgres\"} |= \"password authentication failed\" [5m])) > 10"
+      expr            = "sum by (k8s_pod_name) (count_over_time({k8s_namespace_name=\"bookstore\", k8s_container_name=\"postgres\"} |= \"password authentication failed\" [5m])) > 10"
       for             = "5m"
       severity        = "warning"
       summary         = "Postgres is rejecting logins"
@@ -318,6 +318,42 @@ module "database_alerts" {
       summary       = "Vault database static-role rotation failed"
       description   = "Vault recorded {{ $values.B.Value | humanize }} database UpdateUser errors on {{ $labels.instance }} in the last hour; a static-role password rotation did not complete and the credential in Vault may no longer match the database."
       no_data_state = "OK"
+    },
+  ]
+  providers = {
+    grafana = grafana
+  }
+}
+
+module "logging_pipeline_alerts" {
+  source            = "../../shared/grafana-alertrules"
+  group_name        = "logging-pipeline"
+  folder_title      = "Observability"
+  parent_folder_uid = grafana_folder.alerts.uid
+  rules = [
+    {
+      name        = "AlloyExporterQueueNearFull"
+      expr        = "max by (job, component_id) (otelcol_exporter_queue_size{job=~\"alloy-.*\"}) / max by (job, component_id) (otelcol_exporter_queue_capacity{job=~\"alloy-.*\"}) > 0.9"
+      for         = "5m"
+      severity    = "warning"
+      summary     = "Alloy exporter sending queue is almost full"
+      description = "{{ $labels.component_id }} on {{ $labels.job }} has its sending queue {{ $values.B.Value | humanizePercentage }} full for 5 minutes; the downstream (Kafka, Loki, Tempo or Prometheus) is not accepting data and new records are about to be dropped. After a node reboot the Kafka exporters stay stuck until alloy-gateway is restarted."
+    },
+    {
+      name        = "AlloyExporterSendFailed"
+      expr        = "sum by (job, component_id) (increase(otelcol_exporter_send_failed_log_records_total{job=~\"alloy-.*\"}[10m])) > 0"
+      for         = "10m"
+      severity    = "warning"
+      summary     = "Alloy exporter is failing to send log records"
+      description = "{{ $labels.component_id }} on {{ $labels.job }} failed to send {{ $values.B.Value | humanize }} log records in 10 minutes; check the destination and the exporter queue."
+    },
+    {
+      name        = "LokiSamplesDiscarded"
+      expr        = "sum by (reason) (increase(loki_discarded_samples_total[10m])) > 0"
+      for         = "10m"
+      severity    = "warning"
+      summary     = "Loki is discarding log samples"
+      description = "Loki discarded {{ $values.B.Value | humanize }} samples in 10 minutes with reason {{ $labels.reason }}; rate limits, line size, stream limits or stale timestamps are dropping logs before they are stored."
     },
   ]
   providers = {
