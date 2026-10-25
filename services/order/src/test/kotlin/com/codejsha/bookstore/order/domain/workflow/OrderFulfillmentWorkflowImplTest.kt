@@ -1,7 +1,6 @@
 package com.codejsha.bookstore.order.domain.workflow
 
 import com.codejsha.bookstore.order.support.FakeDeliveryActivities
-import com.codejsha.bookstore.order.support.FakeNotificationActivities
 import com.codejsha.bookstore.order.support.FakeOrderActivities
 import io.temporal.client.WorkflowFailedException
 import io.temporal.client.WorkflowOptions
@@ -36,7 +35,6 @@ class OrderFulfillmentWorkflowImplTest {
     private lateinit var env: TestWorkflowEnvironment
     private lateinit var orderActivities: FakeOrderActivities
     private lateinit var deliveryActivities: FakeDeliveryActivities
-    private lateinit var notificationActivities: FakeNotificationActivities
     private lateinit var workflow: OrderFulfillmentWorkflow
 
     @BeforeEach
@@ -44,14 +42,12 @@ class OrderFulfillmentWorkflowImplTest {
         env = TestWorkflowEnvironment.newInstance()
         orderActivities = FakeOrderActivities()
         deliveryActivities = FakeDeliveryActivities()
-        notificationActivities = FakeNotificationActivities()
 
         env.newWorker(taskQueue).apply {
             registerWorkflowImplementationTypes(OrderFulfillmentWorkflowImpl::class.java)
             registerActivitiesImplementations(orderActivities)
         }
         env.newWorker("delivery-task-queue").registerActivitiesImplementations(deliveryActivities)
-        env.newWorker("notification-task-queue").registerActivitiesImplementations(notificationActivities)
         env.start()
 
         workflow = env.workflowClient.newWorkflowStub(
@@ -66,7 +62,7 @@ class OrderFulfillmentWorkflowImplTest {
     }
 
     @Test
-    fun `fulfillOrder_whenOrderPaid_createsShipmentNotifiesCustomerAndMarksShipped`() {
+    fun `fulfillOrder_orderPaid_createsShipmentAndMarksShipped`() {
         orderActivities.cancellationState = OrderCancellationState(status = "PAID", paymentUid = null)
         deliveryActivities.createShipmentReturn = CreateShipmentResult(
             shipmentUid = shipmentUid,
@@ -96,17 +92,6 @@ class OrderFulfillmentWorkflowImplTest {
             ),
             deliveryActivities.createShipmentRequests,
         )
-        assertEquals(
-            listOf(
-                ShipmentNotificationRequest(
-                    userUid = userUid,
-                    orderUid = orderUid,
-                    notificationType = "SHIPMENT_DISPATCHED",
-                    trackingNumber = trackingNumber,
-                ),
-            ),
-            notificationActivities.sentNotifications,
-        )
         assertEquals(listOf(orderUid), orderActivities.shippedOrderUids)
     }
 
@@ -121,7 +106,6 @@ class OrderFulfillmentWorkflowImplTest {
         }
 
         assertTrue(deliveryActivities.createShipmentRequests.isEmpty())
-        assertTrue(notificationActivities.sentNotifications.isEmpty())
         assertTrue(orderActivities.shippedOrderUids.isEmpty())
     }
 }

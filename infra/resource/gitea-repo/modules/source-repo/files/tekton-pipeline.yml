@@ -32,7 +32,7 @@ jobs:
           case "$SERVICE" in
             catalog|customer|identity|inventory) EL=bookstore-golang ;;
             order|payment|settlement|admin) EL=bookstore-gradle ;;
-            delivery|notification|support) EL=bookstore-uv ;;
+            delivery|support) EL=bookstore-uv ;;
             web|admin-web) EL=bookstore-vite ;;
             *) echo "unknown service: $SERVICE" >&2; exit 1 ;;
           esac

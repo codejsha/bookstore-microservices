@@ -129,10 +129,3 @@ data class CreateShipmentResult(
     val trackingNumber: String?,
     val status: String,
 )
-
-data class ShipmentNotificationRequest(
-    val userUid: String,
-    val orderUid: String,
-    val notificationType: String,
-    val trackingNumber: String?,
-)

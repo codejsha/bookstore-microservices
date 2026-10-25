@@ -9,18 +9,17 @@ terraform {
 
 locals {
   service_account = {
-    catalog      = "catalog-postgres"
-    customer     = "customer-postgres"
-    identity     = "identity-postgres"
-    inventory    = "inventory-postgres"
-    order        = "order-mysql"
-    payment      = "payment-mysql"
-    delivery     = "delivery-mysql"
-    notification = "notification-mysql"
-    support      = "support-mysql"
-    settlement   = "settlement-mysql"
-    admin        = "admin"
-    admin_web    = "admin-web"
+    catalog    = "catalog-postgres"
+    customer   = "customer-postgres"
+    identity   = "identity-postgres"
+    inventory  = "inventory-postgres"
+    order      = "order-mysql"
+    payment    = "payment-mysql"
+    delivery   = "delivery-mysql"
+    support    = "support-mysql"
+    settlement = "settlement-mysql"
+    admin      = "admin"
+    admin_web  = "admin-web"
   }
   principal = {
     for svc, sa in local.service_account : svc => "cluster.local/ns/${var.namespace}/sa/${sa}"
@@ -44,7 +43,6 @@ locals {
     "delivery",
     "identity",
     "inventory",
-    "notification",
     "order",
     "payment",
     "settlement",
@@ -66,7 +64,6 @@ locals {
     "delivery",
     "identity",
     "inventory",
-    "notification",
     "order",
     "payment",
     "settlement",
@@ -729,40 +726,6 @@ resource "kubernetes_manifest" "circuit_breaker" {
           maxEjectionPercent   = 50
         }
       }
-    }
-  }
-}
-
-resource "kubernetes_manifest" "authz_notification" {
-  manifest = {
-    apiVersion = "security.istio.io/v1"
-    kind       = "AuthorizationPolicy"
-    metadata = {
-      name      = "notification-authz"
-      namespace = var.namespace
-    }
-    spec = {
-      targetRefs = [
-        {
-          kind  = "Service"
-          group = ""
-          name  = "notification"
-        }
-      ]
-      action = "ALLOW"
-      rules = [
-        {
-          from = [
-            {
-              source = {
-                principals = [
-                  var.ingress_gateway_principal,
-                ]
-              }
-            }
-          ]
-        }
-      ]
     }
   }
 }

@@ -56,7 +56,6 @@ inputs = {
     "keycloak.example.com"            = ["keycloak"]
     "kiali.example.com"               = ["istio-system"]
     "nexus.example.com"               = ["nexus"]
-    "notification-api.example.com"    = ["bookstore"]
     "opensearch.example.com"          = ["opensearch"]
     "opensearch-api.example.com"      = ["opensearch"]
     "order-api.example.com"           = ["bookstore"]
