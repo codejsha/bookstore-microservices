@@ -62,7 +62,7 @@ nexus_auth = { if [ -n "$(NEXUS_AUTH)" ]; then printf '%s' "$(NEXUS_AUTH)"; \
 	     p=$$(vault kv get -mount=kv-infra -field=password nexus/publisher) && \
 	     [ -n "$$u" ] && [ -n "$$p" ] && printf '%s:%s' "$$u" "$$p"; fi; }
 
-GRPC_API_VERSION := 1.0.0
+GRPC_API_VERSION := 1.1.0
 GRPC_PROTO_DIR := ./api/grpc/proto
 GRPC_PROTO_URL := $(NEXUS_RAW_URL)/vendor/bookstore-grpc/$(GRPC_API_VERSION)/proto.tar.gz
 

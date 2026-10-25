@@ -3,9 +3,9 @@ import "@typespec/protobuf";
 using TypeSpec.Protobuf;
 
 @package({
-  name: "delivery.v1",
+  name: "fulfillment.v1",
 })
-namespace ProtoDelivery;
+namespace ProtoFulfillment;
 
 // ─── Enum ───────────────────────────────────────────────────────────────────
 
@@ -66,7 +66,7 @@ model ListShipmentsResponse {
 // ─── Service ────────────────────────────────────────────────────────────────
 
 @Protobuf.service
-interface DeliveryService {
+interface FulfillmentService {
   TrackShipment(...TrackShipmentRequest): TrackShipmentResponse;
   ListShipments(...ListShipmentsRequest): ListShipmentsResponse;
 }

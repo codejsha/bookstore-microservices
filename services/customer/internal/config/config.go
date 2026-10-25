@@ -23,10 +23,10 @@ type Config struct {
 }
 
 type GrpcConfig struct {
-	OrderServer    *config.GrpcServerConfig `mapstructure:"order_server"`
-	PaymentServer  *config.GrpcServerConfig `mapstructure:"payment_server"`
-	UserServer     *config.GrpcServerConfig `mapstructure:"user_server"`
-	DeliveryServer *config.GrpcServerConfig `mapstructure:"delivery_server"`
+	OrderServer       *config.GrpcServerConfig `mapstructure:"order_server"`
+	PaymentServer     *config.GrpcServerConfig `mapstructure:"payment_server"`
+	UserServer        *config.GrpcServerConfig `mapstructure:"user_server"`
+	FulfillmentServer *config.GrpcServerConfig `mapstructure:"fulfillment_server"`
 }
 
 func NewConfig(

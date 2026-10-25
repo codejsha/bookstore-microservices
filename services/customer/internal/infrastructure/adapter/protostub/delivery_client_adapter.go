@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
-	"github.com/codejsha/bookstore-microservices/customer/generated/application/port/pb/deliverypb"
+	"github.com/codejsha/bookstore-microservices/customer/generated/application/port/pb/fulfillmentpb"
 	port "github.com/codejsha/bookstore-microservices/customer/internal/application/port/protostub"
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/aggregate"
 )
@@ -15,7 +15,7 @@ var _ port.DeliveryClient = (*deliveryClient)(nil)
 const deliveryCallerMetadataKey = "x-user-id"
 
 type deliveryClient struct {
-	client deliverypb.DeliveryServiceClient
+	client fulfillmentpb.FulfillmentServiceClient
 }
 
 func NewDeliveryClient(c *DeliveryGrpcClient) port.DeliveryClient {
@@ -28,7 +28,7 @@ func withDeliveryCaller(ctx context.Context, callerUid string) context.Context {
 
 func (g *deliveryClient) TrackShipment(ctx context.Context, uid string, callerUid string) (*aggregate.ShipmentAggregate, error) {
 	ctx = withDeliveryCaller(ctx, callerUid)
-	resp, err := g.client.TrackShipment(ctx, &deliverypb.TrackShipmentRequest{Uid: uid})
+	resp, err := g.client.TrackShipment(ctx, &fulfillmentpb.TrackShipmentRequest{Uid: uid})
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (g *deliveryClient) TrackShipment(ctx context.Context, uid string, callerUi
 }
 
 func (g *deliveryClient) ListShipments(ctx context.Context, orderUid string, status *string, pageSize *int32, callerUid string) (int64, []*aggregate.ShipmentAggregate, error) {
-	req := &deliverypb.ListShipmentsRequest{
+	req := &fulfillmentpb.ListShipmentsRequest{
 		OrderUid: orderUid,
 		Status:   stringToShipmentStatusProto(status),
 	}
@@ -59,7 +59,7 @@ func (g *deliveryClient) ListShipments(ctx context.Context, orderUid string, sta
 	return int64(resp.GetTotalSize()), out, nil
 }
 
-func toShipmentAggregate(sh *deliverypb.Shipment) *aggregate.ShipmentAggregate {
+func toShipmentAggregate(sh *fulfillmentpb.Shipment) *aggregate.ShipmentAggregate {
 	return &aggregate.ShipmentAggregate{
 		Uid:                    sh.GetUid(),
 		OrderUid:               sh.GetOrderUid(),
@@ -77,51 +77,51 @@ func toShipmentAggregate(sh *deliverypb.Shipment) *aggregate.ShipmentAggregate {
 	}
 }
 
-func toShipmentStatus(s deliverypb.ShipmentStatus) aggregate.ShipmentStatus {
+func toShipmentStatus(s fulfillmentpb.ShipmentStatus) aggregate.ShipmentStatus {
 	switch s {
-	case deliverypb.ShipmentStatus_SHIPMENT_STATUS_PLANNED:
+	case fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_PLANNED:
 		return aggregate.SHIPMENTSTATUS_PLANNED
-	case deliverypb.ShipmentStatus_SHIPMENT_STATUS_DISPATCHED:
+	case fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_DISPATCHED:
 		return aggregate.SHIPMENTSTATUS_DISPATCHED
-	case deliverypb.ShipmentStatus_SHIPMENT_STATUS_PICKED_UP:
+	case fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_PICKED_UP:
 		return aggregate.SHIPMENTSTATUS_PICKED_UP
-	case deliverypb.ShipmentStatus_SHIPMENT_STATUS_IN_TRANSIT:
+	case fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_IN_TRANSIT:
 		return aggregate.SHIPMENTSTATUS_IN_TRANSIT
-	case deliverypb.ShipmentStatus_SHIPMENT_STATUS_OUT_FOR_DELIVERY:
+	case fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_OUT_FOR_DELIVERY:
 		return aggregate.SHIPMENTSTATUS_OUT_FOR_DELIVERY
-	case deliverypb.ShipmentStatus_SHIPMENT_STATUS_DELIVERED:
+	case fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_DELIVERED:
 		return aggregate.SHIPMENTSTATUS_DELIVERED
-	case deliverypb.ShipmentStatus_SHIPMENT_STATUS_FAILED:
+	case fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_FAILED:
 		return aggregate.SHIPMENTSTATUS_FAILED
-	case deliverypb.ShipmentStatus_SHIPMENT_STATUS_CANCELLED:
+	case fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_CANCELLED:
 		return aggregate.SHIPMENTSTATUS_CANCELLED
 	default:
 		return aggregate.SHIPMENTSTATUS_UNKNOWN
 	}
 }
 
-func stringToShipmentStatusProto(s *string) deliverypb.ShipmentStatus {
+func stringToShipmentStatusProto(s *string) fulfillmentpb.ShipmentStatus {
 	if s == nil {
-		return deliverypb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED
+		return fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED
 	}
 	switch *s {
 	case "PLANNED":
-		return deliverypb.ShipmentStatus_SHIPMENT_STATUS_PLANNED
+		return fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_PLANNED
 	case "DISPATCHED":
-		return deliverypb.ShipmentStatus_SHIPMENT_STATUS_DISPATCHED
+		return fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_DISPATCHED
 	case "PICKED_UP":
-		return deliverypb.ShipmentStatus_SHIPMENT_STATUS_PICKED_UP
+		return fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_PICKED_UP
 	case "IN_TRANSIT":
-		return deliverypb.ShipmentStatus_SHIPMENT_STATUS_IN_TRANSIT
+		return fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_IN_TRANSIT
 	case "OUT_FOR_DELIVERY":
-		return deliverypb.ShipmentStatus_SHIPMENT_STATUS_OUT_FOR_DELIVERY
+		return fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_OUT_FOR_DELIVERY
 	case "DELIVERED":
-		return deliverypb.ShipmentStatus_SHIPMENT_STATUS_DELIVERED
+		return fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_DELIVERED
 	case "FAILED":
-		return deliverypb.ShipmentStatus_SHIPMENT_STATUS_FAILED
+		return fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_FAILED
 	case "CANCELLED":
-		return deliverypb.ShipmentStatus_SHIPMENT_STATUS_CANCELLED
+		return fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_CANCELLED
 	default:
-		return deliverypb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED
+		return fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED
 	}
 }

@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package delivery.v1;
+package fulfillment.v1;
 
 enum ShipmentStatus {
   SHIPMENT_STATUS_UNSPECIFIED = 0;
@@ -54,7 +54,7 @@ message ListShipmentsResponse {
   int32 total_size = 3;
 }
 
-service DeliveryService {
+service FulfillmentService {
   rpc TrackShipment(TrackShipmentRequest) returns (TrackShipmentResponse);
   rpc ListShipments(ListShipmentsRequest) returns (ListShipmentsResponse);
 }

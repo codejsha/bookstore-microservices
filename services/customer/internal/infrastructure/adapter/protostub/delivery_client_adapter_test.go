@@ -3,17 +3,17 @@ package protostub
 import (
 	"testing"
 
-	"github.com/codejsha/bookstore-microservices/customer/generated/application/port/pb/deliverypb"
+	"github.com/codejsha/bookstore-microservices/customer/generated/application/port/pb/fulfillmentpb"
 	"github.com/codejsha/bookstore-microservices/customer/internal/domain/aggregate"
 )
 
 func TestToShipmentAggregate_WhenProtoFullyPopulated_MapsEveryField(t *testing.T) {
 	t.Run("whenProtoFullyPopulated_mapsEveryField", func(t *testing.T) {
-		in := &deliverypb.Shipment{
+		in := &fulfillmentpb.Shipment{
 			Uid:                    "sh-1",
 			OrderUid:               "o-1",
 			CarrierUid:             "car-1",
-			Status:                 deliverypb.ShipmentStatus_SHIPMENT_STATUS_IN_TRANSIT,
+			Status:                 fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_IN_TRANSIT,
 			TrackingNumber:         "1Z-TRACK-9",
 			DestinationCity:        "Seattle",
 			DestinationState:       "WA",
@@ -46,7 +46,7 @@ func TestToShipmentAggregate_WhenProtoFullyPopulated_MapsEveryField(t *testing.T
 	})
 
 	t.Run("whenOptionalStringsEmpty_passesThemThroughEmpty", func(t *testing.T) {
-		got := toShipmentAggregate(&deliverypb.Shipment{Uid: "sh-2"})
+		got := toShipmentAggregate(&fulfillmentpb.Shipment{Uid: "sh-2"})
 		if got.Uid != "sh-2" {
 			t.Errorf("Uid = %q, want sh-2", got.Uid)
 		}
@@ -70,18 +70,18 @@ func TestToShipmentAggregate_WhenProtoFullyPopulated_MapsEveryField(t *testing.T
 
 func TestToShipmentStatus_WhenProtoStatusGiven_ReturnsDomainStatus(t *testing.T) {
 	cases := []struct {
-		in   deliverypb.ShipmentStatus
+		in   fulfillmentpb.ShipmentStatus
 		want aggregate.ShipmentStatus
 	}{
-		{deliverypb.ShipmentStatus_SHIPMENT_STATUS_PLANNED, aggregate.SHIPMENTSTATUS_PLANNED},
-		{deliverypb.ShipmentStatus_SHIPMENT_STATUS_DISPATCHED, aggregate.SHIPMENTSTATUS_DISPATCHED},
-		{deliverypb.ShipmentStatus_SHIPMENT_STATUS_PICKED_UP, aggregate.SHIPMENTSTATUS_PICKED_UP},
-		{deliverypb.ShipmentStatus_SHIPMENT_STATUS_IN_TRANSIT, aggregate.SHIPMENTSTATUS_IN_TRANSIT},
-		{deliverypb.ShipmentStatus_SHIPMENT_STATUS_OUT_FOR_DELIVERY, aggregate.SHIPMENTSTATUS_OUT_FOR_DELIVERY},
-		{deliverypb.ShipmentStatus_SHIPMENT_STATUS_DELIVERED, aggregate.SHIPMENTSTATUS_DELIVERED},
-		{deliverypb.ShipmentStatus_SHIPMENT_STATUS_FAILED, aggregate.SHIPMENTSTATUS_FAILED},
-		{deliverypb.ShipmentStatus_SHIPMENT_STATUS_CANCELLED, aggregate.SHIPMENTSTATUS_CANCELLED},
-		{deliverypb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED, aggregate.SHIPMENTSTATUS_UNKNOWN},
+		{fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_PLANNED, aggregate.SHIPMENTSTATUS_PLANNED},
+		{fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_DISPATCHED, aggregate.SHIPMENTSTATUS_DISPATCHED},
+		{fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_PICKED_UP, aggregate.SHIPMENTSTATUS_PICKED_UP},
+		{fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_IN_TRANSIT, aggregate.SHIPMENTSTATUS_IN_TRANSIT},
+		{fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_OUT_FOR_DELIVERY, aggregate.SHIPMENTSTATUS_OUT_FOR_DELIVERY},
+		{fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_DELIVERED, aggregate.SHIPMENTSTATUS_DELIVERED},
+		{fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_FAILED, aggregate.SHIPMENTSTATUS_FAILED},
+		{fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_CANCELLED, aggregate.SHIPMENTSTATUS_CANCELLED},
+		{fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED, aggregate.SHIPMENTSTATUS_UNKNOWN},
 	}
 	for _, c := range cases {
 		if got := toShipmentStatus(c.in); got != c.want {
@@ -93,19 +93,19 @@ func TestToShipmentStatus_WhenProtoStatusGiven_ReturnsDomainStatus(t *testing.T)
 func TestStringToShipmentStatusProto_WhenDomainStatusGiven_ReturnsProtoStatus(t *testing.T) {
 	cases := []struct {
 		in   *string
-		want deliverypb.ShipmentStatus
+		want fulfillmentpb.ShipmentStatus
 	}{
-		{nil, deliverypb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED},
-		{ptrStr("PLANNED"), deliverypb.ShipmentStatus_SHIPMENT_STATUS_PLANNED},
-		{ptrStr("DISPATCHED"), deliverypb.ShipmentStatus_SHIPMENT_STATUS_DISPATCHED},
-		{ptrStr("PICKED_UP"), deliverypb.ShipmentStatus_SHIPMENT_STATUS_PICKED_UP},
-		{ptrStr("IN_TRANSIT"), deliverypb.ShipmentStatus_SHIPMENT_STATUS_IN_TRANSIT},
-		{ptrStr("OUT_FOR_DELIVERY"), deliverypb.ShipmentStatus_SHIPMENT_STATUS_OUT_FOR_DELIVERY},
-		{ptrStr("DELIVERED"), deliverypb.ShipmentStatus_SHIPMENT_STATUS_DELIVERED},
-		{ptrStr("FAILED"), deliverypb.ShipmentStatus_SHIPMENT_STATUS_FAILED},
-		{ptrStr("CANCELLED"), deliverypb.ShipmentStatus_SHIPMENT_STATUS_CANCELLED},
-		{ptrStr(""), deliverypb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED},
-		{ptrStr("garbage"), deliverypb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED},
+		{nil, fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED},
+		{ptrStr("PLANNED"), fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_PLANNED},
+		{ptrStr("DISPATCHED"), fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_DISPATCHED},
+		{ptrStr("PICKED_UP"), fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_PICKED_UP},
+		{ptrStr("IN_TRANSIT"), fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_IN_TRANSIT},
+		{ptrStr("OUT_FOR_DELIVERY"), fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_OUT_FOR_DELIVERY},
+		{ptrStr("DELIVERED"), fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_DELIVERED},
+		{ptrStr("FAILED"), fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_FAILED},
+		{ptrStr("CANCELLED"), fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_CANCELLED},
+		{ptrStr(""), fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED},
+		{ptrStr("garbage"), fulfillmentpb.ShipmentStatus_SHIPMENT_STATUS_UNSPECIFIED},
 	}
 	for _, c := range cases {
 		if got := stringToShipmentStatusProto(c.in); got != c.want {
