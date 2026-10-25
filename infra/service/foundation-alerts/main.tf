@@ -26,6 +26,21 @@ resource "grafana_folder" "alerts" {
   uid   = "alerts"
 }
 
+resource "grafana_mute_timing" "always" {
+  name = "always"
+
+  intervals {}
+}
+
+resource "grafana_notification_policy" "root" {
+  contact_point = "grafana-default-email"
+  group_by      = ["grafana_folder", "alertname"]
+
+  policy {
+    mute_timings = [grafana_mute_timing.always.name]
+  }
+}
+
 module "vault_alerts" {
   source            = "../../shared/grafana-alertrules"
   group_name        = "vault"
