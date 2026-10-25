@@ -62,7 +62,7 @@ variable "pyroscope_s3_bucket" {
 variable "pod_logs_tail_from_end" {
   description = "Alloy agent: tail pod log files from the end when no stored position exists. true for the first rollout of file-based tailing (no replay of existing files), then false so new containers are read from their first line."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "vault_url" {
