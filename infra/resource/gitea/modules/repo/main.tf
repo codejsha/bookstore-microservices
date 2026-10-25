@@ -16,6 +16,8 @@ resource "gitea_repository" "git_repo" {
   private     = true
   auto_init   = false
   license     = "Apache-2.0"
+
+  migration_mirror_interval = ""
 }
 
 resource "tls_private_key" "tls_keys" {

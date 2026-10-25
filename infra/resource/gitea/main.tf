@@ -40,10 +40,9 @@ resource "tls_private_key" "tekton_resolver" {
 }
 
 resource "gitea_public_key" "tekton_resolver" {
-  username  = var.admin_username
-  title     = "tekton-resolver"
-  key       = trimspace(tls_private_key.tekton_resolver.public_key_openssh)
-  read_only = true
+  username = var.admin_username
+  title    = "tekton-resolver"
+  key      = trimspace(tls_private_key.tekton_resolver.public_key_openssh)
 }
 
 resource "vault_kv_secret_v2" "tekton_resolver_ssh" {
