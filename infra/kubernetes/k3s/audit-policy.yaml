@@ -18,16 +18,10 @@ rules:
   - level: None
     verbs: ["watch"]
   - level: None
-    verbs: ["get", "list"]
     resources:
-      - group: ""
-        resources: ["events", "endpoints", "nodes", "nodes/status", "pods", "pods/status", "services"]
-      - group: "coordination.k8s.io"
-        resources: ["leases"]
-      - group: "discovery.k8s.io"
-        resources: ["endpointslices"]
-      - group: "apps"
-      - group: "batch"
+      - group: "reports.kyverno.io"
+      - group: "wgpolicyk8s.io"
+      - group: "metrics.k8s.io"
   - level: None
     verbs: ["create", "update", "patch"]
     resources:
@@ -37,14 +31,94 @@ rules:
         resources: ["leases"]
       - group: "events.k8s.io"
         resources: ["events"]
+  - level: None
+    userGroups: ["system:nodes"]
+    verbs: ["get", "list"]
+  - level: None
+    userGroups: ["system:nodes"]
+    verbs: ["create"]
+    resources:
+      - group: ""
+        resources: ["serviceaccounts/token"]
+  - level: None
+    userGroups: ["system:serviceaccounts", "system:nodes"]
+    verbs: ["create"]
+    resources:
+      - group: "authentication.k8s.io"
+        resources: ["tokenreviews"]
+      - group: "authorization.k8s.io"
+        resources: ["subjectaccessreviews"]
+  - level: None
+    users:
+      - system:apiserver
+      - system:kube-controller-manager
+      - system:kube-scheduler
+      - system:kube-proxy
+      - system:k3s-supervisor
+      - k3s-cloud-controller-manager
+    verbs: ["create"]
+    resources:
+      - group: "authentication.k8s.io"
+        resources: ["tokenreviews"]
+      - group: "authorization.k8s.io"
+        resources: ["subjectaccessreviews"]
+  - level: None
+    users: ["system:serviceaccount:kyverno:kyverno-admission-controller"]
+    verbs: ["update", "patch"]
+    resources:
+      - group: "admissionregistration.k8s.io"
+        resources: ["validatingwebhookconfigurations", "mutatingwebhookconfigurations"]
+  - level: None
+    users: ["system:serviceaccount:kube-system:calico-kube-controllers"]
+    verbs: ["create"]
+    resources:
+      - group: "crd.projectcalico.org"
+        resources: ["tiers"]
+  - level: None
+    users: ["system:serviceaccount:istio-system:istiod"]
+    resources:
+      - group: ""
+        resources: ["configmaps"]
+  - level: None
+    users: ["system:serviceaccount:istio-system:kiali"]
+    resources:
+      - group: ""
+        resources: ["pods/portforward"]
+  - level: None
+    users:
+      - system:serviceaccount:kafka-operator:strimzi-cluster-operator
+      - system:serviceaccount:keycloak:keycloak-operator
+      - system:serviceaccount:kyverno:kyverno-admission-controller
+      - system:serviceaccount:kyverno:kyverno-reports-controller
+      - system:serviceaccount:reflector:reflector
+    verbs: ["get", "list"]
+    resources:
+      - group: ""
+        resources: ["secrets"]
   - level: Metadata
     resources:
       - group: ""
-        resources: ["secrets", "configmaps", "serviceaccounts/token"]
+        resources: ["secrets", "serviceaccounts/token"]
       - group: "authentication.k8s.io"
         resources: ["tokenreviews"]
       - group: "authorization.k8s.io"
         resources: ["subjectaccessreviews", "selfsubjectaccessreviews", "selfsubjectrulesreviews"]
+  - level: None
+    userGroups: ["system:serviceaccounts"]
+    verbs: ["get", "list"]
+  - level: None
+    users:
+      - system:apiserver
+      - system:kube-controller-manager
+      - system:kube-scheduler
+      - system:kube-proxy
+      - system:k3s-supervisor
+      - k3s-cloud-controller-manager
+    verbs: ["get", "list"]
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["configmaps"]
   - level: RequestResponse
     verbs: ["create", "update", "patch", "delete", "deletecollection"]
     resources:
@@ -52,13 +126,29 @@ rules:
       - group: "admissionregistration.k8s.io"
       - group: "apiextensions.k8s.io"
       - group: "certificates.k8s.io"
-      - group: "kyverno.io"
-      - group: "policies.kyverno.io"
       - group: "security.istio.io"
-      - group: "networking.istio.io"
+      - group: "kyverno.io"
+        resources: ["clusterpolicies", "policies", "clustercleanuppolicies", "cleanuppolicies", "policyexceptions"]
+      - group: "policies.kyverno.io"
+        resources: ["validatingpolicies", "namespacedvalidatingpolicies", "mutatingpolicies", "namespacedmutatingpolicies", "generatingpolicies", "namespacedgeneratingpolicies", "imagevalidatingpolicies", "namespacedimagevalidatingpolicies", "deletingpolicies", "namespaceddeletingpolicies", "policyexceptions"]
       - group: "crd.projectcalico.org"
+        resources: ["tiers", "globalnetworkpolicies", "networkpolicies", "stagedglobalnetworkpolicies", "stagednetworkpolicies", "globalnetworksets", "networksets"]
+      - group: "networking.k8s.io"
+        resources: ["networkpolicies"]
       - group: ""
-        resources: ["namespaces", "nodes", "persistentvolumes", "serviceaccounts"]
+        resources: ["namespaces"]
+  - level: Metadata
+    userGroups: ["system:serviceaccounts", "system:nodes"]
+    verbs: ["create", "update", "patch", "delete", "deletecollection"]
+  - level: Metadata
+    users:
+      - system:apiserver
+      - system:kube-controller-manager
+      - system:kube-scheduler
+      - system:kube-proxy
+      - system:k3s-supervisor
+      - k3s-cloud-controller-manager
+    verbs: ["create", "update", "patch", "delete", "deletecollection"]
   - level: Request
     verbs: ["create", "update", "patch", "delete", "deletecollection"]
   - level: Metadata
