@@ -46,6 +46,7 @@ inputs = {
     "cloud-config.example.com"        = ["cloud-config", "bookstore"]
     "customer-api.example.com"        = ["bookstore"]
     "delivery-api.example.com"        = ["bookstore"]
+    "fulfillment-api.example.com"     = ["bookstore"]
     "git.example.com"                 = ["gitea"]
     "grafana.example.com"             = ["grafana"]
     "harbor.example.com"              = ["harbor"]

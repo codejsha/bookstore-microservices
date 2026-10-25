@@ -11,7 +11,7 @@ spec:
     tasks:
       - clone-source-repo (git-clone)
       - codegen-verify-openapi (make openapi + git diff)
-      - codegen-verify-grpc (make grpc from the Nexus-mirrored proto bundle + git diff; delivery only)
+      - codegen-verify-grpc (make grpc from the Nexus-mirrored proto bundle + git diff; delivery and fulfillment only)
       - trivy-fs-scan (trivy fs vuln)
       - gitleaks-scan (gitleaks secret detection, commits since last scanned build)
       - build-app (uv sync + uv run pytest + uv build)
@@ -68,6 +68,7 @@ spec:
       type: array
       default:
         - delivery
+        - fulfillment
     - name: protoc-toolchain-image
       type: string
       default: harbor.example.com/bookstore/protoc-toolchain:0.1.0

@@ -9,17 +9,18 @@ terraform {
 
 locals {
   service_account = {
-    catalog    = "catalog-postgres"
-    customer   = "customer-postgres"
-    identity   = "identity-postgres"
-    inventory  = "inventory-postgres"
-    order      = "order-mysql"
-    payment    = "payment-mysql"
-    delivery   = "delivery-mysql"
-    support    = "support-mysql"
-    settlement = "settlement-mysql"
-    admin      = "admin"
-    admin_web  = "admin-web"
+    catalog     = "catalog-postgres"
+    customer    = "customer-postgres"
+    identity    = "identity-postgres"
+    inventory   = "inventory-postgres"
+    order       = "order-mysql"
+    payment     = "payment-mysql"
+    delivery    = "delivery-mysql"
+    fulfillment = "fulfillment-mysql"
+    support     = "support-mysql"
+    settlement  = "settlement-mysql"
+    admin       = "admin"
+    admin_web   = "admin-web"
   }
   principal = {
     for svc, sa in local.service_account : svc => "cluster.local/ns/${var.namespace}/sa/${sa}"
@@ -41,6 +42,7 @@ locals {
     "catalog",
     "customer",
     "delivery",
+    "fulfillment",
     "identity",
     "inventory",
     "order",
@@ -62,6 +64,7 @@ locals {
     "catalog",
     "customer",
     "delivery",
+    "fulfillment",
     "identity",
     "inventory",
     "order",
@@ -653,6 +656,43 @@ resource "kubernetes_manifest" "authz_settlement" {
               source = {
                 principals = [
                   local.principal.admin,
+                  var.ingress_gateway_principal,
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+resource "kubernetes_manifest" "authz_fulfillment" {
+  manifest = {
+    apiVersion = "security.istio.io/v1"
+    kind       = "AuthorizationPolicy"
+    metadata = {
+      name      = "fulfillment-authz"
+      namespace = var.namespace
+    }
+    spec = {
+      targetRefs = [
+        {
+          kind  = "Service"
+          group = ""
+          name  = "fulfillment"
+        }
+      ]
+      action = "ALLOW"
+      rules = [
+        {
+          from = [
+            {
+              source = {
+                principals = [
+                  local.principal.admin,
+                  local.principal.order,
+                  local.principal.customer,
                   var.ingress_gateway_principal,
                 ]
               }
