@@ -39,7 +39,7 @@ class RestClientConfigTest {
             catalogBaseUrl = baseUrl,
             customerBaseUrl = baseUrl,
             identityBaseUrl = baseUrl,
-            inventoryBaseUrl = baseUrl,
+            fulfillmentBaseUrl = baseUrl,
             orderBaseUrl = baseUrl,
             paymentBaseUrl = baseUrl,
             settlementBaseUrl = baseUrl,

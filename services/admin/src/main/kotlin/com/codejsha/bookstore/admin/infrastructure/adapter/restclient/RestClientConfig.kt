@@ -6,8 +6,8 @@ import com.codejsha.bookstore.generated.application.port.restclient.catalog.api.
 import com.codejsha.bookstore.generated.application.port.restclient.catalog.api.WorkApi
 import com.codejsha.bookstore.generated.application.port.restclient.identity.api.RiskApi
 import com.codejsha.bookstore.generated.application.port.restclient.identity.api.UserApi
-import com.codejsha.bookstore.generated.application.port.restclient.inventory.api.StockApi
-import com.codejsha.bookstore.generated.application.port.restclient.inventory.api.WarehouseApi
+import com.codejsha.bookstore.generated.application.port.restclient.fulfillment.api.StockApi
+import com.codejsha.bookstore.generated.application.port.restclient.fulfillment.api.WarehouseApi
 import com.codejsha.bookstore.generated.application.port.restclient.order.api.OrderApi
 import com.codejsha.bookstore.generated.application.port.restclient.payment.api.PaymentApi
 import com.codejsha.bookstore.generated.application.port.restclient.payment.api.RefundApi
@@ -58,10 +58,10 @@ class RestClientConfig(
 
     @Bean
     fun inventoryWarehouseApi(): WarehouseApi =
-        client(config.inventoryBaseUrl).createClient(WarehouseApi::class.java)
+        client(config.fulfillmentBaseUrl).createClient(WarehouseApi::class.java)
 
     @Bean
-    fun inventoryStockApi(): StockApi = client(config.inventoryBaseUrl).createClient(StockApi::class.java)
+    fun inventoryStockApi(): StockApi = client(config.fulfillmentBaseUrl).createClient(StockApi::class.java)
 
     @Bean
     fun paymentPaymentApi(): PaymentApi = client(config.paymentBaseUrl).createClient(PaymentApi::class.java)
