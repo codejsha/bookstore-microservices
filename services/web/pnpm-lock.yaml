@@ -17,16 +17,10 @@ importers:
       '@bookstore/customer-client':
         specifier: ^1.0.1
         version: 1.0.1
-      '@bookstore/delivery-client':
-        specifier: ^1.0.1
-        version: 1.0.1
       '@bookstore/design':
         specifier: ^1.0.0
         version: 1.0.0(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tailwindcss@4.2.2)
       '@bookstore/identity-client':
-        specifier: ^1.0.1
-        version: 1.0.1
-      '@bookstore/inventory-client':
         specifier: ^1.0.1
         version: 1.0.1
       '@bookstore/order-client':
@@ -409,9 +403,6 @@ packages:
   '@bookstore/customer-client@1.0.1':
     resolution: {integrity: sha512-A+FwKRbF847HEipKpY7AXXW3ghYKPBBqoTlPn84V+DptBMfnzM1+99mz50os6bOjrWh85FqKDv2YdFCzYw/hzw==}
 
-  '@bookstore/delivery-client@1.0.1':
-    resolution: {integrity: sha512-N9/7i+G2z6ad+H+t+7U39mtSj/NDiZKC9SQG5jjlQKDsSHPZxDv8zry4kEkMCQyNdIJLWan3AzWZ5jYvG9xKYQ==}
-
   '@bookstore/design@1.0.0':
     resolution: {integrity: sha512-mXOUmeUXww3KBfzUy6r0xEshoPlV0FkBzIxAYC5RoKGWMT3oz1W8LEjEXLtaZXHlZglubesalbEDmEt3bNl61Q==}
     peerDependencies:
@@ -421,9 +412,6 @@ packages:
 
   '@bookstore/identity-client@1.0.1':
     resolution: {integrity: sha512-DyeAj2oAgDFtIv4KUSaOjyTxN1wh89oFqbBBHr0xKQvXj3RZOyn84BpADf2ox1SMATbXvM6kgI15V6B7VzvQbA==}
-
-  '@bookstore/inventory-client@1.0.1':
-    resolution: {integrity: sha512-ibEnSGqI6sMSvCA9+gYIQyT/tZ80dYNPWhEX5Yj7r7PwFkWG4/hKLcpv3+7ExPAWeVyR2iRnlvPwfJFHiR5T7g==}
 
   '@bookstore/order-client@1.0.1':
     resolution: {integrity: sha512-oZ8rrbV/HA81cGRci5cB2pvR6qM9OXQgn6GH2TIYqkcuC+um6OWLDHS8GP55ZXocc0UWEF2ANdeb1Z/qz+0Qmw==}
@@ -3207,10 +3195,6 @@ snapshots:
     dependencies:
       zod: 4.3.6
 
-  '@bookstore/delivery-client@1.0.1':
-    dependencies:
-      zod: 4.3.6
-
   '@bookstore/design@1.0.0(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tailwindcss@4.2.2)':
     dependencies:
       '@base-ui/react': 1.3.0(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -3226,10 +3210,6 @@ snapshots:
       - '@types/react'
 
   '@bookstore/identity-client@1.0.1':
-    dependencies:
-      zod: 4.3.6
-
-  '@bookstore/inventory-client@1.0.1':
     dependencies:
       zod: 4.3.6
 

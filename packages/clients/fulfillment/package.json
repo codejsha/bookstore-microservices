@@ -1,6 +1,6 @@
 {
-  "name": "@bookstore/delivery-client",
-  "version": "1.0.1",
+  "name": "@bookstore/fulfillment-client",
+  "version": "1.0.0",
   "type": "module",
   "exports": {
     "./model/*": {
@@ -25,7 +25,7 @@
     "access": "restricted"
   },
   "scripts": {
-    "generate": "oapi-codegen-cli -c ../config.toml -p input_spec=../../../services/delivery/api/openapi/schema/openapi.1.0.0.json -p output_dir=src",
+    "generate": "oapi-codegen-cli -c ../config.toml -p input_spec=../../../services/fulfillment/api/openapi/schema/openapi.1.0.0.json -p output_dir=src",
     "build": "tsup",
     "prepublishOnly": "tsup"
   },
