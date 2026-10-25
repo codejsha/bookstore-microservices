@@ -19,8 +19,6 @@ inputs = {
     "cluster.local/ns/bookstore/sa/catalog-postgres",
     "cluster.local/ns/bookstore/sa/customer-postgres",
     "cluster.local/ns/bookstore/sa/identity-postgres",
-    "cluster.local/ns/bookstore/sa/inventory-postgres",
-    "cluster.local/ns/bookstore/sa/delivery-mysql",
     "cluster.local/ns/bookstore/sa/fulfillment-mysql",
     "cluster.local/ns/bookstore/sa/order-mysql",
     "cluster.local/ns/bookstore/sa/payment-mysql",

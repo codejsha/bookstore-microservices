@@ -131,7 +131,7 @@ variable "nexus_raw_url" {
 }
 
 variable "codegen_verify_targets" {
-  description = "Codegen drift checks the golang/gradle/uv CI pipelines run: any of openapi (needs the oapi-codegen-cli image in Harbor), external (idpapi/payapi from the Nexus raw repo; identity and payment only), grpc (proto bundle from the Nexus raw repo; needs the protoc-toolchain image in Harbor; customer/identity/order/payment/delivery), db (needs the gorm-codegen-cli image and the privileged dind sidecar admitted in the CI namespace). Empty runs none."
+  description = "Codegen drift checks the golang/gradle/uv CI pipelines run: any of openapi (needs the oapi-codegen-cli image in Harbor), external (idpapi/payapi from the Nexus raw repo; identity and payment only), grpc (proto bundle from the Nexus raw repo; needs the protoc-toolchain image in Harbor; customer/identity/order/payment/fulfillment), db (needs the gorm-codegen-cli image and the privileged dind sidecar admitted in the CI namespace). Empty runs none."
   type        = list(string)
   default     = []
 }

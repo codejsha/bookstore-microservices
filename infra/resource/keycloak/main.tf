@@ -85,7 +85,7 @@ module "realm_roles" {
 module "temporal_worker_clients" {
   source   = "./modules/temporal-worker-clients"
   realm_id = module.realm.realm_id
-  services = ["order", "payment", "inventory", "delivery", "fulfillment"]
+  services = ["order", "payment", "fulfillment"]
   providers = {
     keycloak = keycloak
     vault    = vault

@@ -12,10 +12,8 @@ locals {
     catalog     = "catalog-postgres"
     customer    = "customer-postgres"
     identity    = "identity-postgres"
-    inventory   = "inventory-postgres"
     order       = "order-mysql"
     payment     = "payment-mysql"
-    delivery    = "delivery-mysql"
     fulfillment = "fulfillment-mysql"
     support     = "support-mysql"
     settlement  = "settlement-mysql"
@@ -41,10 +39,8 @@ locals {
     "admin",
     "catalog",
     "customer",
-    "delivery",
     "fulfillment",
     "identity",
-    "inventory",
     "order",
     "payment",
     "settlement",
@@ -63,10 +59,8 @@ locals {
     "admin-web",
     "catalog",
     "customer",
-    "delivery",
     "fulfillment",
     "identity",
-    "inventory",
     "order",
     "payment",
     "settlement",
@@ -475,43 +469,6 @@ resource "kubernetes_manifest" "authz_customer" {
   }
 }
 
-resource "kubernetes_manifest" "authz_inventory" {
-  manifest = {
-    apiVersion = "security.istio.io/v1"
-    kind       = "AuthorizationPolicy"
-    metadata = {
-      name      = "inventory-authz"
-      namespace = var.namespace
-    }
-    spec = {
-      targetRefs = [
-        {
-          kind  = "Service"
-          group = ""
-          name  = "inventory"
-        }
-      ]
-      action = "ALLOW"
-      rules = [
-        {
-          from = [
-            {
-              source = {
-                principals = [
-                  local.principal.admin,
-                  local.principal.catalog,
-                  local.principal.order,
-                  var.ingress_gateway_principal,
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    }
-  }
-}
-
 resource "kubernetes_manifest" "authz_order" {
   manifest = {
     apiVersion = "security.istio.io/v1"
@@ -691,42 +648,6 @@ resource "kubernetes_manifest" "authz_fulfillment" {
               source = {
                 principals = [
                   local.principal.admin,
-                  local.principal.order,
-                  local.principal.customer,
-                  var.ingress_gateway_principal,
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    }
-  }
-}
-
-resource "kubernetes_manifest" "authz_delivery" {
-  manifest = {
-    apiVersion = "security.istio.io/v1"
-    kind       = "AuthorizationPolicy"
-    metadata = {
-      name      = "delivery-authz"
-      namespace = var.namespace
-    }
-    spec = {
-      targetRefs = [
-        {
-          kind  = "Service"
-          group = ""
-          name  = "delivery"
-        }
-      ]
-      action = "ALLOW"
-      rules = [
-        {
-          from = [
-            {
-              source = {
-                principals = [
                   local.principal.order,
                   local.principal.customer,
                   var.ingress_gateway_principal,

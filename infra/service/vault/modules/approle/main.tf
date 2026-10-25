@@ -119,8 +119,6 @@ locals {
       { path = "kv-bookstore/data/oauth2-proxy/*", capabilities = ["create", "read", "update", "list"] },
       { path = "kv-bookstore/data/order/temporal", capabilities = ["create", "read", "update", "list"] },
       { path = "kv-bookstore/data/payment/temporal", capabilities = ["create", "read", "update", "list"] },
-      { path = "kv-bookstore/data/inventory/temporal", capabilities = ["create", "read", "update", "list"] },
-      { path = "kv-bookstore/data/delivery/temporal", capabilities = ["create", "read", "update", "list"] },
       { path = "kv-bookstore/data/fulfillment/temporal", capabilities = ["create", "read", "update", "list"] },
     ]
     kyverno-config = [
