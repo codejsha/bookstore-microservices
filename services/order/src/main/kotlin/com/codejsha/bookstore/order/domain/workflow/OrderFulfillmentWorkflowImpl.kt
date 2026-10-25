@@ -29,16 +29,6 @@ class OrderFulfillmentWorkflowImpl : OrderFulfillmentWorkflow {
             .build(),
     )
 
-    private val notificationActivities = Workflow.newActivityStub(
-        NotificationActivities::class.java,
-        ActivityOptions.newBuilder()
-            .setStartToCloseTimeout(Duration.ofSeconds(30))
-            .setScheduleToCloseTimeout(Duration.ofMinutes(5))
-            .setTaskQueue("notification-task-queue")
-            .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(3).build())
-            .build(),
-    )
-
     override fun fulfillOrder(request: FulfillOrderWorkflowRequest): FulfillOrderWorkflowResult {
         val destination = request.destination
 
@@ -72,20 +62,6 @@ class OrderFulfillmentWorkflowImpl : OrderFulfillmentWorkflow {
         } catch (e: ActivityFailure) {
             orderActivities.restoreOrderPaid(request.orderUid)
             throw e
-        }
-
-        try {
-            notificationActivities.sendShipmentUpdate(
-                ShipmentNotificationRequest(
-                    userUid = request.userUid,
-                    orderUid = request.orderUid,
-                    notificationType = "SHIPMENT_DISPATCHED",
-                    trackingNumber = shipment.trackingNumber,
-                ),
-            )
-        } catch (e: ActivityFailure) {
-            Workflow.getLogger(OrderFulfillmentWorkflowImpl::class.java)
-                .warn("shipment notification failed for order ${request.orderUid}; continuing fulfillment", e)
         }
 
         return FulfillOrderWorkflowResult(

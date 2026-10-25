@@ -6,14 +6,12 @@ import com.codejsha.bookstore.order.domain.workflow.CreateShipmentRequest
 import com.codejsha.bookstore.order.domain.workflow.CreateShipmentResult
 import com.codejsha.bookstore.order.domain.workflow.DeliveryActivities
 import com.codejsha.bookstore.order.domain.workflow.InventoryActivities
-import com.codejsha.bookstore.order.domain.workflow.NotificationActivities
 import com.codejsha.bookstore.order.domain.workflow.OrderActivities
 import com.codejsha.bookstore.order.domain.workflow.OrderCancellationState
 import com.codejsha.bookstore.order.domain.workflow.PaymentActivities
 import com.codejsha.bookstore.order.domain.workflow.ProcessPaymentRequest
 import com.codejsha.bookstore.order.domain.workflow.ProcessPaymentResult
 import com.codejsha.bookstore.order.domain.workflow.ReserveStockRequest
-import com.codejsha.bookstore.order.domain.workflow.ShipmentNotificationRequest
 import com.codejsha.bookstore.order.domain.workflow.StockReservationItem
 import java.util.Collections
 
@@ -119,14 +117,6 @@ class FakeDeliveryActivities : DeliveryActivities {
     override fun createShipment(request: CreateShipmentRequest): CreateShipmentResult {
         createShipmentRequests.add(request)
         return createShipmentReturn
-    }
-}
-
-class FakeNotificationActivities : NotificationActivities {
-    val sentNotifications: MutableList<ShipmentNotificationRequest> = synced()
-
-    override fun sendShipmentUpdate(request: ShipmentNotificationRequest) {
-        sentNotifications.add(request)
     }
 }
 

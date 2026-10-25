@@ -30,7 +30,7 @@ inputs = {
     "tf-${local.vault_role}", "-n", local.common.vault_ns, "--duration=20m")
 
   namespace = "bookstore"
-  mysql_services = ["order", "payment", "delivery", "notification", "support", "settlement"]
+  mysql_services = ["order", "payment", "delivery", "support", "settlement"]
 
   mysql_client_image = "mysql:8.4"
 
@@ -58,15 +58,6 @@ inputs = {
       database_name = "delivery_db"
       secret_name   = "delivery-mysql-cluster-secret"
       app_user      = "delivery_app"
-      instances     = 1
-      version       = "8.4.3"
-      storage_size  = "10Gi"
-    }
-    notification = {
-      cluster_name  = "notification-mysql"
-      database_name = "notification_db"
-      secret_name   = "notification-mysql-cluster-secret"
-      app_user      = "notification_app"
       instances     = 1
       version       = "8.4.3"
       storage_size  = "10Gi"
