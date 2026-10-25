@@ -1,5 +1,5 @@
 variable "namespace" {
-  description = "Namespace where the Postgres Cluster CRs live (catalog/customer/identity/inventory)"
+  description = "Namespace where the Postgres Cluster CRs live (catalog/customer/identity)"
   type        = string
 }
 
