@@ -1,0 +1,15 @@
+[general]
+gen_lang = "python"
+gen_type = "server"
+input_spec = "api/openapi/schema/openapi.1.0.0.json"
+output_dir = "generated/application/port"
+
+[packages]
+api_package = "openapi"
+model_package = "openapi"
+constant_package = "openapi"
+
+[options]
+validation_enabled = true
+python_security_enabled = true
+python_fastapi_enabled = true

@@ -1,0 +1,12 @@
+from enum import StrEnum
+
+
+class ShipmentStatus(StrEnum):
+    PLANNED = "PLANNED"
+    DISPATCHED = "DISPATCHED"
+    PICKED_UP = "PICKED_UP"
+    IN_TRANSIT = "IN_TRANSIT"
+    OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY"
+    DELIVERED = "DELIVERED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
