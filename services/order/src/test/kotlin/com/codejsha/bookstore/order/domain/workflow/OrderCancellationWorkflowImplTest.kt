@@ -40,7 +40,7 @@ class OrderCancellationWorkflowImplTest {
             registerWorkflowImplementationTypes(OrderCancellationWorkflowImpl::class.java)
             registerActivitiesImplementations(orderActivities)
         }
-        env.newWorker("inventory-task-queue").registerActivitiesImplementations(inventoryActivities)
+        env.newWorker("fulfillment-task-queue").registerActivitiesImplementations(inventoryActivities)
         env.newWorker("payment-task-queue").registerActivitiesImplementations(paymentActivities)
         env.start()
 

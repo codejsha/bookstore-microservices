@@ -26,7 +26,7 @@ class OrderPlacementWorkflowImpl : OrderPlacementWorkflow {
         ActivityOptions.newBuilder()
             .setStartToCloseTimeout(Duration.ofSeconds(30))
             .setScheduleToCloseTimeout(Duration.ofMinutes(5))
-            .setTaskQueue("inventory-task-queue")
+            .setTaskQueue("fulfillment-task-queue")
             .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(3).build())
             .build(),
     )
@@ -41,7 +41,7 @@ class OrderPlacementWorkflowImpl : OrderPlacementWorkflow {
         ActivityOptions.newBuilder()
             .setStartToCloseTimeout(Duration.ofSeconds(30))
             .setScheduleToCloseTimeout(Duration.ofMinutes(15))
-            .setTaskQueue("inventory-task-queue")
+            .setTaskQueue("fulfillment-task-queue")
             .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(COMPENSATION_MAX_ATTEMPTS).build())
             .build(),
     )
