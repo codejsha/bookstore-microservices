@@ -10,7 +10,11 @@ resource "gitea_team" "team" {
   name                     = var.team_name
   organisation             = var.org_name
   permission               = "write"
-  repositories             = var.user_repos
+  repositories             = var.include_all_repositories ? null : sort(var.user_repos)
   include_all_repositories = var.include_all_repositories
+
+  lifecycle {
+    ignore_changes = [permission, units]
+  }
 }
 
