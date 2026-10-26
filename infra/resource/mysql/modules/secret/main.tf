@@ -34,15 +34,17 @@ resource "kubernetes_secret_v1" "mysql_cluster_secret" {
 }
 
 resource "vault_policy" "bookstore_mysql" {
+  count  = length(var.mysql_services) > 0 ? 1 : 0
   name   = "bookstore-mysql"
   policy = file("${path.module}/policy.hcl")
 }
 
 resource "vault_kubernetes_auth_backend_role" "bookstore_mysql" {
+  count                            = length(var.mysql_services) > 0 ? 1 : 0
   role_name                        = "bookstore-mysql-role"
   bound_service_account_names      = var.mysql_service_accounts
   bound_service_account_namespaces = [var.namespace]
-  token_policies                   = [vault_policy.bookstore_mysql.name]
+  token_policies                   = [vault_policy.bookstore_mysql[0].name]
   token_ttl                        = "3600"
 }
 

@@ -30,57 +30,13 @@ inputs = {
     "tf-${local.vault_role}", "-n", local.common.vault_ns, "--duration=20m")
 
   namespace = "bookstore"
-  mysql_services = ["order", "payment", "fulfillment", "settlement"]
+  mysql_services = []
 
   mysql_client_image = "mysql:8.4"
 
-  mysql_db_config = {
-    order = {
-      cluster_name  = "order-mysql"
-      database_name = "order_db"
-      secret_name   = "order-mysql-cluster-secret"
-      app_user      = "order_app"
-      instances     = 1
-      version       = "8.4.3"
-      storage_size  = "10Gi"
-    }
-    payment = {
-      cluster_name  = "payment-mysql"
-      database_name = "payment_db"
-      secret_name   = "payment-mysql-cluster-secret"
-      app_user      = "payment_app"
-      instances     = 1
-      version       = "8.4.3"
-      storage_size  = "10Gi"
-    }
-    fulfillment = {
-      cluster_name  = "fulfillment-mysql"
-      database_name = "fulfillment_db"
-      secret_name   = "fulfillment-mysql-cluster-secret"
-      app_user      = "fulfillment_app"
-      instances     = 1
-      version       = "8.4.3"
-      storage_size  = "20Gi"
-    }
-    settlement = {
-      cluster_name  = "settlement-mysql"
-      database_name = "settlement_db"
-      secret_name   = "settlement-mysql-cluster-secret"
-      app_user      = "settlement_app"
-      instances     = 1
-      version       = "8.4.3"
-      storage_size  = "10Gi"
-    }
-  }
+  mysql_db_config = {}
 
-  cross_service_readonly = [
-    {
-      name           = "settlement"
-      username       = "settlement_ro"
-      target_service = "payment"
-      tables = ["payments", "refunds"]
-    },
-  ]
+  cross_service_readonly = []
 }
 
 prevent_destroy = true
