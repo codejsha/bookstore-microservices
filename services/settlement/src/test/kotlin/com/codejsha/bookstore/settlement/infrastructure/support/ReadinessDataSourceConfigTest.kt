@@ -10,8 +10,8 @@ class ReadinessDataSourceConfigTest {
 
     private fun readinessDataSource(): ReadinessDataSource {
         val properties = DataSourceProperties().apply {
-            driverClassName = "com.mysql.cj.jdbc.Driver"
-            url = "jdbc:mysql://localhost:3306/settlement_db"
+            driverClassName = "org.postgresql.Driver"
+            url = "jdbc:postgresql://localhost:5432/settlement_db"
             username = "readiness"
             password = "readiness"
         }

@@ -4,7 +4,6 @@ import com.codejsha.bookstore.settlement.application.port.PgReconciliationPort
 import com.codejsha.bookstore.settlement.config.properties.SettlementBatchProperties
 import com.codejsha.bookstore.settlement.domain.constant.SettlementSourceType
 import com.codejsha.bookstore.settlement.domain.constant.SettlementStatus
-import com.codejsha.bookstore.settlement.infrastructure.support.utils.uuidToBytes
 import org.springframework.batch.core.configuration.annotation.StepScope
 import org.springframework.batch.core.job.Job
 import org.springframework.batch.core.job.builder.JobBuilder
@@ -19,7 +18,7 @@ import org.springframework.batch.infrastructure.item.database.JdbcPagingItemRead
 import org.springframework.batch.infrastructure.item.database.Order
 import org.springframework.batch.infrastructure.item.database.builder.JdbcBatchItemWriterBuilder
 import org.springframework.batch.infrastructure.item.database.builder.JdbcPagingItemReaderBuilder
-import org.springframework.batch.infrastructure.item.database.support.MySqlPagingQueryProvider
+import org.springframework.batch.infrastructure.item.database.support.PostgresPagingQueryProvider
 import org.springframework.batch.infrastructure.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -128,7 +127,7 @@ class SettlementBatchConfig(
                     (uid, target_date, job_execution_id, status, started_at, created_at)
                 VALUES (?, ?, ?, 'STARTED', ?, ?)
                 """.trimIndent(),
-                uuidToBytes(uid), targetDate, jobExecutionId, now, now,
+                uid, targetDate, jobExecutionId, now, now,
             )
             contribution.incrementWriteCount(1L)
             RepeatStatus.FINISHED
@@ -161,7 +160,7 @@ class SettlementBatchConfig(
         @Value("#{jobParameters['targetDate']}") targetDate: LocalDate,
     ): JdbcPagingItemReader<PaymentRow> {
         val window = SettlementWindow.of(targetDate, zone)
-        val provider = MySqlPagingQueryProvider().apply {
+        val provider = PostgresPagingQueryProvider().apply {
             setSelectClause("payment_id, status, amount, amount_captured, currency, payment_method, captured_at")
             setFromClause("payments")
             setWhereClause(
@@ -238,7 +237,7 @@ class SettlementBatchConfig(
         @Value("#{jobParameters['targetDate']}") targetDate: LocalDate,
     ): JdbcPagingItemReader<RefundRow> {
         val window = SettlementWindow.of(targetDate, zone)
-        val provider = MySqlPagingQueryProvider().apply {
+        val provider = PostgresPagingQueryProvider().apply {
             setSelectClause(
                 "r.refund_id AS refund_id, r.payment_id AS payment_id, r.amount AS amount, " +
                     "r.currency AS currency, p.payment_method AS payment_method, r.created_at AS created_at",
@@ -248,7 +247,7 @@ class SettlementBatchConfig(
                 "r.status = 'succeeded' " +
                     "AND r.created_at >= :startAt AND r.created_at < :endAt AND r.deleted_at IS NULL",
             )
-            setSortKeys(mapOf("r.refund_id" to Order.ASCENDING))
+            setSortKeys(mapOf("refund_id" to Order.ASCENDING))
         }
         return JdbcPagingItemReaderBuilder<RefundRow>()
             .name("refundItemReader")
@@ -294,7 +293,7 @@ class SettlementBatchConfig(
     @Bean
     fun settlementDetailWriter(dataSource: DataSource): JdbcBatchItemWriter<SettlementDetailInsert> {
         val setter = ItemPreparedStatementSetter<SettlementDetailInsert> { item, ps ->
-            ps.setBytes(1, uuidToBytes(item.uid))
+            ps.setObject(1, item.uid)
             ps.setObject(2, item.settlementDate)
             ps.setString(3, item.sourceType)
             ps.setString(4, item.sourceId)
@@ -377,7 +376,7 @@ class SettlementBatchConfig(
                          payment_count, refund_count, status, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """.trimIndent(),
-                    uuidToBytes(Uuid.generateV7().toJavaUuid()), targetDate, b.currency, b.paymentMethod,
+                    Uuid.generateV7().toJavaUuid(), targetDate, b.currency, b.paymentMethod,
                     b.gross, b.refund, fee, net,
                     b.paymentCount, b.refundCount, SettlementStatus.OPEN.value, now,
                 )

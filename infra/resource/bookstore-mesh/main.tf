@@ -15,7 +15,7 @@ locals {
     order       = "order-postgres"
     payment     = "payment-postgres"
     fulfillment = "fulfillment-postgres"
-    settlement  = "settlement-mysql"
+    settlement  = "settlement-postgres"
     admin       = "admin"
     admin_web   = "admin-web"
   }

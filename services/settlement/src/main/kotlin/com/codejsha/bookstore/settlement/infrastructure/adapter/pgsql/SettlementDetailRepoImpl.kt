@@ -1,9 +1,8 @@
-package com.codejsha.bookstore.settlement.infrastructure.adapter.mysql
+package com.codejsha.bookstore.settlement.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.references.SETTLEMENT_DETAIL
 import com.codejsha.bookstore.settlement.application.port.repo.SettlementDetailRepo
 import com.codejsha.bookstore.settlement.application.port.repo.SettlementDetailResult
-import com.codejsha.bookstore.settlement.infrastructure.support.utils.bytesToUuid
 import com.codejsha.platform.shared.data.ActorContext
 import org.jooq.Condition
 import org.jooq.DSLContext
@@ -42,8 +41,8 @@ class SettlementDetailRepoImpl(
 
     private fun toSettlementDetailResult(record: Record): SettlementDetailResult {
         return SettlementDetailResult(
-            id = record.get(sd.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(sd.UID)!!),
+            id = record.get(sd.ID)!!,
+            uid = record.get(sd.UID)!!,
             settlementDate = record.get(sd.SETTLEMENT_DATE)!!,
             sourceType = record.get(sd.SOURCE_TYPE)!!,
             sourceId = record.get(sd.SOURCE_ID)!!,

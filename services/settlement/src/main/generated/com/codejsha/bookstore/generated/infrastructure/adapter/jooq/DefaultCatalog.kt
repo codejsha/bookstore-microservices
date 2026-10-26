@@ -25,12 +25,12 @@ open class DefaultCatalog : CatalogImpl("") {
     }
 
     /**
-     * The schema <code>settlement_db</code>.
+     * The schema <code>public</code>.
      */
-    val SETTLEMENT_DB: SettlementDb get(): SettlementDb = SettlementDb.SETTLEMENT_DB
+    val PUBLIC: Public get(): Public = Public.PUBLIC
 
     override fun getSchemas(): List<Schema> = listOf(
-        SettlementDb.SETTLEMENT_DB
+        Public.PUBLIC
     )
 
     /**

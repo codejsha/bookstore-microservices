@@ -1,6 +1,5 @@
 package com.codejsha.bookstore.settlement.infrastructure.batch
 
-import com.codejsha.bookstore.settlement.infrastructure.support.utils.uuidToBytes
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.job.JobExecution
 import org.springframework.batch.core.listener.JobExecutionListener
@@ -48,7 +47,7 @@ class SettlementJobListener(
                     (uid, target_date, job_execution_id, status, started_at, finished_at, message, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """.trimIndent(),
-                uuidToBytes(uid), targetDate, jobExecution.id, status, now, now, message, now,
+                uid, targetDate, jobExecution.id, status, now, now, message, now,
             )
         }
     }

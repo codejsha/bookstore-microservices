@@ -13,7 +13,7 @@ fullnameOverride: ""
 
 serviceAccount:
   create: false
-  name: "settlement-mysql"
+  name: "settlement-postgres"
   automountServiceAccountToken: false
   annotations: {}
 
@@ -55,17 +55,17 @@ extraEnv: []
 podAnnotations:
   vault.hashicorp.com/agent-inject: "true"
   vault.hashicorp.com/agent-init-first: "true"
-  vault.hashicorp.com/role: "bookstore-mysql-role"
-  vault.hashicorp.com/agent-inject-secret-db.properties: "database/static-creds/settlement-mysql-static"
+  vault.hashicorp.com/role: "bookstore-postgres-role"
+  vault.hashicorp.com/agent-inject-secret-db.properties: "database/static-creds/settlement-postgres-static"
   vault.hashicorp.com/agent-inject-template-db.properties: |
-    {{- with secret "database/static-creds/settlement-mysql-static" -}}
+    {{- with secret "database/static-creds/settlement-postgres-static" -}}
     db.username={{ .Data.username }}
     db.password={{ .Data.password }}
     db.name=settlement_db
     {{- end -}}
-  vault.hashicorp.com/agent-inject-secret-payment-db.properties: "database/static-creds/settlement-payment-mysql-static"
+  vault.hashicorp.com/agent-inject-secret-payment-db.properties: "database/static-creds/settlement-payment-postgres-static"
   vault.hashicorp.com/agent-inject-template-payment-db.properties: |
-    {{- with secret "database/static-creds/settlement-payment-mysql-static" -}}
+    {{- with secret "database/static-creds/settlement-payment-postgres-static" -}}
     payment.db.username={{ .Data.username }}
     payment.db.password={{ .Data.password }}
     payment.db.name=payment_db

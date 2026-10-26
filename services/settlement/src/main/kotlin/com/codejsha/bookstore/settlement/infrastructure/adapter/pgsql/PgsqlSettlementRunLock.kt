@@ -1,8 +1,7 @@
-package com.codejsha.bookstore.settlement.infrastructure.adapter.mysql
+package com.codejsha.bookstore.settlement.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.settlement.application.port.SettlementRunLock
 import com.codejsha.bookstore.settlement.config.properties.SettlementBatchProperties
-import com.codejsha.bookstore.settlement.infrastructure.support.utils.uuidToBytes
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
@@ -20,7 +19,7 @@ import kotlin.uuid.toJavaUuid
 import javax.sql.DataSource
 
 @Repository
-class MysqlSettlementRunLock(
+class PgsqlSettlementRunLock(
     dataSource: DataSource,
     private val properties: SettlementBatchProperties,
 ) : SettlementRunLock {
@@ -77,7 +76,7 @@ class MysqlSettlementRunLock(
                     (uid, target_date, owner_token, owner_host, acquired_at, heartbeat_at, expires_at, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """.trimIndent(),
-                uuidToBytes(Uuid.generateV7().toJavaUuid()), targetDate, ownerToken, ownerHost,
+                Uuid.generateV7().toJavaUuid(), targetDate, ownerToken, ownerHost,
                 now, now, now.plus(properties.lock.ttl), now,
             ) > 0
         } catch (e: DuplicateKeyException) {
@@ -93,7 +92,7 @@ class MysqlSettlementRunLock(
              WHERE target_date = ?
                AND (released_at IS NOT NULL OR deleted_at IS NOT NULL OR expires_at <= ?)
             """.trimIndent(),
-            uuidToBytes(Uuid.generateV7().toJavaUuid()), ownerToken, ownerHost, now, now,
+            Uuid.generateV7().toJavaUuid(), ownerToken, ownerHost, now, now,
             now.plus(properties.lock.ttl), now, targetDate, now,
         ) > 0
 

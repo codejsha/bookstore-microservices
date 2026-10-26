@@ -1,11 +1,9 @@
-package com.codejsha.bookstore.settlement.infrastructure.adapter.mysql
+package com.codejsha.bookstore.settlement.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.references.DAILY_SETTLEMENT
 import com.codejsha.bookstore.settlement.application.port.repo.DailySettlementRepo
 import com.codejsha.bookstore.settlement.application.port.repo.DailySettlementResult
 import com.codejsha.bookstore.settlement.domain.model.option.SettlementQueryOption
-import com.codejsha.bookstore.settlement.infrastructure.support.utils.bytesToUuid
-import com.codejsha.bookstore.settlement.infrastructure.support.utils.uuidToBytes
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.jooq.buildOrderBy
 import org.jooq.Condition
@@ -54,15 +52,15 @@ class DailySettlementRepoImpl(
         return dslContext
             .select(ds.asterisk())
             .from(ds)
-            .where(ds.UID.eq(uuidToBytes(uid)).and(ds.DELETED_AT.isNull))
+            .where(ds.UID.eq(uid).and(ds.DELETED_AT.isNull))
             .fetchOne { toDailySettlementResult(it) }
             ?: throw NoSuchElementException("Settlement with uid $uid not found")
     }
 
     private fun toDailySettlementResult(record: Record): DailySettlementResult {
         return DailySettlementResult(
-            id = record.get(ds.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(ds.UID)!!),
+            id = record.get(ds.ID)!!,
+            uid = record.get(ds.UID)!!,
             settlementDate = record.get(ds.SETTLEMENT_DATE)!!,
             currency = record.get(ds.CURRENCY)!!,
             paymentMethod = record.get(ds.PAYMENT_METHOD),
