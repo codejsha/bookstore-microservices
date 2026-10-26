@@ -13,6 +13,8 @@ import (
 
 var ErrNotFound = errors.New("resource not found")
 
+var ErrForbidden = errors.New("forbidden")
+
 type Caller struct {
 	UserUid string
 	IsAdmin bool
@@ -57,4 +59,31 @@ type CustomerUseCase interface {
 	WriteReview(ctx context.Context, cmd command.ReviewWriteCommand) (*aggregate.ReviewAggregate, error)
 	EditReview(ctx context.Context, userUid string, reviewUid string, cmd command.ReviewEditCommand) (*aggregate.ReviewAggregate, error)
 	RemoveReview(ctx context.Context, userUid string, reviewUid string) error
+}
+
+type SupportUseCase interface {
+	// ─── Tickets ───────────────────────
+	CreateTicket(ctx context.Context, cmd command.TicketCreateCommand) (*aggregate.TicketAggregate, error)
+	FindTicket(ctx context.Context, uid string) (*aggregate.TicketAggregate, error)
+	FindAllTickets(ctx context.Context, opt option.TicketQueryOption) (int64, []*aggregate.TicketAggregate, error)
+	UpdateTicket(ctx context.Context, uid string, cmd command.TicketUpdateCommand) (*aggregate.TicketAggregate, error)
+	UpdateTicketStatus(ctx context.Context, uid string, cmd command.TicketStatusCommand) (*aggregate.TicketAggregate, error)
+
+	// ─── Ticket comments ───────────────
+	AddComment(ctx context.Context, cmd command.CommentAddCommand) (*aggregate.TicketCommentAggregate, error)
+	FindComments(ctx context.Context, ticketUid string, includeInternal bool) ([]*aggregate.TicketCommentAggregate, error)
+
+	// ─── Ticket categories ─────────────
+	CreateCategory(ctx context.Context, cmd command.CategoryCreateCommand) (*aggregate.TicketCategoryAggregate, error)
+	FindCategory(ctx context.Context, uid string) (*aggregate.TicketCategoryAggregate, error)
+	FindAllCategories(ctx context.Context) ([]*aggregate.TicketCategoryAggregate, error)
+	UpdateCategory(ctx context.Context, uid string, cmd command.CategoryUpdateCommand) (*aggregate.TicketCategoryAggregate, error)
+	DeleteCategory(ctx context.Context, uid string) error
+
+	// ─── FAQs ──────────────────────────
+	CreateFaq(ctx context.Context, cmd command.FaqCreateCommand) (*aggregate.FaqAggregate, error)
+	FindFaq(ctx context.Context, uid string, incrementView bool) (*aggregate.FaqAggregate, error)
+	FindAllFaqs(ctx context.Context, opt option.FaqQueryOption) (int64, []*aggregate.FaqAggregate, error)
+	UpdateFaq(ctx context.Context, uid string, cmd command.FaqUpdateCommand) (*aggregate.FaqAggregate, error)
+	DeleteFaq(ctx context.Context, uid string) error
 }

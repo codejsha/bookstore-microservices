@@ -36,16 +36,30 @@ var managerOnlyRoutes = map[string]bool{
 	"/api/v1/customers/:uid/points/earn": true,
 }
 
+var staffOnlyMethodRoutes = map[string]bool{
+	"PATCH /api/v1/tickets/:uid/status": true,
+}
+
+var managerOnlyMethodRoutes = map[string]bool{
+	"POST /api/v1/categories":        true,
+	"PATCH /api/v1/categories/:uid":  true,
+	"DELETE /api/v1/categories/:uid": true,
+	"POST /api/v1/faqs":              true,
+	"PATCH /api/v1/faqs/:uid":        true,
+	"DELETE /api/v1/faqs/:uid":       true,
+}
+
 func GinOwnershipMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if staffOnlyRoutes[c.FullPath()] {
+		methodRoute := c.Request.Method + " " + c.FullPath()
+		if staffOnlyRoutes[c.FullPath()] || staffOnlyMethodRoutes[methodRoute] {
 			if !requireStaff(c) {
 				return
 			}
 			c.Next()
 			return
 		}
-		if managerOnlyRoutes[c.FullPath()] {
+		if managerOnlyRoutes[c.FullPath()] || managerOnlyMethodRoutes[methodRoute] {
 			if !requireManager(c) {
 				return
 			}
