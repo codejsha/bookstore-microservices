@@ -16,49 +16,69 @@ import (
 )
 
 var (
-	Q                          = new(Query)
-	CustomerPointEntity        *customerPointEntity
-	CustomerPointHistoryEntity *customerPointHistoryEntity
-	CustomerReviewEntity       *customerReviewEntity
-	CustomerWishlistEntity     *customerWishlistEntity
+	Q                            = new(Query)
+	CustomerFaqEntity            *customerFaqEntity
+	CustomerPointEntity          *customerPointEntity
+	CustomerPointHistoryEntity   *customerPointHistoryEntity
+	CustomerReviewEntity         *customerReviewEntity
+	CustomerTicketCategoryEntity *customerTicketCategoryEntity
+	CustomerTicketCommentEntity  *customerTicketCommentEntity
+	CustomerTicketEntity         *customerTicketEntity
+	CustomerWishlistEntity       *customerWishlistEntity
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	CustomerFaqEntity = &Q.CustomerFaqEntity
 	CustomerPointEntity = &Q.CustomerPointEntity
 	CustomerPointHistoryEntity = &Q.CustomerPointHistoryEntity
 	CustomerReviewEntity = &Q.CustomerReviewEntity
+	CustomerTicketCategoryEntity = &Q.CustomerTicketCategoryEntity
+	CustomerTicketCommentEntity = &Q.CustomerTicketCommentEntity
+	CustomerTicketEntity = &Q.CustomerTicketEntity
 	CustomerWishlistEntity = &Q.CustomerWishlistEntity
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:                         db,
-		CustomerPointEntity:        newCustomerPointEntity(db, opts...),
-		CustomerPointHistoryEntity: newCustomerPointHistoryEntity(db, opts...),
-		CustomerReviewEntity:       newCustomerReviewEntity(db, opts...),
-		CustomerWishlistEntity:     newCustomerWishlistEntity(db, opts...),
+		db:                           db,
+		CustomerFaqEntity:            newCustomerFaqEntity(db, opts...),
+		CustomerPointEntity:          newCustomerPointEntity(db, opts...),
+		CustomerPointHistoryEntity:   newCustomerPointHistoryEntity(db, opts...),
+		CustomerReviewEntity:         newCustomerReviewEntity(db, opts...),
+		CustomerTicketCategoryEntity: newCustomerTicketCategoryEntity(db, opts...),
+		CustomerTicketCommentEntity:  newCustomerTicketCommentEntity(db, opts...),
+		CustomerTicketEntity:         newCustomerTicketEntity(db, opts...),
+		CustomerWishlistEntity:       newCustomerWishlistEntity(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	CustomerPointEntity        customerPointEntity
-	CustomerPointHistoryEntity customerPointHistoryEntity
-	CustomerReviewEntity       customerReviewEntity
-	CustomerWishlistEntity     customerWishlistEntity
+	CustomerFaqEntity            customerFaqEntity
+	CustomerPointEntity          customerPointEntity
+	CustomerPointHistoryEntity   customerPointHistoryEntity
+	CustomerReviewEntity         customerReviewEntity
+	CustomerTicketCategoryEntity customerTicketCategoryEntity
+	CustomerTicketCommentEntity  customerTicketCommentEntity
+	CustomerTicketEntity         customerTicketEntity
+	CustomerWishlistEntity       customerWishlistEntity
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:                         db,
-		CustomerPointEntity:        q.CustomerPointEntity.clone(db),
-		CustomerPointHistoryEntity: q.CustomerPointHistoryEntity.clone(db),
-		CustomerReviewEntity:       q.CustomerReviewEntity.clone(db),
-		CustomerWishlistEntity:     q.CustomerWishlistEntity.clone(db),
+		db:                           db,
+		CustomerFaqEntity:            q.CustomerFaqEntity.clone(db),
+		CustomerPointEntity:          q.CustomerPointEntity.clone(db),
+		CustomerPointHistoryEntity:   q.CustomerPointHistoryEntity.clone(db),
+		CustomerReviewEntity:         q.CustomerReviewEntity.clone(db),
+		CustomerTicketCategoryEntity: q.CustomerTicketCategoryEntity.clone(db),
+		CustomerTicketCommentEntity:  q.CustomerTicketCommentEntity.clone(db),
+		CustomerTicketEntity:         q.CustomerTicketEntity.clone(db),
+		CustomerWishlistEntity:       q.CustomerWishlistEntity.clone(db),
 	}
 }
 
@@ -72,27 +92,39 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:                         db,
-		CustomerPointEntity:        q.CustomerPointEntity.replaceDB(db),
-		CustomerPointHistoryEntity: q.CustomerPointHistoryEntity.replaceDB(db),
-		CustomerReviewEntity:       q.CustomerReviewEntity.replaceDB(db),
-		CustomerWishlistEntity:     q.CustomerWishlistEntity.replaceDB(db),
+		db:                           db,
+		CustomerFaqEntity:            q.CustomerFaqEntity.replaceDB(db),
+		CustomerPointEntity:          q.CustomerPointEntity.replaceDB(db),
+		CustomerPointHistoryEntity:   q.CustomerPointHistoryEntity.replaceDB(db),
+		CustomerReviewEntity:         q.CustomerReviewEntity.replaceDB(db),
+		CustomerTicketCategoryEntity: q.CustomerTicketCategoryEntity.replaceDB(db),
+		CustomerTicketCommentEntity:  q.CustomerTicketCommentEntity.replaceDB(db),
+		CustomerTicketEntity:         q.CustomerTicketEntity.replaceDB(db),
+		CustomerWishlistEntity:       q.CustomerWishlistEntity.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	CustomerPointEntity        ICustomerPointEntityDo
-	CustomerPointHistoryEntity ICustomerPointHistoryEntityDo
-	CustomerReviewEntity       ICustomerReviewEntityDo
-	CustomerWishlistEntity     ICustomerWishlistEntityDo
+	CustomerFaqEntity            ICustomerFaqEntityDo
+	CustomerPointEntity          ICustomerPointEntityDo
+	CustomerPointHistoryEntity   ICustomerPointHistoryEntityDo
+	CustomerReviewEntity         ICustomerReviewEntityDo
+	CustomerTicketCategoryEntity ICustomerTicketCategoryEntityDo
+	CustomerTicketCommentEntity  ICustomerTicketCommentEntityDo
+	CustomerTicketEntity         ICustomerTicketEntityDo
+	CustomerWishlistEntity       ICustomerWishlistEntityDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		CustomerPointEntity:        q.CustomerPointEntity.WithContext(ctx),
-		CustomerPointHistoryEntity: q.CustomerPointHistoryEntity.WithContext(ctx),
-		CustomerReviewEntity:       q.CustomerReviewEntity.WithContext(ctx),
-		CustomerWishlistEntity:     q.CustomerWishlistEntity.WithContext(ctx),
+		CustomerFaqEntity:            q.CustomerFaqEntity.WithContext(ctx),
+		CustomerPointEntity:          q.CustomerPointEntity.WithContext(ctx),
+		CustomerPointHistoryEntity:   q.CustomerPointHistoryEntity.WithContext(ctx),
+		CustomerReviewEntity:         q.CustomerReviewEntity.WithContext(ctx),
+		CustomerTicketCategoryEntity: q.CustomerTicketCategoryEntity.WithContext(ctx),
+		CustomerTicketCommentEntity:  q.CustomerTicketCommentEntity.WithContext(ctx),
+		CustomerTicketEntity:         q.CustomerTicketEntity.WithContext(ctx),
+		CustomerWishlistEntity:       q.CustomerWishlistEntity.WithContext(ctx),
 	}
 }
 

@@ -77,9 +77,13 @@ func Test_WithContext(t *testing.T) {
 	qCtx := query.WithContext(context.WithValue(context.Background(), key, value))
 
 	for _, ctx := range []context.Context{
+		qCtx.CustomerFaqEntity.UnderlyingDB().Statement.Context,
 		qCtx.CustomerPointEntity.UnderlyingDB().Statement.Context,
 		qCtx.CustomerPointHistoryEntity.UnderlyingDB().Statement.Context,
 		qCtx.CustomerReviewEntity.UnderlyingDB().Statement.Context,
+		qCtx.CustomerTicketCategoryEntity.UnderlyingDB().Statement.Context,
+		qCtx.CustomerTicketCommentEntity.UnderlyingDB().Statement.Context,
+		qCtx.CustomerTicketEntity.UnderlyingDB().Statement.Context,
 		qCtx.CustomerWishlistEntity.UnderlyingDB().Statement.Context,
 	} {
 		if v := ctx.Value(key); v != value {
