@@ -1,9 +1,7 @@
-package com.codejsha.bookstore.payment.infrastructure.adapter.mysql
+package com.codejsha.bookstore.payment.infrastructure.adapter.pgsql
 
-import com.codejsha.bookstore.payment.infrastructure.support.utils.bytesToUuid
 import com.codejsha.bookstore.payment.infrastructure.support.utils.parseJson
 import com.codejsha.bookstore.payment.infrastructure.support.utils.toJson
-import com.codejsha.bookstore.payment.infrastructure.support.utils.uuidToBytes
 
 import com.codejsha.bookstore.payment.application.port.repo.PaymentRepo
 import com.codejsha.bookstore.payment.application.port.repo.PaymentResult
@@ -16,7 +14,6 @@ import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.jooq.buildOrderBy
 import org.jooq.Condition
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -32,9 +29,6 @@ class PaymentRepoImpl(
     private val dslContext: DSLContext
 ) : PaymentRepo {
     private val p = PAYMENTS.`as`("p")
-
-    private val idempotencyKeyAliased = DSL.field(DSL.name("p", "idempotency_key"), String::class.java)
-    private val idempotencyKeyColumn = DSL.field(DSL.name("idempotency_key"), String::class.java)
 
     override fun findAll(
         option: PaymentQueryOption, pageable: Pageable, context: ActorContext
@@ -66,7 +60,7 @@ class PaymentRepoImpl(
         return dslContext
             .select(p.asterisk())
             .from(p)
-            .where(p.UID.eq(uuidToBytes(uid)).and(p.DELETED_AT.isNull))
+            .where(p.UID.eq(uid).and(p.DELETED_AT.isNull))
             .fetchOne { toPaymentResult(it) }
             ?: throw NoSuchElementException("Payment with uid $uid not found")
     }
@@ -83,7 +77,7 @@ class PaymentRepoImpl(
         return dslContext
             .select(p.asterisk())
             .from(p)
-            .where(idempotencyKeyAliased.eq(idempotencyKey).and(p.DELETED_AT.isNull))
+            .where(p.IDEMPOTENCY_KEY.eq(idempotencyKey).and(p.DELETED_AT.isNull))
             .fetchOne { toPaymentResult(it) }
     }
 
@@ -97,9 +91,9 @@ class PaymentRepoImpl(
 
         dslContext
             .insertInto(p)
-            .set(p.UID, uuidToBytes(uid))
+            .set(p.UID, uid)
             .set(p.PAYMENT_ID, paymentId)
-            .set(idempotencyKeyColumn, command.idempotencyKey)
+            .set(p.IDEMPOTENCY_KEY, command.idempotencyKey)
             .set(p.CUSTOMER_ID, command.customerId)
             .set(p.CONNECTOR, command.connector)
             .set(p.AMOUNT, command.amount)
@@ -108,7 +102,7 @@ class PaymentRepoImpl(
             .set(p.CURRENCY, command.currency)
             .set(p.STATUS, command.status ?: "requires_payment_method")
             .set(p.CAPTURE_METHOD, "automatic")
-            .set(p.OFF_SESSION, 0.toByte())
+            .set(p.OFF_SESSION, false)
             .set(p.PAYMENT_METHOD, command.paymentMethod)
             .set(p.PAYMENT_METHOD_TYPE, command.paymentMethodType)
             .set(p.AUTHENTICATION_TYPE, command.authenticationType)
@@ -145,7 +139,7 @@ class PaymentRepoImpl(
                 command.metadata?.let { set(p.METADATA, toJson(it)!!) }
             }
             .set(p.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
-            .where(p.UID.eq(uuidToBytes(uid)).and(p.DELETED_AT.isNull))
+            .where(p.UID.eq(uid).and(p.DELETED_AT.isNull))
             .execute()
 
         check(updated > 0) { "Payment with uid $uid not found" }
@@ -171,7 +165,7 @@ class PaymentRepoImpl(
                 if (captured) set(p.CAPTURED_AT, LocalDateTime.now(ZoneOffset.UTC))
             }
             .set(p.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
-            .where(p.UID.eq(uuidToBytes(uid)).and(p.DELETED_AT.isNull))
+            .where(p.UID.eq(uid).and(p.DELETED_AT.isNull))
             .execute()
 
         check(updated > 0) { "Payment with uid $uid not found" }
@@ -180,8 +174,8 @@ class PaymentRepoImpl(
 
     private fun toPaymentResult(record: org.jooq.Record): PaymentResult {
         return PaymentResult(
-            id = record.get(p.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(p.UID)!!),
+            id = record.get(p.ID)!!,
+            uid = record.get(p.UID)!!,
             paymentId = record.get(p.PAYMENT_ID)!!,
             merchantId = record.get(p.MERCHANT_ID),
             profileId = record.get(p.PROFILE_ID),
@@ -203,7 +197,7 @@ class PaymentRepoImpl(
             paymentMethodType = record.get(p.PAYMENT_METHOD_TYPE),
             clientSecret = record.get(p.CLIENT_SECRET),
             setupFutureUsage = record.get(p.SETUP_FUTURE_USAGE),
-            offSession = record.get(p.OFF_SESSION)?.toInt() == 1,
+            offSession = record.get(p.OFF_SESSION) == true,
             description = record.get(p.DESCRIPTION),
             returnUrl = record.get(p.RETURN_URL),
             statementDescriptor = record.get(p.STATEMENT_DESCRIPTOR),

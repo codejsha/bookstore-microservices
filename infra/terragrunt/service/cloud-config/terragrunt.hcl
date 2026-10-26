@@ -21,7 +21,7 @@ inputs = {
     "cluster.local/ns/bookstore/sa/identity-postgres",
     "cluster.local/ns/bookstore/sa/fulfillment-postgres",
     "cluster.local/ns/bookstore/sa/order-postgres",
-    "cluster.local/ns/bookstore/sa/payment-mysql",
+    "cluster.local/ns/bookstore/sa/payment-postgres",
     "cluster.local/ns/bookstore/sa/settlement-mysql",
     "cluster.local/ns/istio-system/sa/bookstore-gateway-istio",
   ]

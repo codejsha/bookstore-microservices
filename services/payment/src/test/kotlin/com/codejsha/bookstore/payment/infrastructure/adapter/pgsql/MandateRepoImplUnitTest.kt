@@ -1,4 +1,4 @@
-package com.codejsha.bookstore.payment.infrastructure.adapter.mysql
+package com.codejsha.bookstore.payment.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.payment.domain.model.option.MandateQueryOption
 import com.codejsha.bookstore.payment.infrastructure.support.TestPersistenceUtils
@@ -82,6 +82,6 @@ class MandateRepoImplUnitTest {
 
     companion object {
         private val EMPTY_RESULT: org.jooq.Result<*> =
-            DSL.using(SQLDialect.MYSQL).newResult(DSL.field("x", Int::class.javaObjectType))
+            DSL.using(SQLDialect.POSTGRES).newResult(DSL.field("x", Int::class.javaObjectType))
     }
 }

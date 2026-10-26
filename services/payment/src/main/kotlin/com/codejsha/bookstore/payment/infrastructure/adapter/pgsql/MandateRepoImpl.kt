@@ -1,9 +1,7 @@
-package com.codejsha.bookstore.payment.infrastructure.adapter.mysql
+package com.codejsha.bookstore.payment.infrastructure.adapter.pgsql
 
-import com.codejsha.bookstore.payment.infrastructure.support.utils.bytesToUuid
 import com.codejsha.bookstore.payment.infrastructure.support.utils.parseJson
 import com.codejsha.bookstore.payment.infrastructure.support.utils.toJson
-import com.codejsha.bookstore.payment.infrastructure.support.utils.uuidToBytes
 
 import com.codejsha.bookstore.payment.application.port.repo.MandateRepo
 import com.codejsha.bookstore.payment.application.port.repo.MandateResult
@@ -60,7 +58,7 @@ class MandateRepoImpl(
         return dslContext
             .select(m.asterisk())
             .from(m)
-            .where(m.UID.eq(uuidToBytes(uid)).and(m.DELETED_AT.isNull))
+            .where(m.UID.eq(uid).and(m.DELETED_AT.isNull))
             .fetchOne { toMandateResult(it) }
             ?: throw NoSuchElementException("Mandate with uid $uid not found")
     }
@@ -83,7 +81,7 @@ class MandateRepoImpl(
         val uid = Uuid.generateV7().toJavaUuid()
         dslContext
             .insertInto(m)
-            .set(m.UID, uuidToBytes(uid))
+            .set(m.UID, uid)
             .set(m.MANDATE_ID, command.mandateId)
             .set(m.CUSTOMER_ID, command.customerId)
             .set(m.PAYMENT_METHOD_ID, command.paymentMethodId)
@@ -107,7 +105,7 @@ class MandateRepoImpl(
             .set(m.MANDATE_STATUS, MandateStatus.REVOKED.value)
             .set(m.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .where(
-                m.UID.eq(uuidToBytes(uid))
+                m.UID.eq(uid)
                     .and(m.MANDATE_STATUS.eq(MandateStatus.ACTIVE.value))
                     .and(m.DELETED_AT.isNull)
             )
@@ -119,8 +117,8 @@ class MandateRepoImpl(
 
     private fun toMandateResult(record: org.jooq.Record): MandateResult {
         return MandateResult(
-            id = record.get(m.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(m.UID)!!),
+            id = record.get(m.ID)!!,
+            uid = record.get(m.UID)!!,
             mandateId = record.get(m.MANDATE_ID)!!,
             customerId = record.get(m.CUSTOMER_ID)!!,
             paymentMethodId = record.get(m.PAYMENT_METHOD_ID),

@@ -1,9 +1,7 @@
-package com.codejsha.bookstore.payment.infrastructure.adapter.mysql
+package com.codejsha.bookstore.payment.infrastructure.adapter.pgsql
 
-import com.codejsha.bookstore.payment.infrastructure.support.utils.bytesToUuid
 import com.codejsha.bookstore.payment.infrastructure.support.utils.parseJson
 import com.codejsha.bookstore.payment.infrastructure.support.utils.toJson
-import com.codejsha.bookstore.payment.infrastructure.support.utils.uuidToBytes
 
 import com.codejsha.bookstore.payment.application.port.repo.RefundRepo
 import com.codejsha.bookstore.payment.application.port.repo.RefundResult
@@ -14,7 +12,6 @@ import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.jooq.buildOrderBy
 import org.jooq.Condition
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -30,9 +27,6 @@ class RefundRepoImpl(
     private val dslContext: DSLContext
 ) : RefundRepo {
     private val r = REFUNDS.`as`("r")
-
-    private val idempotencyKeyAliased = DSL.field(DSL.name("r", "idempotency_key"), String::class.java)
-    private val idempotencyKeyColumn = DSL.field(DSL.name("idempotency_key"), String::class.java)
 
     override fun findAll(
         option: RefundQueryOption, pageable: Pageable, context: ActorContext
@@ -63,7 +57,7 @@ class RefundRepoImpl(
         return dslContext
             .select(r.asterisk())
             .from(r)
-            .where(r.UID.eq(uuidToBytes(uid)).and(r.DELETED_AT.isNull))
+            .where(r.UID.eq(uid).and(r.DELETED_AT.isNull))
             .fetchOne { toRefundResult(it) }
             ?: throw NoSuchElementException("Refund with uid $uid not found")
     }
@@ -72,7 +66,7 @@ class RefundRepoImpl(
         return dslContext
             .select(r.asterisk())
             .from(r)
-            .where(idempotencyKeyAliased.eq(idempotencyKey).and(r.DELETED_AT.isNull))
+            .where(r.IDEMPOTENCY_KEY.eq(idempotencyKey).and(r.DELETED_AT.isNull))
             .fetchOne { toRefundResult(it) }
     }
 
@@ -91,9 +85,9 @@ class RefundRepoImpl(
 
         dslContext
             .insertInto(r)
-            .set(r.UID, uuidToBytes(uid))
+            .set(r.UID, uid)
             .set(r.REFUND_ID, refundId)
-            .set(idempotencyKeyColumn, command.idempotencyKey)
+            .set(r.IDEMPOTENCY_KEY, command.idempotencyKey)
             .set(r.PAYMENT_ID, command.paymentId)
             .set(r.CONNECTOR, command.connector)
             .set(r.CONNECTOR_REFUND_ID, command.connectorRefundId)
@@ -126,7 +120,7 @@ class RefundRepoImpl(
                 errorMessage?.let { set(r.ERROR_MESSAGE, it) }
             }
             .set(r.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
-            .where(r.UID.eq(uuidToBytes(uid)).and(r.DELETED_AT.isNull))
+            .where(r.UID.eq(uid).and(r.DELETED_AT.isNull))
             .execute()
 
         return findOne(uid, context)
@@ -134,8 +128,8 @@ class RefundRepoImpl(
 
     private fun toRefundResult(record: org.jooq.Record): RefundResult {
         return RefundResult(
-            id = record.get(r.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(r.UID)!!),
+            id = record.get(r.ID)!!,
+            uid = record.get(r.UID)!!,
             refundId = record.get(r.REFUND_ID)!!,
             paymentId = record.get(r.PAYMENT_ID)!!,
             connector = record.get(r.CONNECTOR),

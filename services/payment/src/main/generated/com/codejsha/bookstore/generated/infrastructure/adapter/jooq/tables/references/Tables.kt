@@ -15,36 +15,36 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.Webho
 
 
 /**
- * Hyperswitch customer information
+ * The table <code>public.customers</code>.
  */
 val CUSTOMERS: CustomersTable = CustomersTable.CUSTOMERS
 
 /**
- * Hyperswitch mandate/recurring payment information
+ * The table <code>public.mandates</code>.
  */
 val MANDATES: MandatesTable = MandatesTable.MANDATES
 
 /**
- * Payment attempt history (smart routing/retries)
+ * The table <code>public.payment_attempts</code>.
  */
 val PAYMENT_ATTEMPTS: PaymentAttemptsTable = PaymentAttemptsTable.PAYMENT_ATTEMPTS
 
 /**
- * Hyperswitch saved payment methods
+ * The table <code>public.payment_methods</code>.
  */
 val PAYMENT_METHODS: PaymentMethodsTable = PaymentMethodsTable.PAYMENT_METHODS
 
 /**
- * Hyperswitch payment information (Payment Intent)
+ * The table <code>public.payments</code>.
  */
 val PAYMENTS: PaymentsTable = PaymentsTable.PAYMENTS
 
 /**
- * Hyperswitch refund information
+ * The table <code>public.refunds</code>.
  */
 val REFUNDS: RefundsTable = RefundsTable.REFUNDS
 
 /**
- * Hyperswitch webhook event log
+ * The table <code>public.webhook_events</code>.
  */
 val WEBHOOK_EVENTS: WebhookEventsTable = WebhookEventsTable.WEBHOOK_EVENTS

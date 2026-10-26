@@ -13,7 +13,7 @@ locals {
     customer    = "customer-postgres"
     identity    = "identity-postgres"
     order       = "order-postgres"
-    payment     = "payment-mysql"
+    payment     = "payment-postgres"
     fulfillment = "fulfillment-postgres"
     settlement  = "settlement-mysql"
     admin       = "admin"

@@ -1,9 +1,7 @@
-package com.codejsha.bookstore.payment.infrastructure.adapter.mysql
+package com.codejsha.bookstore.payment.infrastructure.adapter.pgsql
 
-import com.codejsha.bookstore.payment.infrastructure.support.utils.bytesToUuid
 import com.codejsha.bookstore.payment.infrastructure.support.utils.parseJson
 import com.codejsha.bookstore.payment.infrastructure.support.utils.toJson
-import com.codejsha.bookstore.payment.infrastructure.support.utils.uuidToBytes
 
 import com.codejsha.bookstore.payment.application.port.repo.PaymentMethodRepo
 import com.codejsha.bookstore.payment.application.port.repo.PaymentMethodResult
@@ -65,7 +63,7 @@ class PaymentMethodRepoImpl(
             .select(pm.asterisk())
             .from(pm)
             .where(
-                pm.UID.eq(uuidToBytes(uid))
+                pm.UID.eq(uid)
                     .and(pm.CUSTOMER_ID.eq(customerId))
                     .and(pm.DELETED_AT.isNull)
             )
@@ -82,7 +80,7 @@ class PaymentMethodRepoImpl(
 
         dslContext
             .insertInto(pm)
-            .set(pm.UID, uuidToBytes(uid))
+            .set(pm.UID, uid)
             .set(pm.PAYMENT_METHOD_ID, paymentMethodId)
             .set(pm.CUSTOMER_ID, customerId)
             .set(pm.PAYMENT_METHOD, command.paymentMethod)
@@ -90,10 +88,10 @@ class PaymentMethodRepoImpl(
             .set(pm.PAYMENT_METHOD_ISSUER, command.paymentMethodIssuer)
             .set(pm.CARD_NETWORK, command.cardNetwork)
             .set(pm.CARD_LAST4, command.cardLast4)
-            .set(pm.CARD_EXP_MONTH, command.cardExpMonth?.let { org.jooq.types.UByte.valueOf(it) })
-            .set(pm.CARD_EXP_YEAR, command.cardExpYear?.let { org.jooq.types.UShort.valueOf(it) })
+            .set(pm.CARD_EXP_MONTH, command.cardExpMonth?.toShort())
+            .set(pm.CARD_EXP_YEAR, command.cardExpYear?.toShort())
             .set(pm.CARD_HOLDER_NAME, command.cardHolderName)
-            .set(pm.IS_DEFAULT, if (command.isDefault == true) 1.toByte() else 0.toByte())
+            .set(pm.IS_DEFAULT, command.isDefault == true)
             .set(pm.METADATA, toJson(command.metadata))
             .set(pm.CREATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .execute()
@@ -114,15 +112,15 @@ class PaymentMethodRepoImpl(
                 command.paymentMethodIssuer?.let { set(pm.PAYMENT_METHOD_ISSUER, it) }
                 command.cardNetwork?.let { set(pm.CARD_NETWORK, it) }
                 command.cardLast4?.let { set(pm.CARD_LAST4, it) }
-                command.cardExpMonth?.let { set(pm.CARD_EXP_MONTH, org.jooq.types.UByte.valueOf(it)) }
-                command.cardExpYear?.let { set(pm.CARD_EXP_YEAR, org.jooq.types.UShort.valueOf(it)) }
+                command.cardExpMonth?.let { set(pm.CARD_EXP_MONTH, it.toShort()) }
+                command.cardExpYear?.let { set(pm.CARD_EXP_YEAR, it.toShort()) }
                 command.cardHolderName?.let { set(pm.CARD_HOLDER_NAME, it) }
-                command.isDefault?.let { set(pm.IS_DEFAULT, if (it) 1.toByte() else 0.toByte()) }
+                command.isDefault?.let { set(pm.IS_DEFAULT, it) }
                 command.metadata?.let { set(pm.METADATA, toJson(it)!!) }
             }
             .set(pm.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .where(
-                pm.UID.eq(uuidToBytes(uid))
+                pm.UID.eq(uid)
                     .and(pm.CUSTOMER_ID.eq(customerId))
                     .and(pm.DELETED_AT.isNull)
             )
@@ -138,7 +136,7 @@ class PaymentMethodRepoImpl(
             .update(pm)
             .set(pm.DELETED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .where(
-                pm.UID.eq(uuidToBytes(uid))
+                pm.UID.eq(uid)
                     .and(pm.CUSTOMER_ID.eq(customerId))
                     .and(pm.DELETED_AT.isNull)
             )
@@ -149,15 +147,15 @@ class PaymentMethodRepoImpl(
         return dslContext
             .select(c.CUSTOMER_ID)
             .from(c)
-            .where(c.UID.eq(uuidToBytes(customerUid)).and(c.DELETED_AT.isNull))
+            .where(c.UID.eq(customerUid).and(c.DELETED_AT.isNull))
             .fetchOneInto(String::class.java)
             ?: throw NoSuchElementException("Customer with uid $customerUid not found")
     }
 
     private fun toPaymentMethodResult(record: org.jooq.Record): PaymentMethodResult {
         return PaymentMethodResult(
-            id = record.get(pm.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(pm.UID)!!),
+            id = record.get(pm.ID)!!,
+            uid = record.get(pm.UID)!!,
             paymentMethodId = record.get(pm.PAYMENT_METHOD_ID)!!,
             customerId = record.get(pm.CUSTOMER_ID)!!,
             paymentMethod = record.get(pm.PAYMENT_METHOD)!!,
@@ -168,7 +166,7 @@ class PaymentMethodRepoImpl(
             cardExpMonth = record.get(pm.CARD_EXP_MONTH)?.toInt(),
             cardExpYear = record.get(pm.CARD_EXP_YEAR)?.toInt(),
             cardHolderName = record.get(pm.CARD_HOLDER_NAME),
-            isDefault = record.get(pm.IS_DEFAULT)?.toInt() == 1,
+            isDefault = record.get(pm.IS_DEFAULT) == true,
             metadata = record.get(pm.METADATA)?.let { parseJson(it) },
             createdAt = record.get(pm.CREATED_AT)!!,
             updatedAt = record.get(pm.UPDATED_AT),

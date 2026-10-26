@@ -1,7 +1,4 @@
-package com.codejsha.bookstore.payment.infrastructure.adapter.mysql
-
-import com.codejsha.bookstore.payment.infrastructure.support.utils.bytesToUuid
-import com.codejsha.bookstore.payment.infrastructure.support.utils.uuidToBytes
+package com.codejsha.bookstore.payment.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.payment.application.port.repo.PaymentAttemptRepo
 import com.codejsha.bookstore.payment.application.port.repo.PaymentAttemptResult
@@ -57,7 +54,7 @@ class PaymentAttemptRepoImpl(
             .select(pa.asterisk())
             .from(pa)
             .where(
-                pa.UID.eq(uuidToBytes(uid))
+                pa.UID.eq(uid)
                     .and(pa.PAYMENT_ID.eq(paymentId))
                     .and(pa.DELETED_AT.isNull)
             )
@@ -71,7 +68,7 @@ class PaymentAttemptRepoImpl(
 
         dslContext
             .insertInto(pa)
-            .set(pa.UID, uuidToBytes(uid))
+            .set(pa.UID, uid)
             .set(pa.ATTEMPT_ID, attemptId)
             .set(pa.PAYMENT_ID, command.paymentId)
             .set(pa.CONNECTOR, command.connector)
@@ -90,7 +87,7 @@ class PaymentAttemptRepoImpl(
         return dslContext
             .select(pa.asterisk())
             .from(pa)
-            .where(pa.UID.eq(uuidToBytes(uid)))
+            .where(pa.UID.eq(uid))
             .fetchOne { toPaymentAttemptResult(it) }
             ?: throw NoSuchElementException("PaymentAttempt with uid $uid not found")
     }
@@ -99,15 +96,15 @@ class PaymentAttemptRepoImpl(
         return dslContext
             .select(p.PAYMENT_ID)
             .from(p)
-            .where(p.UID.eq(uuidToBytes(paymentUid)).and(p.DELETED_AT.isNull))
+            .where(p.UID.eq(paymentUid).and(p.DELETED_AT.isNull))
             .fetchOneInto(String::class.java)
             ?: throw NoSuchElementException("Payment with uid $paymentUid not found")
     }
 
     private fun toPaymentAttemptResult(record: org.jooq.Record): PaymentAttemptResult {
         return PaymentAttemptResult(
-            id = record.get(pa.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(pa.UID)!!),
+            id = record.get(pa.ID)!!,
+            uid = record.get(pa.UID)!!,
             attemptId = record.get(pa.ATTEMPT_ID)!!,
             paymentId = record.get(pa.PAYMENT_ID)!!,
             connector = record.get(pa.CONNECTOR),

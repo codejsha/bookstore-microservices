@@ -1,9 +1,7 @@
-package com.codejsha.bookstore.payment.infrastructure.adapter.mysql
+package com.codejsha.bookstore.payment.infrastructure.adapter.pgsql
 
-import com.codejsha.bookstore.payment.infrastructure.support.utils.bytesToUuid
 import com.codejsha.bookstore.payment.infrastructure.support.utils.parseJson
 import com.codejsha.bookstore.payment.infrastructure.support.utils.toJson
-import com.codejsha.bookstore.payment.infrastructure.support.utils.uuidToBytes
 
 import com.codejsha.bookstore.payment.application.port.repo.CustomerRepo
 import com.codejsha.bookstore.payment.application.port.repo.CustomerResult
@@ -20,6 +18,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
@@ -59,7 +58,7 @@ class CustomerRepoImpl(
         return dslContext
             .select(c.asterisk())
             .from(c)
-            .where(c.UID.eq(uuidToBytes(uid)).and(c.DELETED_AT.isNull))
+            .where(c.UID.eq(uid).and(c.DELETED_AT.isNull))
             .fetchOne { toCustomerResult(it) }
             ?: throw NoSuchElementException("Customer with uid $uid not found")
     }
@@ -73,12 +72,12 @@ class CustomerRepoImpl(
     }
 
     override fun create(command: CustomerCreateCommand, context: ActorContext): CustomerResult {
-        val now = LocalDateTime.now()
+        val now = LocalDateTime.now(ZoneOffset.UTC)
         val uid = Uuid.generateV7().toJavaUuid()
 
         dslContext
             .insertInto(c)
-            .set(c.UID, uuidToBytes(uid))
+            .set(c.UID, uid)
             .set(c.CUSTOMER_ID, command.customerId)
             .set(c.NAME, command.name)
             .set(c.EMAIL, command.email)
@@ -107,8 +106,8 @@ class CustomerRepoImpl(
                 command.defaultBillingAddress?.let { set(c.DEFAULT_BILLING_ADDRESS, toJson(it)!!) }
                 command.defaultShippingAddress?.let { set(c.DEFAULT_SHIPPING_ADDRESS, toJson(it)!!) }
             }
-            .set(c.UPDATED_AT, LocalDateTime.now())
-            .where(c.UID.eq(uuidToBytes(uid)).and(c.DELETED_AT.isNull))
+            .set(c.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
+            .where(c.UID.eq(uid).and(c.DELETED_AT.isNull))
             .execute()
 
         check(updated > 0) { "Customer with uid $uid not found" }
@@ -118,15 +117,15 @@ class CustomerRepoImpl(
     override fun delete(uid: UUID, context: ActorContext) {
         dslContext
             .update(c)
-            .set(c.DELETED_AT, LocalDateTime.now())
-            .where(c.UID.eq(uuidToBytes(uid)).and(c.DELETED_AT.isNull))
+            .set(c.DELETED_AT, LocalDateTime.now(ZoneOffset.UTC))
+            .where(c.UID.eq(uid).and(c.DELETED_AT.isNull))
             .execute()
     }
 
     private fun toCustomerResult(record: org.jooq.Record): CustomerResult {
         return CustomerResult(
-            id = record.get(c.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(c.UID)!!),
+            id = record.get(c.ID)!!,
+            uid = record.get(c.UID)!!,
             customerId = record.get(c.CUSTOMER_ID)!!,
             name = record.get(c.NAME),
             email = record.get(c.EMAIL),

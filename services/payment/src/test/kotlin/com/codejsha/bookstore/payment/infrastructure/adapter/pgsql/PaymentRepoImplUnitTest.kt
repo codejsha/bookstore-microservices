@@ -1,4 +1,4 @@
-package com.codejsha.bookstore.payment.infrastructure.adapter.mysql
+package com.codejsha.bookstore.payment.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.payment.domain.model.command.PaymentCreateCommand
 import com.codejsha.bookstore.payment.domain.model.command.PaymentUpdateCommand
@@ -260,6 +260,6 @@ class PaymentRepoImplUnitTest {
 
     companion object {
         private val EMPTY_RESULT: org.jooq.Result<*> =
-            DSL.using(SQLDialect.MYSQL).newResult(DSL.field("x", Int::class.javaObjectType))
+            DSL.using(SQLDialect.POSTGRES).newResult(DSL.field("x", Int::class.javaObjectType))
     }
 }

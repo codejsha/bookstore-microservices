@@ -8,7 +8,7 @@ spring:
   datasource:
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
     type: com.zaxxer.hikari.HikariDataSource
-    url: "jdbc:tc:mysql:8.0.32://localhost:3306/gvw_tc?allowPublicKeyRetrieval=true&characterEncoding=utf8&useSSL=false&user=root&password=test&TC_INITSCRIPT=file:src/test/resources/db/init.sql"
+    url: "jdbc:tc:postgresql:16:///testdb"
     hikari:
       minimum-idle: 30
       maximum-pool-size: 30

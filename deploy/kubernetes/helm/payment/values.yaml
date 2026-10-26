@@ -13,7 +13,7 @@ fullnameOverride: ""
 
 serviceAccount:
   create: false
-  name: "payment-mysql"
+  name: "payment-postgres"
   automountServiceAccountToken: false
   annotations: {}
 
@@ -55,10 +55,10 @@ extraEnv: []
 podAnnotations:
   vault.hashicorp.com/agent-inject: "true"
   vault.hashicorp.com/agent-init-first: "true"
-  vault.hashicorp.com/role: "bookstore-mysql-role"
-  vault.hashicorp.com/agent-inject-secret-db.properties: "database/static-creds/payment-mysql-static"
+  vault.hashicorp.com/role: "bookstore-postgres-role"
+  vault.hashicorp.com/agent-inject-secret-db.properties: "database/static-creds/payment-postgres-static"
   vault.hashicorp.com/agent-inject-template-db.properties: |
-    {{- with secret "database/static-creds/payment-mysql-static" -}}
+    {{- with secret "database/static-creds/payment-postgres-static" -}}
     db.username={{ .Data.username }}
     db.password={{ .Data.password }}
     db.name=payment_db
