@@ -103,16 +103,16 @@ migrate-create:
 migrate-up:
 	$(CONTAINER_ENGINE) run --rm --network host -v $(PWD)/db/migrations:/flyway/sql:ro \
 		docker.io/flyway/flyway:10-alpine \
-		-url=jdbc:mysql://$${DB_HOST:-localhost}:$${DB_PORT:-3306}/$(SERVICE_NAME)_db \
-		-user=$${DB_USER:-root} -password=$${DB_PASSWORD} \
+		-url=jdbc:postgresql://$${DB_HOST:-localhost}:$${DB_PORT:-5432}/$(SERVICE_NAME)_db \
+		-user=$${DB_USER:-postgres} -password=$${DB_PASSWORD} \
 		migrate
 
 .PHONY: migrate-info
 migrate-info:
 	$(CONTAINER_ENGINE) run --rm --network host -v $(PWD)/db/migrations:/flyway/sql:ro \
 		docker.io/flyway/flyway:10-alpine \
-		-url=jdbc:mysql://$${DB_HOST:-localhost}:$${DB_PORT:-3306}/$(SERVICE_NAME)_db \
-		-user=$${DB_USER:-root} -password=$${DB_PASSWORD} \
+		-url=jdbc:postgresql://$${DB_HOST:-localhost}:$${DB_PORT:-5432}/$(SERVICE_NAME)_db \
+		-user=$${DB_USER:-postgres} -password=$${DB_PASSWORD} \
 		info
 
 CONTRACT_SCHEMA_PATH := $(abspath api/openapi/schema/openapi.1.0.0.json)

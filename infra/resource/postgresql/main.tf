@@ -56,9 +56,10 @@ module "secret" {
 }
 
 module "cluster" {
-  source    = "./modules/cluster"
-  namespace = var.namespace
-  clusters  = var.postgres_cluster_config
+  source                 = "./modules/cluster"
+  namespace              = var.namespace
+  clusters               = var.postgres_cluster_config
+  cross_service_readonly = var.cross_service_readonly
 
   depends_on = [module.secret]
 
@@ -70,12 +71,13 @@ module "cluster" {
 module "db_engine" {
   source = "./modules/db-engine"
 
-  namespace             = var.namespace
-  postgres_services     = var.postgres_services
-  postgres_db_map       = var.postgres_db_map
-  postgres_app_user_map = var.postgres_app_user_map
-  rotation_schedule     = var.rotation_schedule
-  rotation_window       = var.rotation_window
+  namespace              = var.namespace
+  postgres_services      = var.postgres_services
+  postgres_db_map        = var.postgres_db_map
+  postgres_app_user_map  = var.postgres_app_user_map
+  cross_service_readonly = var.cross_service_readonly
+  rotation_schedule      = var.rotation_schedule
+  rotation_window        = var.rotation_window
 
   depends_on = [module.cluster]
 

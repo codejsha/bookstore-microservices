@@ -8,9 +8,9 @@
   },
   "database": {
     "host": "localhost",
-    "port": 3306,
+    "port": 5432,
     "db_name": "fulfillment_test_db",
-    "username": "root",
+    "username": "postgres",
     "password": "test"
   },
   "telemetry": {

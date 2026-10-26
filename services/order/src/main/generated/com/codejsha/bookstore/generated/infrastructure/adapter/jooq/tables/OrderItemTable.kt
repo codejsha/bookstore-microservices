@@ -4,15 +4,16 @@
 package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables
 
 
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.OrderDb
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.ORDER_ITEM_IDX_ORDER_ITEM_ORDER_ID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.ORDER_ITEM_IDX_ORDER_ITEM_PRODUCT_ID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDER_ITEM_PRIMARY
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDER_ITEM_UK_ORDER_ITEM_UID
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.Public
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.IDX_ORDER_ITEM_ORDER_ID
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.IDX_ORDER_ITEM_PRODUCT_ID
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.ORDER_ITEM_PKEY
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.UK_ORDER_ITEM_UID
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.OrderItemRecord
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 import kotlin.collections.Collection
 import kotlin.collections.List
@@ -54,7 +55,7 @@ open class OrderItemTable(
     where: Condition?
 ): TableImpl<OrderItemRecord>(
     alias,
-    OrderDb.ORDER_DB,
+    Public.PUBLIC,
     path,
     childPath,
     parentPath,
@@ -67,7 +68,7 @@ open class OrderItemTable(
     companion object {
 
         /**
-         * The reference instance of <code>order_db.order_item</code>
+         * The reference instance of <code>public.order_item</code>
          */
         val ORDER_ITEM: OrderItemTable = OrderItemTable()
     }
@@ -78,87 +79,87 @@ open class OrderItemTable(
     override fun getRecordType(): Class<OrderItemRecord> = OrderItemRecord::class.java
 
     /**
-     * The column <code>order_db.order_item.id</code>.
+     * The column <code>public.order_item.id</code>.
      */
     val ID: TableField<OrderItemRecord, Long?> = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "")
 
     /**
-     * The column <code>order_db.order_item.uid</code>. Public UUID identifier
+     * The column <code>public.order_item.uid</code>.
      */
-    val UID: TableField<OrderItemRecord, ByteArray?> = createField(DSL.name("uid"), SQLDataType.BINARY(16).nullable(false), this, "Public UUID identifier")
+    val UID: TableField<OrderItemRecord, UUID?> = createField(DSL.name("uid"), SQLDataType.UUID.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_item.order_id</code>.
+     * The column <code>public.order_item.order_id</code>.
      */
     val ORDER_ID: TableField<OrderItemRecord, Long?> = createField(DSL.name("order_id"), SQLDataType.BIGINT.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_item.product_id</code>.
+     * The column <code>public.order_item.product_id</code>.
      */
     val PRODUCT_ID: TableField<OrderItemRecord, Long?> = createField(DSL.name("product_id"), SQLDataType.BIGINT.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_item.sku</code>.
+     * The column <code>public.order_item.sku</code>.
      */
     val SKU: TableField<OrderItemRecord, String?> = createField(DSL.name("sku"), SQLDataType.VARCHAR(64), this, "")
 
     /**
-     * The column <code>order_db.order_item.product_name</code>.
+     * The column <code>public.order_item.product_name</code>.
      */
     val PRODUCT_NAME: TableField<OrderItemRecord, String?> = createField(DSL.name("product_name"), SQLDataType.VARCHAR(255), this, "")
 
     /**
-     * The column <code>order_db.order_item.options</code>.
+     * The column <code>public.order_item.options</code>.
      */
     val OPTIONS: TableField<OrderItemRecord, String?> = createField(DSL.name("options"), SQLDataType.VARCHAR(255), this, "")
 
     /**
-     * The column <code>order_db.order_item.quantity</code>.
+     * The column <code>public.order_item.quantity</code>.
      */
     val QUANTITY: TableField<OrderItemRecord, Int?> = createField(DSL.name("quantity"), SQLDataType.INTEGER.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_item.currency</code>.
+     * The column <code>public.order_item.currency</code>.
      */
     val CURRENCY: TableField<OrderItemRecord, String?> = createField(DSL.name("currency"), SQLDataType.VARCHAR(3).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_item.price</code>.
+     * The column <code>public.order_item.price</code>.
      */
-    val PRICE: TableField<OrderItemRecord, BigDecimal?> = createField(DSL.name("price"), SQLDataType.DECIMAL(19, 4).nullable(false), this, "")
+    val PRICE: TableField<OrderItemRecord, BigDecimal?> = createField(DSL.name("price"), SQLDataType.NUMERIC(19, 4).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_item.tax_rate</code>.
+     * The column <code>public.order_item.tax_rate</code>.
      */
-    val TAX_RATE: TableField<OrderItemRecord, BigDecimal?> = createField(DSL.name("tax_rate"), SQLDataType.DECIMAL(5, 4).nullable(false), this, "")
+    val TAX_RATE: TableField<OrderItemRecord, BigDecimal?> = createField(DSL.name("tax_rate"), SQLDataType.NUMERIC(5, 4).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_item.subtotal</code>.
+     * The column <code>public.order_item.subtotal</code>.
      */
-    val SUBTOTAL: TableField<OrderItemRecord, BigDecimal?> = createField(DSL.name("subtotal"), SQLDataType.DECIMAL(19, 4).nullable(false), this, "")
+    val SUBTOTAL: TableField<OrderItemRecord, BigDecimal?> = createField(DSL.name("subtotal"), SQLDataType.NUMERIC(19, 4).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_item.created_at</code>.
+     * The column <code>public.order_item.created_at</code>.
      */
     val CREATED_AT: TableField<OrderItemRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_item.updated_at</code>.
+     * The column <code>public.order_item.updated_at</code>.
      */
     val UPDATED_AT: TableField<OrderItemRecord, LocalDateTime?> = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6), this, "")
 
     /**
-     * The column <code>order_db.order_item.deleted_at</code>.
+     * The column <code>public.order_item.deleted_at</code>.
      */
     val DELETED_AT: TableField<OrderItemRecord, LocalDateTime?> = createField(DSL.name("deleted_at"), SQLDataType.LOCALDATETIME(6), this, "")
 
     /**
-     * The column <code>order_db.order_item.actor_id</code>.
+     * The column <code>public.order_item.actor_id</code>.
      */
     val ACTOR_ID: TableField<OrderItemRecord, Long?> = createField(DSL.name("actor_id"), SQLDataType.BIGINT.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_item.version</code>.
+     * The column <code>public.order_item.version</code>.
      */
     val VERSION: TableField<OrderItemRecord, Long?> = createField(DSL.name("version"), SQLDataType.BIGINT.nullable(false), this, "")
 
@@ -167,24 +168,24 @@ open class OrderItemTable(
     private constructor(alias: Name, aliased: Table<OrderItemRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
 
     /**
-     * Create an aliased <code>order_db.order_item</code> table reference
+     * Create an aliased <code>public.order_item</code> table reference
      */
     constructor(alias: String): this(DSL.name(alias))
 
     /**
-     * Create an aliased <code>order_db.order_item</code> table reference
+     * Create an aliased <code>public.order_item</code> table reference
      */
     constructor(alias: Name): this(alias, null)
 
     /**
-     * Create a <code>order_db.order_item</code> table reference
+     * Create a <code>public.order_item</code> table reference
      */
     constructor(): this(DSL.name("order_item"), null)
-    override fun getSchema(): Schema? = if (aliased()) null else OrderDb.ORDER_DB
-    override fun getIndexes(): List<Index> = listOf(ORDER_ITEM_IDX_ORDER_ITEM_ORDER_ID, ORDER_ITEM_IDX_ORDER_ITEM_PRODUCT_ID)
+    override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
+    override fun getIndexes(): List<Index> = listOf(IDX_ORDER_ITEM_ORDER_ID, IDX_ORDER_ITEM_PRODUCT_ID)
     override fun getIdentity(): Identity<OrderItemRecord, Long?> = super.getIdentity() as Identity<OrderItemRecord, Long?>
-    override fun getPrimaryKey(): UniqueKey<OrderItemRecord> = KEY_ORDER_ITEM_PRIMARY
-    override fun getUniqueKeys(): List<UniqueKey<OrderItemRecord>> = listOf(KEY_ORDER_ITEM_UK_ORDER_ITEM_UID)
+    override fun getPrimaryKey(): UniqueKey<OrderItemRecord> = ORDER_ITEM_PKEY
+    override fun getUniqueKeys(): List<UniqueKey<OrderItemRecord>> = listOf(UK_ORDER_ITEM_UID)
     override fun `as`(alias: String): OrderItemTable = OrderItemTable(DSL.name(alias), this)
     override fun `as`(alias: Name): OrderItemTable = OrderItemTable(alias, this)
     override fun `as`(alias: Table<*>): OrderItemTable = OrderItemTable(alias.qualifiedName, this)

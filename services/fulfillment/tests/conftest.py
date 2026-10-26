@@ -46,7 +46,7 @@ from internal.domain.constant.freight_status import FreightStatus
 from internal.domain.constant.reservation_status import ReservationStatus
 from internal.domain.constant.shipment_status import ShipmentStatus
 from internal.domain.constant.transfer_status import TransferStatus
-from internal.infrastructure.adapter.mysql.models import Base, StockEntity, WarehouseEntity
+from internal.infrastructure.adapter.pgsql.models import Base, StockEntity, WarehouseEntity
 
 
 @compiles(BigInteger, "sqlite")
@@ -426,7 +426,7 @@ def make_reservation(
 
 async def seed_warehouse(session_factory: async_sessionmaker[AsyncSession], name: str = "Main") -> WarehouseEntity:
     entity = WarehouseEntity(
-        uid=uuid7().bytes,
+        uid=uuid7(),
         name=name,
         address=None,
         capacity=1000,
@@ -449,9 +449,9 @@ async def seed_stock(
     quantity: int = 10,
 ) -> StockEntity:
     entity = StockEntity(
-        uid=uuid7().bytes,
+        uid=uuid7(),
         edition_id=edition_id,
-        edition_uid=(edition_uid or uuid4()).bytes,
+        edition_uid=edition_uid or uuid4(),
         warehouse_id=warehouse.id,
         warehouse_uid=warehouse.uid,
         quantity=quantity,

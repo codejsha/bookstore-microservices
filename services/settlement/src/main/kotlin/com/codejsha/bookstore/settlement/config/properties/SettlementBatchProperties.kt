@@ -20,8 +20,8 @@ data class SettlementRunLockProperties(
 
 data class PaymentDbConnection(
     val host: String = "localhost",
-    val port: Int = 3306,
-    val params: String = "allowPublicKeyRetrieval=true&characterEncoding=utf8&useSSL=false",
+    val port: Int = 5432,
+    val params: String = "sslmode=disable",
 )
 
 data class ReconcileProperties(

@@ -10,6 +10,7 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.recor
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 import kotlin.collections.List
 
@@ -52,28 +53,28 @@ open class OrdersDao(configuration: Configuration?) : DAOImpl<OrdersRecord, Orde
      * Fetch records that have <code>uid BETWEEN lowerInclusive AND
      * upperInclusive</code>
      */
-    fun fetchRangeOfUid(lowerInclusive: ByteArray?, upperInclusive: ByteArray?): List<OrdersEntity> = fetchRange(OrdersTable.ORDERS.UID, lowerInclusive, upperInclusive)
+    fun fetchRangeOfUid(lowerInclusive: UUID?, upperInclusive: UUID?): List<OrdersEntity> = fetchRange(OrdersTable.ORDERS.UID, lowerInclusive, upperInclusive)
 
     /**
      * Fetch records that have <code>uid IN (values)</code>
      */
-    fun fetchByUid(vararg values: ByteArray): List<OrdersEntity> = fetch(OrdersTable.ORDERS.UID, *values)
+    fun fetchByUid(vararg values: UUID): List<OrdersEntity> = fetch(OrdersTable.ORDERS.UID, *values)
 
     /**
      * Fetch a unique record that has <code>uid = value</code>
      */
-    fun fetchOneByUid(value: ByteArray): OrdersEntity? = fetchOne(OrdersTable.ORDERS.UID, value)
+    fun fetchOneByUid(value: UUID): OrdersEntity? = fetchOne(OrdersTable.ORDERS.UID, value)
 
     /**
      * Fetch records that have <code>user_uid BETWEEN lowerInclusive AND
      * upperInclusive</code>
      */
-    fun fetchRangeOfUserUid(lowerInclusive: ByteArray?, upperInclusive: ByteArray?): List<OrdersEntity> = fetchRange(OrdersTable.ORDERS.USER_UID, lowerInclusive, upperInclusive)
+    fun fetchRangeOfUserUid(lowerInclusive: UUID?, upperInclusive: UUID?): List<OrdersEntity> = fetchRange(OrdersTable.ORDERS.USER_UID, lowerInclusive, upperInclusive)
 
     /**
      * Fetch records that have <code>user_uid IN (values)</code>
      */
-    fun fetchByUserUid(vararg values: ByteArray): List<OrdersEntity> = fetch(OrdersTable.ORDERS.USER_UID, *values)
+    fun fetchByUserUid(vararg values: UUID): List<OrdersEntity> = fetch(OrdersTable.ORDERS.USER_UID, *values)
 
     /**
      * Fetch records that have <code>order_number BETWEEN lowerInclusive AND
@@ -188,12 +189,12 @@ open class OrdersDao(configuration: Configuration?) : DAOImpl<OrdersRecord, Orde
      * Fetch records that have <code>payment_uid BETWEEN lowerInclusive AND
      * upperInclusive</code>
      */
-    fun fetchRangeOfPaymentUid(lowerInclusive: ByteArray?, upperInclusive: ByteArray?): List<OrdersEntity> = fetchRange(OrdersTable.ORDERS.PAYMENT_UID, lowerInclusive, upperInclusive)
+    fun fetchRangeOfPaymentUid(lowerInclusive: UUID?, upperInclusive: UUID?): List<OrdersEntity> = fetchRange(OrdersTable.ORDERS.PAYMENT_UID, lowerInclusive, upperInclusive)
 
     /**
      * Fetch records that have <code>payment_uid IN (values)</code>
      */
-    fun fetchByPaymentUid(vararg values: ByteArray): List<OrdersEntity> = fetch(OrdersTable.ORDERS.PAYMENT_UID, *values)
+    fun fetchByPaymentUid(vararg values: UUID): List<OrdersEntity> = fetch(OrdersTable.ORDERS.PAYMENT_UID, *values)
 
     /**
      * Fetch records that have <code>created_at BETWEEN lowerInclusive AND

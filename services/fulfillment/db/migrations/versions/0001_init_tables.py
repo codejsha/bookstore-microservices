@@ -11,7 +11,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-from internal.infrastructure.adapter.mysql.models import MYSQL_TABLE_OPTS, Amount, Timestamp, Uid
+from internal.infrastructure.adapter.pgsql.models import Amount, Timestamp, Uid
 
 revision: str = "0001_init_tables"
 down_revision: str | None = None
@@ -37,7 +37,6 @@ def upgrade() -> None:
         sa.Column("deleted_at", Timestamp, nullable=True),
         sa.UniqueConstraint("uid", name="uk_carrier_uid"),
         sa.UniqueConstraint("code", name="uk_carrier_code"),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_carrier_name", "carrier", ["name"])
     op.create_index("idx_carrier_status", "carrier", ["status"])
@@ -66,7 +65,6 @@ def upgrade() -> None:
         sa.Column("deleted_at", Timestamp, nullable=True),
         sa.UniqueConstraint("uid", name="uk_shipment_uid"),
         sa.UniqueConstraint("order_uid", name="uk_shipment_order_uid"),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_shipment_carrier_uid", "shipment", ["carrier_uid"])
     op.create_index("idx_shipment_status", "shipment", ["status"])
@@ -83,7 +81,6 @@ def upgrade() -> None:
         sa.Column("occurred_at", Timestamp, nullable=False),
         sa.Column("created_at", Timestamp, nullable=False),
         sa.UniqueConstraint("uid", name="uk_tracking_uid"),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_tracking_shipment_uid", "tracking", ["shipment_uid"])
     op.create_index("idx_tracking_occurred", "tracking", ["occurred_at"])
@@ -107,7 +104,6 @@ def upgrade() -> None:
         sa.Column("updated_at", Timestamp, nullable=False),
         sa.Column("deleted_at", Timestamp, nullable=True),
         sa.UniqueConstraint("uid", name="uk_freight_uid"),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_freight_shipment_uid", "freight", ["shipment_uid"])
     op.create_index("idx_freight_carrier_uid", "freight", ["carrier_uid"])
@@ -125,7 +121,6 @@ def upgrade() -> None:
         sa.Column("deleted_at", Timestamp, nullable=True),
         sa.Column("version", sa.BigInteger(), nullable=False),
         sa.UniqueConstraint("uid", name="uk_warehouse_uid"),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_warehouse_name", "warehouse", ["name"])
 
@@ -144,7 +139,6 @@ def upgrade() -> None:
         sa.Column("version", sa.BigInteger(), nullable=False),
         sa.UniqueConstraint("uid", name="uk_stock_uid"),
         sa.UniqueConstraint("edition_id", "warehouse_id", name="uq_stock_edition_warehouse"),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_stock_edition_id", "stock", ["edition_id"])
     op.create_index("idx_stock_warehouse_id", "stock", ["warehouse_id"])
@@ -164,7 +158,6 @@ def upgrade() -> None:
         sa.Column("deleted_at", Timestamp, nullable=True),
         sa.Column("version", sa.BigInteger(), nullable=False),
         sa.UniqueConstraint("uid", name="uk_stock_history_uid"),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_stock_history_stock_id_created", "stock_history", ["stock_id", "created_at"])
     op.create_index("idx_stock_history_stock_uid_created", "stock_history", ["stock_uid", "created_at"])
@@ -188,7 +181,6 @@ def upgrade() -> None:
         sa.Column("version", sa.BigInteger(), nullable=False),
         sa.UniqueConstraint("uid", name="uk_stock_reservation_uid"),
         sa.UniqueConstraint("reservation_key", "warehouse_id", name="uk_stock_reservation_key_warehouse"),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_stock_reservation_order_ref", "stock_reservation", ["order_ref"])
     op.create_index("idx_stock_reservation_edition_id", "stock_reservation", ["edition_id"])
@@ -213,7 +205,6 @@ def upgrade() -> None:
         sa.Column("deleted_at", Timestamp, nullable=True),
         sa.Column("version", sa.BigInteger(), nullable=False),
         sa.UniqueConstraint("uid", name="uk_transfer_uid"),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_transfer_edition_id", "stock_transfer", ["edition_id"])
     op.create_index("idx_transfer_source", "stock_transfer", ["source_warehouse_id"])
@@ -234,7 +225,6 @@ def upgrade() -> None:
         sa.Column("deleted_at", Timestamp, nullable=True),
         sa.Column("version", sa.BigInteger(), nullable=False),
         sa.UniqueConstraint("uid", name="uk_audit_uid"),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_audit_warehouse_id", "stock_audit", ["warehouse_id"])
     op.create_index("idx_audit_status", "stock_audit", ["status"])
@@ -248,7 +238,6 @@ def upgrade() -> None:
         sa.Column("system_quantity", sa.Integer(), nullable=False),
         sa.Column("actual_quantity", sa.Integer(), nullable=False),
         sa.Column("difference", sa.Integer(), nullable=False),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_audit_item_audit_id", "stock_audit_item", ["audit_id"])
 
@@ -268,7 +257,6 @@ def upgrade() -> None:
         sa.Column("version", sa.BigInteger(), nullable=False),
         sa.UniqueConstraint("uid", name="uk_closing_uid"),
         sa.UniqueConstraint("warehouse_id", "year", "month", name="uq_closing_warehouse_period"),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_closing_warehouse_id", "monthly_closing", ["warehouse_id"])
 
@@ -283,7 +271,6 @@ def upgrade() -> None:
         sa.Column("outbound_quantity", sa.Integer(), nullable=False),
         sa.Column("adjust_quantity", sa.Integer(), nullable=False),
         sa.Column("closing_quantity", sa.Integer(), nullable=False),
-        **MYSQL_TABLE_OPTS,
     )
     op.create_index("idx_closing_item_closing_id", "monthly_closing_item", ["closing_id"])
 

@@ -10,6 +10,7 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.recor
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 import kotlin.collections.List
 
@@ -52,17 +53,17 @@ open class OrderItemDao(configuration: Configuration?) : DAOImpl<OrderItemRecord
      * Fetch records that have <code>uid BETWEEN lowerInclusive AND
      * upperInclusive</code>
      */
-    fun fetchRangeOfUid(lowerInclusive: ByteArray?, upperInclusive: ByteArray?): List<OrderItemEntity> = fetchRange(OrderItemTable.ORDER_ITEM.UID, lowerInclusive, upperInclusive)
+    fun fetchRangeOfUid(lowerInclusive: UUID?, upperInclusive: UUID?): List<OrderItemEntity> = fetchRange(OrderItemTable.ORDER_ITEM.UID, lowerInclusive, upperInclusive)
 
     /**
      * Fetch records that have <code>uid IN (values)</code>
      */
-    fun fetchByUid(vararg values: ByteArray): List<OrderItemEntity> = fetch(OrderItemTable.ORDER_ITEM.UID, *values)
+    fun fetchByUid(vararg values: UUID): List<OrderItemEntity> = fetch(OrderItemTable.ORDER_ITEM.UID, *values)
 
     /**
      * Fetch a unique record that has <code>uid = value</code>
      */
-    fun fetchOneByUid(value: ByteArray): OrderItemEntity? = fetchOne(OrderItemTable.ORDER_ITEM.UID, value)
+    fun fetchOneByUid(value: UUID): OrderItemEntity? = fetchOne(OrderItemTable.ORDER_ITEM.UID, value)
 
     /**
      * Fetch records that have <code>order_id BETWEEN lowerInclusive AND

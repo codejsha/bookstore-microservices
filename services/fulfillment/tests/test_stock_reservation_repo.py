@@ -5,15 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from internal.application.port.repo.inventory_repos import ReleaseParams, ReserveParams
 from internal.domain.constant.reservation_status import ReservationStatus
 from internal.domain.model.error import InsufficientStockError
-from internal.infrastructure.adapter.mysql.models import StockEntity, StockHistoryEntity, StockReservationEntity
-from internal.infrastructure.adapter.mysql.stock_reservation_repo import MySQLStockReservationRepository
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid
+from internal.infrastructure.adapter.pgsql.models import StockEntity, StockHistoryEntity, StockReservationEntity
+from internal.infrastructure.adapter.pgsql.stock_reservation_repo import PgsqlStockReservationRepository
 from tests.conftest import seed_stock, seed_warehouse
 
 
 @pytest.fixture
-def repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLStockReservationRepository:
-    return MySQLStockReservationRepository(session_factory)
+def repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlStockReservationRepository:
+    return PgsqlStockReservationRepository(session_factory)
 
 
 def _reserve(key: str, edition_id: int, quantity: int) -> ReserveParams:
@@ -56,7 +55,7 @@ async def test_reserve_single_warehouse_deducts_and_records_reservation(repo, se
     assert result.quantity == 4
     assert result.status == ReservationStatus.RESERVED
     assert result.already_applied is False
-    assert result.edition_uid == bytes_to_uuid(stock.edition_uid)
+    assert result.edition_uid == stock.edition_uid
     assert await _quantities(session_factory, 1) == {warehouse.id: 6}
     assert await _history_types(session_factory) == [("RESERVATION", -4)]
 

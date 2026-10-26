@@ -12,7 +12,7 @@ plugins {
     id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
 
-    id("com.codejsha.platform.jooq-codegen-plugin") version "0.1.0"
+    id("com.codejsha.platform.jooq-codegen-plugin") version "0.1.1"
     id("org.jooq.jooq-codegen-gradle") version "3.19.29"
     id("com.diffplug.spotless") version "8.3.0"
 }
@@ -95,7 +95,9 @@ dependencies {
     implementation("org.springframework.data:spring-data-commons")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     testImplementation("org.springframework.boot:spring-boot-starter-jooq-test")
-    implementation("com.mysql:mysql-connector-j")
+    implementation("org.postgresql:postgresql")
+    testImplementation("org.flywaydb:flyway-core")
+    testRuntimeOnly("org.flywaydb:flyway-database-postgresql")
 
     // grpc
     runtimeOnly("io.grpc:grpc-netty-shaded")
@@ -123,7 +125,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
-    testImplementation("org.testcontainers:testcontainers-mysql")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
 }
 
 configurations.all {
@@ -185,18 +187,10 @@ val jooqGenerator =
         name = "org.jooq.codegen.KotlinGenerator"
         database =
             Database().apply {
-                name = "org.jooq.meta.mysql.MySQLDatabase"
-                schemata = listOf(SchemaMappingType().apply { inputSchema = dbName })
-                includes = "$dbName.*"
-                excludes = "$dbName.flyway_schema_history"
-                forcedTypes =
-                    listOf(
-                        ForcedType().apply {
-                            name = "BOOLEAN"
-                            includeTypes = "TINYINT\\(1\\)"
-                            includeExpression = ".*\\.deleted"
-                        }
-                    )
+                name = "org.jooq.meta.postgres.PostgresDatabase"
+                schemata = listOf(SchemaMappingType().apply { inputSchema = "public" })
+                includes = ".*"
+                excludes = "flyway_schema_history"
             }
         strategy =
             Strategy().apply {
@@ -262,7 +256,7 @@ val jooqGenerator =
 jooq {
     configuration {
         jdbc {
-            driver = "com.mysql.cj.jdbc.Driver"
+            driver = "org.postgresql.Driver"
             url = dbProps.getProperty("db.url", "")
             user = dbProps.getProperty("db.user", "")
             password = dbProps.getProperty("db.password", "")
@@ -275,7 +269,7 @@ jooq {
 }
 
 jooqContainer {
-    databaseType = "mysql"
+    databaseType = "postgresql"
     databaseName = dbName
     location = "filesystem:db/migrations"
     generator = jooqGenerator

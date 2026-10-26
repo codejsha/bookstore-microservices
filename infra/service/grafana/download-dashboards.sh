@@ -33,7 +33,6 @@ done
 # ----- Bookstore infrastructure dashboards from grafana.com -----
 declare -A INFRA_DASHBOARDS=(
   [20417]="Infra - Data/postgres-cnpg"        # CloudNativePG official
-  [14057]="Infra - Data/mysql-innodb"         # mysqld_exporter
   [11835]="Infra - Data/valkey"               # redis_exporter
   [18276]="Infra - Streaming/kafka-cluster"   # Kafka cluster (JMX exporter)
   [14584]="Infra - GitOps/argocd"             # ArgoCD official

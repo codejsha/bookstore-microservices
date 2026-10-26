@@ -8,7 +8,7 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.inter
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.Arrays
+import java.util.UUID
 
 
 /**
@@ -17,7 +17,7 @@ import java.util.Arrays
 @Suppress("UNCHECKED_CAST")
 data class CartItemEntity(
     override var id: Long? = null,
-    override var uid: ByteArray? = null,
+    override var uid: UUID? = null,
     override var cartId: Long? = null,
     override var productId: Long? = null,
     override var productName: String? = null,
@@ -47,7 +47,7 @@ data class CartItemEntity(
             if (o.uid != null)
                 return false
         }
-        else if (!Arrays.equals(this.uid, o.uid))
+        else if (this.uid != o.uid)
             return false
         if (this.cartId == null) {
             if (o.cartId != null)
@@ -104,7 +104,7 @@ data class CartItemEntity(
         val prime = 31
         var result = 1
         result = prime * result + (if (this.id == null) 0 else this.id.hashCode())
-        result = prime * result + (if (this.uid == null) 0 else Arrays.hashCode(this.uid))
+        result = prime * result + (if (this.uid == null) 0 else this.uid.hashCode())
         result = prime * result + (if (this.cartId == null) 0 else this.cartId.hashCode())
         result = prime * result + (if (this.productId == null) 0 else this.productId.hashCode())
         result = prime * result + (if (this.productName == null) 0 else this.productName.hashCode())
@@ -120,7 +120,7 @@ data class CartItemEntity(
         val sb = StringBuilder("CartItemEntity (")
 
         sb.append(id)
-        sb.append(", ").append("[binary...]")
+        sb.append(", ").append(uid)
         sb.append(", ").append(cartId)
         sb.append(", ").append(productId)
         sb.append(", ").append(productName)

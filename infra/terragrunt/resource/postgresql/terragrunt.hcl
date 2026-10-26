@@ -30,18 +30,26 @@ inputs = {
   "tf-${local.vault_role}", "-n", local.common.vault_ns, "--duration=20m")
 
   namespace         = "bookstore"
-  postgres_services = ["catalog", "customer", "identity"]
+  postgres_services = ["catalog", "customer", "identity", "fulfillment", "order", "payment", "settlement"]
   debezium_username = "debezium"
 
   postgres_db_map = {
-    catalog   = "catalog_db"
-    customer  = "customer_db"
-    identity  = "identity_db"
+    catalog     = "catalog_db"
+    customer    = "customer_db"
+    identity    = "identity_db"
+    fulfillment = "fulfillment_db"
+    order       = "order_db"
+    payment     = "payment_db"
+    settlement  = "settlement_db"
   }
   postgres_app_user_map = {
-    catalog   = "catalog_app"
-    customer  = "customer_app"
-    identity  = "identity_app"
+    catalog     = "catalog_app"
+    customer    = "customer_app"
+    identity    = "identity_app"
+    fulfillment = "fulfillment_app"
+    order       = "order_app"
+    payment     = "payment_app"
+    settlement  = "settlement_app"
   }
 
   postgres_cluster_config = {
@@ -86,7 +94,68 @@ inputs = {
         requests = { cpu = "50m", memory = "256Mi" }
       }
     }
+    fulfillment = {
+      cluster_name = "fulfillment-postgres"
+      image        = "ghcr.io/cloudnative-pg/postgresql:18"
+      instances    = 1
+      database     = "fulfillment_db"
+      app_user     = "fulfillment"
+      storage_size = "20Gi"
+      monitoring   = true
+      resources = {
+        limits   = { cpu = "1", memory = "1Gi" }
+        requests = { cpu = "100m", memory = "256Mi" }
+      }
+    }
+    order = {
+      cluster_name = "order-postgres"
+      image        = "ghcr.io/cloudnative-pg/postgresql:18"
+      instances    = 1
+      database     = "order_db"
+      app_user     = "order"
+      storage_size = "10Gi"
+      monitoring   = true
+      resources = {
+        limits   = { cpu = "1", memory = "1Gi" }
+        requests = { cpu = "100m", memory = "256Mi" }
+      }
+    }
+    payment = {
+      cluster_name = "payment-postgres"
+      image        = "ghcr.io/cloudnative-pg/postgresql:18"
+      instances    = 1
+      database     = "payment_db"
+      app_user     = "payment"
+      storage_size = "10Gi"
+      monitoring   = true
+      resources = {
+        limits   = { cpu = "1", memory = "1Gi" }
+        requests = { cpu = "100m", memory = "256Mi" }
+      }
+    }
+    settlement = {
+      cluster_name = "settlement-postgres"
+      image        = "ghcr.io/cloudnative-pg/postgresql:18"
+      instances    = 1
+      database     = "settlement_db"
+      app_user     = "settlement"
+      storage_size = "10Gi"
+      monitoring   = true
+      resources = {
+        limits   = { cpu = "1", memory = "1Gi" }
+        requests = { cpu = "100m", memory = "256Mi" }
+      }
+    }
   }
+
+  cross_service_readonly = [
+    {
+      name           = "settlement"
+      username       = "settlement_ro"
+      target_service = "payment"
+      tables         = ["payments", "refunds"]
+    },
+  ]
 }
 
 prevent_destroy = true

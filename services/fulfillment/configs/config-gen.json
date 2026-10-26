@@ -7,8 +7,8 @@
     "mode": "release"
   },
   "database": {
-    "host": "mysql",
-    "port": 3306,
+    "host": "postgres",
+    "port": 5432,
     "db_name": "fulfillment_db",
     "username": "fulfillment",
     "password": ""

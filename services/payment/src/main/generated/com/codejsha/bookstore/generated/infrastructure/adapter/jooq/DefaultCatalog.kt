@@ -25,12 +25,12 @@ open class DefaultCatalog : CatalogImpl("") {
     }
 
     /**
-     * The schema <code>payment_db</code>.
+     * The schema <code>public</code>.
      */
-    val PAYMENT_DB: PaymentDb get(): PaymentDb = PaymentDb.PAYMENT_DB
+    val PUBLIC: Public get(): Public = Public.PUBLIC
 
     override fun getSchemas(): List<Schema> = listOf(
-        PaymentDb.PAYMENT_DB
+        Public.PUBLIC
     )
 
     /**

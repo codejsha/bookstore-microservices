@@ -9,6 +9,7 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.inter
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.pojos.OrderShippingEntity
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
@@ -24,9 +25,9 @@ open class OrderShippingRecord() : UpdatableRecordImpl<OrderShippingRecord>(Orde
         set(value): Unit = set(0, value)
         get(): Long? = get(0) as Long?
 
-    open override var uid: ByteArray?
+    open override var uid: UUID?
         set(value): Unit = set(1, value)
-        get(): ByteArray? = get(1) as ByteArray?
+        get(): UUID? = get(1) as UUID?
 
     open override var orderId: Long?
         set(value): Unit = set(2, value)
@@ -127,7 +128,7 @@ open class OrderShippingRecord() : UpdatableRecordImpl<OrderShippingRecord>(Orde
     /**
      * Create a detached, initialised OrderShippingRecord
      */
-    constructor(id: Long? = null, uid: ByteArray? = null, orderId: Long? = null, recipientName: String? = null, recipientPhone: String? = null, addressLine1: String? = null, addressLine2: String? = null, city: String? = null, state: String? = null, postalCode: String? = null, country: String? = null, shippingMethod: String? = null, createdAt: LocalDateTime? = null, updatedAt: LocalDateTime? = null, deletedAt: LocalDateTime? = null, actorId: Long? = null, version: Long? = null): this() {
+    constructor(id: Long? = null, uid: UUID? = null, orderId: Long? = null, recipientName: String? = null, recipientPhone: String? = null, addressLine1: String? = null, addressLine2: String? = null, city: String? = null, state: String? = null, postalCode: String? = null, country: String? = null, shippingMethod: String? = null, createdAt: LocalDateTime? = null, updatedAt: LocalDateTime? = null, deletedAt: LocalDateTime? = null, actorId: Long? = null, version: Long? = null): this() {
         this.id = id
         this.uid = uid
         this.orderId = orderId

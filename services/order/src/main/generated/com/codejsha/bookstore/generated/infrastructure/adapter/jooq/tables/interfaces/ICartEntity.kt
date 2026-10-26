@@ -6,6 +6,7 @@ package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.inte
 
 import java.io.Serializable
 import java.time.LocalDateTime
+import java.util.UUID
 
 
 /**
@@ -14,8 +15,8 @@ import java.time.LocalDateTime
 @Suppress("UNCHECKED_CAST")
 interface ICartEntity : Serializable {
     var id: Long?
-    var uid: ByteArray?
-    var userUid: ByteArray?
+    var uid: UUID?
+    var userUid: UUID?
     var createdAt: LocalDateTime?
     var updatedAt: LocalDateTime?
 

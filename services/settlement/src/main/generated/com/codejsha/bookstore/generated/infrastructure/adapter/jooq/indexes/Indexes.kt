@@ -18,6 +18,6 @@ import org.jooq.impl.Internal
 // INDEX definitions
 // -------------------------------------------------------------------------
 
-val DAILY_SETTLEMENT_IDX_SETTLEMENT_DATE_STATUS: Index = Internal.createIndex(DSL.name("idx_settlement_date_status"), DailySettlementTable.DAILY_SETTLEMENT, arrayOf(DailySettlementTable.DAILY_SETTLEMENT.SETTLEMENT_DATE, DailySettlementTable.DAILY_SETTLEMENT.STATUS), false)
-val SETTLEMENT_DETAIL_IDX_SETTLEMENT_DETAIL_DATE: Index = Internal.createIndex(DSL.name("idx_settlement_detail_date"), SettlementDetailTable.SETTLEMENT_DETAIL, arrayOf(SettlementDetailTable.SETTLEMENT_DETAIL.SETTLEMENT_DATE), false)
-val SETTLEMENT_JOB_RUN_IDX_SETTLEMENT_JOB_RUN_TARGET: Index = Internal.createIndex(DSL.name("idx_settlement_job_run_target"), SettlementJobRunTable.SETTLEMENT_JOB_RUN, arrayOf(SettlementJobRunTable.SETTLEMENT_JOB_RUN.TARGET_DATE), false)
+val IDX_SETTLEMENT_DATE_STATUS: Index = Internal.createIndex(DSL.name("idx_settlement_date_status"), DailySettlementTable.DAILY_SETTLEMENT, arrayOf(DailySettlementTable.DAILY_SETTLEMENT.SETTLEMENT_DATE, DailySettlementTable.DAILY_SETTLEMENT.STATUS), false)
+val IDX_SETTLEMENT_DETAIL_DATE: Index = Internal.createIndex(DSL.name("idx_settlement_detail_date"), SettlementDetailTable.SETTLEMENT_DETAIL, arrayOf(SettlementDetailTable.SETTLEMENT_DETAIL.SETTLEMENT_DATE), false)
+val IDX_SETTLEMENT_JOB_RUN_TARGET: Index = Internal.createIndex(DSL.name("idx_settlement_job_run_target"), SettlementJobRunTable.SETTLEMENT_JOB_RUN, arrayOf(SettlementJobRunTable.SETTLEMENT_JOB_RUN.TARGET_DATE), false)

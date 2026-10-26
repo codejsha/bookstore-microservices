@@ -13,9 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker  # noqa: E40
 
 from internal.config.config import Settings, vault_env_prefix  # noqa: E402
 from internal.domain.constant.stock_change_type import StockChangeType  # noqa: E402
-from internal.infrastructure.adapter.mysql.models import WarehouseEntity  # noqa: E402
-from internal.infrastructure.adapter.mysql.stock_movement import StockDelta, apply_stock_delta, lock_stock  # noqa: E402
-from internal.infrastructure.adapter.mysql.uuid_helper import uuid_to_bytes  # noqa: E402
+from internal.infrastructure.adapter.pgsql.models import WarehouseEntity  # noqa: E402
+from internal.infrastructure.adapter.pgsql.stock_movement import StockDelta, apply_stock_delta, lock_stock  # noqa: E402
 from internal.infrastructure.support.database import create_engine_and_session_factory  # noqa: E402
 
 SEED_REASON = "seed"
@@ -69,22 +68,21 @@ async def seed_stock(session_factory: async_sessionmaker[AsyncSession], items: l
             warehouse = (
                 await session.execute(
                     select(WarehouseEntity).where(
-                        WarehouseEntity.uid == uuid_to_bytes(item.warehouse_uid),
+                        WarehouseEntity.uid == item.warehouse_uid,
                         WarehouseEntity.deleted_at.is_(None),
                     )
                 )
             ).scalar_one_or_none()
             if warehouse is None:
                 raise SystemExit(f"warehouse {item.warehouse_uid} not found; register it first")
-            edition_uid = uuid_to_bytes(item.edition_uid)
-            if await lock_stock(session, edition_uid, warehouse.uid) is not None:
+            if await lock_stock(session, item.edition_uid, warehouse.uid) is not None:
                 summary.skipped += 1
                 continue
             await apply_stock_delta(
                 session,
                 StockDelta(
                     edition_id=item.edition_id,
-                    edition_uid=edition_uid,
+                    edition_uid=item.edition_uid,
                     warehouse_id=warehouse.id,
                     warehouse_uid=warehouse.uid,
                     delta=item.quantity,

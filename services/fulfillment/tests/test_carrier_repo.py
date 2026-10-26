@@ -7,24 +7,24 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from internal.domain.constant.carrier_status import CarrierStatus
 from internal.domain.model.option.delivery_option import CarrierFilterOption
-from internal.infrastructure.adapter.mysql.carrier_repo import MySQLCarrierRepository
-from internal.infrastructure.adapter.mysql.models import CarrierEntity
+from internal.infrastructure.adapter.pgsql.carrier_repo import PgsqlCarrierRepository
+from internal.infrastructure.adapter.pgsql.models import CarrierEntity
 from tests.conftest import make_carrier
 
 
 @pytest.fixture
-def repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLCarrierRepository:
-    return MySQLCarrierRepository(session_factory)
+def repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlCarrierRepository:
+    return PgsqlCarrierRepository(session_factory)
 
 
-async def test_save_new_inserts_row(repo: MySQLCarrierRepository) -> None:
+async def test_save_new_inserts_row(repo: PgsqlCarrierRepository) -> None:
     carrier = make_carrier()
     saved = await repo.save(carrier)
     assert saved.uid == carrier.uid
     assert saved.status == CarrierStatus.ACTIVE
 
 
-async def test_find_by_uid_roundtrips(repo: MySQLCarrierRepository) -> None:
+async def test_find_by_uid_roundtrips(repo: PgsqlCarrierRepository) -> None:
     carrier = make_carrier()
     await repo.save(carrier)
     found = await repo.find_by_uid(carrier.uid)
@@ -32,11 +32,11 @@ async def test_find_by_uid_roundtrips(repo: MySQLCarrierRepository) -> None:
     assert found.code == carrier.code
 
 
-async def test_find_by_uid_missing_is_none(repo: MySQLCarrierRepository) -> None:
+async def test_find_by_uid_missing_is_none(repo: PgsqlCarrierRepository) -> None:
     assert await repo.find_by_uid(uuid4()) is None
 
 
-async def test_find_by_code_roundtrips(repo: MySQLCarrierRepository) -> None:
+async def test_find_by_code_roundtrips(repo: PgsqlCarrierRepository) -> None:
     carrier = make_carrier()
     await repo.save(carrier)
     found = await repo.find_by_code(carrier.code)
@@ -44,12 +44,12 @@ async def test_find_by_code_roundtrips(repo: MySQLCarrierRepository) -> None:
     assert found.uid == carrier.uid
 
 
-async def test_find_by_code_missing_is_none(repo: MySQLCarrierRepository) -> None:
+async def test_find_by_code_missing_is_none(repo: PgsqlCarrierRepository) -> None:
     assert await repo.find_by_code("MISSING") is None
 
 
 async def test_find_by_code_soft_deleted_carrier_is_still_found(
-    repo: MySQLCarrierRepository, session_factory: async_sessionmaker[AsyncSession]
+    repo: PgsqlCarrierRepository, session_factory: async_sessionmaker[AsyncSession]
 ) -> None:
     carrier = make_carrier()
     await repo.save(carrier)
@@ -61,7 +61,7 @@ async def test_find_by_code_soft_deleted_carrier_is_still_found(
     assert await repo.find_by_code(carrier.code) is not None
 
 
-async def test_save_found_updates_row(repo: MySQLCarrierRepository) -> None:
+async def test_save_found_updates_row(repo: PgsqlCarrierRepository) -> None:
     carrier = make_carrier()
     await repo.save(carrier)
     carrier.name = "Renamed"
@@ -72,7 +72,7 @@ async def test_save_found_updates_row(repo: MySQLCarrierRepository) -> None:
     assert updated.status == CarrierStatus.INACTIVE
 
 
-async def test_find_all_by_status_matches_carriers(repo: MySQLCarrierRepository) -> None:
+async def test_find_all_by_status_matches_carriers(repo: PgsqlCarrierRepository) -> None:
     a = make_carrier(status=CarrierStatus.ACTIVE)
     b = make_carrier(status=CarrierStatus.INACTIVE)
     a.code = "A"
@@ -84,7 +84,7 @@ async def test_find_all_by_status_matches_carriers(repo: MySQLCarrierRepository)
     assert items[0].status == CarrierStatus.ACTIVE
 
 
-async def test_find_all_by_name_matches_substring(repo: MySQLCarrierRepository) -> None:
+async def test_find_all_by_name_matches_substring(repo: PgsqlCarrierRepository) -> None:
     a = make_carrier()
     a.name = "FedEx Express"
     a.code = "FEDEX"
@@ -98,7 +98,7 @@ async def test_find_all_by_name_matches_substring(repo: MySQLCarrierRepository) 
     assert items[0].name == "FedEx Express"
 
 
-async def test_find_all_sorted_by_name_is_ascending(repo: MySQLCarrierRepository) -> None:
+async def test_find_all_sorted_by_name_is_ascending(repo: PgsqlCarrierRepository) -> None:
     a = make_carrier()
     a.name = "Beta"
     a.code = "B"

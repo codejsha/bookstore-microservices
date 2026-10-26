@@ -5,9 +5,9 @@ spring:
       - "optional:file:/vault/secrets/hyperswitch.properties"
       - "optional:file:/vault/secrets/temporal.properties"
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:mysql://payment-mysql.bookstore.svc.cluster.local:3306/payment_db?allowPublicKeyRetrieval=true&characterEncoding=utf8&useSSL=false
+    url: jdbc:postgresql://payment-postgres-rw.bookstore.svc.cluster.local:5432/payment_db?sslmode=disable
     username: ${db.username}
     password: ${db.password}
     hikari:

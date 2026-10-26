@@ -40,10 +40,10 @@ class DataSourceConfig {
                 VaultCredentialConfig.PAYMENT_DB_PASSWORD_KEY,
             )
         val config = HikariConfig().apply {
-            jdbcUrl = "jdbc:mysql://${conn.host}:${conn.port}/${credentials.name}?${conn.params}"
+            jdbcUrl = "jdbc:postgresql://${conn.host}:${conn.port}/${credentials.name}?${conn.params}"
             username = vaultCredentials?.username ?: credentials.username
             password = vaultCredentials?.password ?: credentials.password
-            driverClassName = "com.mysql.cj.jdbc.Driver"
+            driverClassName = "org.postgresql.Driver"
             poolName = "settlement-payment-ro"
             maximumPoolSize = 2
             minimumIdle = 0

@@ -7,6 +7,7 @@ package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.inte
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 
 /**
@@ -15,7 +16,7 @@ import java.time.LocalDateTime
 @Suppress("UNCHECKED_CAST")
 interface IOrderItemEntity : Serializable {
     var id: Long?
-    var uid: ByteArray?
+    var uid: UUID?
     var orderId: Long?
     var productId: Long?
     var sku: String?

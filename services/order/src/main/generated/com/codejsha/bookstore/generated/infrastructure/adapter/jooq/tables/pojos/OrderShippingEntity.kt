@@ -7,7 +7,7 @@ package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.pojo
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.interfaces.IOrderShippingEntity
 
 import java.time.LocalDateTime
-import java.util.Arrays
+import java.util.UUID
 
 
 /**
@@ -16,7 +16,7 @@ import java.util.Arrays
 @Suppress("UNCHECKED_CAST")
 data class OrderShippingEntity(
     override var id: Long? = null,
-    override var uid: ByteArray? = null,
+    override var uid: UUID? = null,
     override var orderId: Long? = null,
     override var recipientName: String? = null,
     override var recipientPhone: String? = null,
@@ -53,7 +53,7 @@ data class OrderShippingEntity(
             if (o.uid != null)
                 return false
         }
-        else if (!Arrays.equals(this.uid, o.uid))
+        else if (this.uid != o.uid)
             return false
         if (this.orderId == null) {
             if (o.orderId != null)
@@ -152,7 +152,7 @@ data class OrderShippingEntity(
         val prime = 31
         var result = 1
         result = prime * result + (if (this.id == null) 0 else this.id.hashCode())
-        result = prime * result + (if (this.uid == null) 0 else Arrays.hashCode(this.uid))
+        result = prime * result + (if (this.uid == null) 0 else this.uid.hashCode())
         result = prime * result + (if (this.orderId == null) 0 else this.orderId.hashCode())
         result = prime * result + (if (this.recipientName == null) 0 else this.recipientName.hashCode())
         result = prime * result + (if (this.recipientPhone == null) 0 else this.recipientPhone.hashCode())
@@ -175,7 +175,7 @@ data class OrderShippingEntity(
         val sb = StringBuilder("OrderShippingEntity (")
 
         sb.append(id)
-        sb.append(", ").append("[binary...]")
+        sb.append(", ").append(uid)
         sb.append(", ").append(orderId)
         sb.append(", ").append(recipientName)
         sb.append(", ").append(recipientPhone)

@@ -4,14 +4,15 @@
 package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables
 
 
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.OrderDb
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.ORDER_ADJUSTMENT_IDX_ORDER_ADJUSTMENT_ORDER_ID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDER_ADJUSTMENT_PRIMARY
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDER_ADJUSTMENT_UK_ORDER_ADJUSTMENT_UID
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.Public
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.IDX_ORDER_ADJUSTMENT_ORDER_ID
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.ORDER_ADJUSTMENT_PKEY
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.UK_ORDER_ADJUSTMENT_UID
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.OrderAdjustmentRecord
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 import kotlin.collections.Collection
 import kotlin.collections.List
@@ -22,7 +23,7 @@ import org.jooq.ForeignKey
 import org.jooq.Identity
 import org.jooq.Index
 import org.jooq.InverseForeignKey
-import org.jooq.JSON
+import org.jooq.JSONB
 import org.jooq.Name
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
@@ -54,7 +55,7 @@ open class OrderAdjustmentTable(
     where: Condition?
 ): TableImpl<OrderAdjustmentRecord>(
     alias,
-    OrderDb.ORDER_DB,
+    Public.PUBLIC,
     path,
     childPath,
     parentPath,
@@ -67,7 +68,7 @@ open class OrderAdjustmentTable(
     companion object {
 
         /**
-         * The reference instance of <code>order_db.order_adjustment</code>
+         * The reference instance of <code>public.order_adjustment</code>
          */
         val ORDER_ADJUSTMENT: OrderAdjustmentTable = OrderAdjustmentTable()
     }
@@ -78,63 +79,62 @@ open class OrderAdjustmentTable(
     override fun getRecordType(): Class<OrderAdjustmentRecord> = OrderAdjustmentRecord::class.java
 
     /**
-     * The column <code>order_db.order_adjustment.id</code>.
+     * The column <code>public.order_adjustment.id</code>.
      */
     val ID: TableField<OrderAdjustmentRecord, Long?> = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "")
 
     /**
-     * The column <code>order_db.order_adjustment.uid</code>. Public UUID
-     * identifier
+     * The column <code>public.order_adjustment.uid</code>.
      */
-    val UID: TableField<OrderAdjustmentRecord, ByteArray?> = createField(DSL.name("uid"), SQLDataType.BINARY(16).nullable(false), this, "Public UUID identifier")
+    val UID: TableField<OrderAdjustmentRecord, UUID?> = createField(DSL.name("uid"), SQLDataType.UUID.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_adjustment.order_id</code>.
+     * The column <code>public.order_adjustment.order_id</code>.
      */
     val ORDER_ID: TableField<OrderAdjustmentRecord, Long?> = createField(DSL.name("order_id"), SQLDataType.BIGINT.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_adjustment.type</code>.
+     * The column <code>public.order_adjustment.type</code>.
      */
     val TYPE: TableField<OrderAdjustmentRecord, String?> = createField(DSL.name("type"), SQLDataType.VARCHAR(30).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_adjustment.label</code>.
+     * The column <code>public.order_adjustment.label</code>.
      */
     val LABEL: TableField<OrderAdjustmentRecord, String?> = createField(DSL.name("label"), SQLDataType.VARCHAR(100), this, "")
 
     /**
-     * The column <code>order_db.order_adjustment.amount</code>.
+     * The column <code>public.order_adjustment.amount</code>.
      */
-    val AMOUNT: TableField<OrderAdjustmentRecord, BigDecimal?> = createField(DSL.name("amount"), SQLDataType.DECIMAL(19, 4).nullable(false), this, "")
+    val AMOUNT: TableField<OrderAdjustmentRecord, BigDecimal?> = createField(DSL.name("amount"), SQLDataType.NUMERIC(19, 4).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_adjustment.meta</code>.
+     * The column <code>public.order_adjustment.meta</code>.
      */
-    val META: TableField<OrderAdjustmentRecord, JSON?> = createField(DSL.name("meta"), SQLDataType.JSON, this, "")
+    val META: TableField<OrderAdjustmentRecord, JSONB?> = createField(DSL.name("meta"), SQLDataType.JSONB, this, "")
 
     /**
-     * The column <code>order_db.order_adjustment.created_at</code>.
+     * The column <code>public.order_adjustment.created_at</code>.
      */
     val CREATED_AT: TableField<OrderAdjustmentRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_adjustment.updated_at</code>.
+     * The column <code>public.order_adjustment.updated_at</code>.
      */
     val UPDATED_AT: TableField<OrderAdjustmentRecord, LocalDateTime?> = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6), this, "")
 
     /**
-     * The column <code>order_db.order_adjustment.deleted_at</code>.
+     * The column <code>public.order_adjustment.deleted_at</code>.
      */
     val DELETED_AT: TableField<OrderAdjustmentRecord, LocalDateTime?> = createField(DSL.name("deleted_at"), SQLDataType.LOCALDATETIME(6), this, "")
 
     /**
-     * The column <code>order_db.order_adjustment.actor_id</code>.
+     * The column <code>public.order_adjustment.actor_id</code>.
      */
     val ACTOR_ID: TableField<OrderAdjustmentRecord, Long?> = createField(DSL.name("actor_id"), SQLDataType.BIGINT.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_adjustment.version</code>.
+     * The column <code>public.order_adjustment.version</code>.
      */
     val VERSION: TableField<OrderAdjustmentRecord, Long?> = createField(DSL.name("version"), SQLDataType.BIGINT.nullable(false), this, "")
 
@@ -143,24 +143,24 @@ open class OrderAdjustmentTable(
     private constructor(alias: Name, aliased: Table<OrderAdjustmentRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
 
     /**
-     * Create an aliased <code>order_db.order_adjustment</code> table reference
+     * Create an aliased <code>public.order_adjustment</code> table reference
      */
     constructor(alias: String): this(DSL.name(alias))
 
     /**
-     * Create an aliased <code>order_db.order_adjustment</code> table reference
+     * Create an aliased <code>public.order_adjustment</code> table reference
      */
     constructor(alias: Name): this(alias, null)
 
     /**
-     * Create a <code>order_db.order_adjustment</code> table reference
+     * Create a <code>public.order_adjustment</code> table reference
      */
     constructor(): this(DSL.name("order_adjustment"), null)
-    override fun getSchema(): Schema? = if (aliased()) null else OrderDb.ORDER_DB
-    override fun getIndexes(): List<Index> = listOf(ORDER_ADJUSTMENT_IDX_ORDER_ADJUSTMENT_ORDER_ID)
+    override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
+    override fun getIndexes(): List<Index> = listOf(IDX_ORDER_ADJUSTMENT_ORDER_ID)
     override fun getIdentity(): Identity<OrderAdjustmentRecord, Long?> = super.getIdentity() as Identity<OrderAdjustmentRecord, Long?>
-    override fun getPrimaryKey(): UniqueKey<OrderAdjustmentRecord> = KEY_ORDER_ADJUSTMENT_PRIMARY
-    override fun getUniqueKeys(): List<UniqueKey<OrderAdjustmentRecord>> = listOf(KEY_ORDER_ADJUSTMENT_UK_ORDER_ADJUSTMENT_UID)
+    override fun getPrimaryKey(): UniqueKey<OrderAdjustmentRecord> = ORDER_ADJUSTMENT_PKEY
+    override fun getUniqueKeys(): List<UniqueKey<OrderAdjustmentRecord>> = listOf(UK_ORDER_ADJUSTMENT_UID)
     override fun `as`(alias: String): OrderAdjustmentTable = OrderAdjustmentTable(DSL.name(alias), this)
     override fun `as`(alias: Name): OrderAdjustmentTable = OrderAdjustmentTable(alias, this)
     override fun `as`(alias: Table<*>): OrderAdjustmentTable = OrderAdjustmentTable(alias.qualifiedName, this)

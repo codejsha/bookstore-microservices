@@ -1,0 +1,265 @@
+package com.codejsha.bookstore.payment.infrastructure.adapter.pgsql
+
+import com.codejsha.bookstore.payment.domain.model.command.PaymentCreateCommand
+import com.codejsha.bookstore.payment.domain.model.command.PaymentUpdateCommand
+import com.codejsha.bookstore.payment.domain.model.option.PaymentQueryOption
+import com.codejsha.bookstore.payment.infrastructure.support.TestPersistenceUtils
+import com.codejsha.bookstore.payment.support.PaymentTestFixtures
+import org.jooq.SQLDialect
+import org.jooq.impl.DSL
+import org.jooq.tools.jdbc.MockDataProvider
+import org.jooq.tools.jdbc.MockResult
+import org.junit.jupiter.api.Test
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
+import java.util.UUID
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
+
+class PaymentRepoImplUnitTest {
+
+    private val ctx = PaymentTestFixtures.DEFAULT_CONTEXT
+
+    @Test
+    fun `findOne_whenNoRecordMatches_throwsNoSuchElementException`() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
+        val repo = PaymentRepoImpl(dsl)
+
+        assertFailsWith<NoSuchElementException> { repo.findOne(UUID.randomUUID(), ctx) }
+
+        assertTrue(capture.queries.isNotEmpty())
+        val select = capture.queries.first().lowercase()
+        assertContains(select, "select")
+        assertContains(select, "from payments")
+        assertContains(select, "where")
+        assertContains(select, "uid")
+        assertContains(select, "deleted_at is null")
+    }
+
+    @Test
+    fun `findAll_whenNoFilters_emitsSelectWithDeletedAtIsNullOnly`() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
+        val repo = PaymentRepoImpl(dsl)
+
+        val pageable = PageRequest.of(0, 10)
+        val result = repo.findAll(PaymentQueryOption(), pageable, ctx)
+
+        assertEquals(0L, result.totalElements)
+        assertEquals(2, capture.queries.size)
+        val dataQuery = capture.queries[0].lowercase()
+        assertContains(dataQuery, "deleted_at is null")
+        assertTrue(
+            !dataQuery.contains("customer_id ="),
+            "WHERE clause should not include customer_id: $dataQuery",
+        )
+    }
+
+    @Test
+    fun `findAll_whenEveryFilterGiven_addsWhereConditionsAndBindings`() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
+        val repo = PaymentRepoImpl(dsl)
+
+        val option = PaymentQueryOption(
+            customerId = "cus_001",
+            status = "succeeded",
+            connector = "stripe",
+        )
+        repo.findAll(option, PageRequest.of(0, 10), ctx)
+
+        val dataQuery = capture.queries[0].lowercase()
+        assertContains(dataQuery, "customer_id")
+        assertContains(dataQuery, "status")
+        assertContains(dataQuery, "connector")
+        assertContains(dataQuery, "deleted_at is null")
+
+        val dataBindings = capture.bindings[0].toList()
+        assertContains(dataBindings, "cus_001")
+        assertContains(dataBindings, "succeeded")
+        assertContains(dataBindings, "stripe")
+    }
+
+    @Test
+    fun `create_whenCommandGiven_emitsInsertWithCommandBindingsAndDefaultStatus`() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
+        val repo = PaymentRepoImpl(dsl)
+
+        val command = PaymentCreateCommand(
+            amount = 9_900L,
+            currency = "KRW",
+            customerId = "cus_1",
+            paymentMethod = "card",
+            paymentMethodType = "credit",
+            authenticationType = "no_three_ds",
+            setupFutureUsage = null,
+            description = "buy book",
+            returnUrl = null,
+            billingAddress = null,
+            shippingAddress = null,
+            metadata = null,
+        )
+
+        runCatching { repo.create(command, ctx) }
+
+        assertTrue(capture.queries.isNotEmpty())
+        val insert = capture.queries.first().lowercase()
+        assertContains(insert, "insert into payments")
+
+        val insertBindings = capture.bindings.first().toList()
+        assertContains(insertBindings, 9_900L)
+        assertContains(insertBindings, "KRW")
+        assertContains(insertBindings, "cus_1")
+        assertContains(insertBindings, "requires_payment_method")
+        assertContains(insertBindings, "automatic")
+        assertContains(insertBindings, "buy book")
+    }
+
+    @Test
+    fun `create_whenStatusCapturedTerminal_stampsCapturedAt`() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
+        val repo = PaymentRepoImpl(dsl)
+
+        val command = PaymentCreateCommand(
+            amount = 9_900L,
+            currency = "KRW",
+            customerId = "cus_1",
+            paymentMethod = "card",
+            paymentMethodType = "credit",
+            authenticationType = "no_three_ds",
+            setupFutureUsage = null,
+            description = null,
+            returnUrl = null,
+            billingAddress = null,
+            shippingAddress = null,
+            metadata = null,
+            status = "succeeded",
+            amountCaptured = 9_900L,
+        )
+
+        runCatching { repo.create(command, ctx) }
+
+        val insert = capture.queries.first().lowercase()
+        assertContains(insert, "insert into payments")
+        assertContains(insert, "captured_at")
+    }
+
+    @Test
+    fun `create_whenStatusNotCaptured_leavesCapturedAtUnset`() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
+        val repo = PaymentRepoImpl(dsl)
+
+        val command = PaymentCreateCommand(
+            amount = 9_900L,
+            currency = "KRW",
+            customerId = "cus_1",
+            paymentMethod = "card",
+            paymentMethodType = "credit",
+            authenticationType = "no_three_ds",
+            setupFutureUsage = null,
+            description = null,
+            returnUrl = null,
+            billingAddress = null,
+            shippingAddress = null,
+            metadata = null,
+            status = "failed",
+        )
+
+        runCatching { repo.create(command, ctx) }
+
+        val insert = capture.queries.first().lowercase()
+        assertContains(insert, "insert into payments")
+        assertTrue(
+            !insert.contains("captured_at"),
+            "captured_at should not be set for a non-captured status: $insert",
+        )
+    }
+
+    @Test
+    fun `update_whenFieldsPartiallySet_setsOnlyNonNullFieldsAndUpdatedAt`() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
+        val repo = PaymentRepoImpl(dsl)
+
+        val uid = UUID.randomUUID()
+        val command = PaymentUpdateCommand(
+            amount = null,
+            currency = null,
+            customerId = null,
+            paymentMethod = null,
+            paymentMethodType = null,
+            authenticationType = null,
+            setupFutureUsage = null,
+            description = "updated desc",
+            returnUrl = null,
+            billingAddress = null,
+            shippingAddress = null,
+            metadata = null,
+        )
+
+        runCatching { repo.update(uid, command, ctx) }
+
+        assertTrue(capture.queries.isNotEmpty())
+        val update = capture.queries.first().lowercase()
+        assertContains(update, "update payments")
+        assertContains(update, "set")
+        assertContains(update, "description")
+        assertContains(update, "updated_at")
+        assertTrue(
+            !Regex("set\\b.*amount\\s*=").containsMatchIn(update),
+            "amount should not be in SET clause: $update",
+        )
+
+        val bindings = capture.bindings.first().toList()
+        assertContains(bindings, "updated desc")
+    }
+
+    @Test
+    fun findAll_sortedByCreatedAtDesc_ordersByAliasedColumn() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
+        val repo = PaymentRepoImpl(dsl)
+
+        repo.findAll(PaymentQueryOption(), PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "created_at")), ctx)
+
+        val dataQuery = capture.queries[0].lowercase().replace("`", "")
+        assertContains(dataQuery, "order by")
+        assertContains(dataQuery, "p.created_at desc")
+    }
+
+    @Test
+    fun findAll_unknownSortProperty_omitsOrderBy() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
+        val repo = PaymentRepoImpl(dsl)
+
+        repo.findAll(PaymentQueryOption(), PageRequest.of(0, 10, Sort.by("created_at; drop table payments")), ctx)
+
+        val dataQuery = capture.queries[0].lowercase()
+        assertTrue(!dataQuery.contains("order by"), "unknown sort property should be dropped: $dataQuery")
+        assertTrue(!dataQuery.contains("drop table"), "raw sort text must not reach SQL: $dataQuery")
+    }
+
+    private class QueryCapture {
+        val queries: MutableList<String> = mutableListOf()
+        val bindings: MutableList<Array<Any?>> = mutableListOf()
+
+        fun provider(handler: () -> Array<MockResult>): MockDataProvider =
+            MockDataProvider { ctx ->
+                queries.add(ctx.sql())
+                bindings.add(ctx.bindings())
+                handler()
+            }
+    }
+
+    companion object {
+        private val EMPTY_RESULT: org.jooq.Result<*> =
+            DSL.using(SQLDialect.POSTGRES).newResult(DSL.field("x", Int::class.javaObjectType))
+    }
+}

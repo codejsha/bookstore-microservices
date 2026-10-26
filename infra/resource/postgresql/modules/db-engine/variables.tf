@@ -26,6 +26,26 @@ variable "postgres_app_user_map" {
   type        = map(string)
 }
 
+variable "cross_service_readonly" {
+  description = <<-EOT
+    Cross-service read-only Postgres roles. For each entry this module creates a Vault
+    static role "{name}-{target_service}-postgres-static" on the target_service's existing
+    connection (rotating the pre-created read-only role) and extends that connection's
+    allowed_roles. The role itself is created by the cluster module's read-only bootstrap Job.
+      name           - reader/consumer service
+      username       - Postgres role rotated by the static role
+      target_service - key in postgres_services whose connection hosts the role
+      tables         - informational here; the grants are applied by the cluster module
+  EOT
+  type = list(object({
+    name           = string
+    username       = string
+    target_service = string
+    tables         = list(string)
+  }))
+  default = []
+}
+
 variable "rotation_schedule" {
   description = "Cron schedule (Vault server clock, UTC) on which the database static roles rotate their passwords. Mutually exclusive with rotation_period."
   type        = string

@@ -10,8 +10,9 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.pojos
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
-import org.jooq.JSON
+import org.jooq.JSONB
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
 
@@ -26,9 +27,9 @@ open class OrderAdjustmentRecord() : UpdatableRecordImpl<OrderAdjustmentRecord>(
         set(value): Unit = set(0, value)
         get(): Long? = get(0) as Long?
 
-    open override var uid: ByteArray?
+    open override var uid: UUID?
         set(value): Unit = set(1, value)
-        get(): ByteArray? = get(1) as ByteArray?
+        get(): UUID? = get(1) as UUID?
 
     open override var orderId: Long?
         set(value): Unit = set(2, value)
@@ -46,9 +47,9 @@ open class OrderAdjustmentRecord() : UpdatableRecordImpl<OrderAdjustmentRecord>(
         set(value): Unit = set(5, value)
         get(): BigDecimal? = get(5) as BigDecimal?
 
-    open override var meta: JSON?
+    open override var meta: JSONB?
         set(value): Unit = set(6, value)
-        get(): JSON? = get(6) as JSON?
+        get(): JSONB? = get(6) as JSONB?
 
     open override var createdAt: LocalDateTime?
         set(value): Unit = set(7, value)
@@ -104,7 +105,7 @@ open class OrderAdjustmentRecord() : UpdatableRecordImpl<OrderAdjustmentRecord>(
     /**
      * Create a detached, initialised OrderAdjustmentRecord
      */
-    constructor(id: Long? = null, uid: ByteArray? = null, orderId: Long? = null, type: String? = null, label: String? = null, amount: BigDecimal? = null, meta: JSON? = null, createdAt: LocalDateTime? = null, updatedAt: LocalDateTime? = null, deletedAt: LocalDateTime? = null, actorId: Long? = null, version: Long? = null): this() {
+    constructor(id: Long? = null, uid: UUID? = null, orderId: Long? = null, type: String? = null, label: String? = null, amount: BigDecimal? = null, meta: JSONB? = null, createdAt: LocalDateTime? = null, updatedAt: LocalDateTime? = null, deletedAt: LocalDateTime? = null, actorId: Long? = null, version: Long? = null): this() {
         this.id = id
         this.uid = uid
         this.orderId = orderId

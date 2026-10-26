@@ -39,16 +39,14 @@ class TemporalConfig(BaseModel):
 
 class DatabaseConfig(BaseModel):
     host: str = "localhost"
-    port: int = 3306
+    port: int = 5432
     db_name: str = "fulfillment_db"
-    username: str = "root"
+    username: str = "postgres"
     password: str = ""
 
     @property
     def url(self) -> str:
-        return (
-            f"mysql+aiomysql://{self.username}:{self.password}@{self.host}:{self.port}/{self.db_name}?charset=utf8mb4"
-        )
+        return f"postgresql+asyncpg://{self.username}:{self.password}@{self.host}:{self.port}/{self.db_name}"
 
 
 class TelemetryConfig(BaseModel):

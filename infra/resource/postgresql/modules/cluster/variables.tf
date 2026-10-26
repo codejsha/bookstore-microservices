@@ -43,3 +43,24 @@ variable "clusters" {
     debezium_secret_name = optional(string, "")
   }))
 }
+
+variable "cross_service_readonly" {
+  description = <<-EOT
+    Cross-service read-only Postgres roles to provision on an existing (target_service)
+    CNPG cluster. Each entry runs a bootstrap Job (as the CNPG superuser) that creates
+    the LOGIN role and grants CONNECT, USAGE ON SCHEMA public and SELECT only on the
+    named tables of that cluster's application database. Tables that do not exist yet
+    are skipped with a warning; editing `tables` re-runs the Job.
+      name           - reader/consumer service
+      username       - Postgres role to create
+      target_service - key in clusters of the cluster to read
+      tables         - tables (schema public) to grant SELECT on
+  EOT
+  type = list(object({
+    name           = string
+    username       = string
+    target_service = string
+    tables         = list(string)
+  }))
+  default = []
+}

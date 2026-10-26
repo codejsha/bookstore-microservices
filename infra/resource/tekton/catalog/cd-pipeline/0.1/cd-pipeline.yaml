@@ -74,11 +74,8 @@ spec:
       description: Alembic only — where alembic.ini lives
       type: string
       default: ./
-    - name: db-migrate-engine
-      description: Flyway only — mysql | postgres
-      type: string
-      default: mysql
     - name: db-migrate-secret-name
+      description: PostgreSQL credentials secret (CloudNativePG username/password); need not exist
       type: string
     - name: db-migrate-host
       type: string
@@ -169,8 +166,6 @@ spec:
           value: $(params.db-migrate-context-dir)
         - name: SERVICE_NAME
           value: $(params.service-name)
-        - name: DB_ENGINE
-          value: $(params.db-migrate-engine)
         - name: DB_SECRET_NAME
           value: $(params.db-migrate-secret-name)
         - name: DB_HOST

@@ -12,8 +12,8 @@ telemetry:
   sampling_ratio: 0.1
 
 database:
-  host: fulfillment-mysql.bookstore.svc.cluster.local
-  port: 3306
+  host: fulfillment-postgres-rw.bookstore.svc.cluster.local
+  port: 5432
   db_name: fulfillment_db
 
 temporal:

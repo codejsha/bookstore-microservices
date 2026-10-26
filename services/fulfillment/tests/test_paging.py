@@ -1,5 +1,5 @@
-from internal.infrastructure.adapter.mysql.models import WarehouseEntity
-from internal.infrastructure.adapter.mysql.paging import page_offset, parse_sort, resolve_order_by
+from internal.infrastructure.adapter.pgsql.models import WarehouseEntity
+from internal.infrastructure.adapter.pgsql.paging import page_offset, parse_sort, resolve_order_by
 
 _SORTABLE = {"name": WarehouseEntity.name, "created_at": WarehouseEntity.created_at, "uid": WarehouseEntity.uid}
 

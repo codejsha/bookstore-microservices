@@ -8,21 +8,20 @@ from internal.domain.constant.audit_status import AuditStatus
 from internal.domain.constant.stock_change_type import StockChangeType
 from internal.domain.model.error import InvalidTransitionError, StockNotFoundError, WarehouseNotFoundError
 from internal.domain.model.option.inventory_option import AuditQueryOption, StockHistoryQueryOption
-from internal.infrastructure.adapter.mysql.audit_repo import MySQLStockAuditRepository
-from internal.infrastructure.adapter.mysql.stock_history_repo import MySQLStockHistoryRepository
-from internal.infrastructure.adapter.mysql.stock_repo import MySQLStockRepository
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid
+from internal.infrastructure.adapter.pgsql.audit_repo import PgsqlStockAuditRepository
+from internal.infrastructure.adapter.pgsql.stock_history_repo import PgsqlStockHistoryRepository
+from internal.infrastructure.adapter.pgsql.stock_repo import PgsqlStockRepository
 from tests.conftest import seed_stock, seed_warehouse
 
 
 @pytest.fixture
-def repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLStockAuditRepository:
-    return MySQLStockAuditRepository(session_factory)
+def repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlStockAuditRepository:
+    return PgsqlStockAuditRepository(session_factory)
 
 
 @pytest.fixture
-def stock_repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLStockRepository:
-    return MySQLStockRepository(session_factory)
+def stock_repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlStockRepository:
+    return PgsqlStockRepository(session_factory)
 
 
 async def test_create_snapshots_system_quantity_and_difference(repo, session_factory) -> None:
@@ -31,8 +30,8 @@ async def test_create_snapshots_system_quantity_and_difference(repo, session_fac
 
     audit = await repo.create(
         AuditCreateParams(
-            warehouse_uid=bytes_to_uuid(warehouse.uid),
-            items=(AuditItemParam(edition_uid=bytes_to_uuid(stock.edition_uid), actual_quantity=8),),
+            warehouse_uid=warehouse.uid,
+            items=(AuditItemParam(edition_uid=stock.edition_uid, actual_quantity=8),),
             notes="cycle count",
         )
     )
@@ -60,7 +59,7 @@ async def test_create_missing_stock_raises_stock_not_found_and_persists_nothing(
     with pytest.raises(StockNotFoundError):
         await repo.create(
             AuditCreateParams(
-                warehouse_uid=bytes_to_uuid(warehouse.uid),
+                warehouse_uid=warehouse.uid,
                 items=(AuditItemParam(edition_uid=uuid4(), actual_quantity=1),),
                 notes=None,
             )
@@ -75,10 +74,10 @@ async def test_complete_applies_adjustments_and_marks_completed(repo, stock_repo
     exact = await seed_stock(session_factory, warehouse, edition_id=2, quantity=5)
     audit = await repo.create(
         AuditCreateParams(
-            warehouse_uid=bytes_to_uuid(warehouse.uid),
+            warehouse_uid=warehouse.uid,
             items=(
-                AuditItemParam(edition_uid=bytes_to_uuid(short.edition_uid), actual_quantity=7),
-                AuditItemParam(edition_uid=bytes_to_uuid(exact.edition_uid), actual_quantity=5),
+                AuditItemParam(edition_uid=short.edition_uid, actual_quantity=7),
+                AuditItemParam(edition_uid=exact.edition_uid, actual_quantity=5),
             ),
             notes=None,
         )
@@ -89,13 +88,11 @@ async def test_complete_applies_adjustments_and_marks_completed(repo, stock_repo
     assert done is not None
     assert done.status == AuditStatus.COMPLETED
     assert done.completed_at is not None
-    adjusted = await stock_repo.find_by_edition_uid(bytes_to_uuid(short.edition_uid))
+    adjusted = await stock_repo.find_by_edition_uid(short.edition_uid)
     assert adjusted is not None and adjusted.total_quantity == 7
-    untouched = await stock_repo.find_by_edition_uid(bytes_to_uuid(exact.edition_uid))
+    untouched = await stock_repo.find_by_edition_uid(exact.edition_uid)
     assert untouched is not None and untouched.total_quantity == 5
-    history, _ = await MySQLStockHistoryRepository(session_factory).find_all(
-        [bytes_to_uuid(short.uid)], StockHistoryQueryOption()
-    )
+    history, _ = await PgsqlStockHistoryRepository(session_factory).find_all([short.uid], StockHistoryQueryOption())
     assert [(h.change_type, h.change_qty, h.reason) for h in history] == [
         (StockChangeType.ADJUSTMENT, -3, f"audit {audit.uid}")
     ]
@@ -106,8 +103,8 @@ async def test_complete_completed_audit_raises_invalid_transition(repo, session_
     stock = await seed_stock(session_factory, warehouse, edition_id=1, quantity=10)
     audit = await repo.create(
         AuditCreateParams(
-            warehouse_uid=bytes_to_uuid(warehouse.uid),
-            items=(AuditItemParam(edition_uid=bytes_to_uuid(stock.edition_uid), actual_quantity=10),),
+            warehouse_uid=warehouse.uid,
+            items=(AuditItemParam(edition_uid=stock.edition_uid, actual_quantity=10),),
             notes=None,
         )
     )
@@ -126,8 +123,8 @@ async def test_find_by_uid_returns_items(repo, session_factory) -> None:
     stock = await seed_stock(session_factory, warehouse, edition_id=1, quantity=10)
     created = await repo.create(
         AuditCreateParams(
-            warehouse_uid=bytes_to_uuid(warehouse.uid),
-            items=(AuditItemParam(edition_uid=bytes_to_uuid(stock.edition_uid), actual_quantity=9),),
+            warehouse_uid=warehouse.uid,
+            items=(AuditItemParam(edition_uid=stock.edition_uid, actual_quantity=9),),
             notes=None,
         )
     )
@@ -142,8 +139,8 @@ async def test_find_all_by_status_filters_audits(repo, session_factory) -> None:
     warehouse = await seed_warehouse(session_factory)
     stock = await seed_stock(session_factory, warehouse, edition_id=1, quantity=10)
     params = AuditCreateParams(
-        warehouse_uid=bytes_to_uuid(warehouse.uid),
-        items=(AuditItemParam(edition_uid=bytes_to_uuid(stock.edition_uid), actual_quantity=10),),
+        warehouse_uid=warehouse.uid,
+        items=(AuditItemParam(edition_uid=stock.edition_uid, actual_quantity=10),),
         notes=None,
     )
     first = await repo.create(params)

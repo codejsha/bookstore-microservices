@@ -8,7 +8,7 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.inter
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.Arrays
+import java.util.UUID
 
 
 /**
@@ -17,8 +17,8 @@ import java.util.Arrays
 @Suppress("UNCHECKED_CAST")
 data class OrdersEntity(
     override var id: Long? = null,
-    override var uid: ByteArray? = null,
-    override var userUid: ByteArray? = null,
+    override var uid: UUID? = null,
+    override var userUid: UUID? = null,
     override var orderNumber: String? = null,
     override var status: String? = null,
     override var currency: String? = null,
@@ -28,7 +28,7 @@ data class OrdersEntity(
     override var taxAmount: BigDecimal? = null,
     override var totalAmount: BigDecimal? = null,
     override var idempotencyKey: String? = null,
-    override var paymentUid: ByteArray? = null,
+    override var paymentUid: UUID? = null,
     override var createdAt: LocalDateTime? = null,
     override var updatedAt: LocalDateTime? = null,
     override var deletedAt: LocalDateTime? = null,
@@ -55,13 +55,13 @@ data class OrdersEntity(
             if (o.uid != null)
                 return false
         }
-        else if (!Arrays.equals(this.uid, o.uid))
+        else if (this.uid != o.uid)
             return false
         if (this.userUid == null) {
             if (o.userUid != null)
                 return false
         }
-        else if (!Arrays.equals(this.userUid, o.userUid))
+        else if (this.userUid != o.userUid)
             return false
         if (this.orderNumber == null) {
             if (o.orderNumber != null)
@@ -121,7 +121,7 @@ data class OrdersEntity(
             if (o.paymentUid != null)
                 return false
         }
-        else if (!Arrays.equals(this.paymentUid, o.paymentUid))
+        else if (this.paymentUid != o.paymentUid)
             return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
@@ -160,8 +160,8 @@ data class OrdersEntity(
         val prime = 31
         var result = 1
         result = prime * result + (if (this.id == null) 0 else this.id.hashCode())
-        result = prime * result + (if (this.uid == null) 0 else Arrays.hashCode(this.uid))
-        result = prime * result + (if (this.userUid == null) 0 else Arrays.hashCode(this.userUid))
+        result = prime * result + (if (this.uid == null) 0 else this.uid.hashCode())
+        result = prime * result + (if (this.userUid == null) 0 else this.userUid.hashCode())
         result = prime * result + (if (this.orderNumber == null) 0 else this.orderNumber.hashCode())
         result = prime * result + (if (this.status == null) 0 else this.status.hashCode())
         result = prime * result + (if (this.currency == null) 0 else this.currency.hashCode())
@@ -171,7 +171,7 @@ data class OrdersEntity(
         result = prime * result + (if (this.taxAmount == null) 0 else this.taxAmount.hashCode())
         result = prime * result + (if (this.totalAmount == null) 0 else this.totalAmount.hashCode())
         result = prime * result + (if (this.idempotencyKey == null) 0 else this.idempotencyKey.hashCode())
-        result = prime * result + (if (this.paymentUid == null) 0 else Arrays.hashCode(this.paymentUid))
+        result = prime * result + (if (this.paymentUid == null) 0 else this.paymentUid.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.updatedAt == null) 0 else this.updatedAt.hashCode())
         result = prime * result + (if (this.deletedAt == null) 0 else this.deletedAt.hashCode())
@@ -184,8 +184,8 @@ data class OrdersEntity(
         val sb = StringBuilder("OrdersEntity (")
 
         sb.append(id)
-        sb.append(", ").append("[binary...]")
-        sb.append(", ").append("[binary...]")
+        sb.append(", ").append(uid)
+        sb.append(", ").append(userUid)
         sb.append(", ").append(orderNumber)
         sb.append(", ").append(status)
         sb.append(", ").append(currency)
@@ -195,7 +195,7 @@ data class OrdersEntity(
         sb.append(", ").append(taxAmount)
         sb.append(", ").append(totalAmount)
         sb.append(", ").append(idempotencyKey)
-        sb.append(", ").append("[binary...]")
+        sb.append(", ").append(paymentUid)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(updatedAt)
         sb.append(", ").append(deletedAt)

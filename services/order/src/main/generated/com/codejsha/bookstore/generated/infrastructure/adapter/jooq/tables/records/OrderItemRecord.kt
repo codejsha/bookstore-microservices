@@ -10,6 +10,7 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.pojos
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
@@ -25,9 +26,9 @@ open class OrderItemRecord() : UpdatableRecordImpl<OrderItemRecord>(OrderItemTab
         set(value): Unit = set(0, value)
         get(): Long? = get(0) as Long?
 
-    open override var uid: ByteArray?
+    open override var uid: UUID?
         set(value): Unit = set(1, value)
-        get(): ByteArray? = get(1) as ByteArray?
+        get(): UUID? = get(1) as UUID?
 
     open override var orderId: Long?
         set(value): Unit = set(2, value)
@@ -128,7 +129,7 @@ open class OrderItemRecord() : UpdatableRecordImpl<OrderItemRecord>(OrderItemTab
     /**
      * Create a detached, initialised OrderItemRecord
      */
-    constructor(id: Long? = null, uid: ByteArray? = null, orderId: Long? = null, productId: Long? = null, sku: String? = null, productName: String? = null, options: String? = null, quantity: Int? = null, currency: String? = null, price: BigDecimal? = null, taxRate: BigDecimal? = null, subtotal: BigDecimal? = null, createdAt: LocalDateTime? = null, updatedAt: LocalDateTime? = null, deletedAt: LocalDateTime? = null, actorId: Long? = null, version: Long? = null): this() {
+    constructor(id: Long? = null, uid: UUID? = null, orderId: Long? = null, productId: Long? = null, sku: String? = null, productName: String? = null, options: String? = null, quantity: Int? = null, currency: String? = null, price: BigDecimal? = null, taxRate: BigDecimal? = null, subtotal: BigDecimal? = null, createdAt: LocalDateTime? = null, updatedAt: LocalDateTime? = null, deletedAt: LocalDateTime? = null, actorId: Long? = null, version: Long? = null): this() {
         this.id = id
         this.uid = uid
         this.orderId = orderId

@@ -7,8 +7,9 @@ package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.inte
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
-import org.jooq.JSON
+import org.jooq.JSONB
 
 
 /**
@@ -17,12 +18,12 @@ import org.jooq.JSON
 @Suppress("UNCHECKED_CAST")
 interface IOrderAdjustmentEntity : Serializable {
     var id: Long?
-    var uid: ByteArray?
+    var uid: UUID?
     var orderId: Long?
     var type: String?
     var label: String?
     var amount: BigDecimal?
-    var meta: JSON?
+    var meta: JSONB?
     var createdAt: LocalDateTime?
     var updatedAt: LocalDateTime?
     var deletedAt: LocalDateTime?

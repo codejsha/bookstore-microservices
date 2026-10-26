@@ -5,27 +5,27 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from internal.domain.constant.shipment_status import ShipmentStatus
-from internal.infrastructure.adapter.mysql.tracking_repo import MySQLTrackingRepository
+from internal.infrastructure.adapter.pgsql.tracking_repo import PgsqlTrackingRepository
 from tests.conftest import make_tracking
 
 
 @pytest.fixture
-def repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLTrackingRepository:
-    return MySQLTrackingRepository(session_factory)
+def repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlTrackingRepository:
+    return PgsqlTrackingRepository(session_factory)
 
 
-async def test_save_new_inserts_row(repo: MySQLTrackingRepository) -> None:
+async def test_save_new_inserts_row(repo: PgsqlTrackingRepository) -> None:
     tracking = make_tracking()
     saved = await repo.save(tracking)
     assert saved.uid == tracking.uid
     assert saved.shipment_uid == tracking.shipment_uid
 
 
-async def test_find_by_shipment_uid_no_events_is_empty(repo: MySQLTrackingRepository) -> None:
+async def test_find_by_shipment_uid_no_events_is_empty(repo: PgsqlTrackingRepository) -> None:
     assert await repo.find_by_shipment_uid(uuid4()) == []
 
 
-async def test_find_by_shipment_uid_orders_events(repo: MySQLTrackingRepository) -> None:
+async def test_find_by_shipment_uid_orders_events(repo: PgsqlTrackingRepository) -> None:
     shipment_uid = uuid4()
     base = datetime.now(UTC)
     later = make_tracking(shipment_uid=shipment_uid, status=ShipmentStatus.DISPATCHED, now=base + timedelta(hours=1))
@@ -37,7 +37,7 @@ async def test_find_by_shipment_uid_orders_events(repo: MySQLTrackingRepository)
     assert [e.status for e in events] == [ShipmentStatus.PLANNED, ShipmentStatus.DISPATCHED]
 
 
-async def test_find_by_shipment_uid_excludes_other_shipments_events(repo: MySQLTrackingRepository) -> None:
+async def test_find_by_shipment_uid_excludes_other_shipments_events(repo: PgsqlTrackingRepository) -> None:
     shipment_a = uuid4()
     shipment_b = uuid4()
     await repo.save(make_tracking(shipment_uid=shipment_a))

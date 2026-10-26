@@ -6,23 +6,23 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from internal.domain.constant.freight_status import FreightStatus
 from internal.domain.model.option.delivery_option import FreightFilterOption
-from internal.infrastructure.adapter.mysql.freight_repo import MySQLFreightRepository
+from internal.infrastructure.adapter.pgsql.freight_repo import PgsqlFreightRepository
 from tests.conftest import make_freight
 
 
 @pytest.fixture
-def repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLFreightRepository:
-    return MySQLFreightRepository(session_factory)
+def repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlFreightRepository:
+    return PgsqlFreightRepository(session_factory)
 
 
-async def test_save_new_inserts_row(repo: MySQLFreightRepository) -> None:
+async def test_save_new_inserts_row(repo: PgsqlFreightRepository) -> None:
     freight = make_freight()
     saved = await repo.save(freight)
     assert saved.uid == freight.uid
     assert saved.status == FreightStatus.ESTIMATED
 
 
-async def test_find_by_uid_roundtrips(repo: MySQLFreightRepository) -> None:
+async def test_find_by_uid_roundtrips(repo: PgsqlFreightRepository) -> None:
     freight = make_freight()
     await repo.save(freight)
     found = await repo.find_by_uid(freight.uid)
@@ -30,7 +30,7 @@ async def test_find_by_uid_roundtrips(repo: MySQLFreightRepository) -> None:
     assert found.total_cost == freight.total_cost
 
 
-async def test_find_by_shipment_uid_roundtrips(repo: MySQLFreightRepository) -> None:
+async def test_find_by_shipment_uid_roundtrips(repo: PgsqlFreightRepository) -> None:
     shipment_uid = uuid4()
     freight = make_freight(shipment_uid=shipment_uid)
     await repo.save(freight)
@@ -39,7 +39,7 @@ async def test_find_by_shipment_uid_roundtrips(repo: MySQLFreightRepository) -> 
     assert found.shipment_uid == shipment_uid
 
 
-async def test_save_found_updates_status_and_timestamps(repo: MySQLFreightRepository) -> None:
+async def test_save_found_updates_status_and_timestamps(repo: PgsqlFreightRepository) -> None:
     freight = make_freight(status=FreightStatus.ESTIMATED)
     await repo.save(freight)
     freight.status = FreightStatus.INVOICED
@@ -50,7 +50,7 @@ async def test_save_found_updates_status_and_timestamps(repo: MySQLFreightReposi
     assert updated.invoiced_at is not None
 
 
-async def test_find_all_by_status_and_carrier_matches_freights(repo: MySQLFreightRepository) -> None:
+async def test_find_all_by_status_and_carrier_matches_freights(repo: PgsqlFreightRepository) -> None:
     carrier_a = uuid4()
     carrier_b = uuid4()
     await repo.save(make_freight(carrier_uid=carrier_a, status=FreightStatus.ESTIMATED))

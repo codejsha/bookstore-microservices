@@ -8,7 +8,7 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.inter
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.Arrays
+import java.util.UUID
 
 
 /**
@@ -17,7 +17,7 @@ import java.util.Arrays
 @Suppress("UNCHECKED_CAST")
 data class OrderItemEntity(
     override var id: Long? = null,
-    override var uid: ByteArray? = null,
+    override var uid: UUID? = null,
     override var orderId: Long? = null,
     override var productId: Long? = null,
     override var sku: String? = null,
@@ -54,7 +54,7 @@ data class OrderItemEntity(
             if (o.uid != null)
                 return false
         }
-        else if (!Arrays.equals(this.uid, o.uid))
+        else if (this.uid != o.uid)
             return false
         if (this.orderId == null) {
             if (o.orderId != null)
@@ -153,7 +153,7 @@ data class OrderItemEntity(
         val prime = 31
         var result = 1
         result = prime * result + (if (this.id == null) 0 else this.id.hashCode())
-        result = prime * result + (if (this.uid == null) 0 else Arrays.hashCode(this.uid))
+        result = prime * result + (if (this.uid == null) 0 else this.uid.hashCode())
         result = prime * result + (if (this.orderId == null) 0 else this.orderId.hashCode())
         result = prime * result + (if (this.productId == null) 0 else this.productId.hashCode())
         result = prime * result + (if (this.sku == null) 0 else this.sku.hashCode())
@@ -176,7 +176,7 @@ data class OrderItemEntity(
         val sb = StringBuilder("OrderItemEntity (")
 
         sb.append(id)
-        sb.append(", ").append("[binary...]")
+        sb.append(", ").append(uid)
         sb.append(", ").append(orderId)
         sb.append(", ").append(productId)
         sb.append(", ").append(sku)

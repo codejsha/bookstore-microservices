@@ -4,7 +4,6 @@ import com.codejsha.bookstore.settlement.application.SettlementRunConflictExcept
 import com.codejsha.bookstore.settlement.application.port.SettlementRunLock
 import com.codejsha.bookstore.settlement.application.usecase.TriggerSettlementRunUseCase
 import com.codejsha.bookstore.settlement.domain.model.command.TriggerSettlementRunCommand
-import com.codejsha.bookstore.settlement.infrastructure.support.utils.uuidToBytes
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
 import org.flywaydb.core.Flyway
@@ -23,7 +22,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DriverManagerDataSource
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
-import org.testcontainers.containers.MySQLContainer
+import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -365,7 +364,7 @@ class SettlementJobIntegrationTest {
                 (uid, payment_id, amount, amount_captured, currency, status, payment_method, captured_at, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
-            uuidToBytes(UUID.randomUUID()), paymentId, amount, captured, currency, status, method,
+            UUID.randomUUID(), paymentId, amount, captured, currency, status, method,
             capturedAtUtc, LocalDateTime.now(ZoneOffset.UTC),
         )
     }
@@ -384,7 +383,7 @@ class SettlementJobIntegrationTest {
                 (uid, refund_id, payment_id, amount, currency, status, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
-            uuidToBytes(UUID.randomUUID()), refundId, paymentId, amount, currency, status,
+            UUID.randomUUID(), refundId, paymentId, amount, currency, status,
             createdAtUtc,
         )
     }
@@ -405,7 +404,7 @@ class SettlementJobIntegrationTest {
                  fee_amount, net_amount, payment_count, refund_count, status, created_at)
             VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, 'OPEN', ?)
             """.trimIndent(),
-            uuidToBytes(UUID.randomUUID()), date, currency, method, gross, refund,
+            UUID.randomUUID(), date, currency, method, gross, refund,
             gross - refund, paymentCount, refundCount, LocalDateTime.now(ZoneOffset.UTC),
         )
     }
@@ -426,7 +425,7 @@ class SettlementJobIntegrationTest {
                  amount, currency, payment_method, occurred_at, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
-            uuidToBytes(UUID.randomUUID()), date, sourceType, sourceId, sourceId,
+            UUID.randomUUID(), date, sourceType, sourceId, sourceId,
             amount, currency, method, occurredAtUtc, LocalDateTime.now(ZoneOffset.UTC),
         )
     }
@@ -497,24 +496,24 @@ class SettlementJobIntegrationTest {
     companion object {
         private const val PAYMENT_DB = "payment_db"
 
-        @JvmStatic
-        private val mysql: MySQLContainer<*> = MySQLContainer("mysql:8.4")
-            .withDatabaseName("settlement_db")
-            .withUsername("root")
-            .withPassword("test")
-            .also { it.start() }
+        private const val DB_USER = "postgres"
+        private const val DB_PASSWORD = "test"
+        private const val DRIVER = "org.postgresql.Driver"
 
         @JvmStatic
-        private val paymentJdbc: JdbcTemplate = run {
-            val base = mysql.jdbcUrl.substringBefore("/settlement_db")
-            JdbcTemplate(
-                DriverManagerDataSource(
-                    "$base/$PAYMENT_DB?allowPublicKeyRetrieval=true&useSSL=false",
-                    "root",
-                    "test",
-                ).apply { setDriverClassName("com.mysql.cj.jdbc.Driver") },
-            )
-        }
+        private val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16")
+            .withDatabaseName("settlement_db")
+            .withUsername(DB_USER)
+            .withPassword(DB_PASSWORD)
+            .also { it.start() }
+
+        private val paymentJdbcUrl: String
+            get() = "jdbc:postgresql://${postgres.host}:${postgres.getMappedPort(5432)}/$PAYMENT_DB?sslmode=disable"
+
+        @JvmStatic
+        private val paymentJdbc: JdbcTemplate = JdbcTemplate(
+            DriverManagerDataSource(paymentJdbcUrl, DB_USER, DB_PASSWORD).apply { setDriverClassName(DRIVER) },
+        )
 
         @JvmStatic
         private var migrated = false
@@ -522,19 +521,17 @@ class SettlementJobIntegrationTest {
         private fun migrateOnce() {
             if (migrated) return
             JdbcTemplate(
-                DriverManagerDataSource(mysql.jdbcUrl, "root", "test")
-                    .apply { setDriverClassName("com.mysql.cj.jdbc.Driver") },
-            ).execute("CREATE DATABASE IF NOT EXISTS $PAYMENT_DB")
+                DriverManagerDataSource(postgres.jdbcUrl, DB_USER, DB_PASSWORD).apply { setDriverClassName(DRIVER) },
+            ).execute("CREATE DATABASE $PAYMENT_DB")
 
             Flyway.configure()
-                .dataSource(mysql.jdbcUrl, "root", "test")
+                .dataSource(postgres.jdbcUrl, DB_USER, DB_PASSWORD)
                 .locations("filesystem:db/migrations")
                 .load()
                 .migrate()
 
-            val base = mysql.jdbcUrl.substringBefore("/settlement_db")
             Flyway.configure()
-                .dataSource("$base/$PAYMENT_DB?allowPublicKeyRetrieval=true&useSSL=false", "root", "test")
+                .dataSource(paymentJdbcUrl, DB_USER, DB_PASSWORD)
                 .locations("classpath:payment-fixture")
                 .load()
                 .migrate()
@@ -547,21 +544,21 @@ class SettlementJobIntegrationTest {
         fun properties(registry: DynamicPropertyRegistry) {
             migrateOnce()
 
-            registry.add("spring.datasource.url") { mysql.jdbcUrl }
-            registry.add("spring.datasource.username") { "root" }
-            registry.add("spring.datasource.password") { "test" }
-            registry.add("spring.datasource.driver-class-name") { "com.mysql.cj.jdbc.Driver" }
+            registry.add("spring.datasource.url") { postgres.jdbcUrl }
+            registry.add("spring.datasource.username") { DB_USER }
+            registry.add("spring.datasource.password") { DB_PASSWORD }
+            registry.add("spring.datasource.driver-class-name") { DRIVER }
 
             registry.add("settlement.timezone") { "Asia/Seoul" }
             registry.add("settlement.chunk-size") { 2 }
             registry.add("settlement.stale-execution-timeout") { "PT5M" }
             registry.add("settlement.lock.ttl") { "PT5M" }
             registry.add("settlement.lock.heartbeat-interval") { "PT1H" }
-            registry.add("settlement.payment-db.host") { mysql.host }
-            registry.add("settlement.payment-db.port") { mysql.getMappedPort(3306) }
-            registry.add("settlement.payment-db.params") { "allowPublicKeyRetrieval=true&useSSL=false" }
-            registry.add("payment.db.username") { "root" }
-            registry.add("payment.db.password") { "test" }
+            registry.add("settlement.payment-db.host") { postgres.host }
+            registry.add("settlement.payment-db.port") { postgres.getMappedPort(5432) }
+            registry.add("settlement.payment-db.params") { "sslmode=disable" }
+            registry.add("payment.db.username") { DB_USER }
+            registry.add("payment.db.password") { DB_PASSWORD }
             registry.add("payment.db.name") { PAYMENT_DB }
         }
     }

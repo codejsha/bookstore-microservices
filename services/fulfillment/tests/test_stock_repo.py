@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from sqlalchemy import select
@@ -8,24 +8,23 @@ from internal.application.port.repo.inventory_repos import ApplyChangeParams
 from internal.domain.constant.stock_change_type import StockChangeType
 from internal.domain.model.error import InsufficientStockError, StockNotFoundError, WarehouseNotFoundError
 from internal.domain.model.option.inventory_option import StockQueryOption
-from internal.infrastructure.adapter.mysql.models import StockEntity, StockHistoryEntity
-from internal.infrastructure.adapter.mysql.stock_repo import MySQLStockRepository
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid
+from internal.infrastructure.adapter.pgsql.models import StockEntity, StockHistoryEntity
+from internal.infrastructure.adapter.pgsql.stock_repo import PgsqlStockRepository
 from tests.conftest import seed_stock, seed_warehouse
 
 
 @pytest.fixture
-def repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLStockRepository:
-    return MySQLStockRepository(session_factory)
+def repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlStockRepository:
+    return PgsqlStockRepository(session_factory)
 
 
-async def _quantity(session_factory, stock_uid: bytes) -> tuple[int, int]:
+async def _quantity(session_factory, stock_uid: UUID) -> tuple[int, int]:
     async with session_factory() as session:
         row = (await session.execute(select(StockEntity).where(StockEntity.uid == stock_uid))).scalar_one()
         return row.quantity, row.version
 
 
-async def _history(session_factory, stock_uid: bytes) -> list[tuple[str, int]]:
+async def _history(session_factory, stock_uid: UUID) -> list[tuple[str, int]]:
     async with session_factory() as session:
         rows = (
             await session.execute(
@@ -39,8 +38,8 @@ async def _history(session_factory, stock_uid: bytes) -> list[tuple[str, int]]:
 
 def _params(stock: StockEntity, delta: int, change_type: StockChangeType, reason: str | None = None):
     return ApplyChangeParams(
-        edition_uid=bytes_to_uuid(stock.edition_uid),
-        warehouse_uid=bytes_to_uuid(stock.warehouse_uid),
+        edition_uid=stock.edition_uid,
+        warehouse_uid=stock.warehouse_uid,
         delta=delta,
         change_type=change_type,
         reason=reason,
@@ -48,7 +47,7 @@ def _params(stock: StockEntity, delta: int, change_type: StockChangeType, reason
 
 
 async def test_apply_change_inbound_existing_row_increments_quantity_and_records_history(
-    repo: MySQLStockRepository, session_factory
+    repo: PgsqlStockRepository, session_factory
 ) -> None:
     warehouse = await seed_warehouse(session_factory)
     stock = await seed_stock(session_factory, warehouse, edition_id=1, quantity=10)
@@ -60,7 +59,7 @@ async def test_apply_change_inbound_existing_row_increments_quantity_and_records
 
 
 async def test_apply_change_reservation_beyond_quantity_raises_insufficient_and_keeps_quantity(
-    repo: MySQLStockRepository, session_factory
+    repo: PgsqlStockRepository, session_factory
 ) -> None:
     warehouse = await seed_warehouse(session_factory)
     stock = await seed_stock(session_factory, warehouse, edition_id=1, quantity=3)
@@ -73,12 +72,12 @@ async def test_apply_change_reservation_beyond_quantity_raises_insufficient_and_
 
 
 async def test_apply_change_reservation_missing_row_raises_stock_not_found(
-    repo: MySQLStockRepository, session_factory
+    repo: PgsqlStockRepository, session_factory
 ) -> None:
     warehouse = await seed_warehouse(session_factory)
     params = ApplyChangeParams(
         edition_uid=uuid4(),
-        warehouse_uid=bytes_to_uuid(warehouse.uid),
+        warehouse_uid=warehouse.uid,
         delta=-1,
         change_type=StockChangeType.RESERVATION,
         reason=None,
@@ -88,12 +87,12 @@ async def test_apply_change_reservation_missing_row_raises_stock_not_found(
 
 
 async def test_apply_change_inbound_missing_warehouse_raises_warehouse_not_found(
-    repo: MySQLStockRepository, session_factory
+    repo: PgsqlStockRepository, session_factory
 ) -> None:
     warehouse = await seed_warehouse(session_factory)
     stock = await seed_stock(session_factory, warehouse, edition_id=1, quantity=1)
     params = ApplyChangeParams(
-        edition_uid=bytes_to_uuid(stock.edition_uid),
+        edition_uid=stock.edition_uid,
         warehouse_uid=uuid4(),
         delta=1,
         change_type=StockChangeType.INBOUND,
@@ -104,12 +103,12 @@ async def test_apply_change_inbound_missing_warehouse_raises_warehouse_not_found
 
 
 async def test_apply_change_inbound_edition_without_any_stock_raises_stock_not_found(
-    repo: MySQLStockRepository, session_factory
+    repo: PgsqlStockRepository, session_factory
 ) -> None:
     warehouse = await seed_warehouse(session_factory)
     params = ApplyChangeParams(
         edition_uid=uuid4(),
-        warehouse_uid=bytes_to_uuid(warehouse.uid),
+        warehouse_uid=warehouse.uid,
         delta=1,
         change_type=StockChangeType.INBOUND,
         reason=None,
@@ -119,7 +118,7 @@ async def test_apply_change_inbound_edition_without_any_stock_raises_stock_not_f
 
 
 async def test_apply_change_inbound_new_warehouse_with_sibling_creates_row(
-    repo: MySQLStockRepository, session_factory
+    repo: PgsqlStockRepository, session_factory
 ) -> None:
     first = await seed_warehouse(session_factory, name="A")
     second = await seed_warehouse(session_factory, name="B")
@@ -127,15 +126,15 @@ async def test_apply_change_inbound_new_warehouse_with_sibling_creates_row(
 
     await repo.apply_change(
         ApplyChangeParams(
-            edition_uid=bytes_to_uuid(sibling.edition_uid),
-            warehouse_uid=bytes_to_uuid(second.uid),
+            edition_uid=sibling.edition_uid,
+            warehouse_uid=second.uid,
             delta=6,
             change_type=StockChangeType.INBOUND,
             reason=None,
         )
     )
 
-    stock = await repo.find_by_edition_uid(bytes_to_uuid(sibling.edition_uid))
+    stock = await repo.find_by_edition_uid(sibling.edition_uid)
     assert stock is not None
     assert stock.total_quantity == 10
     assert {w.warehouse_name: w.quantity for w in stock.warehouses} == {"A": 4, "B": 6}
@@ -145,7 +144,7 @@ async def test_apply_change_inbound_new_warehouse_with_sibling_creates_row(
     assert created.version == 2
 
 
-async def test_find_all_groups_rows_by_edition_with_distinct_total(repo: MySQLStockRepository, session_factory) -> None:
+async def test_find_all_groups_rows_by_edition_with_distinct_total(repo: PgsqlStockRepository, session_factory) -> None:
     first = await seed_warehouse(session_factory, name="A")
     second = await seed_warehouse(session_factory, name="B")
     edition = uuid4()
@@ -161,19 +160,19 @@ async def test_find_all_groups_rows_by_edition_with_distinct_total(repo: MySQLSt
     assert len(by_edition[edition].warehouses) == 2
 
 
-async def test_find_all_by_warehouse_filters_rows(repo: MySQLStockRepository, session_factory) -> None:
+async def test_find_all_by_warehouse_filters_rows(repo: PgsqlStockRepository, session_factory) -> None:
     first = await seed_warehouse(session_factory, name="A")
     second = await seed_warehouse(session_factory, name="B")
     await seed_stock(session_factory, first, edition_id=1, quantity=3)
     await seed_stock(session_factory, second, edition_id=2, quantity=4)
 
-    items, total = await repo.find_all(StockQueryOption(warehouse_uid=bytes_to_uuid(second.uid)))
+    items, total = await repo.find_all(StockQueryOption(warehouse_uid=second.uid))
 
     assert total == 1
     assert items[0].warehouses[0].warehouse_name == "B"
 
 
-async def test_find_all_with_page_size_pages_editions(repo: MySQLStockRepository, session_factory) -> None:
+async def test_find_all_with_page_size_pages_editions(repo: PgsqlStockRepository, session_factory) -> None:
     warehouse = await seed_warehouse(session_factory)
     for edition_id in range(5):
         await seed_stock(session_factory, warehouse, edition_id=edition_id, quantity=1)
@@ -184,11 +183,11 @@ async def test_find_all_with_page_size_pages_editions(repo: MySQLStockRepository
     assert len(items) == 2
 
 
-async def test_find_by_edition_uid_missing_is_none(repo: MySQLStockRepository) -> None:
+async def test_find_by_edition_uid_missing_is_none(repo: PgsqlStockRepository) -> None:
     assert await repo.find_by_edition_uid(uuid4()) is None
 
 
-async def test_find_stock_uids_by_warehouse_filters_rows(repo: MySQLStockRepository, session_factory) -> None:
+async def test_find_stock_uids_by_warehouse_filters_rows(repo: PgsqlStockRepository, session_factory) -> None:
     first = await seed_warehouse(session_factory, name="A")
     second = await seed_warehouse(session_factory, name="B")
     edition = uuid4()
@@ -196,4 +195,4 @@ async def test_find_stock_uids_by_warehouse_filters_rows(repo: MySQLStockReposit
     await seed_stock(session_factory, second, edition_id=1, edition_uid=edition, quantity=4)
 
     assert len(await repo.find_stock_uids(edition, None)) == 2
-    assert await repo.find_stock_uids(edition, bytes_to_uuid(first.uid)) == [bytes_to_uuid(a.uid)]
+    assert await repo.find_stock_uids(edition, first.uid) == [a.uid]

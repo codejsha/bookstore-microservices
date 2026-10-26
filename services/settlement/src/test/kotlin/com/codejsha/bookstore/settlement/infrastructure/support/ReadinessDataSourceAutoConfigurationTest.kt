@@ -18,8 +18,8 @@ class ReadinessDataSourceAutoConfigurationTest {
             .withConfiguration(AutoConfigurations.of(DataSourceAutoConfiguration::class.java))
             .withUserConfiguration(ReadinessDataSourceConfig::class.java)
             .withPropertyValues(
-                "spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver",
-                "spring.datasource.url=jdbc:mysql://localhost:3306/settlement_db",
+                "spring.datasource.driver-class-name=org.postgresql.Driver",
+                "spring.datasource.url=jdbc:postgresql://localhost:5432/settlement_db",
                 "spring.datasource.username=app",
                 "spring.datasource.password=app",
                 "spring.datasource.hikari.maximum-pool-size=$APPLICATION_POOL_MAXIMUM_SIZE",

@@ -11,16 +11,16 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.Settl
 
 
 /**
- * Daily sales-close / PG reconciliation buckets
+ * The table <code>public.daily_settlement</code>.
  */
 val DAILY_SETTLEMENT: DailySettlementTable = DailySettlementTable.DAILY_SETTLEMENT
 
 /**
- * Individual payment/refund lines feeding a settlement bucket
+ * The table <code>public.settlement_detail</code>.
  */
 val SETTLEMENT_DETAIL: SettlementDetailTable = SettlementDetailTable.SETTLEMENT_DETAIL
 
 /**
- * Audit log of settlement batch executions
+ * The table <code>public.settlement_job_run</code>.
  */
 val SETTLEMENT_JOB_RUN: SettlementJobRunTable = SettlementJobRunTable.SETTLEMENT_JOB_RUN

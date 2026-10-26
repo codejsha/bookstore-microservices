@@ -11,13 +11,15 @@ metadata:
     tekton.dev/displayName: "DB Migrate (Alembic)"
 spec:
   description: >-
-    Runs `alembic upgrade head` against MySQL using the rootUser/rootPassword
-    keys from the Oracle MySQL Operator secret. The service's pydantic-settings
-    reads <SERVICE>__DATABASE__* env vars to build the SQLAlchemy URL inside
-    Alembic's env.py. A service that owns no database ships no migrations
-    directory; the task detects that and exits cleanly, so the pipeline's later
-    deploy steps still run. Guarding this with a `when` expression instead would
-    skip every task that depends on it -- which here is the whole deploy chain.
+    Runs `alembic upgrade head` against PostgreSQL. Credentials come from
+    DB_SECRET_NAME, the CloudNativePG application secret (username/password),
+    read optionally. The service's pydantic-settings reads
+    <SERVICE>__DATABASE__* env vars (HOST, PORT, DB_NAME, USERNAME, PASSWORD)
+    to build the SQLAlchemy URL inside Alembic's env.py. A service that owns no
+    database ships no migrations directory; the task detects that and exits
+    cleanly, so the pipeline's later deploy steps still run. Guarding this with
+    a `when` expression instead would skip every task that depends on it --
+    which here is the whole deploy chain.
   workspaces:
     - name: source
   params:
@@ -34,15 +36,16 @@ spec:
       type: string
     - name: DB_SECRET_NAME
       description: >-
-        K8s secret with rootUser/rootPassword. Read optionally: a service with no
-        database has no such secret, and a missing secretKeyRef would fail the
-        pod before the skip check below can run.
+        K8s secret holding the PostgreSQL credentials (CloudNativePG
+        username/password). Read optionally: a service with no database has no
+        such secret, and a missing secretKeyRef would fail the pod before the
+        skip check below can run.
       type: string
     - name: DB_HOST
-      description: MySQL host
+      description: PostgreSQL host
       type: string
     - name: DB_NAME
-      description: MySQL schema
+      description: database name
       type: string
     - name: NEXUS_PYPI_URL
       description: >-
@@ -60,17 +63,17 @@ spec:
       image: ghcr.io/astral-sh/uv:python3.13-bookworm
       workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
       env:
-        - name: DB_USER
+        - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
               name: $(params.DB_SECRET_NAME)
-              key: rootUser
+              key: username
               optional: true
-        - name: DB_PASSWORD
+        - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
               name: $(params.DB_SECRET_NAME)
-              key: rootPassword
+              key: password
               optional: true
         - name: NEXUS_PYPI_URL
           value: $(params.NEXUS_PYPI_URL)
@@ -93,6 +96,11 @@ spec:
           exit 0
         fi
 
+        if [ -z "${POSTGRES_USER:-}" ]; then
+          echo "secret $(params.DB_SECRET_NAME) carries no username/password" >&2
+          exit 1
+        fi
+
         proto="${NEXUS_PYPI_URL%%://*}"
         rest="${NEXUS_PYPI_URL#*://}"
         host="${rest%%/*}"
@@ -101,16 +109,12 @@ spec:
         export UV_INDEX_URL="$UV_DEFAULT_INDEX"
         export UV_INSECURE_HOST="$host"
 
-        if [ -z "${DB_USER:-}" ]; then
-          echo "secret $(params.DB_SECRET_NAME) carries no credentials" >&2
-          exit 1
-        fi
-
         prefix=$(printf '%s' "$(params.SERVICE_NAME)" | tr '[:lower:]' '[:upper:]')
         export ${prefix}__DATABASE__HOST="$(params.DB_HOST)"
+        export ${prefix}__DATABASE__PORT=5432
         export ${prefix}__DATABASE__DB_NAME="$(params.DB_NAME)"
-        export ${prefix}__DATABASE__USERNAME="$DB_USER"
-        export ${prefix}__DATABASE__PASSWORD="$DB_PASSWORD"
+        export ${prefix}__DATABASE__USERNAME="$POSTGRES_USER"
+        export ${prefix}__DATABASE__PASSWORD="${POSTGRES_PASSWORD:-}"
         uv sync --frozen
 
         export PYTHONPATH="$(workspaces.source.path)/$(params.CONTEXT_DIR)"

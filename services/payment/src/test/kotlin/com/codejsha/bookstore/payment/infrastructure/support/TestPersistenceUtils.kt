@@ -30,7 +30,7 @@ class TestPersistenceUtils {
                     .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
                     .withRenderSchema(false)
             return DefaultConfiguration()
-                .set(SQLDialect.MYSQL)
+                .set(SQLDialect.POSTGRES)
                 .set(settings)
                 .set(connection)
         }

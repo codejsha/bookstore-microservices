@@ -136,16 +136,6 @@ locals {
       { path = "kv-infra/data/nexus/admin/credentials", capabilities = ["read"] },
       { path = "kv-infra/data/nexus/publisher", capabilities = ["create", "read", "update", "list"] },
     ]
-    mysql-config = [
-      { path = "kv-bookstore/data/+/mysql", capabilities = ["create", "read", "update", "list"] },
-      { path = "sys/policies/acl/bookstore-mysql", capabilities = ["create", "read", "update", "delete"] },
-      { path = "auth/kubernetes/role/bookstore-mysql-role", capabilities = ["create", "read", "update", "delete"] },
-      { path = "database/config/*", capabilities = ["create", "read", "update", "delete"] },
-      { path = "database/roles/*", capabilities = ["create", "read", "update", "delete"] },
-      { path = "database/static-roles/*", capabilities = ["create", "read", "update", "delete"] },
-      { path = "database/rotate-root/*", capabilities = ["create", "update"] },
-      { path = "database/reset/*", capabilities = ["create", "update"] },
-    ]
     opensearch-config = [
       { path = "kv-infra/data/opensearch/admin/credentials", capabilities = ["read"] },
     ]
@@ -186,7 +176,7 @@ locals {
 
   password_generators = toset([
     "argocd", "gitea", "grafana", "harbor", "hyperswitch", "keycloak", "nexus", "opensearch",
-    "gitea-config", "harbor-config", "keycloak-config", "mysql-config", "postgresql-config",
+    "gitea-config", "harbor-config", "keycloak-config", "postgresql-config",
   ])
   password_generate_rules = [
     { path = "sys/policies/password/password-special/generate", capabilities = ["read"] },
