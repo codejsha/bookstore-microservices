@@ -13,19 +13,19 @@ const (
 )
 
 var ownerParamByRoute = map[string]string{
-	"/api/v1/customers/:uid":                       "uid",
-	"/api/v1/customers/:uid/orders":                "uid",
-	"/api/v1/customers/:uid/orders/:order_uid":     "uid",
-	"/api/v1/customers/:uid/payments":              "uid",
-	"/api/v1/customers/:uid/payments/:payment_uid": "uid",
-	"/api/v1/customers/:uid/points":                "uid",
-	"/api/v1/customers/:uid/points/history":        "uid",
-	"/api/v1/customers/:uid/points/spend":          "uid",
-	"/api/v1/customers/:uid/reviews":               "uid",
-	"/api/v1/customers/:uid/reviews/:review_uid":   "uid",
-	"/api/v1/customers/:uid/wishlist":              "uid",
-	"/api/v1/customers/:uid/wishlist/add":          "uid",
-	"/api/v1/customers/:uid/wishlist/remove":       "uid",
+	"/api/v1/customers/:uid":                      "uid",
+	"/api/v1/customers/:uid/orders":               "uid",
+	"/api/v1/customers/:uid/orders/:orderUid":     "uid",
+	"/api/v1/customers/:uid/payments":             "uid",
+	"/api/v1/customers/:uid/payments/:paymentUid": "uid",
+	"/api/v1/customers/:uid/points":               "uid",
+	"/api/v1/customers/:uid/points/history":       "uid",
+	"/api/v1/customers/:uid/points/spend":         "uid",
+	"/api/v1/customers/:uid/reviews":              "uid",
+	"/api/v1/customers/:uid/reviews/:reviewUid":   "uid",
+	"/api/v1/customers/:uid/wishlist":             "uid",
+	"/api/v1/customers/:uid/wishlist/add":         "uid",
+	"/api/v1/customers/:uid/wishlist/remove":      "uid",
 }
 
 var staffOnlyRoutes = map[string]bool{
