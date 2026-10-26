@@ -5,11 +5,11 @@ import com.codejsha.bookstore.admin.domain.model.external.Stock
 import com.codejsha.bookstore.admin.domain.model.external.StockAtWarehouse
 import com.codejsha.bookstore.admin.domain.model.external.Warehouse
 import com.codejsha.bookstore.admin.domain.model.option.StockQueryOption
-import com.codejsha.bookstore.generated.application.port.restclient.inventory.api.StockApi
-import com.codejsha.bookstore.generated.application.port.restclient.inventory.api.WarehouseApi
-import com.codejsha.bookstore.generated.application.port.restclient.inventory.model.StockFindResponse
-import com.codejsha.bookstore.generated.application.port.restclient.inventory.model.StockWarehouseItem
-import com.codejsha.bookstore.generated.application.port.restclient.inventory.model.WarehouseFindResponse
+import com.codejsha.bookstore.generated.application.port.restclient.fulfillment.api.StockApi
+import com.codejsha.bookstore.generated.application.port.restclient.fulfillment.api.WarehouseApi
+import com.codejsha.bookstore.generated.application.port.restclient.fulfillment.model.StockFindResponse
+import com.codejsha.bookstore.generated.application.port.restclient.fulfillment.model.StockWarehouseItem
+import com.codejsha.bookstore.generated.application.port.restclient.fulfillment.model.WarehouseFindResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component

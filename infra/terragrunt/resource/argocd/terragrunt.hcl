@@ -37,8 +37,8 @@ inputs = {
   org_name       = "example-corp"
 
   app_repos = [
-    "catalog-helm", "customer-helm", "identity-helm", "inventory-helm",
-    "order-helm", "payment-helm", "delivery-helm", "support-helm",
+    "catalog-helm", "customer-helm", "identity-helm",
+    "order-helm", "payment-helm", "fulfillment-helm", "support-helm",
     "web-helm", "admin-helm", "admin-web-helm", "settlement-helm",
   ]
 }

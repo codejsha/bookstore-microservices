@@ -52,8 +52,8 @@ inputs = {
   source_repo_suffix = local.gitea.source_repo_suffix
 
   gradle_services = ["order", "payment", "settlement", "admin"]
-  golang_services = ["catalog", "customer", "identity", "inventory"]
-  uv_services     = ["delivery", "support"]
+  golang_services = ["catalog", "customer", "identity"]
+  uv_services     = ["fulfillment", "support"]
   vite_services   = ["web", "admin-web"]
 
   service_accounts = ["git-source", "git-deploy"]

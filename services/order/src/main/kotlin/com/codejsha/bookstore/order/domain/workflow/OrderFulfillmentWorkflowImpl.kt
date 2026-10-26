@@ -24,7 +24,7 @@ class OrderFulfillmentWorkflowImpl : OrderFulfillmentWorkflow {
         ActivityOptions.newBuilder()
             .setStartToCloseTimeout(Duration.ofSeconds(60))
             .setScheduleToCloseTimeout(Duration.ofMinutes(10))
-            .setTaskQueue("delivery-task-queue")
+            .setTaskQueue("fulfillment-task-queue")
             .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(3).build())
             .build(),
     )

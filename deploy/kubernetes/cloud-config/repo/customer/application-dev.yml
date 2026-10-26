@@ -16,8 +16,8 @@ grpc:
   user_server:
     host: identity.bookstore.svc.cluster.local
     port: 9090
-  delivery_server:
-    host: delivery.bookstore.svc.cluster.local
+  fulfillment_server:
+    host: fulfillment.bookstore.svc.cluster.local
     port: 9090
 
 kafka:

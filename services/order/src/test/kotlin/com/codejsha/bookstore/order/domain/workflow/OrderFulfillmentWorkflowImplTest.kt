@@ -47,7 +47,7 @@ class OrderFulfillmentWorkflowImplTest {
             registerWorkflowImplementationTypes(OrderFulfillmentWorkflowImpl::class.java)
             registerActivitiesImplementations(orderActivities)
         }
-        env.newWorker("delivery-task-queue").registerActivitiesImplementations(deliveryActivities)
+        env.newWorker("fulfillment-task-queue").registerActivitiesImplementations(deliveryActivities)
         env.start()
 
         workflow = env.workflowClient.newWorkflowStub(

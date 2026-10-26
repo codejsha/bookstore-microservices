@@ -1,4 +1,4 @@
-SERVICES := admin catalog customer delivery identity inventory order payment
+SERVICES := admin catalog customer fulfillment identity order payment
 CONFIG := config.toml
 SPEC_DIR := ../../services
 PUBLISH_SCRIPT := ../../scripts/nexus-npm-publish.sh

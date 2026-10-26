@@ -1,0 +1,147 @@
+SERVICE_NAME := fulfillment
+VERSION := 1.0.0
+PB_OUT := generated/application/port/pb/fulfillmentpb
+
+.PHONY: none
+none:
+	@echo "No target specified."
+
+.PHONY: version
+version:
+	@echo $(VERSION)
+
+.PHONY: spec
+spec:
+	yq -i '.appVersion = "$(VERSION)"' ../../deploy/kubernetes/helm/$(SERVICE_NAME)/Chart.yaml
+
+.PHONY: deps
+deps:
+	uv sync
+
+.PHONY: style
+style:
+	uv run ruff check --fix .
+	uv run ruff format .
+
+NEXUS_RAW_URL ?= https://nexus.example.com/repository/raw-hosted
+NEXUS_AUTH ?=
+nexus_auth = { if [ -n "$(NEXUS_AUTH)" ]; then printf '%s' "$(NEXUS_AUTH)"; \
+	else u=$$(vault kv get -mount=kv-infra -field=username nexus/publisher) && \
+	     p=$$(vault kv get -mount=kv-infra -field=password nexus/publisher) && \
+	     [ -n "$$u" ] && [ -n "$$p" ] && printf '%s:%s' "$$u" "$$p"; fi; }
+
+GRPC_API_VERSION := 1.1.0
+GRPC_PROTO_DIR := ./api/grpc/proto
+GRPC_PROTO_URL := $(NEXUS_RAW_URL)/vendor/bookstore-grpc/$(GRPC_API_VERSION)/proto.tar.gz
+
+.PHONY: grpc-fetch
+grpc-fetch:
+	@auth=$$($(nexus_auth)); \
+	[ -n "$$auth" ] || { echo "ERROR: no Nexus auth (set NEXUS_AUTH or ensure Vault kv-infra/nexus/publisher is reachable)" >&2; exit 1; }; \
+	rm -rf $(GRPC_PROTO_DIR) && mkdir -p $(GRPC_PROTO_DIR) && \
+	curl -fsS -u "$$auth" "$(GRPC_PROTO_URL)" | tar -xz -C $(GRPC_PROTO_DIR)
+
+$(GRPC_PROTO_DIR)/buf.yaml:
+	@$(MAKE) --no-print-directory grpc-fetch
+
+.PHONY: grpc-gen
+grpc-gen: $(GRPC_PROTO_DIR)/buf.yaml
+	rm -rf $(PB_OUT)
+	mkdir -p $(PB_OUT)
+	uv run python -m grpc_tools.protoc \
+		-I=$(GRPC_PROTO_DIR)/modules \
+		--python_out=$(PB_OUT) \
+		--grpc_python_out=$(PB_OUT) \
+		--pyi_out=$(PB_OUT) \
+		$(GRPC_PROTO_DIR)/modules/fulfillment/v1.proto
+	@touch $(PB_OUT)/__init__.py $(PB_OUT)/fulfillment/__init__.py
+	@sed -i.bak 's|^from fulfillment import v1_pb2|from . import v1_pb2|' \
+		$(PB_OUT)/fulfillment/v1_pb2_grpc.py
+	@rm -f $(PB_OUT)/fulfillment/v1_pb2_grpc.py.bak
+
+.PHONY: grpc
+grpc: grpc-gen
+
+.PHONY: openapi-bundle
+openapi-bundle:
+	cd api/openapi && pnpm install --frozen-lockfile && pnpm exec tsp compile ./main.tsp --output-dir .
+
+.PHONY: openapi-gen
+openapi-gen:
+	rm -rf ./generated/application/port/openapi ./generated/application/port/model ./generated/application/port/api ./generated/application/port/constant
+	oapi-codegen-cli -c api/openapi/config.toml
+	@find ./generated/application/port/model -name "*.py" -exec sed -i.bak \
+		-E 's#^from \.([a-z_]+_(status|type)) import#from ..constant.\1 import#' \
+		{} +
+	@find ./generated/application/port/model -name "*.bak" -delete
+
+.PHONY: openapi
+openapi: openapi-bundle openapi-gen
+
+.PHONY: gen
+gen: spec grpc openapi
+
+.PHONY: build
+build:
+	uv build
+
+.PHONY: podman-build
+podman-build: build
+	podman build \
+		--no-cache \
+		--platform linux/amd64 \
+		--file ./ci/Dockerfile \
+		--tag harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION) .
+
+.PHONY: podman-push
+podman-push: podman-build
+	podman push harbor.example.com/bookstore/$(SERVICE_NAME):$(VERSION)
+
+.PHONY: test
+test:
+	uv run pytest -v
+
+.PHONY: run
+run:
+	FULFILLMENT__SERVER__MODE=debug uv run python main.py
+
+.PHONY: migrate-create
+migrate-create:
+	uv run alembic revision --autogenerate -m "$(VAR)"
+
+.PHONY: migrate-up
+migrate-up:
+	uv run alembic upgrade head
+
+.PHONY: migrate-down
+migrate-down:
+	uv run alembic downgrade -1
+
+.PHONY: seed-stock
+seed-stock:
+	uv run python scripts/seed_stock.py $(ARGS)
+
+CONTRACT_SCHEMA_PATH := $(abspath api/openapi/schema/openapi.1.0.0.json)
+
+.PHONY: contract-test-deps
+contract-test-deps:
+	cd ci/contract-test && uv sync
+
+.PHONY: contract-test
+contract-test:
+	cd ci/contract-test && CONTRACT_SCHEMA_PATH=$(CONTRACT_SCHEMA_PATH) uv run pytest
+
+.PHONY: contract-test-cli
+contract-test-cli:
+	cd ci/contract-test && uv run schemathesis run \
+		--url $${CONTRACT_BASE_URL:-http://localhost:8080} \
+		--checks all \
+		$(CONTRACT_SCHEMA_PATH)
+
+.PHONY: load-test-smoke
+load-test-smoke:
+	cd ci/load-test && k6 run smoke.js
+
+.PHONY: load-test
+load-test:
+	cd ci/load-test && k6 run load.js

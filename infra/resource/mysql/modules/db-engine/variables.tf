@@ -4,7 +4,7 @@ variable "namespace" {
 }
 
 variable "mysql_services" {
-  description = "List of MySQL service names. Must match the services wired in resource/mysql (order/payment/delivery/support/settlement)."
+  description = "List of MySQL service names. Must match the services wired in resource/mysql (order/payment/fulfillment/support/settlement)."
   type        = list(string)
 }
 

@@ -24,7 +24,7 @@ class OrderCancellationWorkflowImpl : OrderCancellationWorkflow {
         ActivityOptions.newBuilder()
             .setStartToCloseTimeout(Duration.ofSeconds(30))
             .setScheduleToCloseTimeout(Duration.ofMinutes(10))
-            .setTaskQueue("inventory-task-queue")
+            .setTaskQueue("fulfillment-task-queue")
             .setRetryOptions(RetryOptions.newBuilder().setMaximumAttempts(3).build())
             .build(),
     )

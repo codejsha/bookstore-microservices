@@ -7,7 +7,7 @@ APP_NAME := $(SERVICE_NAME)-app
 COMMIT := $(shell git rev-parse --short HEAD)
 PLATFORM := $(shell uname -s)
 
-DOWNSTREAMS := catalog customer identity inventory order payment settlement
+DOWNSTREAMS := catalog customer fulfillment identity order payment settlement
 
 .PHONY: none
 none:

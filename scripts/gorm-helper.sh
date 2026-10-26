@@ -9,4 +9,3 @@ PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 (cd "${PROJECT_ROOT}/services/catalog" && make gorm)
 (cd "${PROJECT_ROOT}/services/customer" && make gorm)
 (cd "${PROJECT_ROOT}/services/identity" && make gorm)
-(cd "${PROJECT_ROOT}/services/inventory" && make gorm)

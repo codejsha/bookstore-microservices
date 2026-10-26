@@ -1,6 +1,6 @@
 PROJECT_ROOT := $(shell cd ../../ && pwd)
-GRPC_API_VERSION := 1.0.0
-SERVICES := customer identity order payment delivery
+GRPC_API_VERSION := 1.1.0
+SERVICES := customer identity order payment fulfillment
 
 TOOLCHAIN_IMAGE := protoc-toolchain
 TOOLCHAIN_VERSION := 0.1.0
@@ -14,8 +14,8 @@ PROTOC_GEN_GO_GRPC_VERSION := v1.6.2
 NEXUS_RAW_URL ?= https://nexus.example.com/repository/raw-hosted
 NEXUS_AUTH ?=
 nexus_auth = { if [ -n "$(NEXUS_AUTH)" ]; then printf '%s' "$(NEXUS_AUTH)"; \
-	else u=$$(vault kv get -mount=kv -field=username nexus/publisher) && \
-	     p=$$(vault kv get -mount=kv -field=password nexus/publisher) && \
+	else u=$$(vault kv get -mount=kv-infra -field=username nexus/publisher) && \
+	     p=$$(vault kv get -mount=kv-infra -field=password nexus/publisher) && \
 	     [ -n "$$u" ] && [ -n "$$p" ] && printf '%s:%s' "$$u" "$$p"; fi; }
 
 GRPC_PROTO_URL := $(NEXUS_RAW_URL)/vendor/bookstore-grpc/$(GRPC_API_VERSION)/proto.tar.gz
@@ -38,12 +38,12 @@ grpc-gen:
 	cd proto && buf generate --template buf.gen.user.yaml
 	cd proto && buf generate --template buf.gen.order.yaml
 	cd proto && buf generate --template buf.gen.payment.yaml
-	cd proto && buf generate --template buf.gen.delivery.yaml
+	cd proto && buf generate --template buf.gen.fulfillment.yaml
 	@for svc in $(SERVICES); do \
 		dest=../../services/$$svc/api/grpc/proto; \
 		rm -rf $$dest && mkdir -p $$dest && cp -R proto/buf.yaml proto/modules $$dest/; \
 	done
-	$(MAKE) --no-print-directory -C ../../services/delivery grpc-gen
+	$(MAKE) --no-print-directory -C ../../services/fulfillment grpc-gen
 
 .PHONY: grpc
 grpc: grpc-bundle grpc-gen

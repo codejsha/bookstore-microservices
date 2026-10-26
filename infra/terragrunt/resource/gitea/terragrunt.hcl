@@ -36,8 +36,8 @@ inputs = {
 
   dev_repos = [
     "admin-source", "admin-web-source", "catalog-source", "customer-source",
-    "identity-source", "inventory-source", "order-source", "payment-source",
-    "delivery-source", "support-source", "web-source",
+    "identity-source", "order-source", "payment-source",
+    "fulfillment-source", "support-source", "web-source",
     "settlement-source",
 
     "shared-library-go",
@@ -46,8 +46,8 @@ inputs = {
     "jooq-codegen-plugin",
 
     "admin-helm", "admin-web-helm", "catalog-helm", "customer-helm", "identity-helm",
-    "inventory-helm", "order-helm", "payment-helm", "delivery-helm",
-    "support-helm", "web-helm", "settlement-helm",
+    "order-helm", "payment-helm",
+    "fulfillment-helm", "support-helm", "web-helm", "settlement-helm",
   ]
   devops_repos = []
 
