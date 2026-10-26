@@ -34,8 +34,8 @@ server:
           sql:
             createDatabase: true
             manageSchema: true
-            pluginName: mysql8
-            driverName: mysql8
+            pluginName: postgres12
+            driverName: postgres12
             databaseName: temporal
             connectAddr: "${db_connect_addr}"
             connectProtocol: tcp
@@ -49,8 +49,8 @@ server:
           sql:
             createDatabase: true
             manageSchema: true
-            pluginName: mysql8
-            driverName: mysql8
+            pluginName: postgres12
+            driverName: postgres12
             databaseName: temporal_visibility
             connectAddr: "${db_connect_addr}"
             connectProtocol: tcp

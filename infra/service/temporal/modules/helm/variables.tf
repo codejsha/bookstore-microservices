@@ -4,17 +4,17 @@ variable "namespace" {
 }
 
 variable "db_connect_addr" {
-  description = "host:port of the MySQL read-write endpoint for Temporal's SQL stores"
+  description = "host:port of the PostgreSQL read-write endpoint for Temporal's SQL stores"
   type        = string
 }
 
 variable "db_secret_name" {
-  description = "Secret (key `password`) holding the MySQL root password"
+  description = "Secret (key `password`) holding the PostgreSQL superuser password"
   type        = string
 }
 
 variable "db_user" {
-  description = "MySQL user Temporal connects as (root, so it can create databases/schemas)"
+  description = "PostgreSQL user Temporal connects as (superuser, so it can create databases/schemas)"
   type        = string
 }
 
