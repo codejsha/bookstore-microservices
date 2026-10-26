@@ -8,23 +8,22 @@ from internal.application.port.repo.repos import CarrierRepository
 from internal.domain.aggregate.carrier_aggregate import CarrierAggregate
 from internal.domain.constant.carrier_status import CarrierStatus
 from internal.domain.model.option.delivery_option import CarrierFilterOption
-from internal.infrastructure.adapter.mysql.models import CarrierEntity
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
+from internal.infrastructure.adapter.pgsql.models import CarrierEntity
 
 
-class MySQLCarrierRepository(CarrierRepository):
+class PgsqlCarrierRepository(CarrierRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
     async def save(self, carrier: CarrierAggregate) -> CarrierAggregate:
         async with self._session_factory() as session:
             entity = (
-                await session.execute(select(CarrierEntity).where(CarrierEntity.uid == uuid_to_bytes(carrier.uid)))
+                await session.execute(select(CarrierEntity).where(CarrierEntity.uid == carrier.uid))
             ).scalar_one_or_none()
 
             if entity is None:
                 entity = CarrierEntity(
-                    uid=uuid_to_bytes(carrier.uid),
+                    uid=carrier.uid,
                     name=carrier.name,
                     code=carrier.code,
                     contact_name=carrier.contact_name,
@@ -56,7 +55,7 @@ class MySQLCarrierRepository(CarrierRepository):
             entity = (
                 await session.execute(
                     select(CarrierEntity).where(
-                        CarrierEntity.uid == uuid_to_bytes(uid),
+                        CarrierEntity.uid == uid,
                         CarrierEntity.deleted_at.is_(None),
                     )
                 )
@@ -101,7 +100,7 @@ class MySQLCarrierRepository(CarrierRepository):
                 await session.execute(
                     select(CarrierEntity)
                     .where(
-                        CarrierEntity.uid == uuid_to_bytes(uid),
+                        CarrierEntity.uid == uid,
                         CarrierEntity.deleted_at.is_(None),
                     )
                     .with_for_update()
@@ -125,7 +124,7 @@ class MySQLCarrierRepository(CarrierRepository):
     @staticmethod
     def _to_aggregate(entity: CarrierEntity) -> CarrierAggregate:
         return CarrierAggregate(
-            uid=bytes_to_uuid(entity.uid),
+            uid=entity.uid,
             name=entity.name,
             code=entity.code,
             contact_name=entity.contact_name,

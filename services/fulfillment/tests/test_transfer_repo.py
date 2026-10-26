@@ -7,20 +7,19 @@ from internal.application.port.repo.inventory_repos import TransferCreateParams
 from internal.domain.constant.transfer_status import TransferStatus
 from internal.domain.model.error import InvalidTransitionError, StockNotFoundError, WarehouseNotFoundError
 from internal.domain.model.option.inventory_option import TransferQueryOption
-from internal.infrastructure.adapter.mysql.stock_repo import MySQLStockRepository
-from internal.infrastructure.adapter.mysql.transfer_repo import MySQLStockTransferRepository
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid
+from internal.infrastructure.adapter.pgsql.stock_repo import PgsqlStockRepository
+from internal.infrastructure.adapter.pgsql.transfer_repo import PgsqlStockTransferRepository
 from tests.conftest import seed_stock, seed_warehouse
 
 
 @pytest.fixture
-def repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLStockTransferRepository:
-    return MySQLStockTransferRepository(session_factory)
+def repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlStockTransferRepository:
+    return PgsqlStockTransferRepository(session_factory)
 
 
 @pytest.fixture
-def stock_repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLStockRepository:
-    return MySQLStockRepository(session_factory)
+def stock_repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlStockRepository:
+    return PgsqlStockRepository(session_factory)
 
 
 async def _setup(session_factory, source_qty: int = 10):
@@ -32,9 +31,9 @@ async def _setup(session_factory, source_qty: int = 10):
 
 def _params(stock, source, target, quantity: int = 4) -> TransferCreateParams:
     return TransferCreateParams(
-        edition_uid=bytes_to_uuid(stock.edition_uid),
-        source_warehouse_uid=bytes_to_uuid(source.uid),
-        target_warehouse_uid=bytes_to_uuid(target.uid),
+        edition_uid=stock.edition_uid,
+        source_warehouse_uid=source.uid,
+        target_warehouse_uid=target.uid,
         quantity=quantity,
         reason="rebalance",
     )
@@ -61,8 +60,8 @@ async def test_create_missing_source_stock_raises_stock_not_found(repo, session_
     source, target, stock = await _setup(session_factory)
     params = TransferCreateParams(
         edition_uid=uuid4(),
-        source_warehouse_uid=bytes_to_uuid(source.uid),
-        target_warehouse_uid=bytes_to_uuid(target.uid),
+        source_warehouse_uid=source.uid,
+        target_warehouse_uid=target.uid,
         quantity=1,
         reason=None,
     )
@@ -73,8 +72,8 @@ async def test_create_missing_source_stock_raises_stock_not_found(repo, session_
 async def test_create_missing_target_warehouse_raises_warehouse_not_found(repo, session_factory) -> None:
     source, _, stock = await _setup(session_factory)
     params = TransferCreateParams(
-        edition_uid=bytes_to_uuid(stock.edition_uid),
-        source_warehouse_uid=bytes_to_uuid(source.uid),
+        edition_uid=stock.edition_uid,
+        source_warehouse_uid=source.uid,
         target_warehouse_uid=uuid4(),
         quantity=1,
         reason=None,

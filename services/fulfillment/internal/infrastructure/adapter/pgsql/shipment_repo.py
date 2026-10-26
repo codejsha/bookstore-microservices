@@ -9,26 +9,25 @@ from internal.domain.aggregate.shipment_aggregate import ShipmentAggregate
 from internal.domain.aggregate.tracking_aggregate import TrackingAggregate
 from internal.domain.constant.shipment_status import ShipmentStatus
 from internal.domain.model.option.delivery_option import ShipmentFilterOption
-from internal.infrastructure.adapter.mysql.models import ShipmentEntity
-from internal.infrastructure.adapter.mysql.tracking_repo import to_tracking_entity
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
+from internal.infrastructure.adapter.pgsql.models import ShipmentEntity
+from internal.infrastructure.adapter.pgsql.tracking_repo import to_tracking_entity
 
 
-class MySQLShipmentRepository(ShipmentRepository):
+class PgsqlShipmentRepository(ShipmentRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
     async def save(self, shipment: ShipmentAggregate) -> ShipmentAggregate:
         async with self._session_factory() as session:
             entity = (
-                await session.execute(select(ShipmentEntity).where(ShipmentEntity.uid == uuid_to_bytes(shipment.uid)))
+                await session.execute(select(ShipmentEntity).where(ShipmentEntity.uid == shipment.uid))
             ).scalar_one_or_none()
 
             if entity is None:
                 entity = ShipmentEntity(
-                    uid=uuid_to_bytes(shipment.uid),
-                    order_uid=uuid_to_bytes(shipment.order_uid),
-                    carrier_uid=uuid_to_bytes(shipment.carrier_uid) if shipment.carrier_uid else None,
+                    uid=shipment.uid,
+                    order_uid=shipment.order_uid,
+                    carrier_uid=shipment.carrier_uid,
                     origin_address=shipment.origin_address,
                     destination_address=shipment.destination_address,
                     destination_city=shipment.destination_city,
@@ -58,9 +57,9 @@ class MySQLShipmentRepository(ShipmentRepository):
     ) -> ShipmentAggregate:
         async with self._session_factory() as session:
             shipment_entity = ShipmentEntity(
-                uid=uuid_to_bytes(shipment.uid),
-                order_uid=uuid_to_bytes(shipment.order_uid),
-                carrier_uid=uuid_to_bytes(shipment.carrier_uid) if shipment.carrier_uid else None,
+                uid=shipment.uid,
+                order_uid=shipment.order_uid,
+                carrier_uid=shipment.carrier_uid,
                 origin_address=shipment.origin_address,
                 destination_address=shipment.destination_address,
                 destination_city=shipment.destination_city,
@@ -89,7 +88,7 @@ class MySQLShipmentRepository(ShipmentRepository):
             entity = (
                 await session.execute(
                     select(ShipmentEntity).where(
-                        ShipmentEntity.uid == uuid_to_bytes(uid),
+                        ShipmentEntity.uid == uid,
                         ShipmentEntity.deleted_at.is_(None),
                     )
                 )
@@ -103,7 +102,7 @@ class MySQLShipmentRepository(ShipmentRepository):
                     await session.execute(
                         select(ShipmentEntity)
                         .where(
-                            ShipmentEntity.order_uid == uuid_to_bytes(order_uid),
+                            ShipmentEntity.order_uid == order_uid,
                             ShipmentEntity.deleted_at.is_(None),
                         )
                         .order_by(ShipmentEntity.created_at.asc())
@@ -120,13 +119,11 @@ class MySQLShipmentRepository(ShipmentRepository):
             count_query = select(func.count()).select_from(ShipmentEntity).where(ShipmentEntity.deleted_at.is_(None))
 
             if option.order_uid is not None:
-                uid_bytes = uuid_to_bytes(option.order_uid)
-                query = query.where(ShipmentEntity.order_uid == uid_bytes)
-                count_query = count_query.where(ShipmentEntity.order_uid == uid_bytes)
+                query = query.where(ShipmentEntity.order_uid == option.order_uid)
+                count_query = count_query.where(ShipmentEntity.order_uid == option.order_uid)
             if option.carrier_uid is not None:
-                uid_bytes = uuid_to_bytes(option.carrier_uid)
-                query = query.where(ShipmentEntity.carrier_uid == uid_bytes)
-                count_query = count_query.where(ShipmentEntity.carrier_uid == uid_bytes)
+                query = query.where(ShipmentEntity.carrier_uid == option.carrier_uid)
+                count_query = count_query.where(ShipmentEntity.carrier_uid == option.carrier_uid)
             if option.status is not None:
                 query = query.where(ShipmentEntity.status == option.status)
                 count_query = count_query.where(ShipmentEntity.status == option.status)
@@ -150,7 +147,7 @@ class MySQLShipmentRepository(ShipmentRepository):
                 await session.execute(
                     select(ShipmentEntity)
                     .where(
-                        ShipmentEntity.uid == uuid_to_bytes(uid),
+                        ShipmentEntity.uid == uid,
                         ShipmentEntity.deleted_at.is_(None),
                     )
                     .with_for_update()
@@ -176,7 +173,7 @@ class MySQLShipmentRepository(ShipmentRepository):
                 await session.execute(
                     select(ShipmentEntity)
                     .where(
-                        ShipmentEntity.uid == uuid_to_bytes(uid),
+                        ShipmentEntity.uid == uid,
                         ShipmentEntity.deleted_at.is_(None),
                     )
                     .with_for_update()
@@ -196,7 +193,7 @@ class MySQLShipmentRepository(ShipmentRepository):
 
     @staticmethod
     def _apply_updates(entity: ShipmentEntity, updated: ShipmentAggregate) -> None:
-        entity.carrier_uid = uuid_to_bytes(updated.carrier_uid) if updated.carrier_uid else None
+        entity.carrier_uid = updated.carrier_uid
         entity.status = updated.status
         entity.tracking_number = updated.tracking_number
         entity.actual_pickup_at = updated.actual_pickup_at
@@ -206,9 +203,9 @@ class MySQLShipmentRepository(ShipmentRepository):
     @staticmethod
     def _to_aggregate(entity: ShipmentEntity) -> ShipmentAggregate:
         return ShipmentAggregate(
-            uid=bytes_to_uuid(entity.uid),
-            order_uid=bytes_to_uuid(entity.order_uid),
-            carrier_uid=bytes_to_uuid(entity.carrier_uid) if entity.carrier_uid else None,
+            uid=entity.uid,
+            order_uid=entity.order_uid,
+            carrier_uid=entity.carrier_uid,
             origin_address=entity.origin_address,
             destination_address=entity.destination_address,
             destination_city=entity.destination_city,

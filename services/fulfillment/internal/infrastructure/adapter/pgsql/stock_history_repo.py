@@ -7,12 +7,11 @@ from internal.application.port.repo.inventory_repos import StockHistoryRepositor
 from internal.domain.aggregate.stock_aggregate import StockHistoryEntry
 from internal.domain.constant.stock_change_type import StockChangeType
 from internal.domain.model.option.inventory_option import StockHistoryQueryOption
-from internal.infrastructure.adapter.mysql.models import StockHistoryEntity
-from internal.infrastructure.adapter.mysql.paging import page_offset
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
+from internal.infrastructure.adapter.pgsql.models import StockHistoryEntity
+from internal.infrastructure.adapter.pgsql.paging import page_offset
 
 
-class MySQLStockHistoryRepository(StockHistoryRepository):
+class PgsqlStockHistoryRepository(StockHistoryRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
@@ -22,7 +21,7 @@ class MySQLStockHistoryRepository(StockHistoryRepository):
         if not stock_uids:
             return [], 0
         conditions = [
-            StockHistoryEntity.stock_uid.in_([uuid_to_bytes(uid) for uid in stock_uids]),
+            StockHistoryEntity.stock_uid.in_([uid for uid in stock_uids]),
             StockHistoryEntity.deleted_at.is_(None),
         ]
         async with self._session_factory() as session:
@@ -43,7 +42,7 @@ class MySQLStockHistoryRepository(StockHistoryRepository):
     @staticmethod
     def _to_entry(entity: StockHistoryEntity) -> StockHistoryEntry:
         return StockHistoryEntry(
-            uid=bytes_to_uuid(entity.uid),
+            uid=entity.uid,
             change_type=StockChangeType(entity.change_type),
             reason=entity.reason,
             change_qty=entity.change_qty,

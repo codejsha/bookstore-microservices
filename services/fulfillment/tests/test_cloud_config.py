@@ -18,12 +18,12 @@ class TestExpandSourceMap:
             "server.port": 8080,
             "server.mode": "prod",
             "database.host": "db",
-            "database.port": 3306,
+            "database.port": 5432,
             "telemetry.enabled": True,
         }
         assert cc._expand_source_map(flat) == {
             "server": {"port": 8080, "mode": "prod"},
-            "database": {"host": "db", "port": 3306},
+            "database": {"host": "db", "port": 5432},
             "telemetry": {"enabled": True},
         }
 
@@ -178,7 +178,7 @@ class TestSettingsPrecedence:
         self._clear_env(monkeypatch)
         monkeypatch.setattr(cc, "fetch_cloud_config", lambda _app: {})
 
-        settings = Settings(database={"host": "db", "port": 3306, "db_name": "x"})
+        settings = Settings(database={"host": "db", "port": 5432, "db_name": "x"})
 
         assert settings.database.host == "db"
         assert vault_env_prefix() == ENV_PREFIX

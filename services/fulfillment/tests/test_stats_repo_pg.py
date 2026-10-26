@@ -13,15 +13,14 @@ from internal.domain.constant.carrier_status import CarrierStatus
 from internal.domain.constant.freight_status import FreightStatus
 from internal.domain.constant.shipment_status import ShipmentStatus
 from internal.domain.model.option.delivery_option import StatsFilterOption
-from internal.infrastructure.adapter.mysql.models import (
+from internal.infrastructure.adapter.pgsql.models import (
     Base,
     CarrierEntity,
     FreightEntity,
     ShipmentEntity,
 )
-from internal.infrastructure.adapter.mysql.stats_repo import MySQLStatsRepository
-from internal.infrastructure.adapter.mysql.uuid_helper import uuid_to_bytes
-from tests.mysql_container import container_runtime_available, mysql_container_url
+from internal.infrastructure.adapter.pgsql.stats_repo import PgsqlStatsRepository
+from tests.postgres_container import container_runtime_available, postgres_container_url
 
 os.environ.setdefault("TESTCONTAINERS_RYUK_DISABLED", "true")
 
@@ -38,9 +37,9 @@ T0 = datetime(2026, 1, 1, 0, 0, 0, tzinfo=UTC)
 
 def _shipment(order_uid: UUID, carrier: UUID, status: str, *, pickup: datetime | None, delivery: datetime | None):
     return ShipmentEntity(
-        uid=uuid_to_bytes(uuid4()),
-        order_uid=uuid_to_bytes(order_uid),
-        carrier_uid=uuid_to_bytes(carrier),
+        uid=uuid4(),
+        order_uid=order_uid,
+        carrier_uid=carrier,
         origin_address="origin",
         destination_address="dest",
         destination_city="Seoul",
@@ -61,9 +60,9 @@ def _shipment(order_uid: UUID, carrier: UUID, status: str, *, pickup: datetime |
 
 def _freight(shipment: ShipmentEntity, carrier: UUID, total_cost: float) -> FreightEntity:
     return FreightEntity(
-        uid=uuid_to_bytes(uuid4()),
+        uid=uuid4(),
         shipment_uid=shipment.uid,
-        carrier_uid=uuid_to_bytes(carrier),
+        carrier_uid=carrier,
         base_cost=total_cost,
         weight_surcharge=0.0,
         distance_surcharge=0.0,
@@ -82,7 +81,7 @@ async def _seed(factory: async_sessionmaker[AsyncSession]) -> None:
     async with factory() as session:
         carriers = [
             CarrierEntity(
-                uid=uuid_to_bytes(C1),
+                uid=C1,
                 name="Carrier One",
                 code="C1",
                 base_rate=1.0,
@@ -92,7 +91,7 @@ async def _seed(factory: async_sessionmaker[AsyncSession]) -> None:
                 updated_at=T0,
             ),
             CarrierEntity(
-                uid=uuid_to_bytes(C2),
+                uid=C2,
                 name="Carrier Two",
                 code="C2",
                 base_rate=1.0,
@@ -124,26 +123,26 @@ async def _seed(factory: async_sessionmaker[AsyncSession]) -> None:
 
 
 @pytest.fixture(scope="module")
-def mysql_url() -> str:
-    yield from mysql_container_url()
+def postgres_url() -> str:
+    yield from postgres_container_url()
 
 
 @pytest_asyncio.fixture
-async def stats_repo(mysql_url: str) -> AsyncIterator[MySQLStatsRepository]:
-    engine = create_async_engine(mysql_url)
+async def stats_repo(postgres_url: str) -> AsyncIterator[PgsqlStatsRepository]:
+    engine = create_async_engine(postgres_url)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     factory = async_sessionmaker(bind=engine, expire_on_commit=False)
     await _seed(factory)
     try:
-        yield MySQLStatsRepository(factory)
+        yield PgsqlStatsRepository(factory)
     finally:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
         await engine.dispose()
 
 
-async def test_get_dashboard_aggregates_shipment_totals(stats_repo: MySQLStatsRepository) -> None:
+async def test_get_dashboard_aggregates_shipment_totals(stats_repo: PgsqlStatsRepository) -> None:
     dash = await stats_repo.get_dashboard(StatsFilterOption())
 
     assert dash.total_shipments == 5
@@ -157,7 +156,7 @@ async def test_get_dashboard_aggregates_shipment_totals(stats_repo: MySQLStatsRe
 
 
 async def test_get_dashboard_freight_rows_fan_out_keeps_per_carrier_averages_unbiased(
-    stats_repo: MySQLStatsRepository,
+    stats_repo: PgsqlStatsRepository,
 ) -> None:
     dash = await stats_repo.get_dashboard(StatsFilterOption())
     perf = {p.carrier_name: p for p in dash.carrier_performances}
@@ -177,7 +176,7 @@ async def test_get_dashboard_freight_rows_fan_out_keeps_per_carrier_averages_unb
 
 
 async def test_get_dashboard_by_carrier_scopes_totals_to_carrier(
-    stats_repo: MySQLStatsRepository,
+    stats_repo: PgsqlStatsRepository,
 ) -> None:
     dash = await stats_repo.get_dashboard(StatsFilterOption(carrier_uid=C2))
 

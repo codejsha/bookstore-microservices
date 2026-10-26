@@ -11,10 +11,9 @@ from internal.application.port.repo.inventory_repos import (
 )
 from internal.domain.aggregate.warehouse_aggregate import WarehouseAggregate
 from internal.domain.model.option.inventory_option import WarehouseQueryOption
-from internal.infrastructure.adapter.mysql.models import WarehouseEntity
-from internal.infrastructure.adapter.mysql.optimistic_retry import VersionConflictError, run_with_optimistic_retry
-from internal.infrastructure.adapter.mysql.paging import page_offset, resolve_order_by
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
+from internal.infrastructure.adapter.pgsql.models import WarehouseEntity
+from internal.infrastructure.adapter.pgsql.optimistic_retry import VersionConflictError, run_with_optimistic_retry
+from internal.infrastructure.adapter.pgsql.paging import page_offset, resolve_order_by
 
 _SORTABLE = {
     "uid": WarehouseEntity.uid,
@@ -26,7 +25,7 @@ _SORTABLE = {
 }
 
 
-class MySQLWarehouseRepository(WarehouseRepository):
+class PgsqlWarehouseRepository(WarehouseRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
@@ -53,9 +52,7 @@ class MySQLWarehouseRepository(WarehouseRepository):
         async with self._session_factory() as session:
             entity = (
                 await session.execute(
-                    select(WarehouseEntity).where(
-                        WarehouseEntity.uid == uuid_to_bytes(uid), WarehouseEntity.deleted_at.is_(None)
-                    )
+                    select(WarehouseEntity).where(WarehouseEntity.uid == uid, WarehouseEntity.deleted_at.is_(None))
                 )
             ).scalar_one_or_none()
             return self._to_aggregate(entity) if entity else None
@@ -63,7 +60,7 @@ class MySQLWarehouseRepository(WarehouseRepository):
     async def create(self, params: WarehouseCreateParams) -> WarehouseAggregate:
         now = datetime.now(UTC)
         entity = WarehouseEntity(
-            uid=uuid7().bytes,
+            uid=uuid7(),
             name=params.name,
             address=params.address,
             capacity=params.capacity,
@@ -83,7 +80,7 @@ class MySQLWarehouseRepository(WarehouseRepository):
                 entity = (
                     await session.execute(
                         select(WarehouseEntity)
-                        .where(WarehouseEntity.uid == uuid_to_bytes(params.uid), WarehouseEntity.deleted_at.is_(None))
+                        .where(WarehouseEntity.uid == params.uid, WarehouseEntity.deleted_at.is_(None))
                         .with_for_update()
                     )
                 ).scalar_one_or_none()
@@ -114,7 +111,7 @@ class MySQLWarehouseRepository(WarehouseRepository):
     @staticmethod
     def _to_aggregate(entity: WarehouseEntity) -> WarehouseAggregate:
         return WarehouseAggregate(
-            uid=bytes_to_uuid(entity.uid),
+            uid=entity.uid,
             name=entity.name,
             address=entity.address,
             capacity=entity.capacity,

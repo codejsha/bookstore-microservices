@@ -11,16 +11,15 @@ from internal.domain.constant.audit_status import AuditStatus
 from internal.domain.constant.stock_change_type import StockChangeType
 from internal.domain.model.error import InvalidTransitionError, StockNotFoundError, WarehouseNotFoundError
 from internal.domain.model.option.inventory_option import AuditQueryOption
-from internal.infrastructure.adapter.mysql.models import (
+from internal.infrastructure.adapter.pgsql.models import (
     StockAuditEntity,
     StockAuditItemEntity,
     StockEntity,
     WarehouseEntity,
 )
-from internal.infrastructure.adapter.mysql.optimistic_retry import VersionConflictError, run_with_optimistic_retry
-from internal.infrastructure.adapter.mysql.paging import page_offset, resolve_order_by
-from internal.infrastructure.adapter.mysql.stock_movement import StockDelta, apply_stock_delta
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
+from internal.infrastructure.adapter.pgsql.optimistic_retry import VersionConflictError, run_with_optimistic_retry
+from internal.infrastructure.adapter.pgsql.paging import page_offset, resolve_order_by
+from internal.infrastructure.adapter.pgsql.stock_movement import StockDelta, apply_stock_delta
 
 _SORTABLE = {
     "uid": StockAuditEntity.uid,
@@ -33,14 +32,14 @@ _SORTABLE = {
 }
 
 
-class MySQLStockAuditRepository(StockAuditRepository):
+class PgsqlStockAuditRepository(StockAuditRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
     async def find_all(self, option: AuditQueryOption) -> tuple[list[StockAuditAggregate], int]:
         conditions = [StockAuditEntity.deleted_at.is_(None)]
         if option.warehouse_uid is not None:
-            conditions.append(StockAuditEntity.warehouse_uid == uuid_to_bytes(option.warehouse_uid))
+            conditions.append(StockAuditEntity.warehouse_uid == option.warehouse_uid)
         if option.status is not None:
             conditions.append(StockAuditEntity.status == option.status.value)
         async with self._session_factory() as session:
@@ -65,9 +64,7 @@ class MySQLStockAuditRepository(StockAuditRepository):
         async with self._session_factory() as session:
             audit = (
                 await session.execute(
-                    select(StockAuditEntity).where(
-                        StockAuditEntity.uid == uuid_to_bytes(uid), StockAuditEntity.deleted_at.is_(None)
-                    )
+                    select(StockAuditEntity).where(StockAuditEntity.uid == uid, StockAuditEntity.deleted_at.is_(None))
                 )
             ).scalar_one_or_none()
             if audit is None:
@@ -76,7 +73,7 @@ class MySQLStockAuditRepository(StockAuditRepository):
             return self._to_aggregate(audit, items.get(audit.id, []))
 
     async def create(self, params: AuditCreateParams) -> StockAuditAggregate:
-        warehouse_uid = uuid_to_bytes(params.warehouse_uid)
+        warehouse_uid = params.warehouse_uid
         async with self._session_factory() as session, session.begin():
             warehouse = (
                 await session.execute(
@@ -90,7 +87,7 @@ class MySQLStockAuditRepository(StockAuditRepository):
 
             now = datetime.now(UTC)
             audit = StockAuditEntity(
-                uid=uuid7().bytes,
+                uid=uuid7(),
                 warehouse_id=warehouse.id,
                 warehouse_uid=warehouse.uid,
                 status=AuditStatus.IN_PROGRESS.value,
@@ -109,7 +106,7 @@ class MySQLStockAuditRepository(StockAuditRepository):
                 stock = (
                     await session.execute(
                         select(StockEntity).where(
-                            StockEntity.edition_uid == uuid_to_bytes(item.edition_uid),
+                            StockEntity.edition_uid == item.edition_uid,
                             StockEntity.warehouse_uid == warehouse.uid,
                             StockEntity.deleted_at.is_(None),
                         )
@@ -138,7 +135,7 @@ class MySQLStockAuditRepository(StockAuditRepository):
                 audit = (
                     await session.execute(
                         select(StockAuditEntity)
-                        .where(StockAuditEntity.uid == uuid_to_bytes(uid), StockAuditEntity.deleted_at.is_(None))
+                        .where(StockAuditEntity.uid == uid, StockAuditEntity.deleted_at.is_(None))
                         .with_for_update()
                     )
                 ).scalar_one_or_none()
@@ -181,7 +178,7 @@ class MySQLStockAuditRepository(StockAuditRepository):
                     raise VersionConflictError(f"audit {uid} changed concurrently")
                 return StockAuditAggregate(
                     uid=uid,
-                    warehouse_uid=bytes_to_uuid(audit.warehouse_uid),
+                    warehouse_uid=audit.warehouse_uid,
                     status=AuditStatus.COMPLETED,
                     notes=audit.notes,
                     completed_at=now,
@@ -211,7 +208,7 @@ class MySQLStockAuditRepository(StockAuditRepository):
     @staticmethod
     def _to_item(entity: StockAuditItemEntity) -> StockAuditItem:
         return StockAuditItem(
-            edition_uid=bytes_to_uuid(entity.edition_uid),
+            edition_uid=entity.edition_uid,
             system_quantity=entity.system_quantity,
             actual_quantity=entity.actual_quantity,
             difference=entity.difference,
@@ -220,8 +217,8 @@ class MySQLStockAuditRepository(StockAuditRepository):
     @classmethod
     def _to_aggregate(cls, audit: StockAuditEntity, items: Sequence[StockAuditItemEntity]) -> StockAuditAggregate:
         return StockAuditAggregate(
-            uid=bytes_to_uuid(audit.uid),
-            warehouse_uid=bytes_to_uuid(audit.warehouse_uid),
+            uid=audit.uid,
+            warehouse_uid=audit.warehouse_uid,
             status=AuditStatus(audit.status),
             notes=audit.notes,
             completed_at=audit.completed_at,

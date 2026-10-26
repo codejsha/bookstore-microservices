@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 
-MYSQL_IMAGE = "mysql:8.0"
+POSTGRES_IMAGE = "postgres:16"
 
 
 def container_runtime_available() -> bool:
@@ -16,9 +16,9 @@ def container_runtime_available() -> bool:
         return False
 
 
-def mysql_container_url() -> Iterator[str]:
-    from testcontainers.mysql import MySqlContainer
+def postgres_container_url() -> Iterator[str]:
+    from testcontainers.postgres import PostgresContainer
 
-    with MySqlContainer(MYSQL_IMAGE) as mysql:
-        _, _, tail = mysql.get_connection_url().partition("://")
-        yield f"mysql+aiomysql://{tail}"
+    with PostgresContainer(POSTGRES_IMAGE, driver=None) as postgres:
+        _, _, tail = postgres.get_connection_url().partition("://")
+        yield f"postgresql+asyncpg://{tail}"

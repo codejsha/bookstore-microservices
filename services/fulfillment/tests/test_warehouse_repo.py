@@ -5,15 +5,15 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from internal.application.port.repo.inventory_repos import WarehouseCreateParams, WarehouseUpdateParams
 from internal.domain.model.option.inventory_option import WarehouseQueryOption
-from internal.infrastructure.adapter.mysql.warehouse_repo import MySQLWarehouseRepository
+from internal.infrastructure.adapter.pgsql.warehouse_repo import PgsqlWarehouseRepository
 
 
 @pytest.fixture
-def repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLWarehouseRepository:
-    return MySQLWarehouseRepository(session_factory)
+def repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlWarehouseRepository:
+    return PgsqlWarehouseRepository(session_factory)
 
 
-async def test_create_then_find_by_uid_roundtrips(repo: MySQLWarehouseRepository) -> None:
+async def test_create_then_find_by_uid_roundtrips(repo: PgsqlWarehouseRepository) -> None:
     created = await repo.create(WarehouseCreateParams(name="Main", address="1 Depot Rd", capacity=100))
     found = await repo.find_by_uid(created.uid)
     assert found is not None
@@ -24,11 +24,11 @@ async def test_create_then_find_by_uid_roundtrips(repo: MySQLWarehouseRepository
     assert found.created_at.tzinfo is not None
 
 
-async def test_find_by_uid_missing_is_none(repo: MySQLWarehouseRepository) -> None:
+async def test_find_by_uid_missing_is_none(repo: PgsqlWarehouseRepository) -> None:
     assert await repo.find_by_uid(uuid4()) is None
 
 
-async def test_update_partial_fields_keeps_others_and_sets_updated_at(repo: MySQLWarehouseRepository) -> None:
+async def test_update_partial_fields_keeps_others_and_sets_updated_at(repo: PgsqlWarehouseRepository) -> None:
     created = await repo.create(WarehouseCreateParams(name="Main", address="1 Depot Rd", capacity=100))
 
     updated = await repo.update(WarehouseUpdateParams(uid=created.uid, name="Renamed", address=None, capacity=None))
@@ -43,11 +43,11 @@ async def test_update_partial_fields_keeps_others_and_sets_updated_at(repo: MySQ
     assert reloaded.name == "Renamed"
 
 
-async def test_update_missing_is_none(repo: MySQLWarehouseRepository) -> None:
+async def test_update_missing_is_none(repo: PgsqlWarehouseRepository) -> None:
     assert await repo.update(WarehouseUpdateParams(uid=uuid4(), name="x", address=None, capacity=None)) is None
 
 
-async def test_find_all_by_name_matches_case_insensitively(repo: MySQLWarehouseRepository) -> None:
+async def test_find_all_by_name_matches_case_insensitively(repo: PgsqlWarehouseRepository) -> None:
     await repo.create(WarehouseCreateParams(name="Seoul Depot", address=None, capacity=1))
     await repo.create(WarehouseCreateParams(name="Busan Depot", address=None, capacity=1))
 
@@ -57,7 +57,7 @@ async def test_find_all_by_name_matches_case_insensitively(repo: MySQLWarehouseR
     assert items[0].name == "Seoul Depot"
 
 
-async def test_find_all_sorted_by_name_asc_orders_items(repo: MySQLWarehouseRepository) -> None:
+async def test_find_all_sorted_by_name_asc_orders_items(repo: PgsqlWarehouseRepository) -> None:
     await repo.create(WarehouseCreateParams(name="B", address=None, capacity=1))
     await repo.create(WarehouseCreateParams(name="A", address=None, capacity=1))
 
@@ -66,7 +66,7 @@ async def test_find_all_sorted_by_name_asc_orders_items(repo: MySQLWarehouseRepo
     assert [w.name for w in items] == ["A", "B"]
 
 
-async def test_find_all_unknown_sort_falls_back_to_newest_first(repo: MySQLWarehouseRepository) -> None:
+async def test_find_all_unknown_sort_falls_back_to_newest_first(repo: PgsqlWarehouseRepository) -> None:
     await repo.create(WarehouseCreateParams(name="older", address=None, capacity=1))
     await repo.create(WarehouseCreateParams(name="newer", address=None, capacity=1))
 
@@ -76,7 +76,7 @@ async def test_find_all_unknown_sort_falls_back_to_newest_first(repo: MySQLWareh
     assert items[0].name == "newer"
 
 
-async def test_find_all_with_page_size_pages_with_total(repo: MySQLWarehouseRepository) -> None:
+async def test_find_all_with_page_size_pages_with_total(repo: PgsqlWarehouseRepository) -> None:
     for i in range(5):
         await repo.create(WarehouseCreateParams(name=f"W{i}", address=None, capacity=1))
 

@@ -9,20 +9,19 @@ from internal.domain.constant.closing_status import ClosingStatus
 from internal.domain.constant.stock_change_type import StockChangeType
 from internal.domain.model.error import DuplicateClosingError, WarehouseNotFoundError
 from internal.domain.model.option.inventory_option import ClosingQueryOption
-from internal.infrastructure.adapter.mysql.closing_repo import MySQLMonthlyClosingRepository, month_range
-from internal.infrastructure.adapter.mysql.stock_repo import MySQLStockRepository
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid
+from internal.infrastructure.adapter.pgsql.closing_repo import PgsqlMonthlyClosingRepository, month_range
+from internal.infrastructure.adapter.pgsql.stock_repo import PgsqlStockRepository
 from tests.conftest import seed_stock, seed_warehouse
 
 
 @pytest.fixture
-def repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLMonthlyClosingRepository:
-    return MySQLMonthlyClosingRepository(session_factory)
+def repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlMonthlyClosingRepository:
+    return PgsqlMonthlyClosingRepository(session_factory)
 
 
 @pytest.fixture
-def stock_repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLStockRepository:
-    return MySQLStockRepository(session_factory)
+def stock_repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlStockRepository:
+    return PgsqlStockRepository(session_factory)
 
 
 def _this_month() -> tuple[int, int]:
@@ -50,8 +49,8 @@ def test_month_range_is_utc_aware() -> None:
 async def test_create_computes_period_movements_and_opening_quantity(repo, stock_repo, session_factory) -> None:
     warehouse = await seed_warehouse(session_factory)
     stock = await seed_stock(session_factory, warehouse, edition_id=1, quantity=10)
-    edition_uid = bytes_to_uuid(stock.edition_uid)
-    warehouse_uid = bytes_to_uuid(warehouse.uid)
+    edition_uid = stock.edition_uid
+    warehouse_uid = warehouse.uid
     for delta, change_type in (
         (5, StockChangeType.INBOUND),
         (-3, StockChangeType.RESERVATION),
@@ -81,8 +80,8 @@ async def test_create_other_period_has_no_movements(repo, stock_repo, session_fa
     stock = await seed_stock(session_factory, warehouse, edition_id=1, quantity=10)
     await stock_repo.apply_change(
         ApplyChangeParams(
-            edition_uid=bytes_to_uuid(stock.edition_uid),
-            warehouse_uid=bytes_to_uuid(warehouse.uid),
+            edition_uid=stock.edition_uid,
+            warehouse_uid=warehouse.uid,
             delta=5,
             change_type=StockChangeType.INBOUND,
             reason=None,
@@ -90,7 +89,7 @@ async def test_create_other_period_has_no_movements(repo, stock_repo, session_fa
     )
     year, month = _previous_month()
 
-    closing = await repo.create(ClosingCreateParams(warehouse_uid=bytes_to_uuid(warehouse.uid), year=year, month=month))
+    closing = await repo.create(ClosingCreateParams(warehouse_uid=warehouse.uid, year=year, month=month))
 
     item = closing.items[0]
     assert (item.inbound_quantity, item.outbound_quantity, item.adjust_quantity) == (0, 0, 0)
@@ -100,7 +99,7 @@ async def test_create_other_period_has_no_movements(repo, stock_repo, session_fa
 
 async def test_create_duplicate_period_raises_duplicate_closing(repo, session_factory) -> None:
     warehouse = await seed_warehouse(session_factory)
-    params = ClosingCreateParams(warehouse_uid=bytes_to_uuid(warehouse.uid), year=2026, month=9)
+    params = ClosingCreateParams(warehouse_uid=warehouse.uid, year=2026, month=9)
     await repo.create(params)
 
     with pytest.raises(DuplicateClosingError):
@@ -114,7 +113,7 @@ async def test_create_missing_warehouse_raises_warehouse_not_found(repo) -> None
 
 async def test_find_all_by_period_filters_closings(repo, session_factory) -> None:
     warehouse = await seed_warehouse(session_factory)
-    warehouse_uid = bytes_to_uuid(warehouse.uid)
+    warehouse_uid = warehouse.uid
     await repo.create(ClosingCreateParams(warehouse_uid=warehouse_uid, year=2026, month=8))
     september = await repo.create(ClosingCreateParams(warehouse_uid=warehouse_uid, year=2026, month=9))
 

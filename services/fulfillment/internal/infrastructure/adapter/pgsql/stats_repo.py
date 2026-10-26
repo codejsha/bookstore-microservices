@@ -1,4 +1,4 @@
-from sqlalchemy import case, func, select, text
+from sqlalchemy import ColumnElement, case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from internal.application.port.repo.repos import StatsRepository
@@ -9,15 +9,18 @@ from internal.domain.aggregate.stats_aggregate import (
 )
 from internal.domain.constant.shipment_status import ShipmentStatus
 from internal.domain.model.option.delivery_option import StatsFilterOption
-from internal.infrastructure.adapter.mysql.models import (
+from internal.infrastructure.adapter.pgsql.models import (
     CarrierEntity,
     FreightEntity,
     ShipmentEntity,
 )
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
 
 
-class MySQLStatsRepository(StatsRepository):
+def _hours_between(start: ColumnElement, end: ColumnElement) -> ColumnElement:
+    return func.floor(func.extract("epoch", end - start) / 3600)
+
+
+class PgsqlStatsRepository(StatsRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
@@ -26,7 +29,7 @@ class MySQLStatsRepository(StatsRepository):
             base_filter = ShipmentEntity.deleted_at.is_(None)
             filters = [base_filter]
             if option.carrier_uid is not None:
-                filters.append(ShipmentEntity.carrier_uid == uuid_to_bytes(option.carrier_uid))
+                filters.append(ShipmentEntity.carrier_uid == option.carrier_uid)
             if option.date_from is not None:
                 filters.append(ShipmentEntity.created_at >= option.date_from)
             if option.date_to is not None:
@@ -46,13 +49,7 @@ class MySQLStatsRepository(StatsRepository):
             avg_hours = (
                 await session.execute(
                     select(
-                        func.avg(
-                            func.timestampdiff(
-                                text("HOUR"),
-                                ShipmentEntity.actual_pickup_at,
-                                ShipmentEntity.actual_delivery_at,
-                            )
-                        )
+                        func.avg(_hours_between(ShipmentEntity.actual_pickup_at, ShipmentEntity.actual_delivery_at))
                     ).where(
                         *filters,
                         ShipmentEntity.status == ShipmentStatus.DELIVERED,
@@ -116,11 +113,7 @@ class MySQLStatsRepository(StatsRepository):
                             case(
                                 (
                                     ShipmentEntity.status == ShipmentStatus.DELIVERED,
-                                    func.timestampdiff(
-                                        text("HOUR"),
-                                        ShipmentEntity.actual_pickup_at,
-                                        ShipmentEntity.actual_delivery_at,
-                                    ),
+                                    _hours_between(ShipmentEntity.actual_pickup_at, ShipmentEntity.actual_delivery_at),
                                 ),
                                 else_=None,
                             )
@@ -137,7 +130,7 @@ class MySQLStatsRepository(StatsRepository):
 
             carrier_performances = [
                 CarrierPerformance(
-                    carrier_uid=str(bytes_to_uuid(r[0])),
+                    carrier_uid=str(r[0]),
                     carrier_name=r[1],
                     total_shipments=r[2],
                     delivered_count=r[3] or 0,

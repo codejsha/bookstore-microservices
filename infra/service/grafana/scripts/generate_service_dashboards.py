@@ -33,7 +33,7 @@ SERVICES: list[dict] = [
     {"name": "order", "lang": "jvm", "grpc_server": True, "grpc_client": True, "db": "mysql", "temporal": True},
     {"name": "payment", "lang": "jvm", "grpc_server": True, "grpc_client": False, "db": "mysql", "temporal": True},
     {"name": "settlement", "lang": "jvm", "grpc_server": False, "grpc_client": False, "db": "mysql"},
-    {"name": "fulfillment", "lang": "python", "grpc_server": True, "grpc_client": False, "db": "mysql", "temporal": True},
+    {"name": "fulfillment", "lang": "python", "grpc_server": True, "grpc_client": False, "db": "postgres", "temporal": True},
 ]
 
 

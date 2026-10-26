@@ -1,8 +1,11 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, Float, LargeBinary, TypeDecorator
-from sqlalchemy.dialects import mysql
+from sqlalchemy import DateTime, Double, TypeDecorator, Uuid
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import DeclarativeBase
+
+TIMESTAMP_PRECISION = 6
 
 
 class UTCDateTime(TypeDecorator):
@@ -10,9 +13,9 @@ class UTCDateTime(TypeDecorator):
     cache_ok = True
 
     def load_dialect_impl(self, dialect):
-        if dialect.name == "mysql":
-            return dialect.type_descriptor(mysql.DATETIME(fsp=6))
-        return dialect.type_descriptor(DateTime(timezone=True))
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(postgresql.TIMESTAMP(precision=TIMESTAMP_PRECISION))
+        return dialect.type_descriptor(DateTime())
 
     def process_bind_param(self, value: datetime | None, dialect) -> datetime | None:
         if value is None:
@@ -29,28 +32,27 @@ class UTCDateTime(TypeDecorator):
         return value.astimezone(UTC)
 
 
-Timestamp = UTCDateTime()
-Uid = LargeBinary(16).with_variant(mysql.BINARY(16), "mysql")
-Amount = Float().with_variant(mysql.DOUBLE(), "mysql")
+@compiles(UTCDateTime, "postgresql")
+def _compile_utc_datetime_postgresql(_type, _compiler, **_kw) -> str:
+    return f"TIMESTAMP({TIMESTAMP_PRECISION}) WITHOUT TIME ZONE"
 
-MYSQL_TABLE_OPTS = {
-    "mysql_engine": "InnoDB",
-    "mysql_charset": "utf8mb4",
-    "mysql_collate": "utf8mb4_unicode_ci",
-}
+
+Timestamp = UTCDateTime()
+Uid = Uuid(as_uuid=True)
+Amount = Double()
 
 
 class Base(DeclarativeBase):
     pass
 
 
-from internal.infrastructure.adapter.mysql.models.delivery import (  # noqa: E402
+from internal.infrastructure.adapter.pgsql.models.delivery import (  # noqa: E402
     CarrierEntity,
     FreightEntity,
     ShipmentEntity,
     TrackingEntity,
 )
-from internal.infrastructure.adapter.mysql.models.inventory import (  # noqa: E402
+from internal.infrastructure.adapter.pgsql.models.inventory import (  # noqa: E402
     MonthlyClosingEntity,
     MonthlyClosingItemEntity,
     StockAuditEntity,
@@ -63,7 +65,6 @@ from internal.infrastructure.adapter.mysql.models.inventory import (  # noqa: E4
 )
 
 __all__ = [
-    "MYSQL_TABLE_OPTS",
     "Amount",
     "Base",
     "CarrierEntity",

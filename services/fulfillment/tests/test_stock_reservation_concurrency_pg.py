@@ -12,9 +12,9 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from internal.application.port.repo.inventory_repos import ReleaseParams, ReserveParams
-from internal.infrastructure.adapter.mysql.models import Base, StockEntity, StockReservationEntity, WarehouseEntity
-from internal.infrastructure.adapter.mysql.stock_reservation_repo import MySQLStockReservationRepository
-from tests.mysql_container import container_runtime_available, mysql_container_url
+from internal.infrastructure.adapter.pgsql.models import Base, StockEntity, StockReservationEntity, WarehouseEntity
+from internal.infrastructure.adapter.pgsql.stock_reservation_repo import PgsqlStockReservationRepository
+from tests.postgres_container import container_runtime_available, postgres_container_url
 
 os.environ.setdefault("TESTCONTAINERS_RYUK_DISABLED", "true")
 
@@ -30,24 +30,24 @@ RESERVE_QUANTITY = 3
 
 
 @pytest.fixture(scope="module")
-def mysql_url() -> str:
-    yield from mysql_container_url()
+def postgres_url() -> str:
+    yield from postgres_container_url()
 
 
 async def _seed(factory: async_sessionmaker[AsyncSession]) -> None:
     now = datetime.now(UTC)
     async with factory() as session:
         warehouses = [
-            WarehouseEntity(uid=uuid7().bytes, name=f"W{i}", address=None, capacity=1000, created_at=now, version=1)
+            WarehouseEntity(uid=uuid7(), name=f"W{i}", address=None, capacity=1000, created_at=now, version=1)
             for i in range(len(WAREHOUSE_QUANTITIES))
         ]
         session.add_all(warehouses)
         await session.flush()
-        edition_uid = uuid4().bytes
+        edition_uid = uuid4()
         session.add_all(
             [
                 StockEntity(
-                    uid=uuid7().bytes,
+                    uid=uuid7(),
                     edition_id=EDITION_ID,
                     edition_uid=edition_uid,
                     warehouse_id=w.id,
@@ -63,15 +63,15 @@ async def _seed(factory: async_sessionmaker[AsyncSession]) -> None:
 
 
 @pytest_asyncio.fixture
-async def fixture_env(mysql_url: str) -> AsyncIterator[tuple[MySQLStockReservationRepository, async_sessionmaker]]:
-    engine = create_async_engine(mysql_url, pool_size=CONCURRENT_RESERVATIONS + 2, max_overflow=5)
+async def fixture_env(postgres_url: str) -> AsyncIterator[tuple[PgsqlStockReservationRepository, async_sessionmaker]]:
+    engine = create_async_engine(postgres_url, pool_size=CONCURRENT_RESERVATIONS + 2, max_overflow=5)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     factory = async_sessionmaker(bind=engine, expire_on_commit=False)
     await _seed(factory)
     try:
-        yield MySQLStockReservationRepository(factory), factory
+        yield PgsqlStockReservationRepository(factory), factory
     finally:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)

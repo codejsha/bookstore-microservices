@@ -9,11 +9,10 @@ from internal.domain.aggregate.stock_aggregate import StockAggregate, StockWareh
 from internal.domain.constant.stock_change_type import StockChangeType
 from internal.domain.model.error import StockNotFoundError, WarehouseNotFoundError
 from internal.domain.model.option.inventory_option import StockQueryOption
-from internal.infrastructure.adapter.mysql.models import StockEntity, WarehouseEntity
-from internal.infrastructure.adapter.mysql.optimistic_retry import run_with_optimistic_retry
-from internal.infrastructure.adapter.mysql.paging import page_offset
-from internal.infrastructure.adapter.mysql.stock_movement import StockDelta, apply_stock_delta, lock_stock
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
+from internal.infrastructure.adapter.pgsql.models import StockEntity, WarehouseEntity
+from internal.infrastructure.adapter.pgsql.optimistic_retry import run_with_optimistic_retry
+from internal.infrastructure.adapter.pgsql.paging import page_offset
+from internal.infrastructure.adapter.pgsql.stock_movement import StockDelta, apply_stock_delta, lock_stock
 
 
 def _stock_rows():
@@ -32,16 +31,16 @@ def _stock_rows():
 
 def _group_rows(rows: Sequence[Row]) -> list[StockAggregate]:
     aggregates: list[StockAggregate] = []
-    by_edition: dict[bytes, StockAggregate] = {}
+    by_edition: dict[UUID, StockAggregate] = {}
     for uid, edition_uid, warehouse_uid, warehouse_name, quantity in rows:
         aggregate = by_edition.get(edition_uid)
         if aggregate is None:
-            aggregate = StockAggregate(uid=bytes_to_uuid(uid), edition_uid=bytes_to_uuid(edition_uid), total_quantity=0)
+            aggregate = StockAggregate(uid=uid, edition_uid=edition_uid, total_quantity=0)
             by_edition[edition_uid] = aggregate
             aggregates.append(aggregate)
         aggregate.warehouses.append(
             StockWarehouse(
-                warehouse_uid=bytes_to_uuid(warehouse_uid),
+                warehouse_uid=warehouse_uid,
                 warehouse_name=warehouse_name or "",
                 quantity=quantity,
             )
@@ -50,7 +49,7 @@ def _group_rows(rows: Sequence[Row]) -> list[StockAggregate]:
     return aggregates
 
 
-class MySQLStockRepository(StockRepository):
+class PgsqlStockRepository(StockRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
@@ -100,11 +99,11 @@ class MySQLStockRepository(StockRepository):
                     .order_by(StockEntity.id)
                 )
             ).scalars()
-            return [bytes_to_uuid(uid) for uid in uids]
+            return [uid for uid in uids]
 
     async def apply_change(self, params: ApplyChangeParams) -> None:
-        edition_uid = uuid_to_bytes(params.edition_uid)
-        warehouse_uid = uuid_to_bytes(params.warehouse_uid)
+        edition_uid = params.edition_uid
+        warehouse_uid = params.warehouse_uid
 
         async def attempt() -> None:
             async with self._session_factory() as session, session.begin():
@@ -169,7 +168,7 @@ class MySQLStockRepository(StockRepository):
     def _conditions(edition_uid: UUID | None, warehouse_uid: UUID | None) -> list:
         conditions = [StockEntity.deleted_at.is_(None)]
         if edition_uid is not None:
-            conditions.append(StockEntity.edition_uid == uuid_to_bytes(edition_uid))
+            conditions.append(StockEntity.edition_uid == edition_uid)
         if warehouse_uid is not None:
-            conditions.append(StockEntity.warehouse_uid == uuid_to_bytes(warehouse_uid))
+            conditions.append(StockEntity.warehouse_uid == warehouse_uid)
         return conditions

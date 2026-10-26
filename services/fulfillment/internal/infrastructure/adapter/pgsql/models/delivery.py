@@ -1,9 +1,10 @@
 from datetime import datetime
+from uuid import UUID
 
 from sqlalchemy import BigInteger, Index, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from internal.infrastructure.adapter.mysql.models import MYSQL_TABLE_OPTS, Amount, Base, Timestamp, Uid
+from internal.infrastructure.adapter.pgsql.models import Amount, Base, Timestamp, Uid
 
 
 class ShipmentEntity(Base):
@@ -14,13 +15,12 @@ class ShipmentEntity(Base):
         Index("idx_shipment_carrier_uid", "carrier_uid"),
         Index("idx_shipment_status", "status"),
         Index("idx_shipment_created", "created_at"),
-        MYSQL_TABLE_OPTS,
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    uid: Mapped[bytes] = mapped_column(Uid, nullable=False)
-    order_uid: Mapped[bytes] = mapped_column(Uid, nullable=False)
-    carrier_uid: Mapped[bytes | None] = mapped_column(Uid, nullable=True)
+    uid: Mapped[UUID] = mapped_column(Uid, nullable=False)
+    order_uid: Mapped[UUID] = mapped_column(Uid, nullable=False)
+    carrier_uid: Mapped[UUID | None] = mapped_column(Uid, nullable=True)
     origin_address: Mapped[str] = mapped_column(String(500), nullable=False)
     destination_address: Mapped[str] = mapped_column(String(500), nullable=False)
     destination_city: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -45,12 +45,11 @@ class TrackingEntity(Base):
         UniqueConstraint("uid", name="uk_tracking_uid"),
         Index("idx_tracking_shipment_uid", "shipment_uid"),
         Index("idx_tracking_occurred", "occurred_at"),
-        MYSQL_TABLE_OPTS,
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    uid: Mapped[bytes] = mapped_column(Uid, nullable=False)
-    shipment_uid: Mapped[bytes] = mapped_column(Uid, nullable=False)
+    uid: Mapped[UUID] = mapped_column(Uid, nullable=False)
+    shipment_uid: Mapped[UUID] = mapped_column(Uid, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False)
     location: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
@@ -65,11 +64,10 @@ class CarrierEntity(Base):
         UniqueConstraint("code", name="uk_carrier_code"),
         Index("idx_carrier_name", "name"),
         Index("idx_carrier_status", "status"),
-        MYSQL_TABLE_OPTS,
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    uid: Mapped[bytes] = mapped_column(Uid, nullable=False)
+    uid: Mapped[UUID] = mapped_column(Uid, nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     code: Mapped[str] = mapped_column(String(50), nullable=False)
     contact_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -90,13 +88,12 @@ class FreightEntity(Base):
         Index("idx_freight_shipment_uid", "shipment_uid"),
         Index("idx_freight_carrier_uid", "carrier_uid"),
         Index("idx_freight_status", "status"),
-        MYSQL_TABLE_OPTS,
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    uid: Mapped[bytes] = mapped_column(Uid, nullable=False)
-    shipment_uid: Mapped[bytes] = mapped_column(Uid, nullable=False)
-    carrier_uid: Mapped[bytes] = mapped_column(Uid, nullable=False)
+    uid: Mapped[UUID] = mapped_column(Uid, nullable=False)
+    shipment_uid: Mapped[UUID] = mapped_column(Uid, nullable=False)
+    carrier_uid: Mapped[UUID] = mapped_column(Uid, nullable=False)
     base_cost: Mapped[float] = mapped_column(Amount, nullable=False)
     weight_surcharge: Mapped[float] = mapped_column(Amount, nullable=False, default=0.0)
     distance_surcharge: Mapped[float] = mapped_column(Amount, nullable=False, default=0.0)

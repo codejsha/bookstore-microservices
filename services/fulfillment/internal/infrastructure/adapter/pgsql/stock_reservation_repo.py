@@ -15,15 +15,14 @@ from internal.domain.aggregate.reservation_aggregate import StockReservationAggr
 from internal.domain.constant.reservation_status import ReservationStatus
 from internal.domain.constant.stock_change_type import StockChangeType
 from internal.domain.model.error import InsufficientStockError, StockNotFoundError
-from internal.infrastructure.adapter.mysql.models import StockEntity, StockReservationEntity
-from internal.infrastructure.adapter.mysql.optimistic_retry import (
+from internal.infrastructure.adapter.pgsql.models import StockEntity, StockReservationEntity
+from internal.infrastructure.adapter.pgsql.optimistic_retry import (
     ReservationConflictError,
     VersionConflictError,
     is_unique_violation,
     run_with_optimistic_retry,
 )
-from internal.infrastructure.adapter.mysql.stock_movement import StockDelta, apply_stock_delta
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid
+from internal.infrastructure.adapter.pgsql.stock_movement import StockDelta, apply_stock_delta
 
 
 def allocate_reservation(rows: Sequence[StockEntity], quantity: int) -> list[tuple[StockEntity, int]]:
@@ -43,7 +42,7 @@ def allocate_reservation(rows: Sequence[StockEntity], quantity: int) -> list[tup
     return allocations
 
 
-class MySQLStockReservationRepository(StockReservationRepository):
+class PgsqlStockReservationRepository(StockReservationRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
@@ -89,7 +88,7 @@ class MySQLStockReservationRepository(StockReservationRepository):
                         existing=stock,
                     )
                     reservation = StockReservationEntity(
-                        uid=uuid7().bytes,
+                        uid=uuid7(),
                         reservation_key=params.reservation_key,
                         order_ref=params.order_ref,
                         edition_id=params.edition_id,
@@ -151,8 +150,8 @@ class MySQLStockReservationRepository(StockReservationRepository):
                     ).scalar_one_or_none()
                     if target is None:
                         raise StockNotFoundError(
-                            f"stock not found for edition {bytes_to_uuid(reservation.edition_uid)} "
-                            f"in warehouse {bytes_to_uuid(reservation.warehouse_uid)}"
+                            f"stock not found for edition {reservation.edition_uid} "
+                            f"in warehouse {reservation.warehouse_uid}"
                         )
                     await apply_stock_delta(
                         session,
@@ -181,15 +180,15 @@ class MySQLStockReservationRepository(StockReservationRepository):
                         )
                     )
                     if marked.rowcount == 0:
-                        raise VersionConflictError(f"reservation {bytes_to_uuid(reservation.uid)} changed concurrently")
+                        raise VersionConflictError(f"reservation {reservation.uid} changed concurrently")
                     session.expire(reservation, ["status", "released_at", "version", "updated_at"])
 
                 uid, key, edition_uid, warehouse_uid = summary
                 return StockReservationAggregate(
-                    uid=bytes_to_uuid(uid),
+                    uid=uid,
                     reservation_key=key,
-                    edition_uid=bytes_to_uuid(edition_uid),
-                    warehouse_uid=bytes_to_uuid(warehouse_uid),
+                    edition_uid=edition_uid,
+                    warehouse_uid=warehouse_uid,
                     quantity=total,
                     status=ReservationStatus.RELEASED,
                     already_applied=False,
@@ -212,10 +211,10 @@ class MySQLStockReservationRepository(StockReservationRepository):
     def _to_aggregate(rows: Sequence[StockReservationEntity], already_applied: bool) -> StockReservationAggregate:
         first = rows[0]
         return StockReservationAggregate(
-            uid=bytes_to_uuid(first.uid),
+            uid=first.uid,
             reservation_key=first.reservation_key,
-            edition_uid=bytes_to_uuid(first.edition_uid),
-            warehouse_uid=bytes_to_uuid(first.warehouse_uid),
+            edition_uid=first.edition_uid,
+            warehouse_uid=first.warehouse_uid,
             quantity=sum(row.quantity for row in rows),
             status=ReservationStatus(first.status),
             already_applied=already_applied,

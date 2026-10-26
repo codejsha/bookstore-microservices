@@ -6,14 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from internal.application.port.repo.repos import TrackingRepository
 from internal.domain.aggregate.tracking_aggregate import TrackingAggregate
 from internal.domain.constant.shipment_status import ShipmentStatus
-from internal.infrastructure.adapter.mysql.models import TrackingEntity
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
+from internal.infrastructure.adapter.pgsql.models import TrackingEntity
 
 
 def to_tracking_entity(tracking: TrackingAggregate) -> TrackingEntity:
     return TrackingEntity(
-        uid=uuid_to_bytes(tracking.uid),
-        shipment_uid=uuid_to_bytes(tracking.shipment_uid),
+        uid=tracking.uid,
+        shipment_uid=tracking.shipment_uid,
         status=tracking.status,
         location=tracking.location,
         description=tracking.description,
@@ -22,7 +21,7 @@ def to_tracking_entity(tracking: TrackingAggregate) -> TrackingEntity:
     )
 
 
-class MySQLTrackingRepository(TrackingRepository):
+class PgsqlTrackingRepository(TrackingRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
@@ -38,7 +37,7 @@ class MySQLTrackingRepository(TrackingRepository):
         async with self._session_factory() as session:
             query = (
                 select(TrackingEntity)
-                .where(TrackingEntity.shipment_uid == uuid_to_bytes(shipment_uid))
+                .where(TrackingEntity.shipment_uid == shipment_uid)
                 .order_by(TrackingEntity.occurred_at.asc())
             )
             entities = (await session.execute(query)).scalars().all()
@@ -47,8 +46,8 @@ class MySQLTrackingRepository(TrackingRepository):
     @staticmethod
     def _to_aggregate(entity: TrackingEntity) -> TrackingAggregate:
         return TrackingAggregate(
-            uid=bytes_to_uuid(entity.uid),
-            shipment_uid=bytes_to_uuid(entity.shipment_uid),
+            uid=entity.uid,
+            shipment_uid=entity.shipment_uid,
             status=ShipmentStatus(entity.status),
             location=entity.location,
             description=entity.description,

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from uuid import uuid7
+from uuid import UUID, uuid7
 
 from sqlalchemy import Label, case, func, select, update
 from sqlalchemy.exc import IntegrityError
@@ -8,13 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from internal.domain.constant.stock_change_type import StockChangeType
 from internal.domain.model.error import InsufficientStockError, StockNotFoundError
-from internal.infrastructure.adapter.mysql.models import StockEntity, StockHistoryEntity
-from internal.infrastructure.adapter.mysql.optimistic_retry import (
+from internal.infrastructure.adapter.pgsql.models import StockEntity, StockHistoryEntity
+from internal.infrastructure.adapter.pgsql.optimistic_retry import (
     StockCreateConflictError,
     VersionConflictError,
     is_unique_violation,
 )
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid
 
 HISTORY_INBOUND_TYPES = (StockChangeType.INBOUND.value, StockChangeType.RELEASE.value)
 HISTORY_OUTBOUND_TYPES = (StockChangeType.OUTBOUND.value, StockChangeType.RESERVATION.value)
@@ -23,9 +22,9 @@ HISTORY_OUTBOUND_TYPES = (StockChangeType.OUTBOUND.value, StockChangeType.RESERV
 @dataclass(frozen=True)
 class StockDelta:
     edition_id: int
-    edition_uid: bytes
+    edition_uid: UUID
     warehouse_id: int
-    warehouse_uid: bytes
+    warehouse_uid: UUID
     delta: int
     change_type: StockChangeType
     reason: str | None
@@ -35,7 +34,7 @@ class StockDelta:
 @dataclass(frozen=True)
 class StockMovement:
     stock_id: int
-    stock_uid: bytes
+    stock_uid: UUID
     quantity: int
     version: int
 
@@ -54,7 +53,7 @@ def history_buckets() -> tuple[Label, Label, Label]:
     return inbound.label("inbound"), outbound.label("outbound"), adjust.label("adjust")
 
 
-async def lock_stock(session: AsyncSession, edition_uid: bytes, warehouse_uid: bytes) -> StockEntity | None:
+async def lock_stock(session: AsyncSession, edition_uid: UUID, warehouse_uid: UUID) -> StockEntity | None:
     stmt = (
         select(StockEntity)
         .where(
@@ -72,14 +71,14 @@ async def apply_stock_delta(
 ) -> StockMovement:
     now = datetime.now(UTC)
     stock = existing if existing is not None else await lock_stock(session, delta.edition_uid, delta.warehouse_uid)
-    edition_uid = bytes_to_uuid(delta.edition_uid)
-    warehouse_uid = bytes_to_uuid(delta.warehouse_uid)
+    edition_uid = delta.edition_uid
+    warehouse_uid = delta.warehouse_uid
 
     if stock is None:
         if not delta.allow_create or delta.delta < 0:
             raise StockNotFoundError(f"stock not found for edition {edition_uid} in warehouse {warehouse_uid}")
         stock = StockEntity(
-            uid=uuid7().bytes,
+            uid=uuid7(),
             edition_id=delta.edition_id,
             edition_uid=delta.edition_uid,
             warehouse_id=delta.warehouse_id,
@@ -113,11 +112,11 @@ async def apply_stock_delta(
         .values(quantity=new_quantity, version=next_version, updated_at=now)
     )
     if result.rowcount == 0:
-        raise VersionConflictError(f"stock {bytes_to_uuid(stock.uid)} changed concurrently")
+        raise VersionConflictError(f"stock {stock.uid} changed concurrently")
 
     session.add(
         StockHistoryEntity(
-            uid=uuid7().bytes,
+            uid=uuid7(),
             stock_id=stock.id,
             stock_uid=stock.uid,
             change_type=delta.change_type.value,

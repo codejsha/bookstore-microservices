@@ -8,25 +8,24 @@ from internal.application.port.repo.repos import FreightRepository
 from internal.domain.aggregate.freight_aggregate import FreightAggregate
 from internal.domain.constant.freight_status import FreightStatus
 from internal.domain.model.option.delivery_option import FreightFilterOption
-from internal.infrastructure.adapter.mysql.models import FreightEntity
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
+from internal.infrastructure.adapter.pgsql.models import FreightEntity
 
 
-class MySQLFreightRepository(FreightRepository):
+class PgsqlFreightRepository(FreightRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
     async def save(self, freight: FreightAggregate) -> FreightAggregate:
         async with self._session_factory() as session:
             entity = (
-                await session.execute(select(FreightEntity).where(FreightEntity.uid == uuid_to_bytes(freight.uid)))
+                await session.execute(select(FreightEntity).where(FreightEntity.uid == freight.uid))
             ).scalar_one_or_none()
 
             if entity is None:
                 entity = FreightEntity(
-                    uid=uuid_to_bytes(freight.uid),
-                    shipment_uid=uuid_to_bytes(freight.shipment_uid),
-                    carrier_uid=uuid_to_bytes(freight.carrier_uid),
+                    uid=freight.uid,
+                    shipment_uid=freight.shipment_uid,
+                    carrier_uid=freight.carrier_uid,
                     base_cost=freight.base_cost,
                     weight_surcharge=freight.weight_surcharge,
                     distance_surcharge=freight.distance_surcharge,
@@ -55,7 +54,7 @@ class MySQLFreightRepository(FreightRepository):
             entity = (
                 await session.execute(
                     select(FreightEntity).where(
-                        FreightEntity.uid == uuid_to_bytes(uid),
+                        FreightEntity.uid == uid,
                         FreightEntity.deleted_at.is_(None),
                     )
                 )
@@ -67,7 +66,7 @@ class MySQLFreightRepository(FreightRepository):
             entity = (
                 await session.execute(
                     select(FreightEntity).where(
-                        FreightEntity.shipment_uid == uuid_to_bytes(shipment_uid),
+                        FreightEntity.shipment_uid == shipment_uid,
                         FreightEntity.deleted_at.is_(None),
                     )
                 )
@@ -80,13 +79,11 @@ class MySQLFreightRepository(FreightRepository):
             count_query = select(func.count()).select_from(FreightEntity).where(FreightEntity.deleted_at.is_(None))
 
             if option.shipment_uid is not None:
-                uid_bytes = uuid_to_bytes(option.shipment_uid)
-                query = query.where(FreightEntity.shipment_uid == uid_bytes)
-                count_query = count_query.where(FreightEntity.shipment_uid == uid_bytes)
+                query = query.where(FreightEntity.shipment_uid == option.shipment_uid)
+                count_query = count_query.where(FreightEntity.shipment_uid == option.shipment_uid)
             if option.carrier_uid is not None:
-                uid_bytes = uuid_to_bytes(option.carrier_uid)
-                query = query.where(FreightEntity.carrier_uid == uid_bytes)
-                count_query = count_query.where(FreightEntity.carrier_uid == uid_bytes)
+                query = query.where(FreightEntity.carrier_uid == option.carrier_uid)
+                count_query = count_query.where(FreightEntity.carrier_uid == option.carrier_uid)
             if option.status is not None:
                 query = query.where(FreightEntity.status == option.status)
                 count_query = count_query.where(FreightEntity.status == option.status)
@@ -110,7 +107,7 @@ class MySQLFreightRepository(FreightRepository):
                 await session.execute(
                     select(FreightEntity)
                     .where(
-                        FreightEntity.uid == uuid_to_bytes(uid),
+                        FreightEntity.uid == uid,
                         FreightEntity.deleted_at.is_(None),
                     )
                     .with_for_update()
@@ -130,9 +127,9 @@ class MySQLFreightRepository(FreightRepository):
     @staticmethod
     def _to_aggregate(entity: FreightEntity) -> FreightAggregate:
         return FreightAggregate(
-            uid=bytes_to_uuid(entity.uid),
-            shipment_uid=bytes_to_uuid(entity.shipment_uid),
-            carrier_uid=bytes_to_uuid(entity.carrier_uid),
+            uid=entity.uid,
+            shipment_uid=entity.shipment_uid,
+            carrier_uid=entity.carrier_uid,
             base_cost=entity.base_cost,
             weight_surcharge=entity.weight_surcharge,
             distance_surcharge=entity.distance_surcharge,

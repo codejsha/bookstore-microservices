@@ -18,19 +18,19 @@ from internal.domain.service.inventory_service import (
     WarehouseService,
 )
 from internal.infrastructure.adapter.event.noop_publisher import NoopEventPublisher
-from internal.infrastructure.adapter.mysql.audit_repo import MySQLStockAuditRepository
-from internal.infrastructure.adapter.mysql.balance_repo import MySQLStockBalanceRepository
-from internal.infrastructure.adapter.mysql.carrier_repo import MySQLCarrierRepository
-from internal.infrastructure.adapter.mysql.closing_repo import MySQLMonthlyClosingRepository
-from internal.infrastructure.adapter.mysql.freight_repo import MySQLFreightRepository
-from internal.infrastructure.adapter.mysql.shipment_repo import MySQLShipmentRepository
-from internal.infrastructure.adapter.mysql.stats_repo import MySQLStatsRepository
-from internal.infrastructure.adapter.mysql.stock_history_repo import MySQLStockHistoryRepository
-from internal.infrastructure.adapter.mysql.stock_repo import MySQLStockRepository
-from internal.infrastructure.adapter.mysql.stock_reservation_repo import MySQLStockReservationRepository
-from internal.infrastructure.adapter.mysql.tracking_repo import MySQLTrackingRepository
-from internal.infrastructure.adapter.mysql.transfer_repo import MySQLStockTransferRepository
-from internal.infrastructure.adapter.mysql.warehouse_repo import MySQLWarehouseRepository
+from internal.infrastructure.adapter.pgsql.audit_repo import PgsqlStockAuditRepository
+from internal.infrastructure.adapter.pgsql.balance_repo import PgsqlStockBalanceRepository
+from internal.infrastructure.adapter.pgsql.carrier_repo import PgsqlCarrierRepository
+from internal.infrastructure.adapter.pgsql.closing_repo import PgsqlMonthlyClosingRepository
+from internal.infrastructure.adapter.pgsql.freight_repo import PgsqlFreightRepository
+from internal.infrastructure.adapter.pgsql.shipment_repo import PgsqlShipmentRepository
+from internal.infrastructure.adapter.pgsql.stats_repo import PgsqlStatsRepository
+from internal.infrastructure.adapter.pgsql.stock_history_repo import PgsqlStockHistoryRepository
+from internal.infrastructure.adapter.pgsql.stock_repo import PgsqlStockRepository
+from internal.infrastructure.adapter.pgsql.stock_reservation_repo import PgsqlStockReservationRepository
+from internal.infrastructure.adapter.pgsql.tracking_repo import PgsqlTrackingRepository
+from internal.infrastructure.adapter.pgsql.transfer_repo import PgsqlStockTransferRepository
+from internal.infrastructure.adapter.pgsql.warehouse_repo import PgsqlWarehouseRepository
 from internal.infrastructure.adapter.temporal.shipment_activities import ShipmentActivities
 from internal.infrastructure.adapter.temporal.stock_activities import StockActivities
 from internal.infrastructure.support.database import (
@@ -50,20 +50,20 @@ class Container:
 
         self.event_publisher = NoopEventPublisher()
 
-        self.shipment_repo = MySQLShipmentRepository(self._session_factory)
-        self.tracking_repo = MySQLTrackingRepository(self._session_factory)
-        self.carrier_repo = MySQLCarrierRepository(self._session_factory)
-        self.freight_repo = MySQLFreightRepository(self._session_factory)
-        self.stats_repo = MySQLStatsRepository(self._session_factory)
+        self.shipment_repo = PgsqlShipmentRepository(self._session_factory)
+        self.tracking_repo = PgsqlTrackingRepository(self._session_factory)
+        self.carrier_repo = PgsqlCarrierRepository(self._session_factory)
+        self.freight_repo = PgsqlFreightRepository(self._session_factory)
+        self.stats_repo = PgsqlStatsRepository(self._session_factory)
 
-        self.stock_repo = MySQLStockRepository(self._session_factory)
-        self.stock_history_repo = MySQLStockHistoryRepository(self._session_factory)
-        self.stock_reservation_repo = MySQLStockReservationRepository(self._session_factory)
-        self.warehouse_repo = MySQLWarehouseRepository(self._session_factory)
-        self.transfer_repo = MySQLStockTransferRepository(self._session_factory)
-        self.audit_repo = MySQLStockAuditRepository(self._session_factory)
-        self.closing_repo = MySQLMonthlyClosingRepository(self._session_factory)
-        self.balance_repo = MySQLStockBalanceRepository(self._session_factory)
+        self.stock_repo = PgsqlStockRepository(self._session_factory)
+        self.stock_history_repo = PgsqlStockHistoryRepository(self._session_factory)
+        self.stock_reservation_repo = PgsqlStockReservationRepository(self._session_factory)
+        self.warehouse_repo = PgsqlWarehouseRepository(self._session_factory)
+        self.transfer_repo = PgsqlStockTransferRepository(self._session_factory)
+        self.audit_repo = PgsqlStockAuditRepository(self._session_factory)
+        self.closing_repo = PgsqlMonthlyClosingRepository(self._session_factory)
+        self.balance_repo = PgsqlStockBalanceRepository(self._session_factory)
 
         self.shipment_service = ShipmentService(
             shipment_repo=self.shipment_repo,

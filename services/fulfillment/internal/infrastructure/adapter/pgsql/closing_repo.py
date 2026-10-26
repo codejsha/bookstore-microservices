@@ -11,17 +11,16 @@ from internal.domain.aggregate.closing_aggregate import MonthlyClosingAggregate,
 from internal.domain.constant.closing_status import ClosingStatus
 from internal.domain.model.error import DuplicateClosingError, WarehouseNotFoundError
 from internal.domain.model.option.inventory_option import ClosingQueryOption
-from internal.infrastructure.adapter.mysql.models import (
+from internal.infrastructure.adapter.pgsql.models import (
     MonthlyClosingEntity,
     MonthlyClosingItemEntity,
     StockEntity,
     StockHistoryEntity,
     WarehouseEntity,
 )
-from internal.infrastructure.adapter.mysql.optimistic_retry import is_unique_violation
-from internal.infrastructure.adapter.mysql.paging import page_offset, resolve_order_by
-from internal.infrastructure.adapter.mysql.stock_movement import history_buckets
-from internal.infrastructure.adapter.mysql.uuid_helper import bytes_to_uuid, uuid_to_bytes
+from internal.infrastructure.adapter.pgsql.optimistic_retry import is_unique_violation
+from internal.infrastructure.adapter.pgsql.paging import page_offset, resolve_order_by
+from internal.infrastructure.adapter.pgsql.stock_movement import history_buckets
 
 CLOSING_ITEM_BATCH_SIZE = 500
 
@@ -43,14 +42,14 @@ def month_range(year: int, month: int) -> tuple[datetime, datetime]:
     return start, end
 
 
-class MySQLMonthlyClosingRepository(MonthlyClosingRepository):
+class PgsqlMonthlyClosingRepository(MonthlyClosingRepository):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
 
     async def find_all(self, option: ClosingQueryOption) -> tuple[list[MonthlyClosingAggregate], int]:
         conditions = [MonthlyClosingEntity.deleted_at.is_(None)]
         if option.warehouse_uid is not None:
-            conditions.append(MonthlyClosingEntity.warehouse_uid == uuid_to_bytes(option.warehouse_uid))
+            conditions.append(MonthlyClosingEntity.warehouse_uid == option.warehouse_uid)
         if option.year is not None:
             conditions.append(MonthlyClosingEntity.year == option.year)
         if option.month is not None:
@@ -80,7 +79,7 @@ class MySQLMonthlyClosingRepository(MonthlyClosingRepository):
             closing = (
                 await session.execute(
                     select(MonthlyClosingEntity).where(
-                        MonthlyClosingEntity.uid == uuid_to_bytes(uid), MonthlyClosingEntity.deleted_at.is_(None)
+                        MonthlyClosingEntity.uid == uid, MonthlyClosingEntity.deleted_at.is_(None)
                     )
                 )
             ).scalar_one_or_none()
@@ -91,7 +90,7 @@ class MySQLMonthlyClosingRepository(MonthlyClosingRepository):
 
     async def create(self, params: ClosingCreateParams) -> MonthlyClosingAggregate:
         start, end = month_range(params.year, params.month)
-        warehouse_uid = uuid_to_bytes(params.warehouse_uid)
+        warehouse_uid = params.warehouse_uid
         async with self._session_factory() as session, session.begin():
             warehouse = (
                 await session.execute(
@@ -115,7 +114,7 @@ class MySQLMonthlyClosingRepository(MonthlyClosingRepository):
 
             now = datetime.now(UTC)
             closing = MonthlyClosingEntity(
-                uid=uuid7().bytes,
+                uid=uuid7(),
                 warehouse_id=warehouse.id,
                 warehouse_uid=warehouse.uid,
                 year=params.year,
@@ -202,8 +201,8 @@ class MySQLMonthlyClosingRepository(MonthlyClosingRepository):
         closing: MonthlyClosingEntity, items: Sequence[MonthlyClosingItemEntity]
     ) -> MonthlyClosingAggregate:
         return MonthlyClosingAggregate(
-            uid=bytes_to_uuid(closing.uid),
-            warehouse_uid=bytes_to_uuid(closing.warehouse_uid),
+            uid=closing.uid,
+            warehouse_uid=closing.warehouse_uid,
             year=closing.year,
             month=closing.month,
             status=ClosingStatus(closing.status),
@@ -212,7 +211,7 @@ class MySQLMonthlyClosingRepository(MonthlyClosingRepository):
             updated_at=closing.updated_at,
             items=[
                 MonthlyClosingItem(
-                    edition_uid=bytes_to_uuid(i.edition_uid),
+                    edition_uid=i.edition_uid,
                     opening_quantity=i.opening_quantity,
                     inbound_quantity=i.inbound_quantity,
                     outbound_quantity=i.outbound_quantity,

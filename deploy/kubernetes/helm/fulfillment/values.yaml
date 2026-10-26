@@ -14,7 +14,7 @@ fullnameOverride: ""
 
 serviceAccount:
   create: false
-  name: "fulfillment-mysql"
+  name: "fulfillment-postgres"
   automountServiceAccountToken: false
   annotations: {}
 
@@ -23,10 +23,10 @@ automountServiceAccountToken: true
 podAnnotations:
   vault.hashicorp.com/agent-inject: "true"
   vault.hashicorp.com/agent-init-first: "true"
-  vault.hashicorp.com/role: "bookstore-mysql-role"
-  vault.hashicorp.com/agent-inject-secret-db.env: "database/static-creds/fulfillment-mysql-static"
+  vault.hashicorp.com/role: "bookstore-postgres-role"
+  vault.hashicorp.com/agent-inject-secret-db.env: "database/static-creds/fulfillment-postgres-static"
   vault.hashicorp.com/agent-inject-template-db.env: |
-    {{- with secret "database/static-creds/fulfillment-mysql-static" -}}
+    {{- with secret "database/static-creds/fulfillment-postgres-static" -}}
     FULFILLMENT__DATABASE__USERNAME={{ .Data.username }}
     FULFILLMENT__DATABASE__PASSWORD={{ .Data.password }}
     {{- end -}}

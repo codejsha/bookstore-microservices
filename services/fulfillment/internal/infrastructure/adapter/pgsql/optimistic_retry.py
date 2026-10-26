@@ -8,9 +8,9 @@ MAX_ATTEMPTS = 3
 BASE_DELAY_MS = 5
 CAP_DELAY_MS = 80
 
-MYSQL_DUPLICATE_ENTRY = 1062
-MYSQL_LOCK_WAIT_TIMEOUT = 1205
-MYSQL_DEADLOCK = 1213
+SQLSTATE_UNIQUE_VIOLATION = "23505"
+SQLSTATE_DEADLOCK_DETECTED = "40P01"
+SQLSTATE_LOCK_NOT_AVAILABLE = "55P03"
 
 
 class VersionConflictError(Exception):
@@ -29,18 +29,19 @@ class OptimisticRetryExhaustedError(Exception):
     pass
 
 
-def mysql_error_code(exc: BaseException) -> int | None:
+def sqlstate(exc: BaseException) -> str | None:
     orig = getattr(exc, "orig", None)
-    args = getattr(orig, "args", ())
-    if args and isinstance(args[0], int):
-        return args[0]
+    for candidate in (orig, getattr(orig, "__cause__", None)):
+        state = getattr(candidate, "sqlstate", None) or getattr(candidate, "pgcode", None)
+        if isinstance(state, str) and state:
+            return state
     return None
 
 
 def is_unique_violation(exc: BaseException) -> bool:
     if not isinstance(exc, IntegrityError):
         return False
-    if mysql_error_code(exc) == MYSQL_DUPLICATE_ENTRY:
+    if sqlstate(exc) == SQLSTATE_UNIQUE_VIOLATION:
         return True
     return "UNIQUE constraint failed" in str(exc)
 
@@ -48,7 +49,10 @@ def is_unique_violation(exc: BaseException) -> bool:
 def is_retryable(exc: BaseException) -> bool:
     if isinstance(exc, VersionConflictError | StockCreateConflictError):
         return True
-    return isinstance(exc, DBAPIError) and mysql_error_code(exc) in (MYSQL_LOCK_WAIT_TIMEOUT, MYSQL_DEADLOCK)
+    return isinstance(exc, DBAPIError) and sqlstate(exc) in (
+        SQLSTATE_DEADLOCK_DETECTED,
+        SQLSTATE_LOCK_NOT_AVAILABLE,
+    )
 
 
 def retry_delay_seconds(attempt: int, base_ms: int = BASE_DELAY_MS, cap_ms: int = CAP_DELAY_MS) -> float:

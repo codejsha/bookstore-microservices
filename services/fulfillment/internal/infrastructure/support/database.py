@@ -87,7 +87,7 @@ def _create_engine(
         pool_timeout=pool_timeout,
         pool_recycle=1800,
         pool_pre_ping=True,
-        connect_args={"connect_timeout": 10},
+        connect_args={"timeout": 10},
         echo=False,
     )
 

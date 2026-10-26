@@ -7,25 +7,25 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from internal.domain.aggregate.tracking_aggregate import TrackingAggregate
 from internal.domain.constant.shipment_status import ShipmentStatus
 from internal.domain.service.delivery_service import ShipmentService
-from internal.infrastructure.adapter.mysql import shipment_repo as shipment_repo_module
-from internal.infrastructure.adapter.mysql.shipment_repo import MySQLShipmentRepository
-from internal.infrastructure.adapter.mysql.tracking_repo import MySQLTrackingRepository, to_tracking_entity
+from internal.infrastructure.adapter.pgsql import shipment_repo as shipment_repo_module
+from internal.infrastructure.adapter.pgsql.shipment_repo import PgsqlShipmentRepository
+from internal.infrastructure.adapter.pgsql.tracking_repo import PgsqlTrackingRepository, to_tracking_entity
 from internal.infrastructure.adapter.temporal.shipment_activities import CreateShipmentInput, ShipmentActivities
 from tests.conftest import make_shipment
 
 
 @pytest.fixture
-def shipment_repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLShipmentRepository:
-    return MySQLShipmentRepository(session_factory)
+def shipment_repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlShipmentRepository:
+    return PgsqlShipmentRepository(session_factory)
 
 
 @pytest.fixture
-def tracking_repo(session_factory: async_sessionmaker[AsyncSession]) -> MySQLTrackingRepository:
-    return MySQLTrackingRepository(session_factory)
+def tracking_repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlTrackingRepository:
+    return PgsqlTrackingRepository(session_factory)
 
 
 @pytest.fixture
-def service(shipment_repo: MySQLShipmentRepository, tracking_repo: MySQLTrackingRepository) -> ShipmentService:
+def service(shipment_repo: PgsqlShipmentRepository, tracking_repo: PgsqlTrackingRepository) -> ShipmentService:
     return ShipmentService(shipment_repo=shipment_repo, tracking_repo=tracking_repo)
 
 
@@ -63,8 +63,8 @@ class TestTransitionAtomicity:
     async def test_transition_commits_status_and_tracking_together(
         self,
         service: ShipmentService,
-        shipment_repo: MySQLShipmentRepository,
-        tracking_repo: MySQLTrackingRepository,
+        shipment_repo: PgsqlShipmentRepository,
+        tracking_repo: PgsqlTrackingRepository,
         initial_status: ShipmentStatus,
         action: str,
         expected_status: ShipmentStatus,
@@ -94,8 +94,8 @@ class TestTransitionAtomicity:
     async def test_transition_tracking_insert_failure_rolls_back_status(
         self,
         service: ShipmentService,
-        shipment_repo: MySQLShipmentRepository,
-        tracking_repo: MySQLTrackingRepository,
+        shipment_repo: PgsqlShipmentRepository,
+        tracking_repo: PgsqlTrackingRepository,
         monkeypatch: pytest.MonkeyPatch,
         initial_status: ShipmentStatus,
         action: str,
@@ -116,8 +116,8 @@ class TestTransitionAtomicity:
     async def test_dispatch_retry_after_tracking_insert_failure_completes(
         self,
         service: ShipmentService,
-        shipment_repo: MySQLShipmentRepository,
-        tracking_repo: MySQLTrackingRepository,
+        shipment_repo: PgsqlShipmentRepository,
+        tracking_repo: PgsqlTrackingRepository,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         shipment = make_shipment(status=ShipmentStatus.PLANNED)
@@ -143,8 +143,8 @@ class TestCreateShipmentActivityAtomicity:
     async def test_create_shipment_dispatch_failure_leaves_shipment_planned_without_tracking(
         self,
         service: ShipmentService,
-        shipment_repo: MySQLShipmentRepository,
-        tracking_repo: MySQLTrackingRepository,
+        shipment_repo: PgsqlShipmentRepository,
+        tracking_repo: PgsqlTrackingRepository,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         activities = ShipmentActivities(shipment_service=service)
@@ -166,8 +166,8 @@ class TestCreateShipmentActivityAtomicity:
     async def test_create_shipment_retry_after_dispatch_failure_completes(
         self,
         service: ShipmentService,
-        shipment_repo: MySQLShipmentRepository,
-        tracking_repo: MySQLTrackingRepository,
+        shipment_repo: PgsqlShipmentRepository,
+        tracking_repo: PgsqlTrackingRepository,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         activities = ShipmentActivities(shipment_service=service)
@@ -197,8 +197,8 @@ class TestCreateShipmentActivityAtomicity:
     async def test_create_shipment_creates_single_shipment_for_repeated_activity_runs(
         self,
         service: ShipmentService,
-        shipment_repo: MySQLShipmentRepository,
-        tracking_repo: MySQLTrackingRepository,
+        shipment_repo: PgsqlShipmentRepository,
+        tracking_repo: PgsqlTrackingRepository,
     ) -> None:
         activities = ShipmentActivities(shipment_service=service)
         order_uid = uuid4()
