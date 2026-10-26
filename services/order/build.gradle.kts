@@ -5,12 +5,6 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 import java.util.*
 
-buildscript {
-    dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:11.7.2")
-    }
-}
-
 plugins {
     kotlin("jvm") version "2.3.10"
     kotlin("plugin.spring") version "2.3.10"
@@ -18,7 +12,7 @@ plugins {
     id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
 
-    id("com.codejsha.platform.jooq-codegen-plugin") version "0.1.0"
+    id("com.codejsha.platform.jooq-codegen-plugin") version "0.1.1"
     id("org.jooq.jooq-codegen-gradle") version "3.19.29"
     id("com.diffplug.spotless") version "8.3.0"
 }
