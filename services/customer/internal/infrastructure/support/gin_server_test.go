@@ -35,6 +35,10 @@ func newTestGinServer(t *testing.T) *GinServer {
 		nil,
 		nil,
 		nil,
+		nil,
+		nil,
+		nil,
+		nil,
 	)
 }
 

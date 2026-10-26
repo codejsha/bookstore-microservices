@@ -2,6 +2,7 @@ export const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const TOKEN = __ENV.AUTH_TOKEN || '';
 const CUSTOMER_UID = __ENV.CUSTOMER_UID || '';
 const BOOK_UID = __ENV.BOOK_UID || '';
+const TICKET_UID = __ENV.TICKET_UID || '';
 
 export function headers() {
   const h = { 'Content-Type': 'application/json' };
@@ -22,4 +23,8 @@ export const READ_ENDPOINTS = [
       ]
     : []),
   ...(BOOK_UID ? [`/api/v1/books/${BOOK_UID}/reviews?size=20`] : []),
+  '/api/v1/tickets?size=20',
+  '/api/v1/categories',
+  '/api/v1/faqs?size=20',
+  ...(TICKET_UID ? [`/api/v1/tickets/${TICKET_UID}`, `/api/v1/tickets/${TICKET_UID}/comments`] : []),
 ];

@@ -19,6 +19,10 @@ import (
 
 var ErrNotFound = usecase.ErrNotFound
 
+var ErrForbidden = usecase.ErrForbidden
+
+var ErrUnauthenticated = errors.New("authentication required")
+
 type errorStatus struct {
 	status  int
 	message string
@@ -34,6 +38,58 @@ func MapNotFound(ctx context.Context, err error) error {
 		if es, ok := ctx.Value(errorStatusKey{}).(*errorStatus); ok {
 			es.status = http.StatusNotFound
 			es.message = "resource not found"
+		}
+	}
+	return err
+}
+
+func MapForbidden(ctx context.Context, err error) error {
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, ErrForbidden) {
+		if es, ok := ctx.Value(errorStatusKey{}).(*errorStatus); ok {
+			es.status = http.StatusForbidden
+			es.message = "forbidden"
+		}
+	}
+	return err
+}
+
+func MapUnauthenticated(ctx context.Context, err error) error {
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, ErrUnauthenticated) {
+		if es, ok := ctx.Value(errorStatusKey{}).(*errorStatus); ok {
+			es.status = http.StatusUnauthorized
+			es.message = "authentication required"
+		}
+	}
+	return err
+}
+
+func MapCategoryNameExists(ctx context.Context, err error) error {
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, repo.ErrCategoryNameExists) {
+		if es, ok := ctx.Value(errorStatusKey{}).(*errorStatus); ok {
+			es.status = http.StatusConflict
+			es.message = "category name already exists"
+		}
+	}
+	return err
+}
+
+func MapUnknownReference(ctx context.Context, err error) error {
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, repo.ErrUnknownReference) {
+		if es, ok := ctx.Value(errorStatusKey{}).(*errorStatus); ok {
+			es.status = http.StatusBadRequest
+			es.message = "referenced category not found"
 		}
 	}
 	return err

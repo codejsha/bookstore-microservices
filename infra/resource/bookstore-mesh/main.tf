@@ -15,7 +15,6 @@ locals {
     order       = "order-mysql"
     payment     = "payment-mysql"
     fulfillment = "fulfillment-mysql"
-    support     = "support-mysql"
     settlement  = "settlement-mysql"
     admin       = "admin"
     admin_web   = "admin-web"
@@ -44,7 +43,6 @@ locals {
     "order",
     "payment",
     "settlement",
-    "support",
   ]
 
   timeout_services = [
@@ -64,7 +62,6 @@ locals {
     "order",
     "payment",
     "settlement",
-    "support",
     "web",
   ]
 
@@ -547,41 +544,6 @@ resource "kubernetes_manifest" "authz_payment" {
           ]
           to = [
             { operation = { paths = local.webhook_paths, methods = ["POST"] } }
-          ]
-        }
-      ]
-    }
-  }
-}
-
-resource "kubernetes_manifest" "authz_support" {
-  manifest = {
-    apiVersion = "security.istio.io/v1"
-    kind       = "AuthorizationPolicy"
-    metadata = {
-      name      = "support-authz"
-      namespace = var.namespace
-    }
-    spec = {
-      targetRefs = [
-        {
-          kind  = "Service"
-          group = ""
-          name  = "support"
-        }
-      ]
-      action = "ALLOW"
-      rules = [
-        {
-          from = [
-            {
-              source = {
-                principals = [
-                  local.principal.customer,
-                  var.ingress_gateway_principal,
-                ]
-              }
-            }
           ]
         }
       ]

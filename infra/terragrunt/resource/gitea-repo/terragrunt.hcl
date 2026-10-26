@@ -35,7 +35,7 @@ inputs = {
   helm_dir = "${get_repo_root()}/deploy/kubernetes/helm"
   app_repos = [
     "catalog-helm", "customer-helm", "identity-helm",
-    "order-helm", "payment-helm", "fulfillment-helm", "support-helm",
+    "order-helm", "payment-helm", "fulfillment-helm",
     "web-helm", "admin-helm", "admin-web-helm", "settlement-helm",
   ]
 
@@ -44,7 +44,7 @@ inputs = {
   source_repo_suffix = local.gitea.source_repo_suffix
   services = [
     "catalog", "customer", "identity",
-    "order", "payment", "fulfillment", "support",
+    "order", "payment", "fulfillment",
     "web", "admin", "admin-web", "settlement",
   ]
 

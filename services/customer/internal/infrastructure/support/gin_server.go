@@ -49,6 +49,10 @@ type GinServer struct {
 	pointAPI    openapi.PointApi
 	reviewAPI   openapi.ReviewApi
 	wishlistAPI openapi.WishlistApi
+	ticketAPI   openapi.TicketApi
+	commentAPI  openapi.CommentApi
+	categoryAPI openapi.CategoryApi
+	faqAPI      openapi.FaqApi
 }
 
 func NewGinServer(
@@ -64,6 +68,10 @@ func NewGinServer(
 	pointAPI openapi.PointApi,
 	reviewAPI openapi.ReviewApi,
 	wishlistAPI openapi.WishlistApi,
+	ticketAPI openapi.TicketApi,
+	commentAPI openapi.CommentApi,
+	categoryAPI openapi.CategoryApi,
+	faqAPI openapi.FaqApi,
 ) *GinServer {
 	s := &GinServer{
 		shutdowner:  shutdowner,
@@ -77,6 +85,10 @@ func NewGinServer(
 		pointAPI:    pointAPI,
 		reviewAPI:   reviewAPI,
 		wishlistAPI: wishlistAPI,
+		ticketAPI:   ticketAPI,
+		commentAPI:  commentAPI,
+		categoryAPI: categoryAPI,
+		faqAPI:      faqAPI,
 	}
 	s.readyCheck = func(ctx context.Context) error {
 		return s.readiness.Ping(ctx)
@@ -228,4 +240,8 @@ func (s *GinServer) RegisterRoutes() {
 	openapi.RegisterPointApiGinRoutes(s.engine, s.pointAPI)
 	openapi.RegisterReviewApiGinRoutes(s.engine, s.reviewAPI)
 	openapi.RegisterWishlistApiGinRoutes(s.engine, s.wishlistAPI)
+	openapi.RegisterTicketApiGinRoutes(s.engine, s.ticketAPI)
+	openapi.RegisterCommentApiGinRoutes(s.engine, s.commentAPI)
+	openapi.RegisterCategoryApiGinRoutes(s.engine, s.categoryAPI)
+	openapi.RegisterFaqApiGinRoutes(s.engine, s.faqAPI)
 }

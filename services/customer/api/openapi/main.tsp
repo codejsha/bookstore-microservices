@@ -18,6 +18,14 @@ import "./typespec/routes/payment.tsp";
 import "./typespec/routes/delivery.tsp";
 import "./typespec/models/review.tsp";
 import "./typespec/routes/review.tsp";
+import "./typespec/models/ticket.tsp";
+import "./typespec/models/comment.tsp";
+import "./typespec/models/category.tsp";
+import "./typespec/models/faq.tsp";
+import "./typespec/routes/ticket.tsp";
+import "./typespec/routes/comment.tsp";
+import "./typespec/routes/category.tsp";
+import "./typespec/routes/faq.tsp";
 
 using Http;
 using OpenAPI;

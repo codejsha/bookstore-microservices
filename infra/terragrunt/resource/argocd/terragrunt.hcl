@@ -38,7 +38,7 @@ inputs = {
 
   app_repos = [
     "catalog-helm", "customer-helm", "identity-helm",
-    "order-helm", "payment-helm", "fulfillment-helm", "support-helm",
+    "order-helm", "payment-helm", "fulfillment-helm",
     "web-helm", "admin-helm", "admin-web-helm", "settlement-helm",
   ]
 }

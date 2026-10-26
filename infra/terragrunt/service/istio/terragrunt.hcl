@@ -63,7 +63,6 @@ inputs = {
     "seaweedfs.example.com"           = ["seaweedfs"]
     "seaweedfs-api.example.com"       = ["seaweedfs"]
     "settlement-api.example.com"      = ["bookstore"]
-    "support-api.example.com"         = ["bookstore"]
     "tekton.example.com"              = ["tekton-pipelines"]
     "temporal.example.com"            = ["temporal"]
     "vault.example.com"               = ["vault"]

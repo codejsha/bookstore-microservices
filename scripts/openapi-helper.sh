@@ -14,4 +14,3 @@ PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 (cd "${PROJECT_ROOT}/services/order" && make openapi)
 (cd "${PROJECT_ROOT}/services/payment" && make openapi)
 (cd "${PROJECT_ROOT}/services/settlement" && make openapi)
-(cd "${PROJECT_ROOT}/services/support" && make openapi)
