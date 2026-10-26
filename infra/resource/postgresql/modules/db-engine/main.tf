@@ -18,6 +18,20 @@ data "kubernetes_secret_v1" "cnpg_superuser" {
   }
 }
 
+locals {
+  readonly_entries = {
+    for e in var.cross_service_readonly : "${e.name}-${e.target_service}" => e
+  }
+
+  readonly_static_roles_by_target = {
+    for tgt in distinct([for e in var.cross_service_readonly : e.target_service]) :
+    tgt => [
+      for e in var.cross_service_readonly :
+      "${e.name}-${e.target_service}-postgres-static" if e.target_service == tgt
+    ]
+  }
+}
+
 resource "vault_database_secret_backend_connection" "postgres" {
   for_each = toset(var.postgres_services)
 
@@ -33,10 +47,10 @@ resource "vault_database_secret_backend_connection" "postgres" {
     password = data.kubernetes_secret_v1.cnpg_superuser[each.key].data["password"]
   }
 
-  allowed_roles = [
-    "${each.key}-postgres-dynamic",
-    "${each.key}-postgres-static",
-  ]
+  allowed_roles = concat(
+    ["${each.key}-postgres-dynamic", "${each.key}-postgres-static"],
+    lookup(local.readonly_static_roles_by_target, each.key, []),
+  )
 
   verify_connection = false
 }
@@ -88,10 +102,25 @@ resource "vault_database_secret_backend_static_role" "postgres_static" {
   rotation_window   = var.rotation_window
 }
 
+resource "vault_database_secret_backend_static_role" "cross_service_readonly" {
+  for_each = local.readonly_entries
+
+  backend  = "database"
+  name     = "${each.key}-postgres-static"
+  db_name  = vault_database_secret_backend_connection.postgres[each.value.target_service].name
+  username = each.value.username
+
+  rotation_schedule = var.rotation_schedule
+  rotation_window   = var.rotation_window
+}
+
 resource "terraform_data" "vault_agent_refresh" {
   triggers_replace = [var.rotation_schedule, var.rotation_window]
 
-  depends_on = [vault_database_secret_backend_static_role.postgres_static]
+  depends_on = [
+    vault_database_secret_backend_static_role.postgres_static,
+    vault_database_secret_backend_static_role.cross_service_readonly,
+  ]
 
   provisioner "local-exec" {
     interpreter = ["bash", "-c"]

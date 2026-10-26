@@ -61,8 +61,12 @@ spec:
           - name: db-migrate-task
             value: db-migrate-flyway
           - name: db-migrate-secret-name
-            value: $(tt.params.service-name)-mysql-cluster-secret
+            value: $(tt.params.service-name)-postgres-app
           - name: db-migrate-host
-            value: $(tt.params.service-name)-mysql.bookstore.svc.cluster.local
+            value: $(tt.params.service-name)-postgres-rw.bookstore.svc.cluster.local
           - name: db-migrate-dbname
             value: $(tt.params.service-name)_db
+          - name: db-migrate-legacy-secret-name
+            value: $(tt.params.service-name)-mysql-cluster-secret
+          - name: db-migrate-legacy-host
+            value: $(tt.params.service-name)-mysql.bookstore.svc.cluster.local

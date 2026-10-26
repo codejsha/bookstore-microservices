@@ -75,15 +75,24 @@ spec:
       type: string
       default: ./
     - name: db-migrate-engine
-      description: Flyway only — mysql | postgres
+      description: Flyway/Alembic only — auto | mysql | postgres (auto picks postgres when db-migrate-secret-name carries credentials, else mysql)
       type: string
-      default: mysql
+      default: auto
     - name: db-migrate-secret-name
+      description: PostgreSQL credentials secret (CloudNativePG username/password); need not exist
       type: string
     - name: db-migrate-host
       type: string
     - name: db-migrate-dbname
       type: string
+    - name: db-migrate-legacy-secret-name
+      description: MySQL credentials secret (operator rootUser/rootPassword); need not exist, but must not be empty
+      type: string
+      default: none
+    - name: db-migrate-legacy-host
+      description: MySQL host used when the legacy secret is the one that carries credentials
+      type: string
+      default: ""
 
   tasks:
     ### task
@@ -177,6 +186,10 @@ spec:
           value: $(params.db-migrate-host)
         - name: DB_NAME
           value: $(params.db-migrate-dbname)
+        - name: LEGACY_DB_SECRET_NAME
+          value: $(params.db-migrate-legacy-secret-name)
+        - name: LEGACY_DB_HOST
+          value: $(params.db-migrate-legacy-host)
       workspaces:
         - name: source
           workspace: shared-workspace

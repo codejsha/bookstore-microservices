@@ -81,6 +81,22 @@ variable "postgres_cluster_config" {
   }))
 }
 
+variable "cross_service_readonly" {
+  description = <<-EOT
+    Cross-service read-only Postgres roles. Each entry provisions a SELECT-only LOGIN
+    role on an *existing* service's CNPG cluster (its target_service — NOT its own
+    cluster) plus a Vault database static role that rotates the role's password like
+    the app users.
+  EOT
+  type = list(object({
+    name           = string
+    username       = string
+    target_service = string
+    tables         = list(string)
+  }))
+  default = []
+}
+
 variable "rotation_schedule" {
   description = "Cron schedule (Vault server clock, UTC) driving the Postgres static-role password rotations. Default 19:10 UTC = 04:10 KST, staggered behind the MySQL rotations."
   type        = string

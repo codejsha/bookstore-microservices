@@ -11,9 +11,13 @@ metadata:
     tekton.dev/displayName: "DB Migrate (Alembic)"
 spec:
   description: >-
-    Runs `alembic upgrade head` against MySQL using the rootUser/rootPassword
-    keys from the Oracle MySQL Operator secret. The service's pydantic-settings
-    reads <SERVICE>__DATABASE__* env vars to build the SQLAlchemy URL inside
+    Runs `alembic upgrade head` against PostgreSQL or MySQL. Credentials come
+    from two secrets read optionally: DB_SECRET_NAME (CloudNativePG
+    username/password) and LEGACY_DB_SECRET_NAME (Oracle MySQL Operator
+    rootUser/rootPassword). With DB_ENGINE=auto the Postgres pair wins when
+    present, otherwise the MySQL pair is used against LEGACY_DB_HOST. The
+    service's pydantic-settings reads <SERVICE>__DATABASE__* env vars (HOST,
+    PORT, DB_NAME, USERNAME, PASSWORD) to build the SQLAlchemy URL inside
     Alembic's env.py. A service that owns no database ships no migrations
     directory; the task detects that and exits cleanly, so the pipeline's later
     deploy steps still run. Guarding this with a `when` expression instead would
@@ -32,18 +36,33 @@ spec:
     - name: SERVICE_NAME
       description: service name; used to derive the pydantic-settings env prefix (uppercased)
       type: string
+    - name: DB_ENGINE
+      description: auto | mysql | postgres
+      type: string
+      default: auto
     - name: DB_SECRET_NAME
       description: >-
-        K8s secret with rootUser/rootPassword. Read optionally: a service with no
-        database has no such secret, and a missing secretKeyRef would fail the
-        pod before the skip check below can run.
+        K8s secret holding the PostgreSQL credentials (CloudNativePG
+        username/password). Read optionally: a service with no database has no
+        such secret, and a missing secretKeyRef would fail the pod before the
+        skip check below can run.
       type: string
     - name: DB_HOST
-      description: MySQL host
+      description: PostgreSQL host (also the MySQL host when LEGACY_DB_HOST is empty)
       type: string
     - name: DB_NAME
-      description: MySQL schema
+      description: database / schema name
       type: string
+    - name: LEGACY_DB_SECRET_NAME
+      description: >-
+        K8s secret holding the MySQL credentials (operator rootUser/rootPassword).
+        Read optionally; the default names a secret that does not exist.
+      type: string
+      default: none
+    - name: LEGACY_DB_HOST
+      description: MySQL host; falls back to DB_HOST when empty
+      type: string
+      default: ""
     - name: NEXUS_PYPI_URL
       description: >-
         In-cluster PyPI group the dependency resolve goes through, matching the
@@ -60,16 +79,28 @@ spec:
       image: ghcr.io/astral-sh/uv:python3.13-bookworm
       workingDir: $(workspaces.source.path)/$(params.CONTEXT_DIR)
       env:
-        - name: DB_USER
+        - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
               name: $(params.DB_SECRET_NAME)
+              key: username
+              optional: true
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.DB_SECRET_NAME)
+              key: password
+              optional: true
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.LEGACY_DB_SECRET_NAME)
               key: rootUser
               optional: true
-        - name: DB_PASSWORD
+        - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: $(params.DB_SECRET_NAME)
+              name: $(params.LEGACY_DB_SECRET_NAME)
               key: rootPassword
               optional: true
         - name: NEXUS_PYPI_URL
@@ -101,16 +132,54 @@ spec:
         export UV_INDEX_URL="$UV_DEFAULT_INDEX"
         export UV_INSECURE_HOST="$host"
 
-        if [ -z "${DB_USER:-}" ]; then
-          echo "secret $(params.DB_SECRET_NAME) carries no credentials" >&2
+        engine="$(params.DB_ENGINE)"
+        if [ "$engine" = auto ]; then
+          if [ -n "${POSTGRES_USER:-}" ]; then
+            engine=postgres
+          elif [ -n "${MYSQL_USER:-}" ]; then
+            engine=mysql
+          else
+            echo "neither $(params.DB_SECRET_NAME) (username/password) nor $(params.LEGACY_DB_SECRET_NAME) (rootUser/rootPassword) carries credentials" >&2
+            exit 1
+          fi
+          echo "DB_ENGINE=auto resolved to $engine"
+        fi
+
+        mysql_host="$(params.LEGACY_DB_HOST)"
+        [ -n "$mysql_host" ] || mysql_host="$(params.DB_HOST)"
+
+        case "$engine" in
+          mysql)
+            db_host="$mysql_host"
+            db_port=3306
+            db_user="${MYSQL_USER:-}"
+            db_password="${MYSQL_PASSWORD:-}"
+            secret="$(params.LEGACY_DB_SECRET_NAME)"
+            ;;
+          postgres)
+            db_host="$(params.DB_HOST)"
+            db_port=5432
+            db_user="${POSTGRES_USER:-}"
+            db_password="${POSTGRES_PASSWORD:-}"
+            secret="$(params.DB_SECRET_NAME)"
+            ;;
+          *)
+            echo "unsupported DB_ENGINE: $engine" >&2
+            exit 1
+            ;;
+        esac
+
+        if [ -z "$db_user" ]; then
+          echo "secret $secret carries no credentials for engine $engine" >&2
           exit 1
         fi
 
         prefix=$(printf '%s' "$(params.SERVICE_NAME)" | tr '[:lower:]' '[:upper:]')
-        export ${prefix}__DATABASE__HOST="$(params.DB_HOST)"
+        export ${prefix}__DATABASE__HOST="$db_host"
+        export ${prefix}__DATABASE__PORT="$db_port"
         export ${prefix}__DATABASE__DB_NAME="$(params.DB_NAME)"
-        export ${prefix}__DATABASE__USERNAME="$DB_USER"
-        export ${prefix}__DATABASE__PASSWORD="$DB_PASSWORD"
+        export ${prefix}__DATABASE__USERNAME="$db_user"
+        export ${prefix}__DATABASE__PASSWORD="$db_password"
         uv sync --frozen
 
         export PYTHONPATH="$(workspaces.source.path)/$(params.CONTEXT_DIR)"

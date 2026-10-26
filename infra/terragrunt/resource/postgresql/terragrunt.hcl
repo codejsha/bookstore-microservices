@@ -87,6 +87,8 @@ inputs = {
       }
     }
   }
+
+  cross_service_readonly = []
 }
 
 prevent_destroy = true

@@ -7,6 +7,10 @@ terraform {
 }
 
 locals {
+  readonly_users = {
+    for e in var.cross_service_readonly : "${e.name}-${e.target_service}" => e
+  }
+
   cdc_post_init_sql = {
     for svc, c in var.clusters : svc => [
       for stmt in split("\n", templatefile("${path.module}/sql/cdc-post-init.sql.tpl", {
@@ -189,6 +193,131 @@ resource "kubernetes_job_v1" "app_user" {
             GRANT CONNECT ON DATABASE "$PGDATABASE" TO "$APP_USER";
             SQL
             echo "Bootstrap complete: $APP_USER inherits $APP_OWNER."
+          EOT
+          ]
+        }
+      }
+    }
+  }
+
+  wait_for_completion = true
+  timeouts {
+    create = "10m"
+    update = "10m"
+  }
+}
+
+resource "terraform_data" "readonly_tables" {
+  for_each = local.readonly_users
+
+  input = join(" ", each.value.tables)
+}
+
+resource "kubernetes_job_v1" "readonly_bootstrap" {
+  for_each = local.readonly_users
+
+  depends_on = [kubernetes_job_v1.app_user]
+
+  lifecycle {
+    replace_triggered_by = [terraform_data.readonly_tables[each.key]]
+  }
+
+  metadata {
+    name      = "${each.key}-postgres-readonly"
+    namespace = var.namespace
+  }
+
+  spec {
+    backoff_limit = 6
+    template {
+      metadata {
+        labels = {
+          "app.kubernetes.io/name"      = "${each.key}-postgres-readonly"
+          "app.kubernetes.io/component" = "readonly-bootstrap"
+        }
+      }
+      spec {
+        restart_policy = "OnFailure"
+        container {
+          name  = "bootstrap"
+          image = var.clusters[each.value.target_service].image
+
+          env {
+            name = "PGUSER"
+            value_from {
+              secret_key_ref {
+                name = "${var.clusters[each.value.target_service].cluster_name}-superuser"
+                key  = "username"
+              }
+            }
+          }
+          env {
+            name = "PGPASSWORD"
+            value_from {
+              secret_key_ref {
+                name = "${var.clusters[each.value.target_service].cluster_name}-superuser"
+                key  = "password"
+              }
+            }
+          }
+          env {
+            name  = "PGHOST"
+            value = "${var.clusters[each.value.target_service].cluster_name}-rw.${var.namespace}.svc.cluster.local"
+          }
+          env {
+            name  = "PGDATABASE"
+            value = var.clusters[each.value.target_service].database
+          }
+          env {
+            name  = "RO_USER"
+            value = each.value.username
+          }
+          env {
+            name  = "RO_TABLES"
+            value = join(" ", each.value.tables)
+          }
+
+          command = ["/bin/sh", "-c"]
+          args = [<<-EOT
+            set -eu
+            echo "Waiting for Postgres at $PGHOST ..."
+            i=0
+            until pg_isready -h "$PGHOST" -U "$PGUSER" -q; do
+              i=$((i+1))
+              if [ "$i" -ge 60 ]; then
+                echo "Postgres did not become ready in time" >&2
+                exit 1
+              fi
+              echo "  not ready yet (attempt $i), retrying in 10s..."
+              sleep 10
+            done
+            echo "Postgres is ready. Provisioning read-only role $RO_USER on $PGDATABASE ..."
+
+            psql -h "$PGHOST" -d "$PGDATABASE" -v ON_ERROR_STOP=1 <<SQL
+            DO \$\$
+            BEGIN
+              IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$RO_USER') THEN
+                EXECUTE format('CREATE ROLE %I WITH LOGIN PASSWORD %L', '$RO_USER', gen_random_uuid()::text);
+              END IF;
+            END
+            \$\$;
+            GRANT CONNECT ON DATABASE "$PGDATABASE" TO "$RO_USER";
+            GRANT USAGE ON SCHEMA public TO "$RO_USER";
+            DO \$\$
+            DECLARE
+              t text;
+            BEGIN
+              FOREACH t IN ARRAY string_to_array('$RO_TABLES', ' ') LOOP
+                IF to_regclass(format('public.%I', t)) IS NOT NULL THEN
+                  EXECUTE format('GRANT SELECT ON TABLE public.%I TO %I', t, '$RO_USER');
+                ELSE
+                  RAISE WARNING 'table public.% does not exist yet; grant skipped (re-run after the owning service''s migrations)', t;
+                END IF;
+              END LOOP;
+            END
+            \$\$;
+            SQL
+            echo "Read-only role $RO_USER provisioned (requested SELECT on: $RO_TABLES)"
           EOT
           ]
         }
