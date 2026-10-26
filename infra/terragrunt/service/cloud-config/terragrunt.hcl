@@ -23,7 +23,6 @@ inputs = {
     "cluster.local/ns/bookstore/sa/order-mysql",
     "cluster.local/ns/bookstore/sa/payment-mysql",
     "cluster.local/ns/bookstore/sa/settlement-mysql",
-    "cluster.local/ns/bookstore/sa/support-mysql",
     "cluster.local/ns/istio-system/sa/bookstore-gateway-istio",
   ]
 }

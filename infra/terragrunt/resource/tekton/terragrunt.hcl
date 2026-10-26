@@ -53,7 +53,7 @@ inputs = {
 
   gradle_services = ["order", "payment", "settlement", "admin"]
   golang_services = ["catalog", "customer", "identity"]
-  uv_services     = ["fulfillment", "support"]
+  uv_services     = ["fulfillment"]
   vite_services   = ["web", "admin-web"]
 
   service_accounts = ["git-source", "git-deploy"]

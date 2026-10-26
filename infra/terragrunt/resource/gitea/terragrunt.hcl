@@ -37,7 +37,7 @@ inputs = {
   dev_repos = [
     "admin-source", "admin-web-source", "catalog-source", "customer-source",
     "identity-source", "order-source", "payment-source",
-    "fulfillment-source", "support-source", "web-source",
+    "fulfillment-source", "web-source",
     "settlement-source",
 
     "shared-library-go",
@@ -47,7 +47,7 @@ inputs = {
 
     "admin-helm", "admin-web-helm", "catalog-helm", "customer-helm", "identity-helm",
     "order-helm", "payment-helm",
-    "fulfillment-helm", "support-helm", "web-helm", "settlement-helm",
+    "fulfillment-helm", "web-helm", "settlement-helm",
   ]
   devops_repos = []
 
