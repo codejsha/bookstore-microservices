@@ -9,6 +9,7 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.pojos
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.OrderShippingRecord
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 import kotlin.collections.List
 
@@ -51,17 +52,17 @@ open class OrderShippingDao(configuration: Configuration?) : DAOImpl<OrderShippi
      * Fetch records that have <code>uid BETWEEN lowerInclusive AND
      * upperInclusive</code>
      */
-    fun fetchRangeOfUid(lowerInclusive: ByteArray?, upperInclusive: ByteArray?): List<OrderShippingEntity> = fetchRange(OrderShippingTable.ORDER_SHIPPING.UID, lowerInclusive, upperInclusive)
+    fun fetchRangeOfUid(lowerInclusive: UUID?, upperInclusive: UUID?): List<OrderShippingEntity> = fetchRange(OrderShippingTable.ORDER_SHIPPING.UID, lowerInclusive, upperInclusive)
 
     /**
      * Fetch records that have <code>uid IN (values)</code>
      */
-    fun fetchByUid(vararg values: ByteArray): List<OrderShippingEntity> = fetch(OrderShippingTable.ORDER_SHIPPING.UID, *values)
+    fun fetchByUid(vararg values: UUID): List<OrderShippingEntity> = fetch(OrderShippingTable.ORDER_SHIPPING.UID, *values)
 
     /**
      * Fetch a unique record that has <code>uid = value</code>
      */
-    fun fetchOneByUid(value: ByteArray): OrderShippingEntity? = fetchOne(OrderShippingTable.ORDER_SHIPPING.UID, value)
+    fun fetchOneByUid(value: UUID): OrderShippingEntity? = fetchOne(OrderShippingTable.ORDER_SHIPPING.UID, value)
 
     /**
      * Fetch records that have <code>order_id BETWEEN lowerInclusive AND

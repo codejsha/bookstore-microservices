@@ -7,7 +7,7 @@ package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.pojo
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.interfaces.ICartEntity
 
 import java.time.LocalDateTime
-import java.util.Arrays
+import java.util.UUID
 
 
 /**
@@ -16,8 +16,8 @@ import java.util.Arrays
 @Suppress("UNCHECKED_CAST")
 data class CartEntity(
     override var id: Long? = null,
-    override var uid: ByteArray? = null,
-    override var userUid: ByteArray? = null,
+    override var uid: UUID? = null,
+    override var userUid: UUID? = null,
     override var createdAt: LocalDateTime? = null,
     override var updatedAt: LocalDateTime? = null
 ): ICartEntity {
@@ -41,13 +41,13 @@ data class CartEntity(
             if (o.uid != null)
                 return false
         }
-        else if (!Arrays.equals(this.uid, o.uid))
+        else if (this.uid != o.uid)
             return false
         if (this.userUid == null) {
             if (o.userUid != null)
                 return false
         }
-        else if (!Arrays.equals(this.userUid, o.userUid))
+        else if (this.userUid != o.userUid)
             return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
@@ -68,8 +68,8 @@ data class CartEntity(
         val prime = 31
         var result = 1
         result = prime * result + (if (this.id == null) 0 else this.id.hashCode())
-        result = prime * result + (if (this.uid == null) 0 else Arrays.hashCode(this.uid))
-        result = prime * result + (if (this.userUid == null) 0 else Arrays.hashCode(this.userUid))
+        result = prime * result + (if (this.uid == null) 0 else this.uid.hashCode())
+        result = prime * result + (if (this.userUid == null) 0 else this.userUid.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.updatedAt == null) 0 else this.updatedAt.hashCode())
         return result
@@ -79,8 +79,8 @@ data class CartEntity(
         val sb = StringBuilder("CartEntity (")
 
         sb.append(id)
-        sb.append(", ").append("[binary...]")
-        sb.append(", ").append("[binary...]")
+        sb.append(", ").append(uid)
+        sb.append(", ").append(userUid)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(updatedAt)
 

@@ -1,4 +1,4 @@
-package com.codejsha.bookstore.order.infrastructure.adapter.mysql
+package com.codejsha.bookstore.order.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.order.domain.model.command.OrderAdjustmentCreateCommand
 import com.codejsha.bookstore.order.domain.model.command.OrderItemCreateCommand
@@ -23,7 +23,7 @@ class OrderChildRepoImplUnitTest {
     private val orderUid: UUID = UUID.randomUUID()
 
     @Test
-    fun `orderItemFindAllByOrder_whenOrderMissing_throws`() {
+    fun `orderItemFindAllByOrder_orderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderItemRepoImpl(dsl)
@@ -35,7 +35,7 @@ class OrderChildRepoImplUnitTest {
     }
 
     @Test
-    fun `orderItemCreate_whenOrderMissing_throws`() {
+    fun `orderItemCreate_orderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderItemRepoImpl(dsl)
@@ -48,7 +48,7 @@ class OrderChildRepoImplUnitTest {
     }
 
     @Test
-    fun `orderItemCreate_whenInserting_omitsTheGeneratedSubtotalColumn`() {
+    fun `orderItemCreate_inserting_omitsTheGeneratedSubtotalColumn`() {
         val capture = QueryCapture()
         var call = 0
         val dsl = TestPersistenceUtils.dslWithProvider(
@@ -70,7 +70,7 @@ class OrderChildRepoImplUnitTest {
     }
 
     @Test
-    fun `orderShippingFindByOrder_whenOrderMissing_throws`() {
+    fun `orderShippingFindByOrder_orderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderShippingRepoImpl(dsl)
@@ -80,7 +80,7 @@ class OrderChildRepoImplUnitTest {
     }
 
     @Test
-    fun `orderShippingCreate_whenOrderMissing_throws`() {
+    fun `orderShippingCreate_orderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderShippingRepoImpl(dsl)
@@ -95,7 +95,7 @@ class OrderChildRepoImplUnitTest {
     }
 
     @Test
-    fun `orderAdjustmentFindAllByOrder_whenOrderMissing_throws`() {
+    fun `orderAdjustmentFindAllByOrder_orderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderAdjustmentRepoImpl(dsl)
@@ -107,7 +107,7 @@ class OrderChildRepoImplUnitTest {
     }
 
     @Test
-    fun `orderAdjustmentCreate_whenOrderMissing_throws`() {
+    fun `orderAdjustmentCreate_orderMissing_throws`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderAdjustmentRepoImpl(dsl)
@@ -133,11 +133,11 @@ class OrderChildRepoImplUnitTest {
 
     companion object {
         private val EMPTY_RESULT: org.jooq.Result<*> =
-            DSL.using(SQLDialect.MYSQL).newResult(DSL.field("x", Int::class.javaObjectType))
+            DSL.using(SQLDialect.POSTGRES).newResult(DSL.field("x", Int::class.javaObjectType))
 
         private fun orderIdResult(): org.jooq.Result<*> {
             val idField = DSL.field("id", Long::class.javaObjectType)
-            val dsl = DSL.using(SQLDialect.MYSQL)
+            val dsl = DSL.using(SQLDialect.POSTGRES)
             val result = dsl.newResult(idField)
             result.add(dsl.newRecord(idField).also { it.setValue(idField, 42L) })
             return result

@@ -1,7 +1,4 @@
-package com.codejsha.bookstore.order.infrastructure.adapter.mysql
-
-import com.codejsha.bookstore.order.infrastructure.support.utils.bytesToUuid
-import com.codejsha.bookstore.order.infrastructure.support.utils.uuidToBytes
+package com.codejsha.bookstore.order.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.order.application.port.repo.OrderRepo
 import com.codejsha.bookstore.order.application.port.repo.OrderResult
@@ -35,7 +32,7 @@ class OrderRepoImpl(
         option: OrderQueryOption, pageable: Pageable, context: ActorContext
     ): Page<OrderResult> {
         var condition: Condition = o.DELETED_AT.isNull
-        option.userUid?.let { condition = condition.and(o.USER_UID.eq(uuidToBytes(it))) }
+        option.userUid?.let { condition = condition.and(o.USER_UID.eq(it)) }
         option.status?.let { condition = condition.and(o.STATUS.eq(it)) }
 
         val content = dslContext
@@ -60,7 +57,7 @@ class OrderRepoImpl(
         return dslContext
             .select(o.asterisk())
             .from(o)
-            .where(o.UID.eq(uuidToBytes(uid)).and(o.DELETED_AT.isNull))
+            .where(o.UID.eq(uid).and(o.DELETED_AT.isNull))
             .fetchOne { toOrderResult(it) }
             ?: throw NoSuchElementException("Order with uid $uid not found")
     }
@@ -79,8 +76,8 @@ class OrderRepoImpl(
 
         dslContext
             .insertInto(o)
-            .set(o.UID, uuidToBytes(uid))
-            .set(o.USER_UID, uuidToBytes(command.userUid))
+            .set(o.UID, uid)
+            .set(o.USER_UID, command.userUid)
             .set(o.ORDER_NUMBER, orderNumber)
             .set(o.STATUS, "PENDING")
             .set(o.CURRENCY, command.currency)
@@ -112,7 +109,7 @@ class OrderRepoImpl(
             }
             .set(o.UPDATED_AT, LocalDateTime.now())
             .set(o.ACTOR_ID, context.actorId)
-            .where(o.UID.eq(uuidToBytes(uid)).and(o.DELETED_AT.isNull))
+            .where(o.UID.eq(uid).and(o.DELETED_AT.isNull))
             .execute()
 
         check(updated > 0) { "Order with uid $uid not found" }
@@ -127,7 +124,7 @@ class OrderRepoImpl(
             .set(o.UPDATED_AT, LocalDateTime.now())
             .set(o.ACTOR_ID, context.actorId)
             .where(
-                o.UID.eq(uuidToBytes(uid))
+                o.UID.eq(uid)
                     .and(o.DELETED_AT.isNull)
                     .and(o.STATUS.`in`(from + to)),
             )
@@ -139,10 +136,10 @@ class OrderRepoImpl(
     override fun setPaymentUid(uid: UUID, paymentUid: UUID, context: ActorContext) {
         val updated = dslContext
             .update(o)
-            .set(paymentUidField, uuidToBytes(paymentUid))
+            .set(paymentUidField, paymentUid)
             .set(o.UPDATED_AT, LocalDateTime.now())
             .set(o.ACTOR_ID, context.actorId)
-            .where(o.UID.eq(uuidToBytes(uid)).and(o.DELETED_AT.isNull))
+            .where(o.UID.eq(uid).and(o.DELETED_AT.isNull))
             .execute()
 
         check(updated > 0) { "Order with uid $uid not found" }
@@ -153,15 +150,15 @@ class OrderRepoImpl(
             .update(o)
             .set(o.DELETED_AT, LocalDateTime.now())
             .set(o.ACTOR_ID, context.actorId)
-            .where(o.UID.eq(uuidToBytes(uid)).and(o.DELETED_AT.isNull))
+            .where(o.UID.eq(uid).and(o.DELETED_AT.isNull))
             .execute()
     }
 
     private fun toOrderResult(record: Record): OrderResult {
         return OrderResult(
             id = record.get(o.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(o.UID)!!),
-            userUid = bytesToUuid(record.get(o.USER_UID)!!),
+            uid = record.get(o.UID)!!,
+            userUid = record.get(o.USER_UID)!!,
             orderNumber = record.get(o.ORDER_NUMBER)!!,
             status = record.get(o.STATUS)!!,
             currency = record.get(o.CURRENCY)!!,
@@ -171,7 +168,7 @@ class OrderRepoImpl(
             taxAmount = record.get(o.TAX_AMOUNT)!!,
             totalAmount = record.get(o.TOTAL_AMOUNT)!!,
             idempotencyKey = record.get(o.IDEMPOTENCY_KEY)!!,
-            paymentUid = record.get(paymentUidField)?.let { bytesToUuid(it) },
+            paymentUid = record.get(paymentUidField),
             createdAt = record.get(o.CREATED_AT)!!,
             updatedAt = record.get(o.UPDATED_AT),
         )

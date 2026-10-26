@@ -9,6 +9,7 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.inter
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.pojos.CartEntity
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
@@ -24,13 +25,13 @@ open class CartRecord() : UpdatableRecordImpl<CartRecord>(CartTable.CART), ICart
         set(value): Unit = set(0, value)
         get(): Long? = get(0) as Long?
 
-    open override var uid: ByteArray?
+    open override var uid: UUID?
         set(value): Unit = set(1, value)
-        get(): ByteArray? = get(1) as ByteArray?
+        get(): UUID? = get(1) as UUID?
 
-    open override var userUid: ByteArray?
+    open override var userUid: UUID?
         set(value): Unit = set(2, value)
-        get(): ByteArray? = get(2) as ByteArray?
+        get(): UUID? = get(2) as UUID?
 
     open override var createdAt: LocalDateTime?
         set(value): Unit = set(3, value)
@@ -67,7 +68,7 @@ open class CartRecord() : UpdatableRecordImpl<CartRecord>(CartTable.CART), ICart
     /**
      * Create a detached, initialised CartRecord
      */
-    constructor(id: Long? = null, uid: ByteArray? = null, userUid: ByteArray? = null, createdAt: LocalDateTime? = null, updatedAt: LocalDateTime? = null): this() {
+    constructor(id: Long? = null, uid: UUID? = null, userUid: UUID? = null, createdAt: LocalDateTime? = null, updatedAt: LocalDateTime? = null): this() {
         this.id = id
         this.uid = uid
         this.userUid = userUid

@@ -14,31 +14,31 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.Order
 
 
 /**
- * The table <code>order_db.cart</code>.
+ * The table <code>public.cart</code>.
  */
 val CART: CartTable = CartTable.CART
 
 /**
- * The table <code>order_db.cart_item</code>.
+ * The table <code>public.cart_item</code>.
  */
 val CART_ITEM: CartItemTable = CartItemTable.CART_ITEM
 
 /**
- * The table <code>order_db.order_adjustment</code>.
+ * The table <code>public.order_adjustment</code>.
  */
 val ORDER_ADJUSTMENT: OrderAdjustmentTable = OrderAdjustmentTable.ORDER_ADJUSTMENT
 
 /**
- * The table <code>order_db.order_item</code>.
+ * The table <code>public.order_item</code>.
  */
 val ORDER_ITEM: OrderItemTable = OrderItemTable.ORDER_ITEM
 
 /**
- * The table <code>order_db.order_shipping</code>.
+ * The table <code>public.order_shipping</code>.
  */
 val ORDER_SHIPPING: OrderShippingTable = OrderShippingTable.ORDER_SHIPPING
 
 /**
- * The table <code>order_db.orders</code>.
+ * The table <code>public.orders</code>.
  */
 val ORDERS: OrdersTable = OrdersTable.ORDERS

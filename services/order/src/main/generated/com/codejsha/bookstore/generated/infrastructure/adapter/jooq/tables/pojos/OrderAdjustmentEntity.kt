@@ -8,9 +8,9 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.inter
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.Arrays
+import java.util.UUID
 
-import org.jooq.JSON
+import org.jooq.JSONB
 
 
 /**
@@ -19,12 +19,12 @@ import org.jooq.JSON
 @Suppress("UNCHECKED_CAST")
 data class OrderAdjustmentEntity(
     override var id: Long? = null,
-    override var uid: ByteArray? = null,
+    override var uid: UUID? = null,
     override var orderId: Long? = null,
     override var type: String? = null,
     override var label: String? = null,
     override var amount: BigDecimal? = null,
-    override var meta: JSON? = null,
+    override var meta: JSONB? = null,
     override var createdAt: LocalDateTime? = null,
     override var updatedAt: LocalDateTime? = null,
     override var deletedAt: LocalDateTime? = null,
@@ -51,7 +51,7 @@ data class OrderAdjustmentEntity(
             if (o.uid != null)
                 return false
         }
-        else if (!Arrays.equals(this.uid, o.uid))
+        else if (this.uid != o.uid)
             return false
         if (this.orderId == null) {
             if (o.orderId != null)
@@ -120,7 +120,7 @@ data class OrderAdjustmentEntity(
         val prime = 31
         var result = 1
         result = prime * result + (if (this.id == null) 0 else this.id.hashCode())
-        result = prime * result + (if (this.uid == null) 0 else Arrays.hashCode(this.uid))
+        result = prime * result + (if (this.uid == null) 0 else this.uid.hashCode())
         result = prime * result + (if (this.orderId == null) 0 else this.orderId.hashCode())
         result = prime * result + (if (this.type == null) 0 else this.type.hashCode())
         result = prime * result + (if (this.label == null) 0 else this.label.hashCode())
@@ -138,7 +138,7 @@ data class OrderAdjustmentEntity(
         val sb = StringBuilder("OrderAdjustmentEntity (")
 
         sb.append(id)
-        sb.append(", ").append("[binary...]")
+        sb.append(", ").append(uid)
         sb.append(", ").append(orderId)
         sb.append(", ").append(type)
         sb.append(", ").append(label)

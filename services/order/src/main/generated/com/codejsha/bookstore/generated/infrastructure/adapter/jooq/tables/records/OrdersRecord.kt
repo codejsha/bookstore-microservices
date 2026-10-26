@@ -10,6 +10,7 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.pojos
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
@@ -25,13 +26,13 @@ open class OrdersRecord() : UpdatableRecordImpl<OrdersRecord>(OrdersTable.ORDERS
         set(value): Unit = set(0, value)
         get(): Long? = get(0) as Long?
 
-    open override var uid: ByteArray?
+    open override var uid: UUID?
         set(value): Unit = set(1, value)
-        get(): ByteArray? = get(1) as ByteArray?
+        get(): UUID? = get(1) as UUID?
 
-    open override var userUid: ByteArray?
+    open override var userUid: UUID?
         set(value): Unit = set(2, value)
-        get(): ByteArray? = get(2) as ByteArray?
+        get(): UUID? = get(2) as UUID?
 
     open override var orderNumber: String?
         set(value): Unit = set(3, value)
@@ -69,9 +70,9 @@ open class OrdersRecord() : UpdatableRecordImpl<OrdersRecord>(OrdersTable.ORDERS
         set(value): Unit = set(11, value)
         get(): String? = get(11) as String?
 
-    open override var paymentUid: ByteArray?
+    open override var paymentUid: UUID?
         set(value): Unit = set(12, value)
-        get(): ByteArray? = get(12) as ByteArray?
+        get(): UUID? = get(12) as UUID?
 
     open override var createdAt: LocalDateTime?
         set(value): Unit = set(13, value)
@@ -133,7 +134,7 @@ open class OrdersRecord() : UpdatableRecordImpl<OrdersRecord>(OrdersTable.ORDERS
     /**
      * Create a detached, initialised OrdersRecord
      */
-    constructor(id: Long? = null, uid: ByteArray? = null, userUid: ByteArray? = null, orderNumber: String? = null, status: String? = null, currency: String? = null, itemsAmount: BigDecimal? = null, discountAmount: BigDecimal? = null, shippingAmount: BigDecimal? = null, taxAmount: BigDecimal? = null, totalAmount: BigDecimal? = null, idempotencyKey: String? = null, paymentUid: ByteArray? = null, createdAt: LocalDateTime? = null, updatedAt: LocalDateTime? = null, deletedAt: LocalDateTime? = null, actorId: Long? = null, version: Long? = null): this() {
+    constructor(id: Long? = null, uid: UUID? = null, userUid: UUID? = null, orderNumber: String? = null, status: String? = null, currency: String? = null, itemsAmount: BigDecimal? = null, discountAmount: BigDecimal? = null, shippingAmount: BigDecimal? = null, taxAmount: BigDecimal? = null, totalAmount: BigDecimal? = null, idempotencyKey: String? = null, paymentUid: UUID? = null, createdAt: LocalDateTime? = null, updatedAt: LocalDateTime? = null, deletedAt: LocalDateTime? = null, actorId: Long? = null, version: Long? = null): this() {
         this.id = id
         this.uid = uid
         this.userUid = userUid

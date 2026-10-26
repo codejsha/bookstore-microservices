@@ -9,6 +9,7 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.pojos
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.CartRecord
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 import kotlin.collections.List
 
@@ -51,33 +52,33 @@ open class CartDao(configuration: Configuration?) : DAOImpl<CartRecord, CartEnti
      * Fetch records that have <code>uid BETWEEN lowerInclusive AND
      * upperInclusive</code>
      */
-    fun fetchRangeOfUid(lowerInclusive: ByteArray?, upperInclusive: ByteArray?): List<CartEntity> = fetchRange(CartTable.CART.UID, lowerInclusive, upperInclusive)
+    fun fetchRangeOfUid(lowerInclusive: UUID?, upperInclusive: UUID?): List<CartEntity> = fetchRange(CartTable.CART.UID, lowerInclusive, upperInclusive)
 
     /**
      * Fetch records that have <code>uid IN (values)</code>
      */
-    fun fetchByUid(vararg values: ByteArray): List<CartEntity> = fetch(CartTable.CART.UID, *values)
+    fun fetchByUid(vararg values: UUID): List<CartEntity> = fetch(CartTable.CART.UID, *values)
 
     /**
      * Fetch a unique record that has <code>uid = value</code>
      */
-    fun fetchOneByUid(value: ByteArray): CartEntity? = fetchOne(CartTable.CART.UID, value)
+    fun fetchOneByUid(value: UUID): CartEntity? = fetchOne(CartTable.CART.UID, value)
 
     /**
      * Fetch records that have <code>user_uid BETWEEN lowerInclusive AND
      * upperInclusive</code>
      */
-    fun fetchRangeOfUserUid(lowerInclusive: ByteArray?, upperInclusive: ByteArray?): List<CartEntity> = fetchRange(CartTable.CART.USER_UID, lowerInclusive, upperInclusive)
+    fun fetchRangeOfUserUid(lowerInclusive: UUID?, upperInclusive: UUID?): List<CartEntity> = fetchRange(CartTable.CART.USER_UID, lowerInclusive, upperInclusive)
 
     /**
      * Fetch records that have <code>user_uid IN (values)</code>
      */
-    fun fetchByUserUid(vararg values: ByteArray): List<CartEntity> = fetch(CartTable.CART.USER_UID, *values)
+    fun fetchByUserUid(vararg values: UUID): List<CartEntity> = fetch(CartTable.CART.USER_UID, *values)
 
     /**
      * Fetch a unique record that has <code>user_uid = value</code>
      */
-    fun fetchOneByUserUid(value: ByteArray): CartEntity? = fetchOne(CartTable.CART.USER_UID, value)
+    fun fetchOneByUserUid(value: UUID): CartEntity? = fetchOne(CartTable.CART.USER_UID, value)
 
     /**
      * Fetch records that have <code>created_at BETWEEN lowerInclusive AND

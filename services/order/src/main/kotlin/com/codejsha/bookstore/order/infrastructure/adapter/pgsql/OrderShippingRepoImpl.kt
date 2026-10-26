@@ -1,7 +1,4 @@
-package com.codejsha.bookstore.order.infrastructure.adapter.mysql
-
-import com.codejsha.bookstore.order.infrastructure.support.utils.bytesToUuid
-import com.codejsha.bookstore.order.infrastructure.support.utils.uuidToBytes
+package com.codejsha.bookstore.order.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.order.application.port.repo.OrderShippingRepo
 import com.codejsha.bookstore.order.application.port.repo.OrderShippingResult
@@ -29,7 +26,7 @@ class OrderShippingRepoImpl(
         return dslContext
             .select(o.ID)
             .from(o)
-            .where(o.UID.eq(uuidToBytes(orderUid)).and(o.DELETED_AT.isNull))
+            .where(o.UID.eq(orderUid).and(o.DELETED_AT.isNull))
             .fetchOneInto(Long::class.java)
             ?: throw NoSuchElementException("Order with uid $orderUid not found")
     }
@@ -52,7 +49,7 @@ class OrderShippingRepoImpl(
 
         dslContext
             .insertInto(os)
-            .set(os.UID, uuidToBytes(uid))
+            .set(os.UID, uid)
             .set(os.ORDER_ID, orderId)
             .set(os.RECIPIENT_NAME, command.recipientName)
             .set(os.RECIPIENT_PHONE, command.recipientPhone)
@@ -113,7 +110,7 @@ class OrderShippingRepoImpl(
     private fun toOrderShippingResult(record: Record): OrderShippingResult {
         return OrderShippingResult(
             id = record.get(os.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(os.UID)!!),
+            uid = record.get(os.UID)!!,
             orderId = record.get(os.ORDER_ID)!!,
             recipientName = record.get(os.RECIPIENT_NAME)!!,
             recipientPhone = record.get(os.RECIPIENT_PHONE)!!,

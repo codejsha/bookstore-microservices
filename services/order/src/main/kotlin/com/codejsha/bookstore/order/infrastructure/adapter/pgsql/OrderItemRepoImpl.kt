@@ -1,7 +1,4 @@
-package com.codejsha.bookstore.order.infrastructure.adapter.mysql
-
-import com.codejsha.bookstore.order.infrastructure.support.utils.bytesToUuid
-import com.codejsha.bookstore.order.infrastructure.support.utils.uuidToBytes
+package com.codejsha.bookstore.order.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.order.application.port.repo.OrderItemRepo
 import com.codejsha.bookstore.order.application.port.repo.OrderItemResult
@@ -33,7 +30,7 @@ class OrderItemRepoImpl(
         return dslContext
             .select(o.ID)
             .from(o)
-            .where(o.UID.eq(uuidToBytes(orderUid)).and(o.DELETED_AT.isNull))
+            .where(o.UID.eq(orderUid).and(o.DELETED_AT.isNull))
             .fetchOneInto(Long::class.java)
             ?: throw NoSuchElementException("Order with uid $orderUid not found")
     }
@@ -69,7 +66,7 @@ class OrderItemRepoImpl(
             .from(oi)
             .where(
                 oi.ORDER_ID.eq(orderId)
-                    .and(oi.UID.eq(uuidToBytes(uid)))
+                    .and(oi.UID.eq(uid))
                     .and(oi.DELETED_AT.isNull)
             )
             .fetchOne { toOrderItemResult(it) }
@@ -84,7 +81,7 @@ class OrderItemRepoImpl(
 
         dslContext
             .insertInto(oi)
-            .set(oi.UID, uuidToBytes(uid))
+            .set(oi.UID, uid)
             .set(oi.ORDER_ID, orderId)
             .set(oi.PRODUCT_ID, command.productId)
             .set(oi.SKU, command.sku)
@@ -122,7 +119,7 @@ class OrderItemRepoImpl(
             .set(oi.ACTOR_ID, context.actorId)
             .where(
                 oi.ORDER_ID.eq(orderId)
-                    .and(oi.UID.eq(uuidToBytes(uid)))
+                    .and(oi.UID.eq(uid))
                     .and(oi.DELETED_AT.isNull)
             )
             .execute()
@@ -140,7 +137,7 @@ class OrderItemRepoImpl(
             .set(oi.ACTOR_ID, context.actorId)
             .where(
                 oi.ORDER_ID.eq(orderId)
-                    .and(oi.UID.eq(uuidToBytes(uid)))
+                    .and(oi.UID.eq(uid))
                     .and(oi.DELETED_AT.isNull)
             )
             .execute()
@@ -149,7 +146,7 @@ class OrderItemRepoImpl(
     private fun toOrderItemResult(record: Record): OrderItemResult {
         return OrderItemResult(
             id = record.get(oi.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(oi.UID)!!),
+            uid = record.get(oi.UID)!!,
             orderId = record.get(oi.ORDER_ID)!!,
             productId = record.get(oi.PRODUCT_ID)!!,
             sku = record.get(oi.SKU),

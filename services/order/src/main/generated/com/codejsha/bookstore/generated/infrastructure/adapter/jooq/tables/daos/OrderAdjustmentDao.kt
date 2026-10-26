@@ -10,11 +10,12 @@ import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.recor
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 import kotlin.collections.List
 
 import org.jooq.Configuration
-import org.jooq.JSON
+import org.jooq.JSONB
 import org.jooq.impl.DAOImpl
 import org.springframework.stereotype.Repository
 
@@ -53,17 +54,17 @@ open class OrderAdjustmentDao(configuration: Configuration?) : DAOImpl<OrderAdju
      * Fetch records that have <code>uid BETWEEN lowerInclusive AND
      * upperInclusive</code>
      */
-    fun fetchRangeOfUid(lowerInclusive: ByteArray?, upperInclusive: ByteArray?): List<OrderAdjustmentEntity> = fetchRange(OrderAdjustmentTable.ORDER_ADJUSTMENT.UID, lowerInclusive, upperInclusive)
+    fun fetchRangeOfUid(lowerInclusive: UUID?, upperInclusive: UUID?): List<OrderAdjustmentEntity> = fetchRange(OrderAdjustmentTable.ORDER_ADJUSTMENT.UID, lowerInclusive, upperInclusive)
 
     /**
      * Fetch records that have <code>uid IN (values)</code>
      */
-    fun fetchByUid(vararg values: ByteArray): List<OrderAdjustmentEntity> = fetch(OrderAdjustmentTable.ORDER_ADJUSTMENT.UID, *values)
+    fun fetchByUid(vararg values: UUID): List<OrderAdjustmentEntity> = fetch(OrderAdjustmentTable.ORDER_ADJUSTMENT.UID, *values)
 
     /**
      * Fetch a unique record that has <code>uid = value</code>
      */
-    fun fetchOneByUid(value: ByteArray): OrderAdjustmentEntity? = fetchOne(OrderAdjustmentTable.ORDER_ADJUSTMENT.UID, value)
+    fun fetchOneByUid(value: UUID): OrderAdjustmentEntity? = fetchOne(OrderAdjustmentTable.ORDER_ADJUSTMENT.UID, value)
 
     /**
      * Fetch records that have <code>order_id BETWEEN lowerInclusive AND
@@ -113,12 +114,12 @@ open class OrderAdjustmentDao(configuration: Configuration?) : DAOImpl<OrderAdju
      * Fetch records that have <code>meta BETWEEN lowerInclusive AND
      * upperInclusive</code>
      */
-    fun fetchRangeOfMeta(lowerInclusive: JSON?, upperInclusive: JSON?): List<OrderAdjustmentEntity> = fetchRange(OrderAdjustmentTable.ORDER_ADJUSTMENT.META, lowerInclusive, upperInclusive)
+    fun fetchRangeOfMeta(lowerInclusive: JSONB?, upperInclusive: JSONB?): List<OrderAdjustmentEntity> = fetchRange(OrderAdjustmentTable.ORDER_ADJUSTMENT.META, lowerInclusive, upperInclusive)
 
     /**
      * Fetch records that have <code>meta IN (values)</code>
      */
-    fun fetchByMeta(vararg values: JSON): List<OrderAdjustmentEntity> = fetch(OrderAdjustmentTable.ORDER_ADJUSTMENT.META, *values)
+    fun fetchByMeta(vararg values: JSONB): List<OrderAdjustmentEntity> = fetch(OrderAdjustmentTable.ORDER_ADJUSTMENT.META, *values)
 
     /**
      * Fetch records that have <code>created_at BETWEEN lowerInclusive AND

@@ -1,7 +1,4 @@
-package com.codejsha.bookstore.order.infrastructure.adapter.mysql
-
-import com.codejsha.bookstore.order.infrastructure.support.utils.bytesToUuid
-import com.codejsha.bookstore.order.infrastructure.support.utils.uuidToBytes
+package com.codejsha.bookstore.order.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.order.application.port.repo.CartItemRepo
 import com.codejsha.bookstore.order.application.port.repo.CartItemResult
@@ -35,7 +32,7 @@ class CartItemRepoImpl(
         return dslContext
             .select(ci.asterisk())
             .from(ci)
-            .where(ci.CART_ID.eq(cartId).and(ci.UID.eq(uuidToBytes(uid))))
+            .where(ci.CART_ID.eq(cartId).and(ci.UID.eq(uid)))
             .fetchOne { toCartItemResult(it) }
             ?: throw NoSuchElementException("CartItem with uid $uid not found")
     }
@@ -53,7 +50,7 @@ class CartItemRepoImpl(
 
         dslContext
             .insertInto(ci)
-            .set(ci.UID, uuidToBytes(uid))
+            .set(ci.UID, uid)
             .set(ci.CART_ID, cartId)
             .set(ci.PRODUCT_ID, command.productId)
             .set(ci.PRODUCT_NAME, command.productName)
@@ -71,7 +68,7 @@ class CartItemRepoImpl(
             .update(ci)
             .set(ci.QUANTITY, quantity)
             .set(ci.UPDATED_AT, LocalDateTime.now())
-            .where(ci.CART_ID.eq(cartId).and(ci.UID.eq(uuidToBytes(uid))))
+            .where(ci.CART_ID.eq(cartId).and(ci.UID.eq(uid)))
             .execute()
 
         check(updated > 0) { "CartItem with uid $uid not found" }
@@ -81,7 +78,7 @@ class CartItemRepoImpl(
     override fun delete(cartId: Long, uid: UUID, context: ActorContext) {
         dslContext
             .deleteFrom(ci)
-            .where(ci.CART_ID.eq(cartId).and(ci.UID.eq(uuidToBytes(uid))))
+            .where(ci.CART_ID.eq(cartId).and(ci.UID.eq(uid)))
             .execute()
     }
 
@@ -95,7 +92,7 @@ class CartItemRepoImpl(
     private fun toCartItemResult(record: Record): CartItemResult {
         return CartItemResult(
             id = record.get(ci.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(ci.UID)!!),
+            uid = record.get(ci.UID)!!,
             cartId = record.get(ci.CART_ID)!!,
             productId = record.get(ci.PRODUCT_ID)!!,
             productName = record.get(ci.PRODUCT_NAME),

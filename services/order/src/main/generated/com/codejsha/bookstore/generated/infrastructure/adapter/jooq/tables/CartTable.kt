@@ -4,13 +4,14 @@
 package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables
 
 
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.OrderDb
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CART_PRIMARY
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CART_UK_CART_UID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_CART_UQ_CART_USER
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.Public
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.CART_PKEY
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.UK_CART_UID
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.UQ_CART_USER
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.CartRecord
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 import kotlin.collections.Collection
 import kotlin.collections.List
@@ -51,7 +52,7 @@ open class CartTable(
     where: Condition?
 ): TableImpl<CartRecord>(
     alias,
-    OrderDb.ORDER_DB,
+    Public.PUBLIC,
     path,
     childPath,
     parentPath,
@@ -64,7 +65,7 @@ open class CartTable(
     companion object {
 
         /**
-         * The reference instance of <code>order_db.cart</code>
+         * The reference instance of <code>public.cart</code>
          */
         val CART: CartTable = CartTable()
     }
@@ -75,27 +76,27 @@ open class CartTable(
     override fun getRecordType(): Class<CartRecord> = CartRecord::class.java
 
     /**
-     * The column <code>order_db.cart.id</code>.
+     * The column <code>public.cart.id</code>.
      */
     val ID: TableField<CartRecord, Long?> = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "")
 
     /**
-     * The column <code>order_db.cart.uid</code>. Public UUID identifier
+     * The column <code>public.cart.uid</code>.
      */
-    val UID: TableField<CartRecord, ByteArray?> = createField(DSL.name("uid"), SQLDataType.BINARY(16).nullable(false), this, "Public UUID identifier")
+    val UID: TableField<CartRecord, UUID?> = createField(DSL.name("uid"), SQLDataType.UUID.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.cart.user_uid</code>. Owner user public UUID
+     * The column <code>public.cart.user_uid</code>.
      */
-    val USER_UID: TableField<CartRecord, ByteArray?> = createField(DSL.name("user_uid"), SQLDataType.BINARY(16).nullable(false), this, "Owner user public UUID")
+    val USER_UID: TableField<CartRecord, UUID?> = createField(DSL.name("user_uid"), SQLDataType.UUID.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.cart.created_at</code>.
+     * The column <code>public.cart.created_at</code>.
      */
     val CREATED_AT: TableField<CartRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.cart.updated_at</code>.
+     * The column <code>public.cart.updated_at</code>.
      */
     val UPDATED_AT: TableField<CartRecord, LocalDateTime?> = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6), this, "")
 
@@ -104,23 +105,23 @@ open class CartTable(
     private constructor(alias: Name, aliased: Table<CartRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
 
     /**
-     * Create an aliased <code>order_db.cart</code> table reference
+     * Create an aliased <code>public.cart</code> table reference
      */
     constructor(alias: String): this(DSL.name(alias))
 
     /**
-     * Create an aliased <code>order_db.cart</code> table reference
+     * Create an aliased <code>public.cart</code> table reference
      */
     constructor(alias: Name): this(alias, null)
 
     /**
-     * Create a <code>order_db.cart</code> table reference
+     * Create a <code>public.cart</code> table reference
      */
     constructor(): this(DSL.name("cart"), null)
-    override fun getSchema(): Schema? = if (aliased()) null else OrderDb.ORDER_DB
+    override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
     override fun getIdentity(): Identity<CartRecord, Long?> = super.getIdentity() as Identity<CartRecord, Long?>
-    override fun getPrimaryKey(): UniqueKey<CartRecord> = KEY_CART_PRIMARY
-    override fun getUniqueKeys(): List<UniqueKey<CartRecord>> = listOf(KEY_CART_UK_CART_UID, KEY_CART_UQ_CART_USER)
+    override fun getPrimaryKey(): UniqueKey<CartRecord> = CART_PKEY
+    override fun getUniqueKeys(): List<UniqueKey<CartRecord>> = listOf(UK_CART_UID, UQ_CART_USER)
     override fun `as`(alias: String): CartTable = CartTable(DSL.name(alias), this)
     override fun `as`(alias: Name): CartTable = CartTable(alias, this)
     override fun `as`(alias: Table<*>): CartTable = CartTable(alias.qualifiedName, this)

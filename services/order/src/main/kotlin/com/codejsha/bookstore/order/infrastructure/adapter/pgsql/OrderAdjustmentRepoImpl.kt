@@ -1,9 +1,7 @@
-package com.codejsha.bookstore.order.infrastructure.adapter.mysql
+package com.codejsha.bookstore.order.infrastructure.adapter.pgsql
 
-import com.codejsha.bookstore.order.infrastructure.support.utils.bytesToUuid
 import com.codejsha.bookstore.order.infrastructure.support.utils.parseJson
 import com.codejsha.bookstore.order.infrastructure.support.utils.toJson
-import com.codejsha.bookstore.order.infrastructure.support.utils.uuidToBytes
 
 import com.codejsha.bookstore.order.application.port.repo.OrderAdjustmentRepo
 import com.codejsha.bookstore.order.application.port.repo.OrderAdjustmentResult
@@ -34,7 +32,7 @@ class OrderAdjustmentRepoImpl(
         return dslContext
             .select(o.ID)
             .from(o)
-            .where(o.UID.eq(uuidToBytes(orderUid)).and(o.DELETED_AT.isNull))
+            .where(o.UID.eq(orderUid).and(o.DELETED_AT.isNull))
             .fetchOneInto(Long::class.java)
             ?: throw NoSuchElementException("Order with uid $orderUid not found")
     }
@@ -70,7 +68,7 @@ class OrderAdjustmentRepoImpl(
             .from(oa)
             .where(
                 oa.ORDER_ID.eq(orderId)
-                    .and(oa.UID.eq(uuidToBytes(uid)))
+                    .and(oa.UID.eq(uid))
                     .and(oa.DELETED_AT.isNull)
             )
             .fetchOne { toOrderAdjustmentResult(it) }
@@ -85,7 +83,7 @@ class OrderAdjustmentRepoImpl(
 
         dslContext
             .insertInto(oa)
-            .set(oa.UID, uuidToBytes(uid))
+            .set(oa.UID, uid)
             .set(oa.ORDER_ID, orderId)
             .set(oa.TYPE, command.type)
             .set(oa.LABEL, command.label)
@@ -107,7 +105,7 @@ class OrderAdjustmentRepoImpl(
             .set(oa.ACTOR_ID, context.actorId)
             .where(
                 oa.ORDER_ID.eq(orderId)
-                    .and(oa.UID.eq(uuidToBytes(uid)))
+                    .and(oa.UID.eq(uid))
                     .and(oa.DELETED_AT.isNull)
             )
             .execute()
@@ -116,7 +114,7 @@ class OrderAdjustmentRepoImpl(
     private fun toOrderAdjustmentResult(record: Record): OrderAdjustmentResult {
         return OrderAdjustmentResult(
             id = record.get(oa.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(oa.UID)!!),
+            uid = record.get(oa.UID)!!,
             orderId = record.get(oa.ORDER_ID)!!,
             type = record.get(oa.TYPE)!!,
             label = record.get(oa.LABEL),

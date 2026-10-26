@@ -12,7 +12,7 @@ locals {
     catalog     = "catalog-postgres"
     customer    = "customer-postgres"
     identity    = "identity-postgres"
-    order       = "order-mysql"
+    order       = "order-postgres"
     payment     = "payment-mysql"
     fulfillment = "fulfillment-postgres"
     settlement  = "settlement-mysql"

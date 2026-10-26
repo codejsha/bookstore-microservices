@@ -1,4 +1,4 @@
-package com.codejsha.bookstore.order.infrastructure.adapter.mysql
+package com.codejsha.bookstore.order.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.order.domain.model.command.OrderCreateCommand
 import com.codejsha.bookstore.order.domain.model.command.OrderUpdateCommand
@@ -23,7 +23,7 @@ class OrderRepoImplUnitTest {
     private val ctx = OrderTestFixtures.DEFAULT_CONTEXT
 
     @Test
-    fun `findOne_whenResultEmpty_throwsNoSuchElementException`() {
+    fun `findOne_resultEmpty_throwsNoSuchElementException`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderRepoImpl(dsl)
@@ -35,7 +35,7 @@ class OrderRepoImplUnitTest {
     }
 
     @Test
-    fun `findAll_whenNoFilters_emitsSelectWithDeletedAtIsNullOnly`() {
+    fun `findAll_noFilters_emitsSelectWithDeletedAtIsNullOnly`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderRepoImpl(dsl)
@@ -53,7 +53,7 @@ class OrderRepoImplUnitTest {
     }
 
     @Test
-    fun `findAll_whenUserUidAndStatusGiven_bindsBoth`() {
+    fun `findAll_userUidAndStatusGiven_bindsBoth`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(0, EMPTY_RESULT)) })
         val repo = OrderRepoImpl(dsl)
@@ -69,7 +69,7 @@ class OrderRepoImplUnitTest {
     }
 
     @Test
-    fun `create_whenCommandGiven_emitsInsertWithPendingStatusAndActorId`() {
+    fun `create_commandGiven_emitsInsertWithPendingStatusAndActorId`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = OrderRepoImpl(dsl)
@@ -98,7 +98,7 @@ class OrderRepoImplUnitTest {
     }
 
     @Test
-    fun `update_whenFieldsPartiallySet_setsOnlyNonNullFieldsAndUpdatedAt`() {
+    fun `update_fieldsPartiallySet_setsOnlyNonNullFieldsAndUpdatedAt`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = OrderRepoImpl(dsl)
@@ -130,7 +130,7 @@ class OrderRepoImplUnitTest {
     }
 
     @Test
-    fun `delete_whenCalled_softDeletesViaUpdateWithDeletedAt`() {
+    fun `delete_called_softDeletesViaUpdateWithDeletedAt`() {
         val capture = QueryCapture()
         val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
         val repo = OrderRepoImpl(dsl)
@@ -162,6 +162,6 @@ class OrderRepoImplUnitTest {
 
     companion object {
         private val EMPTY_RESULT: org.jooq.Result<*> =
-            DSL.using(SQLDialect.MYSQL).newResult(DSL.field("x", Int::class.javaObjectType))
+            DSL.using(SQLDialect.POSTGRES).newResult(DSL.field("x", Int::class.javaObjectType))
     }
 }

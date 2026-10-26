@@ -30,7 +30,7 @@ inputs = {
   "tf-${local.vault_role}", "-n", local.common.vault_ns, "--duration=20m")
 
   namespace         = "bookstore"
-  postgres_services = ["catalog", "customer", "identity", "fulfillment"]
+  postgres_services = ["catalog", "customer", "identity", "fulfillment", "order"]
   debezium_username = "debezium"
 
   postgres_db_map = {
@@ -38,12 +38,14 @@ inputs = {
     customer    = "customer_db"
     identity    = "identity_db"
     fulfillment = "fulfillment_db"
+    order       = "order_db"
   }
   postgres_app_user_map = {
     catalog     = "catalog_app"
     customer    = "customer_app"
     identity    = "identity_app"
     fulfillment = "fulfillment_app"
+    order       = "order_app"
   }
 
   postgres_cluster_config = {
@@ -95,6 +97,19 @@ inputs = {
       database     = "fulfillment_db"
       app_user     = "fulfillment"
       storage_size = "20Gi"
+      monitoring   = true
+      resources = {
+        limits   = { cpu = "1", memory = "1Gi" }
+        requests = { cpu = "100m", memory = "256Mi" }
+      }
+    }
+    order = {
+      cluster_name = "order-postgres"
+      image        = "ghcr.io/cloudnative-pg/postgresql:18"
+      instances    = 1
+      database     = "order_db"
+      app_user     = "order"
+      storage_size = "10Gi"
       monitoring   = true
       resources = {
         limits   = { cpu = "1", memory = "1Gi" }

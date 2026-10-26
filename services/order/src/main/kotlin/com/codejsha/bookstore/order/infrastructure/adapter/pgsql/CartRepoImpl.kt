@@ -1,7 +1,4 @@
-package com.codejsha.bookstore.order.infrastructure.adapter.mysql
-
-import com.codejsha.bookstore.order.infrastructure.support.utils.bytesToUuid
-import com.codejsha.bookstore.order.infrastructure.support.utils.uuidToBytes
+package com.codejsha.bookstore.order.infrastructure.adapter.pgsql
 
 import com.codejsha.bookstore.order.application.port.repo.CartRepo
 import com.codejsha.bookstore.order.application.port.repo.CartResult
@@ -25,7 +22,7 @@ class CartRepoImpl(
         return dslContext
             .select(c.asterisk())
             .from(c)
-            .where(c.USER_UID.eq(uuidToBytes(userUid)))
+            .where(c.USER_UID.eq(userUid))
             .fetchOne { toCartResult(it) }
     }
 
@@ -34,8 +31,8 @@ class CartRepoImpl(
 
         dslContext
             .insertInto(c)
-            .set(c.UID, uuidToBytes(uid))
-            .set(c.USER_UID, uuidToBytes(userUid))
+            .set(c.UID, uid)
+            .set(c.USER_UID, userUid)
             .set(c.CREATED_AT, LocalDateTime.now())
             .execute()
 
@@ -46,15 +43,15 @@ class CartRepoImpl(
     override fun delete(userUid: UUID, context: ActorContext) {
         dslContext
             .deleteFrom(c)
-            .where(c.USER_UID.eq(uuidToBytes(userUid)))
+            .where(c.USER_UID.eq(userUid))
             .execute()
     }
 
     private fun toCartResult(record: Record): CartResult {
         return CartResult(
             id = record.get(c.ID)!!.toLong(),
-            uid = bytesToUuid(record.get(c.UID)!!),
-            userUid = bytesToUuid(record.get(c.USER_UID)!!),
+            uid = record.get(c.UID)!!,
+            userUid = record.get(c.USER_UID)!!,
             createdAt = record.get(c.CREATED_AT)!!,
             updatedAt = record.get(c.UPDATED_AT),
         )

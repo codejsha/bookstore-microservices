@@ -4,13 +4,14 @@
 package com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables
 
 
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.OrderDb
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.ORDER_SHIPPING_IDX_ORDER_SHIPPING_ORDER_ID
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDER_SHIPPING_PRIMARY
-import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.KEY_ORDER_SHIPPING_UK_ORDER_SHIPPING_UID
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.Public
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.indexes.IDX_ORDER_SHIPPING_ORDER_ID
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.ORDER_SHIPPING_PKEY
+import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.keys.UK_ORDER_SHIPPING_UID
 import com.codejsha.bookstore.generated.infrastructure.adapter.jooq.tables.records.OrderShippingRecord
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 import kotlin.collections.Collection
 import kotlin.collections.List
@@ -52,7 +53,7 @@ open class OrderShippingTable(
     where: Condition?
 ): TableImpl<OrderShippingRecord>(
     alias,
-    OrderDb.ORDER_DB,
+    Public.PUBLIC,
     path,
     childPath,
     parentPath,
@@ -65,7 +66,7 @@ open class OrderShippingTable(
     companion object {
 
         /**
-         * The reference instance of <code>order_db.order_shipping</code>
+         * The reference instance of <code>public.order_shipping</code>
          */
         val ORDER_SHIPPING: OrderShippingTable = OrderShippingTable()
     }
@@ -76,88 +77,87 @@ open class OrderShippingTable(
     override fun getRecordType(): Class<OrderShippingRecord> = OrderShippingRecord::class.java
 
     /**
-     * The column <code>order_db.order_shipping.id</code>.
+     * The column <code>public.order_shipping.id</code>.
      */
     val ID: TableField<OrderShippingRecord, Long?> = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.uid</code>. Public UUID
-     * identifier
+     * The column <code>public.order_shipping.uid</code>.
      */
-    val UID: TableField<OrderShippingRecord, ByteArray?> = createField(DSL.name("uid"), SQLDataType.BINARY(16).nullable(false), this, "Public UUID identifier")
+    val UID: TableField<OrderShippingRecord, UUID?> = createField(DSL.name("uid"), SQLDataType.UUID.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.order_id</code>.
+     * The column <code>public.order_shipping.order_id</code>.
      */
     val ORDER_ID: TableField<OrderShippingRecord, Long?> = createField(DSL.name("order_id"), SQLDataType.BIGINT.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.recipient_name</code>.
+     * The column <code>public.order_shipping.recipient_name</code>.
      */
     val RECIPIENT_NAME: TableField<OrderShippingRecord, String?> = createField(DSL.name("recipient_name"), SQLDataType.VARCHAR(255).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.recipient_phone</code>.
+     * The column <code>public.order_shipping.recipient_phone</code>.
      */
     val RECIPIENT_PHONE: TableField<OrderShippingRecord, String?> = createField(DSL.name("recipient_phone"), SQLDataType.VARCHAR(20).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.address_line1</code>.
+     * The column <code>public.order_shipping.address_line1</code>.
      */
     val ADDRESS_LINE1: TableField<OrderShippingRecord, String?> = createField(DSL.name("address_line1"), SQLDataType.VARCHAR(255).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.address_line2</code>.
+     * The column <code>public.order_shipping.address_line2</code>.
      */
     val ADDRESS_LINE2: TableField<OrderShippingRecord, String?> = createField(DSL.name("address_line2"), SQLDataType.VARCHAR(255), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.city</code>.
+     * The column <code>public.order_shipping.city</code>.
      */
     val CITY: TableField<OrderShippingRecord, String?> = createField(DSL.name("city"), SQLDataType.VARCHAR(100).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.state</code>.
+     * The column <code>public.order_shipping.state</code>.
      */
     val STATE: TableField<OrderShippingRecord, String?> = createField(DSL.name("state"), SQLDataType.VARCHAR(100).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.postal_code</code>.
+     * The column <code>public.order_shipping.postal_code</code>.
      */
     val POSTAL_CODE: TableField<OrderShippingRecord, String?> = createField(DSL.name("postal_code"), SQLDataType.VARCHAR(20).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.country</code>.
+     * The column <code>public.order_shipping.country</code>.
      */
     val COUNTRY: TableField<OrderShippingRecord, String?> = createField(DSL.name("country"), SQLDataType.VARCHAR(2).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.shipping_method</code>.
+     * The column <code>public.order_shipping.shipping_method</code>.
      */
     val SHIPPING_METHOD: TableField<OrderShippingRecord, String?> = createField(DSL.name("shipping_method"), SQLDataType.VARCHAR(100).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.created_at</code>.
+     * The column <code>public.order_shipping.created_at</code>.
      */
     val CREATED_AT: TableField<OrderShippingRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.updated_at</code>.
+     * The column <code>public.order_shipping.updated_at</code>.
      */
     val UPDATED_AT: TableField<OrderShippingRecord, LocalDateTime?> = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.deleted_at</code>.
+     * The column <code>public.order_shipping.deleted_at</code>.
      */
     val DELETED_AT: TableField<OrderShippingRecord, LocalDateTime?> = createField(DSL.name("deleted_at"), SQLDataType.LOCALDATETIME(6), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.actor_id</code>.
+     * The column <code>public.order_shipping.actor_id</code>.
      */
     val ACTOR_ID: TableField<OrderShippingRecord, Long?> = createField(DSL.name("actor_id"), SQLDataType.BIGINT.nullable(false), this, "")
 
     /**
-     * The column <code>order_db.order_shipping.version</code>.
+     * The column <code>public.order_shipping.version</code>.
      */
     val VERSION: TableField<OrderShippingRecord, Long?> = createField(DSL.name("version"), SQLDataType.BIGINT.nullable(false), this, "")
 
@@ -166,24 +166,24 @@ open class OrderShippingTable(
     private constructor(alias: Name, aliased: Table<OrderShippingRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
 
     /**
-     * Create an aliased <code>order_db.order_shipping</code> table reference
+     * Create an aliased <code>public.order_shipping</code> table reference
      */
     constructor(alias: String): this(DSL.name(alias))
 
     /**
-     * Create an aliased <code>order_db.order_shipping</code> table reference
+     * Create an aliased <code>public.order_shipping</code> table reference
      */
     constructor(alias: Name): this(alias, null)
 
     /**
-     * Create a <code>order_db.order_shipping</code> table reference
+     * Create a <code>public.order_shipping</code> table reference
      */
     constructor(): this(DSL.name("order_shipping"), null)
-    override fun getSchema(): Schema? = if (aliased()) null else OrderDb.ORDER_DB
-    override fun getIndexes(): List<Index> = listOf(ORDER_SHIPPING_IDX_ORDER_SHIPPING_ORDER_ID)
+    override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
+    override fun getIndexes(): List<Index> = listOf(IDX_ORDER_SHIPPING_ORDER_ID)
     override fun getIdentity(): Identity<OrderShippingRecord, Long?> = super.getIdentity() as Identity<OrderShippingRecord, Long?>
-    override fun getPrimaryKey(): UniqueKey<OrderShippingRecord> = KEY_ORDER_SHIPPING_PRIMARY
-    override fun getUniqueKeys(): List<UniqueKey<OrderShippingRecord>> = listOf(KEY_ORDER_SHIPPING_UK_ORDER_SHIPPING_UID)
+    override fun getPrimaryKey(): UniqueKey<OrderShippingRecord> = ORDER_SHIPPING_PKEY
+    override fun getUniqueKeys(): List<UniqueKey<OrderShippingRecord>> = listOf(UK_ORDER_SHIPPING_UID)
     override fun `as`(alias: String): OrderShippingTable = OrderShippingTable(DSL.name(alias), this)
     override fun `as`(alias: Name): OrderShippingTable = OrderShippingTable(alias, this)
     override fun `as`(alias: Table<*>): OrderShippingTable = OrderShippingTable(alias.qualifiedName, this)
