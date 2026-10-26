@@ -298,16 +298,6 @@ module "database_alerts" {
   parent_folder_uid = grafana_folder.alerts.uid
   rules = [
     {
-      name            = "MysqlAccessDenied"
-      datasource_uid  = "loki"
-      datasource_type = "loki"
-      expr            = "sum by (k8s_pod_name) (count_over_time({k8s_namespace_name=\"bookstore\", k8s_container_name=\"mysql\"} |= \"Access denied for user\" [5m])) > 10"
-      for             = "5m"
-      severity        = "warning"
-      summary         = "MySQL is rejecting logins"
-      description     = "{{ $labels.pod }} logged {{ $values.B.Value | humanize }} access-denied errors in 5 minutes; an application pool is most likely still using a stale password after a Vault static-role rotation."
-    },
-    {
       name            = "PostgresAuthFailed"
       datasource_uid  = "loki"
       datasource_type = "loki"
