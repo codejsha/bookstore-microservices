@@ -66,7 +66,3 @@ spec:
             value: $(tt.params.service-name)-postgres-rw.bookstore.svc.cluster.local
           - name: db-migrate-dbname
             value: $(tt.params.service-name)_db
-          - name: db-migrate-legacy-secret-name
-            value: $(tt.params.service-name)-mysql-cluster-secret
-          - name: db-migrate-legacy-host
-            value: $(tt.params.service-name)-mysql.bookstore.svc.cluster.local

@@ -11,16 +11,12 @@ metadata:
     tekton.dev/displayName: "DB Migrate (Flyway)"
 spec:
   description: >-
-    Runs Flyway against PostgreSQL or MySQL. Credentials come from two secrets
-    read optionally: DB_SECRET_NAME (CloudNativePG username/password) and
-    LEGACY_DB_SECRET_NAME (MySQL operator rootUser/rootPassword). With
-    DB_ENGINE=auto the Postgres pair wins when present, otherwise the MySQL pair
-    is used against LEGACY_DB_HOST, so one pipeline serves services on either
-    engine while they move. A service that owns no database (a BFF, for
-    instance) ships no migrations directory; the task detects that and exits
-    cleanly, so the pipeline's later deploy steps still run. Guarding this with
-    a `when` expression instead would skip every task that depends on it --
-    which here is the whole deploy chain.
+    Runs Flyway against PostgreSQL. Credentials come from DB_SECRET_NAME, the
+    CloudNativePG application secret (username/password), read optionally. A
+    service that owns no database (a BFF, for instance) ships no migrations
+    directory; the task detects that and exits cleanly, so the pipeline's later
+    deploy steps still run. Guarding this with a `when` expression instead would
+    skip every task that depends on it -- which here is the whole deploy chain.
   workspaces:
     - name: source
   params:
@@ -28,10 +24,6 @@ spec:
       description: migrations directory relative to workspace
       type: string
       default: db/migrations
-    - name: DB_ENGINE
-      description: auto | mysql | postgres
-      type: string
-      default: auto
     - name: DB_SECRET_NAME
       description: >-
         K8s secret holding the PostgreSQL credentials (CloudNativePG
@@ -40,21 +32,11 @@ spec:
         skip check below can run.
       type: string
     - name: DB_HOST
-      description: PostgreSQL host (also the MySQL host when LEGACY_DB_HOST is empty)
+      description: PostgreSQL host
       type: string
     - name: DB_NAME
-      description: database / schema name
+      description: database name
       type: string
-    - name: LEGACY_DB_SECRET_NAME
-      description: >-
-        K8s secret holding the MySQL credentials (operator rootUser/rootPassword).
-        Read optionally; the default names a secret that does not exist.
-      type: string
-      default: none
-    - name: LEGACY_DB_HOST
-      description: MySQL host; falls back to DB_HOST when empty
-      type: string
-      default: ""
   steps:
     - name: migrate-up
       image: docker.io/flyway/flyway:10-alpine
@@ -72,18 +54,6 @@ spec:
               name: $(params.DB_SECRET_NAME)
               key: password
               optional: true
-        - name: MYSQL_USER
-          valueFrom:
-            secretKeyRef:
-              name: $(params.LEGACY_DB_SECRET_NAME)
-              key: rootUser
-              optional: true
-        - name: MYSQL_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: $(params.LEGACY_DB_SECRET_NAME)
-              key: rootPassword
-              optional: true
       command: ["/bin/sh", "-e", "-c"]
       args:
         - |
@@ -92,48 +62,13 @@ spec:
             exit 0
           fi
 
-          engine="$(params.DB_ENGINE)"
-          if [ "$engine" = auto ]; then
-            if [ -n "${POSTGRES_USER:-}" ]; then
-              engine=postgres
-            elif [ -n "${MYSQL_USER:-}" ]; then
-              engine=mysql
-            else
-              echo "neither $(params.DB_SECRET_NAME) (username/password) nor $(params.LEGACY_DB_SECRET_NAME) (rootUser/rootPassword) carries credentials" >&2
-              exit 1
-            fi
-            echo "DB_ENGINE=auto resolved to $engine"
-          fi
-
-          mysql_host="$(params.LEGACY_DB_HOST)"
-          [ -n "$mysql_host" ] || mysql_host="$(params.DB_HOST)"
-
-          case "$engine" in
-            mysql)
-              url="jdbc:mysql://$mysql_host:3306/$(params.DB_NAME)?sslMode=trust&allowPublicKeyRetrieval=true&usePipelineAuth=false&useBatchMultiSend=false"
-              user="${MYSQL_USER:-}"
-              password="${MYSQL_PASSWORD:-}"
-              secret="$(params.LEGACY_DB_SECRET_NAME)"
-              ;;
-            postgres)
-              url="jdbc:postgresql://$(params.DB_HOST):5432/$(params.DB_NAME)?sslmode=disable"
-              user="${POSTGRES_USER:-}"
-              password="${POSTGRES_PASSWORD:-}"
-              secret="$(params.DB_SECRET_NAME)"
-              ;;
-            *)
-              echo "unsupported DB_ENGINE: $engine" >&2
-              exit 1
-              ;;
-          esac
-
-          if [ -z "$user" ]; then
-            echo "secret $secret carries no credentials for engine $engine" >&2
+          if [ -z "${POSTGRES_USER:-}" ]; then
+            echo "secret $(params.DB_SECRET_NAME) carries no username/password" >&2
             exit 1
           fi
 
-          FLYWAY_USER="$user" FLYWAY_PASSWORD="$password" flyway \
-            -url="$url" \
+          FLYWAY_USER="$POSTGRES_USER" FLYWAY_PASSWORD="${POSTGRES_PASSWORD:-}" flyway \
+            -url="jdbc:postgresql://$(params.DB_HOST):5432/$(params.DB_NAME)?sslmode=disable" \
             -connectRetries=3 \
             -connectRetriesInterval=10 \
             -locations="filesystem:$(params.MIGRATIONS_DIR)" \
