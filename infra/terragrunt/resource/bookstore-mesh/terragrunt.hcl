@@ -34,6 +34,8 @@ inputs = {
     "/api/v1/publishers",
     "/api/v1/publishers/*",
     "/api/v1/subjects",
+    "/api/v1/subjects/*",
+    "/api/v1/books/*",
   ]
 
   request_timeout = "15s"
