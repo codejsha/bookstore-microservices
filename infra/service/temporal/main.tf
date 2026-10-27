@@ -8,10 +8,6 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 3.2"
     }
-    vault = {
-      source  = "hashicorp/vault"
-      version = "~> 5.10"
-    }
   }
 }
 
@@ -40,24 +36,15 @@ resource "kubernetes_limit_range_v1" "resource_limits" {
   }
 }
 
-data "vault_kv_secret_v2" "mysql" {
-  mount = "kv-infra"
-  name  = "temporal/mysql"
-}
-
-module "mysql" {
-  source             = "./modules/mysql"
+module "postgresql" {
+  source             = "./modules/postgresql"
   namespace          = kubernetes_namespace_v1.temporal.metadata[0].name
-  root_password      = data.vault_kv_secret_v2.mysql.data["root_password"]
-  cluster_name       = var.mysql_cluster_name
-  instances          = var.mysql_instances
-  router_instances   = var.mysql_router_instances
-  mysql_version      = var.mysql_version
-  storage_size       = var.mysql_storage_size
-  storage_class_name = var.mysql_storage_class_name
-  db_secret_name     = var.mysql_db_secret_name
-  mysql_resources    = var.mysql_resources
-  router_resources   = var.mysql_router_resources
+  cluster_name       = var.postgres_cluster_name
+  instances          = var.postgres_instances
+  image              = var.postgres_image
+  storage_size       = var.postgres_storage_size
+  storage_class_name = var.postgres_storage_class_name
+  resources          = var.postgres_resources
   providers = {
     kubernetes = kubernetes
   }
@@ -66,9 +53,10 @@ module "mysql" {
 module "temporal" {
   source          = "./modules/helm"
   namespace       = kubernetes_namespace_v1.temporal.metadata[0].name
-  db_connect_addr = module.mysql.connect_addr
-  db_secret_name  = module.mysql.db_secret_name
-  db_user         = var.mysql_db_user
+  db_connect_addr = module.postgresql.connect_addr
+  db_secret_name  = module.postgresql.db_secret_name
+  db_user         = module.postgresql.db_user
+  depends_on      = [module.postgresql]
 
   authorization_enabled = var.temporal_authorization_enabled
   providers = {
