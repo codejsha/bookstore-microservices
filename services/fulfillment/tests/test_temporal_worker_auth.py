@@ -23,18 +23,30 @@ class ScriptedFetcher:
 
 class FakeWorker:
     instances: list[FakeWorker] = []
+    run_errors: list[Exception] = []
 
     def __init__(self, client, **kwargs):
         self.client = client
+        self.shutdown_awaited = False
+        self._stopped = asyncio.Event()
+        self._run_error = FakeWorker.run_errors.pop(0) if FakeWorker.run_errors else None
         FakeWorker.instances.append(self)
 
     async def run(self) -> None:
-        await asyncio.Event().wait()
+        if self._run_error is not None:
+            raise self._run_error
+        await self._stopped.wait()
+
+    async def shutdown(self) -> None:
+        self.shutdown_awaited = True
+        self._stopped.set()
 
 
 @pytest.fixture
 def fake_temporal(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
     FakeWorker.instances = []
+    FakeWorker.run_errors = []
+    monkeypatch.setattr(worker_module, "_INITIAL_BACKOFF_SECONDS", 0.0)
     client = SimpleNamespace(rpc_metadata={})
     connect = AsyncMock(return_value=client)
     monkeypatch.setattr(worker_module.Client, "connect", connect)
@@ -98,3 +110,28 @@ class TestTemporalWorkerRunnerAuth:
 
         assert refresh_task is not None and refresh_task.cancelled()
         assert runner._refresh_task is None
+
+    async def test_run_token_refreshed_after_worker_retry_updates_retried_worker_client(
+        self, fake_temporal: AsyncMock
+    ) -> None:
+        FakeWorker.run_errors.append(RuntimeError("Worker validation failed"))
+        runner = _runner(TemporalTokenProvider(ScriptedFetcher(AccessToken("first", 0.2), AccessToken("second", 300))))
+        client = fake_temporal.return_value
+
+        await runner.start()
+        try:
+            async with asyncio.timeout(2.0):
+                while len(FakeWorker.instances) < 2:
+                    await asyncio.sleep(0.01)
+            assert fake_temporal.await_args.kwargs["rpc_metadata"] == {"authorization": "Bearer first"}
+            async with asyncio.timeout(2.0):
+                while client.rpc_metadata != {"authorization": "Bearer second"}:
+                    await asyncio.sleep(0.01)
+            retried = FakeWorker.instances[-1]
+        finally:
+            await runner.stop()
+
+        assert fake_temporal.await_count == 1
+        assert FakeWorker.instances[0].shutdown_awaited
+        assert retried.client is client
+        assert retried.client.rpc_metadata == {"authorization": "Bearer second"}
