@@ -14,6 +14,7 @@ import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.jooq.buildOrderBy
 import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -162,7 +163,7 @@ class PaymentRepoImpl(
             .apply {
                 amountCapturable?.let { set(p.AMOUNT_CAPTURABLE, it) }
                 amountCaptured?.let { set(p.AMOUNT_CAPTURED, it) }
-                if (captured) set(p.CAPTURED_AT, LocalDateTime.now(ZoneOffset.UTC))
+                if (captured) set(p.CAPTURED_AT, DSL.coalesce(p.CAPTURED_AT, DSL.value(LocalDateTime.now(ZoneOffset.UTC))))
             }
             .set(p.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .where(p.UID.eq(uid).and(p.DELETED_AT.isNull))
