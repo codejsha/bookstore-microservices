@@ -93,6 +93,7 @@ class OrderItemRepoImpl(
             .set(oi.TAX_RATE, command.taxRate)
             .set(oi.CREATED_AT, LocalDateTime.now())
             .set(oi.ACTOR_ID, context.actorId)
+            .set(oi.VERSION, 1L)
             .execute()
 
         return findOne(orderUid, uid, context)

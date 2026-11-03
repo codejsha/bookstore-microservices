@@ -80,8 +80,8 @@ func GinAuthorizationMiddleware() gin.HandlerFunc {
 			ok = requireSelfOrManager(c, c.Param("uid"))
 		case method == http.MethodPut && path == "/api/v1/users/:uid":
 			ok = requireSelfOrManager(c, c.Param("uid"))
-		case method == http.MethodPost && path == "/api/v1/users/sync/:idp_uid":
-			ok = requireSelfOrManager(c, c.Param("idp_uid"))
+		case method == http.MethodPost && path == "/api/v1/users/sync/:idpUid":
+			ok = requireSelfOrManager(c, c.Param("idpUid"))
 		}
 
 		if !ok {

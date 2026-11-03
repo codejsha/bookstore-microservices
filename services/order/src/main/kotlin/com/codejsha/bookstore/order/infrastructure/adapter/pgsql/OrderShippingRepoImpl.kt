@@ -62,6 +62,7 @@ class OrderShippingRepoImpl(
             .set(os.SHIPPING_METHOD, command.shippingMethod)
             .set(os.CREATED_AT, LocalDateTime.now())
             .set(os.ACTOR_ID, context.actorId)
+            .set(os.VERSION, 1L)
             .execute()
 
         return findByOrder(orderUid, context)

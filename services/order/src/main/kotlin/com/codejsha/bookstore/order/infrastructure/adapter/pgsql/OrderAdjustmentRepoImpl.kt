@@ -91,6 +91,7 @@ class OrderAdjustmentRepoImpl(
             .set(oa.META, toJson(command.meta))
             .set(oa.CREATED_AT, LocalDateTime.now())
             .set(oa.ACTOR_ID, context.actorId)
+            .set(oa.VERSION, 1L)
             .execute()
 
         return findOne(orderUid, uid, context)

@@ -56,15 +56,15 @@ class RefundService(
         val lockToken = distributedLock.tryLock(lockKey)
             ?: throw IllegalStateException("Failed to acquire lock for key: $lockKey")
         try {
-            return txRunner.tx {
-                val result = refundRepo.findByIdempotencyKey(idempotencyKey, context)
-                    ?: try {
-                        refundRepo.create(command, context)
-                    } catch (e: DataIntegrityViolationException) {
-                        refundRepo.findByIdempotencyKey(idempotencyKey, context) ?: throw e
-                    }
-                toRefundAggregate(result)
+            val result = try {
+                txRunner.tx {
+                    refundRepo.findByIdempotencyKey(idempotencyKey, context)
+                        ?: refundRepo.create(command, context)
+                }
+            } catch (e: DataIntegrityViolationException) {
+                txRunner.tx { refundRepo.findByIdempotencyKey(idempotencyKey, context) } ?: throw e
             }
+            return toRefundAggregate(result)
         } finally {
             distributedLock.unlock(lockKey, lockToken)
         }
