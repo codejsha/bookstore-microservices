@@ -477,7 +477,7 @@ export function createHandlers(data: MockData = createMockData()) {
         created_at: new Date().toISOString(),
       };
       reviews.push(newReview);
-      return HttpResponse.json(null, {
+      return new HttpResponse(null, {
         status: 201,
         headers: {
           Location: `/api/v1/customers/${userUid}/reviews/${newReview.uid}`,
