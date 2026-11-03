@@ -16,6 +16,7 @@ _INITIAL_BACKOFF_SECONDS = 1.0
 _MAX_BACKOFF_SECONDS = 60.0
 _GRACEFUL_SHUTDOWN_SECONDS = 10.0
 _DRAIN_TIMEOUT_SECONDS = _GRACEFUL_SHUTDOWN_SECONDS + 5.0
+_FAILED_SHUTDOWN_TIMEOUT_SECONDS = 5.0
 
 
 class TemporalWorkerRunner:
@@ -52,20 +53,17 @@ class TemporalWorkerRunner:
 
     async def _run(self) -> None:
         backoff = _INITIAL_BACKOFF_SECONDS
+        client = await self._connect()
         while True:
+            worker: Worker | None = None
             try:
-                client = await Client.connect(
-                    self._config.host,
-                    namespace=self._config.namespace,
-                    rpc_metadata=self._rpc_metadata(),
-                )
-                self._client = client
-                self._worker = Worker(
+                worker = Worker(
                     client,
                     task_queue=self._config.task_queue,
                     activities=self._activities,
                     graceful_shutdown_timeout=timedelta(seconds=_GRACEFUL_SHUTDOWN_SECONDS),
                 )
+                self._worker = worker
                 self._connected = True
                 logger.info(
                     "temporal worker started",
@@ -74,25 +72,57 @@ class TemporalWorkerRunner:
                     task_queue=self._config.task_queue,
                 )
                 backoff = _INITIAL_BACKOFF_SECONDS
-                await self._worker.run()
+                await worker.run()
                 self._connected = False
                 return
             except asyncio.CancelledError:
                 raise
             except Exception as e:  # noqa: BLE001
-                logger.error(
-                    "temporal worker unavailable — retrying",
-                    host=self._config.host,
-                    namespace=self._config.namespace,
-                    task_queue=self._config.task_queue,
-                    retry_in_seconds=backoff,
-                    error=str(e),
-                )
+                self._log_unavailable(backoff, e)
                 self._connected = False
                 self._worker = None
-                self._client = None
+                if worker is not None:
+                    await self._shutdown_failed(worker)
                 await asyncio.sleep(backoff)
                 backoff = min(backoff * 2, _MAX_BACKOFF_SECONDS)
+
+    async def _connect(self) -> Client:
+        backoff = _INITIAL_BACKOFF_SECONDS
+        while True:
+            try:
+                client = await Client.connect(
+                    self._config.host,
+                    namespace=self._config.namespace,
+                    rpc_metadata=self._rpc_metadata(),
+                )
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:  # noqa: BLE001
+                self._log_unavailable(backoff, e)
+                await asyncio.sleep(backoff)
+                backoff = min(backoff * 2, _MAX_BACKOFF_SECONDS)
+                continue
+            self._client = client
+            return client
+
+    def _log_unavailable(self, backoff: float, error: Exception) -> None:
+        logger.error(
+            "temporal worker unavailable — retrying",
+            host=self._config.host,
+            namespace=self._config.namespace,
+            task_queue=self._config.task_queue,
+            retry_in_seconds=backoff,
+            error=str(error),
+        )
+
+    @staticmethod
+    async def _shutdown_failed(worker: Worker) -> None:
+        try:
+            await asyncio.wait_for(worker.shutdown(), timeout=_FAILED_SHUTDOWN_TIMEOUT_SECONDS)
+        except TimeoutError:
+            logger.warning("failed temporal worker shutdown timed out")
+        except Exception as e:  # noqa: BLE001
+            logger.warning("failed temporal worker shutdown errored", error=str(e))
 
     async def stop(self) -> None:
         task = self._task

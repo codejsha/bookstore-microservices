@@ -17,10 +17,13 @@ class _FakeWorker:
         self.shutdown_awaited = False
         self.run_cancelled = False
         self.drains = True
+        self.run_error: Exception | None = None
         self._running = asyncio.Event()
         self._stopped = asyncio.Event()
 
     async def run(self) -> None:
+        if self.run_error is not None:
+            raise self.run_error
         self._running.set()
         try:
             await self._stopped.wait()
@@ -38,9 +41,16 @@ class _FakeWorker:
 
 
 class _FakeClient:
+    connects: list[_FakeClient] = []
+    connect_errors: list[Exception] = []
+
     @staticmethod
     async def connect(host, namespace="default", rpc_metadata=None):
-        return _FakeClient()
+        if _FakeClient.connect_errors:
+            raise _FakeClient.connect_errors.pop(0)
+        client = _FakeClient()
+        _FakeClient.connects.append(client)
+        return client
 
 
 @pytest.fixture
@@ -49,11 +59,21 @@ def config() -> TemporalConfig:
 
 
 @pytest.fixture
-def workers(monkeypatch: pytest.MonkeyPatch) -> list[_FakeWorker]:
+def run_errors() -> list[Exception]:
+    return []
+
+
+@pytest.fixture
+def workers(monkeypatch: pytest.MonkeyPatch, run_errors: list[Exception]) -> list[_FakeWorker]:
     created: list[_FakeWorker] = []
+    _FakeClient.connects = []
+    _FakeClient.connect_errors = []
+    monkeypatch.setattr(temporal_worker_module, "_INITIAL_BACKOFF_SECONDS", 0.0)
 
     def _factory(*args, **kwargs) -> _FakeWorker:
         worker = _FakeWorker(*args, **kwargs)
+        if run_errors:
+            worker.run_error = run_errors.pop(0)
         created.append(worker)
         return worker
 
@@ -71,6 +91,15 @@ async def _start(runner: TemporalWorkerRunner, workers: list[_FakeWorker]) -> _F
     assert workers, "worker was never constructed"
     await workers[0].wait_until_running()
     return workers[0]
+
+
+async def _start_until_running(runner: TemporalWorkerRunner, workers: list[_FakeWorker], count: int) -> _FakeWorker:
+    await runner.start()
+    async with asyncio.timeout(1.0):
+        while len(workers) < count:
+            await asyncio.sleep(0.01)
+    await workers[count - 1].wait_until_running()
+    return workers[count - 1]
 
 
 async def test_worker_is_built_with_graceful_shutdown_timeout(
@@ -125,3 +154,78 @@ async def test_start_disabled_does_not_build_worker(workers: list[_FakeWorker]) 
     await asyncio.sleep(0.05)
     await runner.stop()
     assert workers == []
+
+
+async def test_run_worker_failure_shuts_down_failed_worker(
+    config: TemporalConfig, workers: list[_FakeWorker], run_errors: list[Exception]
+) -> None:
+    run_errors.append(RuntimeError("Namespace default is not found"))
+    runner = TemporalWorkerRunner(config, [])
+    await _start_until_running(runner, workers, 2)
+    try:
+        assert workers[0].shutdown_awaited
+        assert not workers[1].shutdown_awaited
+        assert runner.is_connected
+    finally:
+        await runner.stop()
+
+
+async def test_run_worker_failure_reuses_client(
+    config: TemporalConfig, workers: list[_FakeWorker], run_errors: list[Exception]
+) -> None:
+    run_errors.extend([RuntimeError("Worker failed"), RuntimeError("Worker validation failed")])
+    runner = TemporalWorkerRunner(config, [])
+    await _start_until_running(runner, workers, 3)
+    try:
+        assert len(_FakeClient.connects) == 1
+        assert all(worker.client is _FakeClient.connects[0] for worker in workers)
+        assert runner._client is _FakeClient.connects[0]
+    finally:
+        await runner.stop()
+
+
+async def test_run_failed_worker_shutdown_hangs_retries_after_timeout(
+    config: TemporalConfig, workers: list[_FakeWorker], run_errors: list[Exception], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(temporal_worker_module, "_FAILED_SHUTDOWN_TIMEOUT_SECONDS", 0.05)
+    run_errors.append(RuntimeError("Worker validation failed"))
+    shutdown_cancelled: list[bool] = []
+
+    async def _never_completes(self: _FakeWorker) -> None:
+        self.shutdown_awaited = True
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            shutdown_cancelled.append(True)
+            raise
+
+    async def _completes(self: _FakeWorker) -> None:
+        self.shutdown_awaited = True
+        self._stopped.set()
+
+    async def _shutdown(self: _FakeWorker) -> None:
+        if self.run_error is not None:
+            await _never_completes(self)
+        else:
+            await _completes(self)
+
+    monkeypatch.setattr(_FakeWorker, "shutdown", _shutdown)
+    runner = TemporalWorkerRunner(config, [])
+    await _start_until_running(runner, workers, 2)
+    try:
+        assert workers[0].shutdown_awaited
+        assert shutdown_cancelled == [True]
+        assert len(_FakeClient.connects) == 1
+    finally:
+        await runner.stop()
+
+
+async def test_run_connect_failure_retries_until_connected(config: TemporalConfig, workers: list[_FakeWorker]) -> None:
+    _FakeClient.connect_errors.extend([ConnectionError("unavailable"), ConnectionError("unavailable")])
+    runner = TemporalWorkerRunner(config, [])
+    worker = await _start_until_running(runner, workers, 1)
+    try:
+        assert len(_FakeClient.connects) == 1
+        assert worker.client is _FakeClient.connects[0]
+    finally:
+        await runner.stop()
