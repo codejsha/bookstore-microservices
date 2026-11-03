@@ -8,9 +8,10 @@ from uuid import uuid4, uuid7
 
 import pytest
 import pytest_asyncio
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+import internal.infrastructure.adapter.pgsql.optimistic_retry as optimistic_retry
 from internal.application.port.repo.inventory_repos import ReleaseParams, ReserveParams
 from internal.infrastructure.adapter.pgsql.models import Base, StockEntity, StockReservationEntity, WarehouseEntity
 from internal.infrastructure.adapter.pgsql.stock_reservation_repo import PgsqlStockReservationRepository
@@ -130,3 +131,45 @@ async def test_release_after_concurrent_reserves_restores_every_unit(fixture_env
 
     assert sum(await _stock_quantities(factory)) == sum(WAREHOUSE_QUANTITIES)
     assert await _reserved_total(factory) == 0
+
+
+async def _set_stock(factory: async_sessionmaker, quantity) -> None:
+    async with factory() as session, session.begin():
+        await session.execute(update(StockEntity).values(quantity=quantity))
+
+
+async def test_release_split_reservations_racing_reserves_no_deadlock(fixture_env, monkeypatch) -> None:
+    repo, factory = fixture_env
+    first_stock_id = min(await _stock_ids(factory))
+    split_keys = [f"split-{i}:1" for i in range(8)]
+    for key in split_keys:
+        await _set_stock(factory, case((StockEntity.id == first_stock_id, 1), else_=2))
+        await repo.reserve(_params(key, 3))
+    await _set_stock(factory, 1000)
+
+    deadlocks: list[BaseException] = []
+    original = optimistic_retry.is_retryable
+
+    def spy(exc: BaseException) -> bool:
+        if optimistic_retry.sqlstate(exc) == optimistic_retry.SQLSTATE_DEADLOCK_DETECTED:
+            deadlocks.append(exc)
+        return original(exc)
+
+    monkeypatch.setattr(optimistic_retry, "is_retryable", spy)
+
+    small_keys = [f"small-{i}:1" for i in range(12)]
+    results = await asyncio.gather(
+        *(repo.release(ReleaseParams(reservation_key=key, reason="undo")) for key in split_keys),
+        *(repo.reserve(_params(key, 1)) for key in small_keys),
+        return_exceptions=True,
+    )
+
+    assert [r for r in results if isinstance(r, BaseException)] == []
+    assert deadlocks == []
+    assert sum(await _stock_quantities(factory)) == 2000 + 8 * 3 - len(small_keys)
+    assert await _reserved_total(factory) == len(small_keys)
+
+
+async def _stock_ids(factory: async_sessionmaker) -> list[int]:
+    async with factory() as session:
+        return list((await session.execute(select(StockEntity.id))).scalars())

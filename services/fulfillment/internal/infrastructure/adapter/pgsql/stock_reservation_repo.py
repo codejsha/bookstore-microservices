@@ -49,18 +49,7 @@ class PgsqlStockReservationRepository(StockReservationRepository):
     async def reserve(self, params: ReserveParams) -> StockReservationAggregate:
         async def attempt() -> StockReservationAggregate:
             async with self._session_factory() as session, session.begin():
-                rows = (
-                    (
-                        await session.execute(
-                            select(StockEntity)
-                            .where(StockEntity.edition_id == params.edition_id, StockEntity.deleted_at.is_(None))
-                            .order_by(StockEntity.id)
-                            .with_for_update()
-                        )
-                    )
-                    .scalars()
-                    .all()
-                )
+                rows = await self._lock_edition_stock(session, {params.edition_id})
                 existing = await self._find_by_key(session, params.reservation_key, for_update=True)
                 if existing:
                     return self._to_aggregate(existing, already_applied=True)
@@ -124,6 +113,15 @@ class PgsqlStockReservationRepository(StockReservationRepository):
     async def release(self, params: ReleaseParams) -> StockReservationAggregate | None:
         async def attempt() -> StockReservationAggregate | None:
             async with self._session_factory() as session, session.begin():
+                pending = await self._find_by_key(session, params.reservation_key, for_update=False)
+                if not pending:
+                    return None
+                if all(row.status == ReservationStatus.RELEASED.value for row in pending):
+                    return self._to_aggregate(pending, already_applied=True)
+                stocks = {
+                    (stock.edition_id, stock.warehouse_id): stock
+                    for stock in await self._lock_edition_stock(session, {row.edition_id for row in pending})
+                }
                 rows = await self._find_by_key(session, params.reservation_key, for_update=True)
                 if not rows:
                     return None
@@ -137,17 +135,7 @@ class PgsqlStockReservationRepository(StockReservationRepository):
                 for reservation in rows:
                     if reservation.status == ReservationStatus.RELEASED.value:
                         continue
-                    target = (
-                        await session.execute(
-                            select(StockEntity)
-                            .where(
-                                StockEntity.edition_id == reservation.edition_id,
-                                StockEntity.warehouse_id == reservation.warehouse_id,
-                                StockEntity.deleted_at.is_(None),
-                            )
-                            .with_for_update()
-                        )
-                    ).scalar_one_or_none()
+                    target = stocks.get((reservation.edition_id, reservation.warehouse_id))
                     if target is None:
                         raise StockNotFoundError(
                             f"stock not found for edition {reservation.edition_uid} "
@@ -204,7 +192,18 @@ class PgsqlStockReservationRepository(StockReservationRepository):
             .order_by(StockReservationEntity.id)
         )
         if for_update:
-            stmt = stmt.with_for_update()
+            stmt = stmt.with_for_update().execution_options(populate_existing=True)
+        return list((await session.execute(stmt)).scalars().all())
+
+    @staticmethod
+    async def _lock_edition_stock(session: AsyncSession, edition_ids: set[int]) -> list[StockEntity]:
+        stmt = (
+            select(StockEntity)
+            .where(StockEntity.edition_id.in_(edition_ids), StockEntity.deleted_at.is_(None))
+            .order_by(StockEntity.id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
         return list((await session.execute(stmt)).scalars().all())
 
     @staticmethod
