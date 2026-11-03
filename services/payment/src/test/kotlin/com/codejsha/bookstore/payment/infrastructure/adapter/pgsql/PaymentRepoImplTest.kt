@@ -180,6 +180,17 @@ class PaymentRepoImplTest : AbstractPostgresTestSupport() {
         assertNotNull(synced.capturedAt)
     }
 
+    @Test
+    fun syncGatewayStatus_alreadyCaptured_keepsOriginalCapturedAt() {
+        val created = paymentRepo.create(paymentCommand(idempotencyKey = "order-6", status = "succeeded"), ctx)
+        val original = assertNotNull(created.capturedAt)
+
+        Thread.sleep(5)
+        val synced = paymentRepo.syncGatewayStatus(created.uid, "succeeded", 0L, 9_900L, ctx)
+
+        assertEquals(original, synced.capturedAt)
+    }
+
     private fun paymentCommand(
         idempotencyKey: String,
         status: String? = null,
