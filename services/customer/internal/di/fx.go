@@ -76,6 +76,7 @@ var Module = fx.Module("customer",
 	),
 	fx.Decorate(support.WithOutboundTimeout),
 	fx.Invoke(support.ConfigureConnectionPool),
+	fx.Invoke(support.ConfigureUtcClock),
 	fx.Invoke(support.RegisterEventPublisher),
 	fx.Invoke(registerShutdownSequence),
 )
