@@ -8,7 +8,13 @@ from internal.infrastructure.support import temporal_worker as temporal_worker_m
 from internal.infrastructure.support.temporal_worker import TemporalWorkerRunner
 
 
+class _FailAfterStart(RuntimeError):
+    pass
+
+
 class _FakeWorker:
+    next_validation_gate: asyncio.Event | None = None
+
     def __init__(self, client, *, task_queue, activities, **kwargs):
         self.client = client
         self.task_queue = task_queue
@@ -18,11 +24,28 @@ class _FakeWorker:
         self.run_cancelled = False
         self.drains = True
         self.run_error: Exception | None = None
+        self.validation_gate = _FakeWorker.next_validation_gate
+        self.started = False
+        self.finished = False
         self._running = asyncio.Event()
         self._stopped = asyncio.Event()
 
+    @property
+    def is_running(self) -> bool:
+        return self.started and not self.finished
+
+    @property
+    def is_shutdown(self) -> bool:
+        return self.finished
+
     async def run(self) -> None:
+        if self.validation_gate is not None:
+            await self.validation_gate.wait()
+        if self.run_error is not None and not isinstance(self.run_error, _FailAfterStart):
+            raise self.run_error
+        self.started = True
         if self.run_error is not None:
+            self.finished = True
             raise self.run_error
         self._running.set()
         try:
@@ -30,6 +53,8 @@ class _FakeWorker:
         except asyncio.CancelledError:
             self.run_cancelled = True
             raise
+        finally:
+            self.finished = True
 
     async def shutdown(self) -> None:
         self.shutdown_awaited = True
@@ -227,5 +252,61 @@ async def test_run_connect_failure_retries_until_connected(config: TemporalConfi
     try:
         assert len(_FakeClient.connects) == 1
         assert worker.client is _FakeClient.connects[0]
+    finally:
+        await runner.stop()
+
+
+async def test_is_connected_worker_not_yet_validated_false(
+    config: TemporalConfig, workers: list[_FakeWorker], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    gate = asyncio.Event()
+    monkeypatch.setattr(_FakeWorker, "next_validation_gate", gate)
+    runner = TemporalWorkerRunner(config, [])
+    await runner.start()
+    try:
+        async with asyncio.timeout(1.0):
+            while not workers:
+                await asyncio.sleep(0.01)
+        await asyncio.sleep(0.02)
+        assert not runner.is_connected
+        gate.set()
+        await workers[0].wait_until_running()
+        assert runner.is_connected
+    finally:
+        await runner.stop()
+
+
+async def test_run_validation_keeps_failing_backoff_keeps_growing(
+    config: TemporalConfig, workers: list[_FakeWorker], run_errors: list[Exception], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(temporal_worker_module, "_INITIAL_BACKOFF_SECONDS", 0.001)
+    run_errors.extend([RuntimeError("Worker validation failed")] * 3)
+    backoffs: list[float] = []
+    runner = TemporalWorkerRunner(config, [])
+    monkeypatch.setattr(runner, "_log_unavailable", lambda backoff, error: backoffs.append(backoff))
+    await _start_until_running(runner, workers, 4)
+    try:
+        assert backoffs == [0.001, 0.002, 0.004]
+    finally:
+        await runner.stop()
+
+
+async def test_run_started_worker_fails_backoff_resets(
+    config: TemporalConfig, workers: list[_FakeWorker], run_errors: list[Exception], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(temporal_worker_module, "_INITIAL_BACKOFF_SECONDS", 0.001)
+    run_errors.extend(
+        [
+            RuntimeError("Worker validation failed"),
+            RuntimeError("Worker validation failed"),
+            _FailAfterStart("Poll failed"),
+        ]
+    )
+    backoffs: list[float] = []
+    runner = TemporalWorkerRunner(config, [])
+    monkeypatch.setattr(runner, "_log_unavailable", lambda backoff, error: backoffs.append(backoff))
+    await _start_until_running(runner, workers, 4)
+    try:
+        assert backoffs == [0.001, 0.002, 0.001]
     finally:
         await runner.stop()

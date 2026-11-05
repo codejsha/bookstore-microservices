@@ -32,6 +32,14 @@ class FakeWorker:
         self._run_error = FakeWorker.run_errors.pop(0) if FakeWorker.run_errors else None
         FakeWorker.instances.append(self)
 
+    @property
+    def is_running(self) -> bool:
+        return False
+
+    @property
+    def is_shutdown(self) -> bool:
+        return False
+
     async def run(self) -> None:
         if self._run_error is not None:
             raise self._run_error
@@ -135,3 +143,32 @@ class TestTemporalWorkerRunnerAuth:
         assert FakeWorker.instances[0].shutdown_awaited
         assert retried.client is client
         assert retried.client.rpc_metadata == {"authorization": "Bearer second"}
+
+
+async def test_run_token_refreshed_during_connect_connected_client_gets_latest_token(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    FakeWorker.instances = []
+    FakeWorker.run_errors = []
+    monkeypatch.setattr(worker_module, "Worker", FakeWorker)
+    provider = TemporalTokenProvider(ScriptedFetcher(AccessToken("first", 0.05), AccessToken("second", 300)))
+    client = SimpleNamespace(rpc_metadata={})
+
+    async def slow_connect(host, namespace, rpc_metadata):
+        client.rpc_metadata = dict(rpc_metadata)
+        async with asyncio.timeout(2.0):
+            while provider.rpc_metadata() != {"authorization": "Bearer second"}:
+                await asyncio.sleep(0.01)
+        return client
+
+    monkeypatch.setattr(worker_module.Client, "connect", slow_connect)
+    runner = _runner(provider)
+    await runner.start()
+    try:
+        async with asyncio.timeout(2.0):
+            while not FakeWorker.instances:
+                await asyncio.sleep(0.01)
+    finally:
+        await runner.stop()
+
+    assert FakeWorker.instances[0].client.rpc_metadata == {"authorization": "Bearer second"}
