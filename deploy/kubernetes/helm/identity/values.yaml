@@ -121,6 +121,11 @@ gatewayApi:
   host: "example.com"
   gatewayName: "bookstore-gateway"
   gatewayNamespace: "istio-system"
+  storefront:
+    enabled: false
+    host: "example.com"
+    pathPrefixes:
+      - "/api/v1/users"
 rollout:
   enabled: true
   canary:
