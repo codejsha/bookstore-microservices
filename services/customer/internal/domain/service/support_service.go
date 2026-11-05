@@ -138,7 +138,7 @@ func (s *supportService) UpdateTicketStatus(ctx context.Context, uid string, cmd
 	result, err := s.ticketRepo.UpdateByUid(ctx, uid, func(t *repo.TicketResult) {
 		t.Status = string(cmd.Status)
 		if cmd.Status == constant.TICKET_STATUS_RESOLVED && t.ResolvedAt == nil {
-			now := time.Now()
+			now := time.Now().UTC()
 			t.ResolvedAt = &now
 		}
 	})

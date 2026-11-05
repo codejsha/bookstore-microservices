@@ -383,7 +383,7 @@ func (s *customerService) EditReview(ctx context.Context, userUid string, review
 	if cmd.Content != nil {
 		ent.Content = cmd.Content
 	}
-	now := time.Now()
+	now := time.Now().UTC()
 	ent.UpdatedAt = &now
 	if err := s.reviewRepo.Update(ctx, ent); err != nil {
 		return nil, err

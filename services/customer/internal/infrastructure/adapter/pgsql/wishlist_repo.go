@@ -77,7 +77,7 @@ func (r *wishlistRepository) AddBooks(ctx context.Context, userUid string, bookU
 	if len(bookUids) == 0 {
 		return nil
 	}
-	now := time.Now()
+	now := time.Now().UTC()
 	rows := make([]*entity.CustomerWishlistEntity, 0, len(bookUids))
 	for _, bookUid := range bookUids {
 		if bookUid == "" {

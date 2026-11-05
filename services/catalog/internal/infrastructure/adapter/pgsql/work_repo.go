@@ -142,7 +142,7 @@ func (r *workRepository) hydrateWork(ctx context.Context, e *entity.WorkEntity) 
 func (r *workRepository) Create(ctx context.Context, cmd command.WorkCreateCommand) (int64, error) {
 	var id int64
 	err := dao.Use(r.db.WithContext(ctx)).Transaction(func(tx *dao.Query) error {
-		now := time.Now()
+		now := time.Now().UTC()
 		work := &entity.WorkEntity{
 			Uid:              uuid.Must(uuid.NewV7()).String(),
 			Title:            cmd.Title,
@@ -207,7 +207,7 @@ func (r *workRepository) Create(ctx context.Context, cmd command.WorkCreateComma
 func (r *workRepository) Update(ctx context.Context, id int64, cmd command.WorkUpdateCommand) error {
 	return dao.Use(r.db.WithContext(ctx)).Transaction(func(tx *dao.Query) error {
 		w := tx.WorkEntity
-		now := time.Now()
+		now := time.Now().UTC()
 
 		var assigns []field.AssignExpr
 		if cmd.Title != nil {

@@ -98,7 +98,7 @@ func (r *subjectRepository) FindOrCreateByName(ctx context.Context, name string)
 	e = &entity.SubjectEntity{
 		Uid:       uuid.Must(uuid.NewV7()).String(),
 		Name:      name,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 		Version:   1,
 	}
 	if err := s.WithContext(ctx).Create(e); err != nil {
@@ -111,7 +111,7 @@ func (r *subjectRepository) Create(ctx context.Context, cmd command.SubjectCreat
 	e := &entity.SubjectEntity{
 		Uid:       uuid.Must(uuid.NewV7()).String(),
 		Name:      cmd.Name,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 		Version:   1,
 	}
 	if err := r.q.SubjectEntity.WithContext(ctx).Create(e); err != nil {

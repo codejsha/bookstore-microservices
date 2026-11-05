@@ -110,7 +110,7 @@ func (r *faqRepository) FindByUid(ctx context.Context, uid string) (*repo.FaqRes
 }
 
 func (r *faqRepository) Insert(ctx context.Context, faq repo.FaqCreate) (*repo.FaqResult, error) {
-	now := time.Now()
+	now := time.Now().UTC()
 	ent := &entity.CustomerFaqEntity{
 		Uid:        uuid.Must(uuid.NewV7()).String(),
 		CategoryId: faq.CategoryId,
@@ -150,7 +150,7 @@ func (r *faqRepository) UpdateByUid(ctx context.Context, uid string, apply func(
 		result := toFaqResult(e, nil)
 		apply(result)
 
-		now := time.Now()
+		now := time.Now().UTC()
 		e.CategoryId = result.CategoryId
 		e.Question = result.Question
 		e.Answer = result.Answer

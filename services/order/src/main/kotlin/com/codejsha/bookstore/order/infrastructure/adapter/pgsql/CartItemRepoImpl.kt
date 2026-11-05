@@ -9,6 +9,7 @@ import org.jooq.DSLContext
 import org.jooq.Record
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
@@ -57,7 +58,7 @@ class CartItemRepoImpl(
             .set(ci.QUANTITY, command.quantity)
             .set(ci.CURRENCY, command.currency)
             .set(ci.PRICE, command.price)
-            .set(ci.CREATED_AT, LocalDateTime.now())
+            .set(ci.CREATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .execute()
 
         return findOne(cartId, uid, context)
@@ -67,7 +68,7 @@ class CartItemRepoImpl(
         val updated = dslContext
             .update(ci)
             .set(ci.QUANTITY, quantity)
-            .set(ci.UPDATED_AT, LocalDateTime.now())
+            .set(ci.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .where(ci.CART_ID.eq(cartId).and(ci.UID.eq(uid)))
             .execute()
 

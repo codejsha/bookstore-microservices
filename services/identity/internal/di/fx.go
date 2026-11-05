@@ -72,6 +72,7 @@ var Module = fx.Module("identity",
 	fx.Decorate(keycloak.NewCachingIntrospector),
 	fx.Decorate(support.WithOutboundTimeout),
 	fx.Invoke(support.ConfigureConnectionPool),
+	fx.Invoke(support.ConfigureUtcClock),
 	fx.Invoke(support.RegisterEventPublisher),
 	fx.Invoke(support.RegisterShutdownSequence),
 )

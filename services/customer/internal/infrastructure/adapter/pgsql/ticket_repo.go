@@ -114,7 +114,7 @@ func (r *ticketRepository) FindByUid(ctx context.Context, uid string) (*repo.Tic
 }
 
 func (r *ticketRepository) Insert(ctx context.Context, ticket repo.TicketCreate) (*repo.TicketResult, error) {
-	now := time.Now()
+	now := time.Now().UTC()
 	ent := &entity.CustomerTicketEntity{
 		Uid:         uuid.Must(uuid.NewV7()).String(),
 		CustomerUid: ticket.CustomerUid,
@@ -155,7 +155,7 @@ func (r *ticketRepository) UpdateByUid(ctx context.Context, uid string, apply fu
 		result := toTicketResult(e, nil)
 		apply(result)
 
-		now := time.Now()
+		now := time.Now().UTC()
 		e.CategoryId = result.CategoryId
 		e.AssigneeUid = result.AssigneeUid
 		e.Subject = result.Subject

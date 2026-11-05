@@ -81,7 +81,7 @@ func (r *reviewRepository) Insert(ctx context.Context, review repo.ReviewCreate)
 		Rating:    int16(review.Rating),
 		Title:     review.Title,
 		Content:   review.Content,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 		Version:   1,
 	}
 	if err := rv.WithContext(ctx).Create(ent); err != nil {

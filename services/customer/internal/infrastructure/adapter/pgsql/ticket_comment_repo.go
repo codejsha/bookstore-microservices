@@ -47,7 +47,7 @@ func (r *ticketCommentRepository) FindAllByTicketId(ctx context.Context, ticketI
 }
 
 func (r *ticketCommentRepository) Insert(ctx context.Context, comment repo.TicketCommentCreate) (*repo.TicketCommentResult, error) {
-	now := time.Now()
+	now := time.Now().UTC()
 	ent := &entity.CustomerTicketCommentEntity{
 		Uid:        uuid.Must(uuid.NewV7()).String(),
 		TicketId:   comment.TicketId,

@@ -11,6 +11,7 @@ import org.jooq.DSLContext
 import org.jooq.Record
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
@@ -60,7 +61,7 @@ class OrderShippingRepoImpl(
             .set(os.POSTAL_CODE, command.postalCode)
             .set(os.COUNTRY, command.country)
             .set(os.SHIPPING_METHOD, command.shippingMethod)
-            .set(os.CREATED_AT, LocalDateTime.now())
+            .set(os.CREATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(os.ACTOR_ID, context.actorId)
             .set(os.VERSION, 1L)
             .execute()
@@ -87,7 +88,7 @@ class OrderShippingRepoImpl(
                 command.country?.let { set(os.COUNTRY, it) }
                 command.shippingMethod?.let { set(os.SHIPPING_METHOD, it) }
             }
-            .set(os.UPDATED_AT, LocalDateTime.now())
+            .set(os.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(os.ACTOR_ID, context.actorId)
             .where(os.ORDER_ID.eq(orderId).and(os.DELETED_AT.isNull))
             .execute()
@@ -102,7 +103,7 @@ class OrderShippingRepoImpl(
 
         dslContext
             .update(os)
-            .set(os.DELETED_AT, LocalDateTime.now())
+            .set(os.DELETED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(os.ACTOR_ID, context.actorId)
             .where(os.ORDER_ID.eq(orderId).and(os.DELETED_AT.isNull))
             .execute()

@@ -313,6 +313,21 @@ func TestUpdateTicketStatus_InProgressOnFreshTicket_LeavesResolvedAtNil(t *testi
 	}
 }
 
+func TestUpdateTicketStatus_NonUtcLocalZone_StampsResolvedAtInUtc(t *testing.T) {
+	local := time.Local
+	time.Local = time.FixedZone("KST", 9*60*60)
+	t.Cleanup(func() { time.Local = local })
+	svc, tickets, _, _, _ := newSupportFixture()
+	seedTicket(tickets)
+	got, err := svc.UpdateTicketStatus(context.Background(), testTicketUid, command.TicketStatusCommand{Status: constant.TICKET_STATUS_RESOLVED})
+	if err != nil {
+		t.Fatalf("want nil, got %v", err)
+	}
+	if got.ResolvedAt == nil || got.ResolvedAt.Location() != time.UTC {
+		t.Errorf("resolved_at must be UTC, got %v", got.ResolvedAt)
+	}
+}
+
 // ─── comments ───────────────────────────────────────────────────────────────
 
 func TestAddComment_TicketMissing_ReturnsErrNotFound(t *testing.T) {
