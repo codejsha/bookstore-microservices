@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from uuid import uuid4
+from uuid import uuid4, uuid7
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -10,6 +10,7 @@ from internal.domain.constant.stock_change_type import StockChangeType
 from internal.domain.model.error import DuplicateClosingError, WarehouseNotFoundError
 from internal.domain.model.option.inventory_option import ClosingQueryOption
 from internal.infrastructure.adapter.pgsql.closing_repo import PgsqlMonthlyClosingRepository, month_range
+from internal.infrastructure.adapter.pgsql.models import StockHistoryEntity
 from internal.infrastructure.adapter.pgsql.stock_repo import PgsqlStockRepository
 from tests.conftest import seed_stock, seed_warehouse
 
@@ -75,7 +76,7 @@ async def test_create_computes_period_movements_and_opening_quantity(repo, stock
     assert item.opening_quantity == 10
 
 
-async def test_create_other_period_has_no_movements(repo, stock_repo, session_factory) -> None:
+async def test_create_past_period_backs_out_later_movements(repo, stock_repo, session_factory) -> None:
     warehouse = await seed_warehouse(session_factory)
     stock = await seed_stock(session_factory, warehouse, edition_id=1, quantity=10)
     await stock_repo.apply_change(
@@ -93,8 +94,40 @@ async def test_create_other_period_has_no_movements(repo, stock_repo, session_fa
 
     item = closing.items[0]
     assert (item.inbound_quantity, item.outbound_quantity, item.adjust_quantity) == (0, 0, 0)
-    assert item.opening_quantity == 15
-    assert item.closing_quantity == 15
+    assert item.opening_quantity == 10
+    assert item.closing_quantity == 10
+
+
+async def test_create_movements_after_period_end_closes_at_period_end_quantity(repo, session_factory) -> None:
+    warehouse = await seed_warehouse(session_factory)
+    stock = await seed_stock(session_factory, warehouse, edition_id=1, quantity=7)
+    async with session_factory() as session:
+        for qty, change_type, at in (
+            (10, StockChangeType.INBOUND, datetime(2026, 10, 5, tzinfo=UTC)),
+            (-3, StockChangeType.RESERVATION, datetime(2026, 11, 1, 1, tzinfo=UTC)),
+        ):
+            session.add(
+                StockHistoryEntity(
+                    uid=uuid7(),
+                    stock_id=stock.id,
+                    stock_uid=stock.uid,
+                    change_type=change_type.value,
+                    reason=None,
+                    change_qty=qty,
+                    created_at=at,
+                    updated_at=None,
+                    deleted_at=None,
+                    version=1,
+                )
+            )
+        await session.commit()
+
+    closing = await repo.create(ClosingCreateParams(warehouse_uid=warehouse.uid, year=2026, month=10))
+
+    item = closing.items[0]
+    assert (item.inbound_quantity, item.outbound_quantity, item.adjust_quantity) == (10, 0, 0)
+    assert item.opening_quantity == 0
+    assert item.closing_quantity == 10
 
 
 async def test_create_duplicate_period_raises_duplicate_closing(repo, session_factory) -> None:
