@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from uuid import UUID, uuid7
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -36,10 +37,17 @@ _SORTABLE = {
 }
 
 
+CLOSING_ZONE = ZoneInfo("Asia/Seoul")
+
+
 def month_range(year: int, month: int) -> tuple[datetime, datetime]:
-    start = datetime(year, month, 1, tzinfo=UTC)
-    end = datetime(year + 1, 1, 1, tzinfo=UTC) if month == 12 else datetime(year, month + 1, 1, tzinfo=UTC)
-    return start, end
+    start = datetime(year, month, 1, tzinfo=CLOSING_ZONE)
+    end = (
+        datetime(year + 1, 1, 1, tzinfo=CLOSING_ZONE)
+        if month == 12
+        else datetime(year, month + 1, 1, tzinfo=CLOSING_ZONE)
+    )
+    return start.astimezone(UTC), end.astimezone(UTC)
 
 
 class PgsqlMonthlyClosingRepository(MonthlyClosingRepository):
@@ -137,19 +145,21 @@ class PgsqlMonthlyClosingRepository(MonthlyClosingRepository):
                 raise
 
             movements = await self._period_movements(session, warehouse.id, start, end)
+            later = await self._net_change_since(session, warehouse.id, end)
             items = [
                 MonthlyClosingItemEntity(
                     closing_id=closing.id,
                     edition_id=stock.edition_id,
                     edition_uid=stock.edition_uid,
-                    opening_quantity=stock.quantity - (inbound - outbound + adjust),
+                    opening_quantity=closing_quantity - (inbound - outbound + adjust),
                     inbound_quantity=inbound,
                     outbound_quantity=outbound,
                     adjust_quantity=adjust,
-                    closing_quantity=stock.quantity,
+                    closing_quantity=closing_quantity,
                 )
                 for stock in stocks
                 for inbound, outbound, adjust in (movements.get(stock.id, (0, 0, 0)),)
+                for closing_quantity in (stock.quantity - later.get(stock.id, 0),)
             ]
             for offset in range(0, len(items), CLOSING_ITEM_BATCH_SIZE):
                 session.add_all(items[offset : offset + CLOSING_ITEM_BATCH_SIZE])
@@ -177,6 +187,24 @@ class PgsqlMonthlyClosingRepository(MonthlyClosingRepository):
             )
         ).all()
         return {stock_id: (int(i), int(o), int(a)) for stock_id, i, o, a in rows}
+
+    @staticmethod
+    async def _net_change_since(session: AsyncSession, warehouse_id: int, since: datetime) -> dict[int, int]:
+        warehouse_stocks = select(StockEntity.id).where(
+            StockEntity.warehouse_id == warehouse_id, StockEntity.deleted_at.is_(None)
+        )
+        rows = (
+            await session.execute(
+                select(StockHistoryEntity.stock_id, func.coalesce(func.sum(StockHistoryEntity.change_qty), 0))
+                .where(
+                    StockHistoryEntity.stock_id.in_(warehouse_stocks),
+                    StockHistoryEntity.deleted_at.is_(None),
+                    StockHistoryEntity.created_at >= since,
+                )
+                .group_by(StockHistoryEntity.stock_id)
+            )
+        ).all()
+        return {stock_id: int(net) for stock_id, net in rows}
 
     @staticmethod
     async def _load_items(

@@ -33,11 +33,11 @@ class TemporalWorkerRunner:
         self._refresh_task: asyncio.Task | None = None
         self._client: Client | None = None
         self._worker: Worker | None = None
-        self._connected = False
 
     @property
     def is_connected(self) -> bool:
-        return self._connected
+        worker = self._worker
+        return worker is not None and worker.is_running
 
     async def start(self) -> None:
         if not self._config.enabled:
@@ -64,22 +64,20 @@ class TemporalWorkerRunner:
                     graceful_shutdown_timeout=timedelta(seconds=_GRACEFUL_SHUTDOWN_SECONDS),
                 )
                 self._worker = worker
-                self._connected = True
                 logger.info(
-                    "temporal worker started",
+                    "temporal worker starting",
                     host=self._config.host,
                     namespace=self._config.namespace,
                     task_queue=self._config.task_queue,
                 )
-                backoff = _INITIAL_BACKOFF_SECONDS
                 await worker.run()
-                self._connected = False
                 return
             except asyncio.CancelledError:
                 raise
             except Exception as e:  # noqa: BLE001
+                if worker is not None and worker.is_shutdown:
+                    backoff = _INITIAL_BACKOFF_SECONDS
                 self._log_unavailable(backoff, e)
-                self._connected = False
                 self._worker = None
                 if worker is not None:
                     await self._shutdown_failed(worker)
@@ -102,6 +100,7 @@ class TemporalWorkerRunner:
                 await asyncio.sleep(backoff)
                 backoff = min(backoff * 2, _MAX_BACKOFF_SECONDS)
                 continue
+            client.rpc_metadata = self._rpc_metadata()
             self._client = client
             return client
 
@@ -148,7 +147,6 @@ class TemporalWorkerRunner:
             with contextlib.suppress(asyncio.CancelledError):
                 await self._refresh_task
             self._refresh_task = None
-        self._connected = False
         self._client = None
 
     @staticmethod

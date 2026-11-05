@@ -178,6 +178,7 @@ func (s *GinServer) InitializeEngine() {
 	})
 	s.engine.Use(GinPrincipalMiddleware())
 	s.engine.Use(GinOwnershipMiddleware())
+	s.engine.Use(GinUuidParamMiddleware())
 }
 
 func GinRequestDeadlineMiddleware(timeout time.Duration) gin.HandlerFunc {

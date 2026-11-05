@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Callable
+from types import SimpleNamespace
 
 import pytest
 
@@ -24,7 +25,7 @@ def _no_servicers(_server) -> tuple[str, ...]:
 class _FakeClient:
     @staticmethod
     async def connect(*_args, **_kwargs) -> object:
-        return object()
+        return SimpleNamespace(rpc_metadata={})
 
 
 class _UnavailableClient:
@@ -36,9 +37,22 @@ class _UnavailableClient:
 class _FakeWorker:
     def __init__(self, *_args, **_kwargs) -> None:
         self._stopped = asyncio.Event()
+        self.started = False
+
+    @property
+    def is_running(self) -> bool:
+        return self.started and not self._stopped.is_set()
+
+    @property
+    def is_shutdown(self) -> bool:
+        return self._stopped.is_set()
 
     async def run(self) -> None:
+        self.started = True
         await self._stopped.wait()
+
+    async def shutdown(self) -> None:
+        self._stopped.set()
 
 
 class TestGrpcServerRunner:
