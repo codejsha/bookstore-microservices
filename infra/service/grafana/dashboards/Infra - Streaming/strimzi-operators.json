@@ -1770,7 +1770,7 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Strimzi Operators",
   "uid": "31545fecf446bf88",
   "version": 6,

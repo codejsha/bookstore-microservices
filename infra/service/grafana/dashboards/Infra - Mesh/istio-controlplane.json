@@ -932,7 +932,7 @@
     "from": "now-30m",
     "to": "now"
   },
-  "timezone": "utc",
+  "timezone": "browser",
   "title": "Istio Control Plane Dashboard",
   "uid": "1813f692a8e4ac77155348d4c7d2fba8",
   "gnetId": 7645,

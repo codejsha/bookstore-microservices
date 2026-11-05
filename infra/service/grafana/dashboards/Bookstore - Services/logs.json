@@ -1,5 +1,6 @@
 {
   "uid": "bookstore-logs",
+  "timezone": "browser",
   "title": "Bookstore — Pod logs",
   "tags": ["bookstore", "logs"],
   "schemaVersion": 39,

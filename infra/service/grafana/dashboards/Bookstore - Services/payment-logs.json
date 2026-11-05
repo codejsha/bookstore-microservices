@@ -1,5 +1,6 @@
 {
   "uid": "bookstore-payment-logs",
+  "timezone": "browser",
   "title": "Bookstore \u2014 Payment logs",
   "tags": [
     "bookstore",

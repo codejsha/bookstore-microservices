@@ -9358,7 +9358,7 @@
   "timepicker": {
     "nowDelay": ""
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "CloudNativePG",
   "uid": "cloudnative-pg",
   "version": 4,

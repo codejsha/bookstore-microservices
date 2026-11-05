@@ -3429,7 +3429,7 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Istio Service Dashboard",
   "version": 1,
   "weekStart": "",

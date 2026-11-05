@@ -1,4 +1,5 @@
 {
+  "timezone": "browser",
   "title": "Bookstore \u2014 Settlement",
   "uid": "bookstore-settlement",
   "tags": [

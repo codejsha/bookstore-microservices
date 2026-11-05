@@ -1,5 +1,6 @@
 {
   "uid": "bookstore-identity-logs",
+  "timezone": "browser",
   "title": "Bookstore \u2014 Identity logs",
   "tags": [
     "bookstore",

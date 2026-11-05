@@ -905,7 +905,7 @@
       "1d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Istio Wasm Extension Dashboard",
   "version": 1,
   "weekStart": "",

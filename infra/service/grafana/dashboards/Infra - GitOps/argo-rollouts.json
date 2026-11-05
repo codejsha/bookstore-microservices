@@ -1498,7 +1498,7 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Argo Rollouts",
   "uid": "9zNpieqik",
   "version": 1

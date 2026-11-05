@@ -2556,7 +2556,7 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Hashicorp Vault",
   "uid": "vaults",
   "version": 71

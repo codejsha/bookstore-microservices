@@ -1,5 +1,6 @@
 {
   "uid": "bookstore-fulfillment-logs",
+  "timezone": "browser",
   "title": "Bookstore \u2014 Fulfillment logs",
   "tags": [
     "bookstore",
