@@ -2180,7 +2180,7 @@
       "1d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "harbor",
   "uid": "gb9Oy6UMz",
   "version": 1

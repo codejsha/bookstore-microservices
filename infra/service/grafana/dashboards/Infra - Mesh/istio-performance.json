@@ -1637,7 +1637,7 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Istio Performance Dashboard",
   "version": 1,
   "weekStart": "",

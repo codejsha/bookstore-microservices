@@ -3243,7 +3243,7 @@
       "1h"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Temporal Server Metrics",
   "version": 1,
   "weekStart": ""

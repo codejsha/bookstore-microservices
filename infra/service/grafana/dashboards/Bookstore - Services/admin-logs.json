@@ -1,5 +1,6 @@
 {
   "uid": "bookstore-admin-logs",
+  "timezone": "browser",
   "title": "Bookstore \u2014 Admin logs",
   "tags": [
     "bookstore",

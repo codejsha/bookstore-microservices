@@ -1,4 +1,5 @@
 {
+  "timezone": "browser",
   "title": "Bookstore — OpenSearch",
   "uid": "bookstore-opensearch",
   "tags": ["bookstore", "data", "opensearch"],

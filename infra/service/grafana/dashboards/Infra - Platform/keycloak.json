@@ -2673,7 +2673,7 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Keycloak Metrics Dashboard New Visualizations",
   "uid": "nGwJNw24k",
   "version": 2,

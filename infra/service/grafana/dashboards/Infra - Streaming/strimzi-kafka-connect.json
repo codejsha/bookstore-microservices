@@ -1802,7 +1802,7 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Strimzi Kafka Connect",
   "uid": "646c07d84adaf50d",
   "version": 6,

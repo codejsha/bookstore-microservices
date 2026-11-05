@@ -1,4 +1,5 @@
 {
+  "timezone": "browser",
   "title": "Bookstore — Hyperswitch",
   "uid": "bookstore-hyperswitch",
   "tags": ["bookstore", "platform", "hyperswitch", "payment"],

@@ -670,7 +670,7 @@
     "from": "now-30m",
     "to": "now"
   },
-  "timezone": "utc",
+  "timezone": "browser",
   "title": "Istio Ztunnel Dashboard",
   "uid": "12c58766acc81a1c835dd5059eaf2741",
   "gnetId": 21306,

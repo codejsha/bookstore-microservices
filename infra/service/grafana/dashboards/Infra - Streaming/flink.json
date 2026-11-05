@@ -1,4 +1,5 @@
 {
+  "timezone": "browser",
   "title": "Bookstore — Flink (catalog-indexer)",
   "uid": "bookstore-flink",
   "tags": [
