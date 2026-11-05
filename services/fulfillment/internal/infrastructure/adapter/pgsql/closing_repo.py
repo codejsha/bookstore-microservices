@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from uuid import UUID, uuid7
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -36,10 +37,17 @@ _SORTABLE = {
 }
 
 
+CLOSING_ZONE = ZoneInfo("Asia/Seoul")
+
+
 def month_range(year: int, month: int) -> tuple[datetime, datetime]:
-    start = datetime(year, month, 1, tzinfo=UTC)
-    end = datetime(year + 1, 1, 1, tzinfo=UTC) if month == 12 else datetime(year, month + 1, 1, tzinfo=UTC)
-    return start, end
+    start = datetime(year, month, 1, tzinfo=CLOSING_ZONE)
+    end = (
+        datetime(year + 1, 1, 1, tzinfo=CLOSING_ZONE)
+        if month == 12
+        else datetime(year, month + 1, 1, tzinfo=CLOSING_ZONE)
+    )
+    return start.astimezone(UTC), end.astimezone(UTC)
 
 
 class PgsqlMonthlyClosingRepository(MonthlyClosingRepository):

@@ -9,7 +9,7 @@ from internal.domain.constant.closing_status import ClosingStatus
 from internal.domain.constant.stock_change_type import StockChangeType
 from internal.domain.model.error import DuplicateClosingError, WarehouseNotFoundError
 from internal.domain.model.option.inventory_option import ClosingQueryOption
-from internal.infrastructure.adapter.pgsql.closing_repo import PgsqlMonthlyClosingRepository, month_range
+from internal.infrastructure.adapter.pgsql.closing_repo import CLOSING_ZONE, PgsqlMonthlyClosingRepository, month_range
 from internal.infrastructure.adapter.pgsql.models import StockHistoryEntity
 from internal.infrastructure.adapter.pgsql.stock_repo import PgsqlStockRepository
 from tests.conftest import seed_stock, seed_warehouse
@@ -26,7 +26,7 @@ def stock_repo(session_factory: async_sessionmaker[AsyncSession]) -> PgsqlStockR
 
 
 def _this_month() -> tuple[int, int]:
-    now = datetime.now(UTC)
+    now = datetime.now(CLOSING_ZONE)
     return now.year, now.month
 
 
@@ -37,14 +37,15 @@ def _previous_month() -> tuple[int, int]:
 
 def test_month_range_december_rolls_into_next_year() -> None:
     start, end = month_range(2026, 12)
-    assert start == datetime(2026, 12, 1, tzinfo=UTC)
-    assert end == datetime(2027, 1, 1, tzinfo=UTC)
+    assert start == datetime(2026, 11, 30, 15, tzinfo=UTC)
+    assert end == datetime(2026, 12, 31, 15, tzinfo=UTC)
 
 
-def test_month_range_is_utc_aware() -> None:
+def test_month_range_kst_month_returned_as_utc() -> None:
     start, end = month_range(2026, 3)
     assert start.tzinfo is UTC and end.tzinfo is UTC
-    assert end == datetime(2026, 4, 1, tzinfo=UTC)
+    assert start == datetime(2026, 2, 28, 15, tzinfo=UTC)
+    assert end == datetime(2026, 3, 31, 15, tzinfo=UTC)
 
 
 async def test_create_computes_period_movements_and_opening_quantity(repo, stock_repo, session_factory) -> None:
@@ -104,7 +105,7 @@ async def test_create_movements_after_period_end_closes_at_period_end_quantity(r
     async with session_factory() as session:
         for qty, change_type, at in (
             (10, StockChangeType.INBOUND, datetime(2026, 10, 5, tzinfo=UTC)),
-            (-3, StockChangeType.RESERVATION, datetime(2026, 11, 1, 1, tzinfo=UTC)),
+            (-3, StockChangeType.RESERVATION, datetime(2026, 10, 31, 16, tzinfo=UTC)),
         ):
             session.add(
                 StockHistoryEntity(
