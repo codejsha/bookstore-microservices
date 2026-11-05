@@ -26,8 +26,18 @@ test.describe("account", () => {
     await expect(firstName).toHaveValue("John");
 
     await firstName.fill("Jane");
-    await page.getByRole("button", { name: "Save changes" }).click();
+    const [request] = await Promise.all([
+      page.waitForRequest(
+        (r) => r.method() === "PUT" && /\/api\/v1\/users\/[^/]+$/.test(r.url()),
+      ),
+      page.getByRole("button", { name: "Save changes" }).click(),
+    ]);
 
+    expect(request.postDataJSON()).toEqual({
+      first_name: "Jane",
+      last_name: "Doe",
+      phone: "+1-555-0100",
+    });
     await expect(toast(page, "Profile saved")).toBeVisible();
 
     await page.reload();
@@ -35,16 +45,12 @@ test.describe("account", () => {
     await expect(page.getByLabel("First name")).toHaveValue("Jane");
   });
 
-  test("invalid email is flagged on blur", async ({ page }) => {
+  test("email is read-only", async ({ page }) => {
     await page.goto("/account");
     const email = page.getByLabel("Email");
+
     await expect(email).toHaveValue("john.doe@example.com");
-
-    await email.fill("not-an-email");
-    await email.blur();
-
-    await expect(page.getByRole("alert")).toHaveText("Invalid email address");
-    await expect(email).toHaveAttribute("aria-invalid", "true");
+    await expect(email).not.toBeEditable();
   });
 
   test("points tab shows the balance", async ({ page }) => {

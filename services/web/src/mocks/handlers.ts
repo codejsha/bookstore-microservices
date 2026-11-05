@@ -396,9 +396,10 @@ export function createHandlers(data: MockData = createMockData()) {
       return HttpResponse.json(customer);
     }),
 
-    http.put("/api/v1/customers/:uid", async ({ request }) => {
-      const body = (await request.json()) as Partial<typeof customer>;
-      Object.assign(customer, body);
+    http.put("/api/v1/users/:uid", async ({ request }) => {
+      const { first_name, last_name, phone } =
+        (await request.json()) as Partial<typeof customer>;
+      Object.assign(customer, { first_name, last_name, phone });
       return HttpResponse.json(customer);
     }),
 

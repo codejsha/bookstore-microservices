@@ -82,7 +82,6 @@ function ProfileSection() {
     defaultValues: {
       first_name: customer?.first_name ?? "",
       last_name: customer?.last_name ?? "",
-      email: customer?.email ?? "",
       phone: customer?.phone ?? "",
     },
     onSubmit: async ({ value }) => {
@@ -155,41 +154,15 @@ function ProfileSection() {
             </form.Field>
           </div>
 
-          <form.Field
-            name="email"
-            validators={{
-              onBlur: ({ value }) => {
-                if (!value) return undefined;
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
-                  return "Invalid email address";
-                return undefined;
-              },
-            }}
-          >
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Email</Label>
-                <Input
-                  id={field.name}
-                  type="email"
-                  value={field.state.value}
-                  aria-invalid={field.state.meta.errors.length > 0}
-                  aria-describedby={`${field.name}-error`}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.length > 0 && (
-                  <p
-                    id={`${field.name}-error`}
-                    role="alert"
-                    className="text-sm text-destructive"
-                  >
-                    {field.state.meta.errors[0]}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={customer?.email ?? ""}
+              readOnly
+            />
+          </div>
 
           <form.Field name="phone">
             {(field) => (

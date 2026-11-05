@@ -1,11 +1,13 @@
 import type { CustomerFindResponseSchema } from "@bookstore/customer-client/model/customer-find-response";
-import type { CustomerUpdateRequestSchema } from "@bookstore/customer-client/model/customer-update-request";
 import type { PointBalanceResponseSchema } from "@bookstore/customer-client/model/point-balance-response";
 import type { PointHistoryFindResponseSchema } from "@bookstore/customer-client/model/point-history-find-response";
+import type { UserFindResponseSchema } from "@bookstore/identity-client/model/user-find-response";
+import type { UserUpdateRequestSchema } from "@bookstore/identity-client/model/user-update-request";
 import type { z } from "zod";
 
 export type Customer = z.infer<typeof CustomerFindResponseSchema>;
-export type CustomerUpdateRequest = z.infer<typeof CustomerUpdateRequestSchema>;
+export type User = z.infer<typeof UserFindResponseSchema>;
+export type UserUpdateRequest = z.infer<typeof UserUpdateRequestSchema>;
 export type PointBalance = z.infer<typeof PointBalanceResponseSchema>;
 
 export type PointHistoryItem = Omit<
