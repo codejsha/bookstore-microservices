@@ -138,7 +138,7 @@ func (r userRepository) Upsert(ctx context.Context, profile repo.UserUpsert) (*r
 	}
 
 	rolesJSON := encodeRoles(profile.Roles)
-	now := time.Now()
+	now := time.Now().UTC()
 
 	if existing == nil {
 		ent := &entity.UsersEntity{
@@ -181,7 +181,7 @@ func (r userRepository) Upsert(ctx context.Context, profile repo.UserUpsert) (*r
 func (r userRepository) UpdateProfile(ctx context.Context, idpUid string, patch repo.UserProfileUpdate) error {
 	q := dao.Use(r.db)
 	u := q.UsersEntity
-	assigns := []field.AssignExpr{u.UpdatedAt.Value(time.Now())}
+	assigns := []field.AssignExpr{u.UpdatedAt.Value(time.Now().UTC())}
 	if patch.FirstName != nil {
 		assigns = append(assigns, u.FirstName.Value(*patch.FirstName))
 	}
@@ -200,7 +200,7 @@ func (r userRepository) UpdateStatus(ctx context.Context, idpUid string, status 
 	u := q.UsersEntity
 	_, err := u.WithContext(ctx).
 		Where(u.IdpUid.Eq(idpUid)).
-		UpdateSimple(u.Status.Value(status), u.UpdatedAt.Value(time.Now()))
+		UpdateSimple(u.Status.Value(status), u.UpdatedAt.Value(time.Now().UTC()))
 	return err
 }
 
@@ -209,7 +209,7 @@ func (r userRepository) UpdateRoles(ctx context.Context, idpUid string, roles []
 	u := q.UsersEntity
 	_, err := u.WithContext(ctx).
 		Where(u.IdpUid.Eq(idpUid)).
-		UpdateSimple(u.Role.Value(encodeRoles(roles)), u.UpdatedAt.Value(time.Now()))
+		UpdateSimple(u.Role.Value(encodeRoles(roles)), u.UpdatedAt.Value(time.Now().UTC()))
 	return err
 }
 
@@ -219,7 +219,7 @@ func (r userRepository) SoftDelete(ctx context.Context, idpUid string) error {
 		u := q.UsersEntity
 		if _, err := u.WithContext(ctx).
 			Where(u.IdpUid.Eq(idpUid)).
-			UpdateSimple(u.Status.Value(string(constant.USERSTATUS_DEACTIVATED_VALUE)), u.UpdatedAt.Value(time.Now())); err != nil {
+			UpdateSimple(u.Status.Value(string(constant.USERSTATUS_DEACTIVATED_VALUE)), u.UpdatedAt.Value(time.Now().UTC())); err != nil {
 			return err
 		}
 		if _, err := u.WithContext(ctx).Where(u.IdpUid.Eq(idpUid)).Delete(); err != nil {
