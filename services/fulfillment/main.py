@@ -43,12 +43,9 @@ def _build_grpc_runner(settings: Settings, container: Container) -> GrpcServerRu
 
 def _readiness_components(
     settings: Settings,
-    temporal_runner: TemporalWorkerRunner,
     grpc_runner: GrpcServerRunner | None,
 ) -> dict[str, Callable[[], bool]]:
     components: dict[str, Callable[[], bool]] = {}
-    if settings.temporal.enabled:
-        components["temporal"] = lambda: temporal_runner.is_connected
     if settings.grpc.enabled:
         components["grpc"] = lambda: grpc_runner is not None and grpc_runner.is_running
     return components
@@ -105,9 +102,7 @@ def create_app() -> FastAPI:
     app.include_router(create_audit_router(container.audit_service))
     app.include_router(create_closing_router(container.closing_service))
     app.include_router(create_balance_router(container.balance_service))
-    app.include_router(
-        create_health_router(container.ping_db, _readiness_components(settings, temporal_runner, grpc_runner))
-    )
+    app.include_router(create_health_router(container.ping_db, _readiness_components(settings, grpc_runner)))
 
     app.middleware("http")(access_log_middleware)
     instrument_fastapi(app)
