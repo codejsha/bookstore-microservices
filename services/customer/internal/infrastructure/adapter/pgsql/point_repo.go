@@ -66,7 +66,7 @@ func (r *pointRepository) EnsureBalance(ctx context.Context, userUid string) err
 		Uid:       uuid.Must(uuid.NewV7()).String(),
 		UserUid:   userUid,
 		Balance:   0,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 		Version:   1,
 	}
 	return r.q.CustomerPointEntity.WithContext(ctx).
@@ -103,7 +103,7 @@ func (r *pointRepository) ApplyPointChange(
 			return err
 		}
 
-		now := time.Now()
+		now := time.Now().UTC()
 		e.Balance = newBalance
 		e.UpdatedAt = &now
 		if err := p.WithContext(ctx).Save(e); err != nil {
