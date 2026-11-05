@@ -82,7 +82,7 @@ func (r *publisherRepository) Create(ctx context.Context, cmd command.PublisherC
 		Name:      cmd.Name,
 		Address:   cmd.Address,
 		OlKey:     cmd.OlKey,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 		Version:   1,
 	}
 	if err := r.q.PublisherEntity.WithContext(ctx).Create(e); err != nil {

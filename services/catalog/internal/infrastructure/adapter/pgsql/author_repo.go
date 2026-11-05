@@ -96,7 +96,7 @@ func (r *authorRepository) Create(ctx context.Context, cmd command.AuthorCreateC
 		PhotoUid:      utils.ToJsonString(cmd.PhotoUids),
 		AlternateName: utils.ToJsonString(cmd.AlternateNames),
 		OlKey:         cmd.OlKey,
-		CreatedAt:     time.Now(),
+		CreatedAt:     time.Now().UTC(),
 		Version:       1,
 	}
 	if err := r.q.AuthorEntity.WithContext(ctx).Create(e); err != nil {

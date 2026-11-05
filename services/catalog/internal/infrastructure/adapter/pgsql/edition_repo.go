@@ -137,7 +137,7 @@ func (r *editionRepository) findOneBy(ctx context.Context, cond field.Expr) (*re
 }
 
 func (r *editionRepository) Create(ctx context.Context, cmd command.EditionCreateCommand, work repo.EditionWorkRef, publisher *repo.EditionPublisherRef) (int64, error) {
-	e := newEditionEntity(cmd, work, publisher, uuid.Must(uuid.NewV7()).String(), time.Now())
+	e := newEditionEntity(cmd, work, publisher, uuid.Must(uuid.NewV7()).String(), time.Now().UTC())
 	if err := r.q.EditionEntity.WithContext(ctx).Create(e); err != nil {
 		return 0, err
 	}
