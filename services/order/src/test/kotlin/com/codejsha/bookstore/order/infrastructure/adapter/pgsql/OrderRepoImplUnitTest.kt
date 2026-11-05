@@ -12,6 +12,11 @@ import org.jooq.tools.jdbc.MockResult
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageRequest
 import java.math.BigDecimal
+import java.sql.Timestamp
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.util.TimeZone
 import java.util.UUID
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -95,6 +100,34 @@ class OrderRepoImplUnitTest {
         assertContains(bindings, "PENDING")
         assertContains(bindings, "idem_001")
         assertContains(bindings, ctx.actorId)
+    }
+
+    @Test
+    fun `create_nonUtcDefaultZone_bindsCreatedAtInUtc`() {
+        val capture = QueryCapture()
+        val dsl = TestPersistenceUtils.dslWithProvider(capture.provider { arrayOf(MockResult(1, null)) })
+        val repo = OrderRepoImpl(dsl)
+        val command = OrderCreateCommand(
+            userUid = OrderTestFixtures.USER_UID,
+            currency = "KRW",
+            itemsAmount = BigDecimal("10000.00"),
+            discountAmount = BigDecimal.ZERO,
+            shippingAmount = BigDecimal.ZERO,
+            taxAmount = BigDecimal.ZERO,
+            totalAmount = BigDecimal("10000.00"),
+            idempotencyKey = "idem_utc",
+        )
+        val defaultZone = TimeZone.getDefault()
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"))
+        try {
+            runCatching { repo.create(command, ctx) }
+        } finally {
+            TimeZone.setDefault(defaultZone)
+        }
+
+        val createdAt = capture.bindings.first().filterIsInstance<Timestamp>().single().toLocalDateTime()
+        val drift = Duration.between(LocalDateTime.now(ZoneOffset.UTC), createdAt).abs()
+        assertTrue(drift < Duration.ofMinutes(1), "created_at must be UTC, got $createdAt")
     }
 
     @Test

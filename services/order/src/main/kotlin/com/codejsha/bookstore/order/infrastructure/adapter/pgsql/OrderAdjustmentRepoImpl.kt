@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
@@ -89,7 +90,7 @@ class OrderAdjustmentRepoImpl(
             .set(oa.LABEL, command.label)
             .set(oa.AMOUNT, command.amount)
             .set(oa.META, toJson(command.meta))
-            .set(oa.CREATED_AT, LocalDateTime.now())
+            .set(oa.CREATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(oa.ACTOR_ID, context.actorId)
             .set(oa.VERSION, 1L)
             .execute()
@@ -102,7 +103,7 @@ class OrderAdjustmentRepoImpl(
 
         dslContext
             .update(oa)
-            .set(oa.DELETED_AT, LocalDateTime.now())
+            .set(oa.DELETED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(oa.ACTOR_ID, context.actorId)
             .where(
                 oa.ORDER_ID.eq(orderId)

@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
@@ -87,7 +88,7 @@ class OrderRepoImpl(
             .set(o.TAX_AMOUNT, command.taxAmount)
             .set(o.TOTAL_AMOUNT, command.totalAmount)
             .set(o.IDEMPOTENCY_KEY, command.idempotencyKey)
-            .set(o.CREATED_AT, LocalDateTime.now())
+            .set(o.CREATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(o.ACTOR_ID, context.actorId)
             .set(o.VERSION, 1L)
             .execute()
@@ -107,7 +108,7 @@ class OrderRepoImpl(
                 command.taxAmount?.let { set(o.TAX_AMOUNT, it) }
                 command.totalAmount?.let { set(o.TOTAL_AMOUNT, it) }
             }
-            .set(o.UPDATED_AT, LocalDateTime.now())
+            .set(o.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(o.ACTOR_ID, context.actorId)
             .where(o.UID.eq(uid).and(o.DELETED_AT.isNull))
             .execute()
@@ -121,7 +122,7 @@ class OrderRepoImpl(
             .update(o)
             .set(o.STATUS, to)
             .set(o.VERSION, o.VERSION.plus(1))
-            .set(o.UPDATED_AT, LocalDateTime.now())
+            .set(o.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(o.ACTOR_ID, context.actorId)
             .where(
                 o.UID.eq(uid)
@@ -137,7 +138,7 @@ class OrderRepoImpl(
         val updated = dslContext
             .update(o)
             .set(paymentUidField, paymentUid)
-            .set(o.UPDATED_AT, LocalDateTime.now())
+            .set(o.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(o.ACTOR_ID, context.actorId)
             .where(o.UID.eq(uid).and(o.DELETED_AT.isNull))
             .execute()
@@ -148,7 +149,7 @@ class OrderRepoImpl(
     override fun delete(uid: UUID, context: ActorContext) {
         dslContext
             .update(o)
-            .set(o.DELETED_AT, LocalDateTime.now())
+            .set(o.DELETED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(o.ACTOR_ID, context.actorId)
             .where(o.UID.eq(uid).and(o.DELETED_AT.isNull))
             .execute()

@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
@@ -91,7 +92,7 @@ class OrderItemRepoImpl(
             .set(oi.CURRENCY, command.currency)
             .set(oi.PRICE, command.price)
             .set(oi.TAX_RATE, command.taxRate)
-            .set(oi.CREATED_AT, LocalDateTime.now())
+            .set(oi.CREATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(oi.ACTOR_ID, context.actorId)
             .set(oi.VERSION, 1L)
             .execute()
@@ -116,7 +117,7 @@ class OrderItemRepoImpl(
                 command.price?.let { set(oi.PRICE, it) }
                 command.taxRate?.let { set(oi.TAX_RATE, it) }
             }
-            .set(oi.UPDATED_AT, LocalDateTime.now())
+            .set(oi.UPDATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(oi.ACTOR_ID, context.actorId)
             .where(
                 oi.ORDER_ID.eq(orderId)
@@ -134,7 +135,7 @@ class OrderItemRepoImpl(
 
         dslContext
             .update(oi)
-            .set(oi.DELETED_AT, LocalDateTime.now())
+            .set(oi.DELETED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .set(oi.ACTOR_ID, context.actorId)
             .where(
                 oi.ORDER_ID.eq(orderId)

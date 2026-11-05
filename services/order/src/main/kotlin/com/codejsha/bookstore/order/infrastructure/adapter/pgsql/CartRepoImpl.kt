@@ -8,6 +8,7 @@ import org.jooq.DSLContext
 import org.jooq.Record
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
@@ -33,7 +34,7 @@ class CartRepoImpl(
             .insertInto(c)
             .set(c.UID, uid)
             .set(c.USER_UID, userUid)
-            .set(c.CREATED_AT, LocalDateTime.now())
+            .set(c.CREATED_AT, LocalDateTime.now(ZoneOffset.UTC))
             .execute()
 
         return findByUser(userUid, context)
