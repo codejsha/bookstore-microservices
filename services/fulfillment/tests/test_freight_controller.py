@@ -43,6 +43,13 @@ def test_create_freight_valid_request_created(client: TestClient, service: Magic
     assert response.headers["location"] == f"/api/v1/freights/{freight.uid}"
 
 
+def test_create_freight_overflowing_base_cost_bad_request(client: TestClient, service: MagicMock) -> None:
+    body = f'{{"shipment_uid": "{uuid4()}", "carrier_uid": "{uuid4()}", "base_cost": 1e309}}'
+    response = client.post("/api/v1/freights", content=body, headers={"content-type": "application/json"})
+    assert response.status_code == 400
+    service.create_freight.assert_not_called()
+
+
 def test_get_freight_missing_not_found(client: TestClient, service: MagicMock) -> None:
     service.get_freight.return_value = None
     response = client.get(f"/api/v1/freights/{uuid4()}")

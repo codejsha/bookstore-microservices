@@ -1,8 +1,9 @@
+import math
 from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import AfterValidator, BaseModel, Field, StringConstraints, model_validator
+from pydantic import AfterValidator, AllowInfNan, BaseModel, Field, StringConstraints, model_validator
 
 from internal.domain.constant.carrier_status import CarrierStatus
 from internal.domain.constant.freight_status import FreightStatus
@@ -29,6 +30,7 @@ NonBlankStr500 = _non_blank(500)
 Str100 = Annotated[str, StringConstraints(max_length=100)]
 CurrencyCode = Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]
 EmailStr = Annotated[str, StringConstraints(max_length=255, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
+FiniteFloat = Annotated[float, AllowInfNan(False)]
 
 # ─── Shipment commands ──────────────────────────────────────────────────────
 
@@ -42,7 +44,7 @@ class CreateShipmentCommand(BaseModel):
     destination_state: Str100
     destination_country_code: NonBlankStr3
     destination_postal_code: NonBlankStr20
-    weight_kg: float | None = Field(None, gt=0)
+    weight_kg: FiniteFloat | None = Field(None, gt=0)
     planned_pickup_at: datetime | None = None
     planned_delivery_at: datetime | None = None
 
@@ -78,8 +80,8 @@ class CreateCarrierCommand(BaseModel):
     contact_name: NonBlankStr255 | None = None
     contact_phone: NonBlankStr50 | None = None
     contact_email: EmailStr | None = None
-    base_rate: float = Field(ge=0)
-    rate_per_kg: float = Field(ge=0)
+    base_rate: FiniteFloat = Field(ge=0)
+    rate_per_kg: FiniteFloat = Field(ge=0)
 
 
 class UpdateCarrierCommand(BaseModel):
@@ -87,8 +89,8 @@ class UpdateCarrierCommand(BaseModel):
     contact_name: NonBlankStr255 | None = None
     contact_phone: NonBlankStr50 | None = None
     contact_email: EmailStr | None = None
-    base_rate: float | None = Field(None, ge=0)
-    rate_per_kg: float | None = Field(None, ge=0)
+    base_rate: FiniteFloat | None = Field(None, ge=0)
+    rate_per_kg: FiniteFloat | None = Field(None, ge=0)
     status: CarrierStatus | None = None
 
 
@@ -98,15 +100,18 @@ class UpdateCarrierCommand(BaseModel):
 class CreateFreightCommand(BaseModel):
     shipment_uid: UUID
     carrier_uid: UUID
-    base_cost: float = Field(ge=0)
-    weight_surcharge: float = Field(0.0, ge=0)
-    distance_surcharge: float = Field(0.0, ge=0)
-    discount: float = Field(0.0, ge=0)
+    base_cost: FiniteFloat = Field(ge=0)
+    weight_surcharge: FiniteFloat = Field(0.0, ge=0)
+    distance_surcharge: FiniteFloat = Field(0.0, ge=0)
+    discount: FiniteFloat = Field(0.0, ge=0)
     currency: CurrencyCode = "KRW"
 
     @model_validator(mode="after")
     def _check_discount(self) -> CreateFreightCommand:
-        if self.discount > self.base_cost + self.weight_surcharge + self.distance_surcharge:
+        gross = self.base_cost + self.weight_surcharge + self.distance_surcharge
+        if not math.isfinite(gross):
+            raise ValueError("base cost plus surcharges must be finite")
+        if self.discount > gross:
             raise ValueError("discount must not exceed base cost plus surcharges")
         return self
 
