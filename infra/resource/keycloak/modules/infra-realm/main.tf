@@ -119,7 +119,7 @@ resource "keycloak_user_roles" "bootstrap" {
 resource "vault_kv_secret_v2" "credentials" {
   for_each = { for key, account in var.bootstrap_accounts : key => account if account.store_in_vault }
   mount    = "kv-infra"
-  name     = "keycloak/${var.realm_name}/${each.value.username}/credentials"
+  name     = "keycloak/admin/${each.value.username}/credentials"
   data_json = jsonencode({
     username = keycloak_user.bootstrap[each.key].username
     password = random_password.bootstrap[each.key].result
