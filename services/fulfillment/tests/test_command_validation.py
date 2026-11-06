@@ -72,6 +72,11 @@ class TestCreateShipmentCommand:
                 )
             )
 
+    @pytest.mark.parametrize("value", [float("inf"), float("nan")])
+    def test_create_shipment_command_non_finite_weight_raises_validation_error(self, value):
+        with pytest.raises(ValidationError):
+            CreateShipmentCommand(**_shipment_kwargs(weight_kg=value))
+
 
 class TestCarrierCommands:
     def test_create_carrier_command_every_field_valid_passes(self):
@@ -120,6 +125,15 @@ class TestCarrierCommands:
         with pytest.raises(ValidationError):
             UpdateCarrierCommand(name=" ")
 
+    @pytest.mark.parametrize("field", ["base_rate", "rate_per_kg"])
+    @pytest.mark.parametrize("value", [float("inf"), float("nan")])
+    def test_carrier_commands_non_finite_rate_raises_validation_error(self, field, value):
+        with pytest.raises(ValidationError):
+            kwargs = {"code": "CJ", "name": "CJ", "base_rate": 3000.0, "rate_per_kg": 500.0, field: value}
+            CreateCarrierCommand(**kwargs)
+        with pytest.raises(ValidationError):
+            UpdateCarrierCommand(**{field: value})
+
 
 class TestFreightCommand:
     def test_create_freight_command_every_field_valid_passes(self):
@@ -136,6 +150,17 @@ class TestFreightCommand:
     def test_create_freight_command_negative_surcharge_raises_validation_error(self):
         with pytest.raises(ValidationError):
             CreateFreightCommand(shipment_uid=uuid4(), carrier_uid=uuid4(), base_cost=1000.0, weight_surcharge=-1.0)
+
+    @pytest.mark.parametrize("field", ["base_cost", "weight_surcharge", "distance_surcharge", "discount"])
+    @pytest.mark.parametrize("value", [float("inf"), float("nan")])
+    def test_create_freight_command_non_finite_amount_raises_validation_error(self, field, value):
+        kwargs = {"shipment_uid": uuid4(), "carrier_uid": uuid4(), "base_cost": 5000.0, field: value}
+        with pytest.raises(ValidationError):
+            CreateFreightCommand(**kwargs)
+
+    def test_create_freight_command_amounts_overflow_total_raises_validation_error(self):
+        with pytest.raises(ValidationError):
+            CreateFreightCommand(shipment_uid=uuid4(), carrier_uid=uuid4(), base_cost=1e308, weight_surcharge=1e308)
 
 
 class TestTrackingAndAssign:
