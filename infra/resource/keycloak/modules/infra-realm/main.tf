@@ -44,8 +44,8 @@ resource "keycloak_required_action" "configure_totp" {
   realm_id       = keycloak_realm.infra.id
   alias          = "CONFIGURE_TOTP"
   name           = "Configure OTP"
-  enabled        = true
-  default_action = true
+  enabled        = false
+  default_action = false
 }
 
 resource "keycloak_role" "developer" {
@@ -98,8 +98,6 @@ resource "keycloak_user" "bootstrap" {
   email_verified = true
   enabled        = true
 
-  required_actions = [keycloak_required_action.configure_totp.alias]
-
   initial_password {
     value     = random_password.bootstrap[each.key].result
     temporary = false
@@ -118,14 +116,22 @@ resource "keycloak_user_roles" "bootstrap" {
   exhaustive = false
 }
 
-resource "vault_kv_secret_v2" "bootstrap" {
-  for_each = var.bootstrap_accounts
-  mount    = "kv-bookstore"
-  name     = "admin/${each.value.username}/credentials"
+resource "vault_kv_secret_v2" "credentials" {
+  for_each = { for key, account in var.bootstrap_accounts : key => account if account.store_in_vault }
+  mount    = "kv-infra"
+  name     = "keycloak/${var.realm_name}/${each.value.username}/credentials"
   data_json = jsonencode({
     username = keycloak_user.bootstrap[each.key].username
     password = random_password.bootstrap[each.key].result
   })
+}
+
+removed {
+  from = vault_kv_secret_v2.bootstrap
+
+  lifecycle {
+    destroy = false
+  }
 }
 
 moved {

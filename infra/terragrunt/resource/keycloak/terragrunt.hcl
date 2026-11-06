@@ -39,8 +39,9 @@ inputs = {
 
   infra_realm_name        = "platform-infra"
   infra_bootstrap_accounts = {
-    operator  = { username = "devops-admin", email = "devops-admin@example.com", first_name = "DevOps", last_name = "Admin", role = "ADMIN" }
-    developer = { username = "dev-admin", email = "dev-admin@example.com", first_name = "Dev", last_name = "Admin", role = "DEVELOPER" }
+    platform_admin = { username = "bookstore-admin", email = "bookstore-admin@example.com", first_name = "Bookstore", last_name = "Admin", role = "ADMIN", store_in_vault = true }
+    operator       = { username = "devops-admin", email = "devops-admin@example.com", first_name = "DevOps", last_name = "Admin", role = "ADMIN" }
+    developer      = { username = "dev-admin", email = "dev-admin@example.com", first_name = "Dev", last_name = "Admin", role = "DEVELOPER" }
   }
   argocd_url       = "https://argocd.example.com"
   argocd_namespace = "argocd"
