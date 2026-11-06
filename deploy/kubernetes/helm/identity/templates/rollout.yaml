@@ -26,6 +26,10 @@ spec:
               - name: {{ include "identity.fullname" . }}-route
                 useHeaderRoutes: false
               {{- end }}
+              {{- if .Values.gatewayApi.storefront.enabled }}
+              - name: {{ include "identity.fullname" . }}-storefront-route
+                useHeaderRoutes: false
+              {{- end }}
               - name: {{ include "identity.fullname" . }}-mesh
                 useHeaderRoutes: false
       {{- if .Values.rollout.canary.analysis.enabled }}

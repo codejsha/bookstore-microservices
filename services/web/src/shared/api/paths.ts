@@ -36,6 +36,9 @@ export const paths = {
     detail: (uid: string) => `${V1}/orders/${uid}`,
     cancel: (uid: string) => `${V1}/orders/${uid}/cancel`,
   },
+  users: {
+    detail: (uid: string) => `${V1}/users/${uid}`,
+  },
   customers: {
     detail: (uid: string) => `${V1}/customers/${uid}`,
     reviews: (uid: string) => `${V1}/customers/${uid}/reviews`,

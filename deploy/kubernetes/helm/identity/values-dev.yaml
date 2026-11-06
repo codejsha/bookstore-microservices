@@ -26,3 +26,6 @@ mesh:
 gatewayApi:
   enabled: true
   host: "identity-api.example.com"
+  storefront:
+    enabled: true
+    host: "bookstore.example.com"
