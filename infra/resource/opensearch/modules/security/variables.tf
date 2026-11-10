@@ -25,3 +25,9 @@ variable "ca_configmap_key" {
   type        = string
   default     = "ca-chain.pem"
 }
+
+variable "project_index_patterns" {
+  description = "Index patterns the bookstore project roles are scoped to"
+  type        = list(string)
+  default     = ["books", "books-*"]
+}

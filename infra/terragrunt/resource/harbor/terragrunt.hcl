@@ -34,6 +34,11 @@ inputs = {
       groups = [
         { group_name = "MANAGER", role = "maintainer" },
         { group_name = "DEVELOPER", role = "developer" },
+        { group_name = "PLATFORM_DEVOPS", role = "maintainer" },
+        { group_name = "PLATFORM_DEV", role = "developer" },
+        { group_name = "BOOKSTORE_ADMIN", role = "projectadmin" },
+        { group_name = "BOOKSTORE_DEVOPS", role = "maintainer" },
+        { group_name = "BOOKSTORE_DEV", role = "developer" },
       ]
     }
     bookstore-helm-charts = {
@@ -42,6 +47,11 @@ inputs = {
       groups = [
         { group_name = "MANAGER", role = "maintainer" },
         { group_name = "DEVELOPER", role = "developer" },
+        { group_name = "PLATFORM_DEVOPS", role = "maintainer" },
+        { group_name = "PLATFORM_DEV", role = "developer" },
+        { group_name = "BOOKSTORE_ADMIN", role = "projectadmin" },
+        { group_name = "BOOKSTORE_DEVOPS", role = "maintainer" },
+        { group_name = "BOOKSTORE_DEV", role = "developer" },
       ]
     }
   }

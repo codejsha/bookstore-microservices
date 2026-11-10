@@ -12,6 +12,7 @@ configs:
     policy.default: ""
     policy.csv: |
       g, ADMIN, role:admin
+      g, PLATFORM_ADMIN, role:admin
 
       p, role:ops, applications, *, */*, allow
       p, role:ops, logs, get, */*, allow
@@ -19,11 +20,32 @@ configs:
       p, role:ops, repositories, get, *, allow
       p, role:ops, projects, get, *, allow
       g, MANAGER, role:ops
+      g, PLATFORM_DEVOPS, role:ops
 
       p, role:developer, applications, get, */*, allow
       p, role:developer, applications, sync, */*, allow
       p, role:developer, logs, get, */*, allow
       g, DEVELOPER, role:developer
+      g, PLATFORM_DEV, role:developer
+
+      p, role:bookstore-admin, applications, *, bookstore/*, allow
+      p, role:bookstore-admin, applicationsets, *, bookstore/*, allow
+      p, role:bookstore-admin, logs, get, bookstore/*, allow
+      p, role:bookstore-admin, projects, get, bookstore, allow
+      g, BOOKSTORE_ADMIN, role:bookstore-admin
+
+      p, role:bookstore-devops, applications, get, bookstore/*, allow
+      p, role:bookstore-devops, applications, sync, bookstore/*, allow
+      p, role:bookstore-devops, applications, update, bookstore/*, allow
+      p, role:bookstore-devops, applications, action/*, bookstore/*, allow
+      p, role:bookstore-devops, logs, get, bookstore/*, allow
+      p, role:bookstore-devops, projects, get, bookstore, allow
+      g, BOOKSTORE_DEVOPS, role:bookstore-devops
+
+      p, role:bookstore-dev, applications, get, bookstore/*, allow
+      p, role:bookstore-dev, applications, sync, bookstore/*, allow
+      p, role:bookstore-dev, logs, get, bookstore/*, allow
+      g, BOOKSTORE_DEV, role:bookstore-dev
 
       p, role:ci, applications, get, */*, allow
       p, role:ci, applications, update, */*, allow
