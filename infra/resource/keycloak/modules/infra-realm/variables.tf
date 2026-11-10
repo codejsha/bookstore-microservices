@@ -21,7 +21,7 @@ variable "bootstrap_accounts" {
     email          = string
     first_name     = string
     last_name      = string
-    role           = string
+    roles          = list(string)
     store_in_vault = optional(bool, false)
   }))
 }
