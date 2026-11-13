@@ -2,20 +2,19 @@ package com.codejsha.bookstore.order.domain.workflow
 
 import com.codejsha.bookstore.order.support.FakeDeliveryActivities
 import com.codejsha.bookstore.order.support.FakeOrderActivities
+import com.codejsha.bookstore.order.infrastructure.support.TemporalConfig
+import io.temporal.client.WorkflowClientOptions
 import io.temporal.client.WorkflowFailedException
 import io.temporal.client.WorkflowOptions
+import io.temporal.testing.TestEnvironmentOptions
 import io.temporal.testing.TestWorkflowEnvironment
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-@Disabled(
-    "TestWorkflowEnvironment never dispatches activity tasks in this environment; reproduced unchanged with temporal-testing 1.30.1 on both JDK 25 and JDK 21 (2026-07-30), so a lib upgrade alone does not fix it; see OrderCancellationWorkflowImplTest for the original diagnosis",
-)
 class OrderFulfillmentWorkflowImplTest {
 
     private val orderUid = "11111111-1111-1111-1111-111111111111"
@@ -39,7 +38,15 @@ class OrderFulfillmentWorkflowImplTest {
 
     @BeforeEach
     fun setUp() {
-        env = TestWorkflowEnvironment.newInstance()
+        env = TestWorkflowEnvironment.newInstance(
+            TestEnvironmentOptions.newBuilder()
+                .setWorkflowClientOptions(
+                    WorkflowClientOptions.newBuilder()
+                        .setDataConverter(TemporalConfig().temporalDataConverter())
+                        .build(),
+                )
+                .build(),
+        )
         orderActivities = FakeOrderActivities()
         deliveryActivities = FakeDeliveryActivities()
 
