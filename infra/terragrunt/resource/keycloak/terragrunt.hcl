@@ -39,10 +39,10 @@ inputs = {
 
   infra_realm_name = "platform-infra"
   infra_bootstrap_accounts = {
-    administrator       = { username = "platform-admin", email = "platform-admin@example.com", first_name = "Platform", last_name = "Admin", roles = ["ADMIN", "PLATFORM_ADMIN"], store_in_vault = true }
-    operator            = { username = "devops-admin", email = "devops-admin@example.com", first_name = "DevOps", last_name = "Admin", roles = ["ADMIN", "PLATFORM_DEVOPS"] }
-    developer           = { username = "dev-admin", email = "dev-admin@example.com", first_name = "Dev", last_name = "Admin", roles = ["DEVELOPER", "PLATFORM_DEV"] }
-    bookstore_admin     = { username = "bookstore-admin", email = "bookstore-admin@example.com", first_name = "Bookstore", last_name = "Admin", roles = ["ADMIN", "BOOKSTORE_ADMIN"], store_in_vault = true }
+    administrator       = { username = "platform-admin", email = "platform-admin@example.com", first_name = "Platform", last_name = "Admin", roles = ["PLATFORM_ADMIN"], store_in_vault = true }
+    operator            = { username = "devops-admin", email = "devops-admin@example.com", first_name = "DevOps", last_name = "Admin", roles = ["PLATFORM_DEVOPS"] }
+    developer           = { username = "dev-admin", email = "dev-admin@example.com", first_name = "Dev", last_name = "Admin", roles = ["PLATFORM_DEV"] }
+    bookstore_admin     = { username = "bookstore-admin", email = "bookstore-admin@example.com", first_name = "Bookstore", last_name = "Admin", roles = ["BOOKSTORE_ADMIN"], store_in_vault = true }
     bookstore_operator  = { username = "bookstore-devops", email = "bookstore-devops@example.com", first_name = "Bookstore", last_name = "DevOps", roles = ["BOOKSTORE_DEVOPS"] }
     bookstore_developer = { username = "bookstore-dev", email = "bookstore-dev@example.com", first_name = "Bookstore", last_name = "Dev", roles = ["BOOKSTORE_DEV"] }
   }

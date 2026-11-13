@@ -57,7 +57,7 @@ gitea:
       autoDiscoverUrl: https://keycloak.example.com/realms/platform-infra/.well-known/openid-configuration
       scopes: "openid profile email groups"
       groupClaimName: groups
-      adminGroup: ADMIN
+      adminGroup: PLATFORM_ADMIN
       groupTeamMap: '{"MANAGER":{"example-corp":["devops-team"]},"DEVELOPER":{"example-corp":["dev-team"]},"PLATFORM_DEVOPS":{"example-corp":["devops-team"]},"PLATFORM_DEV":{"example-corp":["dev-team"]},"BOOKSTORE_ADMIN":{"example-corp":["Owners"]},"BOOKSTORE_DEVOPS":{"example-corp":["devops-team"]},"BOOKSTORE_DEV":{"example-corp":["dev-team"]}}'
 
   metrics:
