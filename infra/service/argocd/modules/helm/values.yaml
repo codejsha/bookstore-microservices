@@ -11,7 +11,6 @@ configs:
     create: true
     policy.default: ""
     policy.csv: |
-      g, ADMIN, role:admin
       g, PLATFORM_ADMIN, role:admin
 
       p, role:ops, applications, *, */*, allow
@@ -19,13 +18,11 @@ configs:
       p, role:ops, clusters, get, *, allow
       p, role:ops, repositories, get, *, allow
       p, role:ops, projects, get, *, allow
-      g, MANAGER, role:ops
       g, PLATFORM_DEVOPS, role:ops
 
       p, role:developer, applications, get, */*, allow
       p, role:developer, applications, sync, */*, allow
       p, role:developer, logs, get, */*, allow
-      g, DEVELOPER, role:developer
       g, PLATFORM_DEV, role:developer
 
       p, role:bookstore-admin, applications, *, bookstore/*, allow

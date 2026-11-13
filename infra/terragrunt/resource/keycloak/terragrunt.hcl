@@ -42,7 +42,7 @@ inputs = {
     administrator       = { username = "platform-admin", email = "platform-admin@example.com", first_name = "Platform", last_name = "Admin", roles = ["PLATFORM_ADMIN"], store_in_vault = true }
     operator            = { username = "devops-admin", email = "devops-admin@example.com", first_name = "DevOps", last_name = "Admin", roles = ["PLATFORM_DEVOPS"] }
     developer           = { username = "dev-admin", email = "dev-admin@example.com", first_name = "Dev", last_name = "Admin", roles = ["PLATFORM_DEV"] }
-    bookstore_admin     = { username = "bookstore-admin", email = "bookstore-admin@example.com", first_name = "Bookstore", last_name = "Admin", roles = ["BOOKSTORE_ADMIN"], store_in_vault = true }
+    bookstore_admin     = { username = "bookstore-admin", email = "bookstore-admin@example.com", first_name = "Bookstore", last_name = "Admin", roles = ["BOOKSTORE_ADMIN"] }
     bookstore_operator  = { username = "bookstore-devops", email = "bookstore-devops@example.com", first_name = "Bookstore", last_name = "DevOps", roles = ["BOOKSTORE_DEVOPS"] }
     bookstore_developer = { username = "bookstore-dev", email = "bookstore-dev@example.com", first_name = "Bookstore", last_name = "Dev", roles = ["BOOKSTORE_DEV"] }
   }
@@ -66,9 +66,7 @@ inputs = {
   web_web_origins                     = ["http://localhost:5173", "https://bookstore.example.com"]
 
   bookstore_admin_accounts = {
-    devopsadmin = { username = "devopsadmin@example.com", email = "devopsadmin@example.com", first_name = "DevOps", last_name = "Admin", role = "MANAGER" }
-    devadmin    = { username = "devadmin@example.com", email = "devadmin@example.com", first_name = "Dev", last_name = "Admin", role = "MANAGER" }
-    manager     = { username = "bookstore-manager", email = "bookstore-manager@example.com", first_name = "Bookstore", last_name = "Manager", role = "MANAGER" }
+    manager = { username = "bookstore-manager", email = "bookstore-manager@example.com", first_name = "Bookstore", last_name = "Manager", role = "MANAGER" }
   }
 
   mobile_valid_redirect_uris = [

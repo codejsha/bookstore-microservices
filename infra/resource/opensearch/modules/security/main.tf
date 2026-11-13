@@ -218,23 +218,23 @@ locals {
   role_mappings = {
     all_access = {
       description   = "Maps admin to all_access"
-      backend_roles = ["admin", "ADMIN", "PLATFORM_ADMIN"]
+      backend_roles = ["admin", "PLATFORM_ADMIN"]
     }
     security_rest_api_access = {
       description   = null
-      backend_roles = ["ADMIN", "PLATFORM_ADMIN"]
+      backend_roles = ["PLATFORM_ADMIN"]
     }
     kibana_user = {
       description   = "Maps kibanauser to kibana_user"
-      backend_roles = ["kibanauser", "DEVELOPER", "MANAGER", "ADMIN", "PLATFORM_ADMIN", "PLATFORM_DEVOPS", "PLATFORM_DEV", "BOOKSTORE_ADMIN", "BOOKSTORE_DEVOPS", "BOOKSTORE_DEV"]
+      backend_roles = ["kibanauser", "PLATFORM_ADMIN", "PLATFORM_DEVOPS", "PLATFORM_DEV", "BOOKSTORE_ADMIN", "BOOKSTORE_DEVOPS", "BOOKSTORE_DEV"]
     }
     readall = {
       description   = null
-      backend_roles = ["readall", "DEVELOPER", "PLATFORM_DEV"]
+      backend_roles = ["readall", "PLATFORM_DEV"]
     }
     platform_manager = {
       description   = null
-      backend_roles = ["MANAGER", "PLATFORM_DEVOPS"]
+      backend_roles = ["PLATFORM_DEVOPS"]
     }
     bookstore_admin = {
       description   = null

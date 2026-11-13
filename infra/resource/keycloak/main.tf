@@ -101,9 +101,6 @@ module "infra_realm" {
   realm_name         = var.infra_realm_name
   bootstrap_accounts = var.infra_bootstrap_accounts
   roles = {
-    DEVELOPER        = "Developer: develop, commit and deploy applications and view monitoring; no infrastructure changes"
-    MANAGER          = "Platform manager: may change infrastructure"
-    ADMIN            = "Platform administrator: full control of infrastructure tools"
     PLATFORM_ADMIN   = "Platform administrator: full control of every infrastructure tool"
     PLATFORM_DEVOPS  = "Platform operations: change infrastructure and operate every project"
     PLATFORM_DEV     = "Platform developer: develop and deploy every project and view monitoring; no infrastructure changes"
@@ -112,9 +109,6 @@ module "infra_realm" {
     BOOKSTORE_DEV    = "Bookstore project developer: develop and deploy the bookstore project and view its monitoring"
   }
   role_composites = {
-    DEVELOPER        = [local.temporal_permission["bookstore:read"], local.temporal_permission["temporal-system:read"]]
-    MANAGER          = [local.temporal_permission["bookstore:write"], local.temporal_permission["temporal-system:read"]]
-    ADMIN            = [local.temporal_permission["temporal-system:admin"]]
     PLATFORM_ADMIN   = [local.temporal_permission["temporal-system:admin"]]
     PLATFORM_DEVOPS  = [local.temporal_permission["bookstore:write"], local.temporal_permission["temporal-system:read"]]
     PLATFORM_DEV     = [local.temporal_permission["bookstore:read"], local.temporal_permission["temporal-system:read"]]
@@ -295,21 +289,6 @@ module "audience_scope" {
   providers = {
     keycloak = keycloak
   }
-}
-
-moved {
-  from = module.identity_client.random_password.manager
-  to   = module.bookstore_admins.random_password.account["devopsadmin"]
-}
-
-moved {
-  from = module.identity_client.keycloak_user.manager
-  to   = module.bookstore_admins.keycloak_user.account["devopsadmin"]
-}
-
-moved {
-  from = module.identity_client.keycloak_user_roles.manager
-  to   = module.bookstore_admins.keycloak_user_roles.account["devopsadmin"]
 }
 
 removed {
