@@ -161,3 +161,84 @@ resource "kubernetes_cluster_role_binding_v1" "oidc_editor" {
     }
   }
 }
+
+resource "kubernetes_cluster_role_v1" "oidc_namespace_reader" {
+  metadata {
+    name = "kiali-oidc-namespace-reader"
+  }
+
+  rule {
+    api_groups = [""]
+    resources  = ["namespaces"]
+    verbs      = ["get", "list"]
+  }
+}
+
+resource "kubernetes_cluster_role_binding_v1" "oidc_project_namespace_reader" {
+  metadata {
+    name = "kiali-oidc-project-namespace-reader"
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = kubernetes_cluster_role_v1.oidc_namespace_reader.metadata[0].name
+  }
+
+  dynamic "subject" {
+    for_each = var.project_viewer_roles
+    content {
+      api_group = "rbac.authorization.k8s.io"
+      kind      = "Group"
+      name      = "${var.oidc_group_prefix}${subject.value}"
+    }
+  }
+}
+
+resource "kubernetes_role_binding_v1" "oidc_project_viewer" {
+  for_each = toset(var.project_namespaces)
+
+  metadata {
+    name      = "kiali-oidc-project-viewer"
+    namespace = each.key
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = kubernetes_cluster_role_v1.oidc_viewer.metadata[0].name
+  }
+
+  dynamic "subject" {
+    for_each = var.project_viewer_roles
+    content {
+      api_group = "rbac.authorization.k8s.io"
+      kind      = "Group"
+      name      = "${var.oidc_group_prefix}${subject.value}"
+    }
+  }
+}
+
+resource "kubernetes_role_binding_v1" "oidc_project_editor" {
+  for_each = toset(var.project_namespaces)
+
+  metadata {
+    name      = "kiali-oidc-project-editor"
+    namespace = each.key
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = kubernetes_cluster_role_v1.oidc_editor.metadata[0].name
+  }
+
+  dynamic "subject" {
+    for_each = var.project_editor_roles
+    content {
+      api_group = "rbac.authorization.k8s.io"
+      kind      = "Group"
+      name      = "${var.oidc_group_prefix}${subject.value}"
+    }
+  }
+}

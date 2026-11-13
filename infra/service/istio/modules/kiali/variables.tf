@@ -29,11 +29,29 @@ variable "oidc_group_prefix" {
 variable "viewer_roles" {
   description = "Platform realm roles granted read-only mesh access through Kiali"
   type        = list(string)
-  default     = ["DEVELOPER", "MANAGER", "ADMIN"]
+  default     = ["DEVELOPER", "MANAGER", "ADMIN", "PLATFORM_DEV", "PLATFORM_DEVOPS", "PLATFORM_ADMIN"]
 }
 
 variable "editor_roles" {
   description = "Platform realm roles granted cluster-wide mesh write access and pod port-forwarding through Kiali"
   type        = list(string)
-  default     = ["MANAGER", "ADMIN"]
+  default     = ["MANAGER", "ADMIN", "PLATFORM_DEVOPS", "PLATFORM_ADMIN"]
+}
+
+variable "project_namespaces" {
+  description = "Namespaces the bookstore project roles get mesh access to through Kiali"
+  type        = list(string)
+  default     = ["bookstore"]
+}
+
+variable "project_viewer_roles" {
+  description = "Platform realm roles granted read-only mesh access to the project namespaces through Kiali"
+  type        = list(string)
+  default     = ["BOOKSTORE_DEV", "BOOKSTORE_DEVOPS", "BOOKSTORE_ADMIN"]
+}
+
+variable "project_editor_roles" {
+  description = "Platform realm roles granted mesh write access and pod port-forwarding in the project namespaces through Kiali"
+  type        = list(string)
+  default     = ["BOOKSTORE_DEVOPS", "BOOKSTORE_ADMIN"]
 }

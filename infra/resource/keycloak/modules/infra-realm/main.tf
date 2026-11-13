@@ -48,25 +48,12 @@ resource "keycloak_required_action" "configure_totp" {
   default_action = false
 }
 
-resource "keycloak_role" "developer" {
+resource "keycloak_role" "role" {
+  for_each        = var.roles
   realm_id        = keycloak_realm.infra.id
-  name            = "DEVELOPER"
-  description     = var.roles["DEVELOPER"]
-  composite_roles = lookup(var.role_composites, "DEVELOPER", [])
-}
-
-resource "keycloak_role" "manager" {
-  realm_id        = keycloak_realm.infra.id
-  name            = "MANAGER"
-  description     = var.roles["MANAGER"]
-  composite_roles = lookup(var.role_composites, "MANAGER", [])
-}
-
-resource "keycloak_role" "admin" {
-  realm_id        = keycloak_realm.infra.id
-  name            = "ADMIN"
-  description     = var.roles["ADMIN"]
-  composite_roles = lookup(var.role_composites, "ADMIN", [])
+  name            = each.key
+  description     = each.value
+  composite_roles = lookup(var.role_composites, each.key, [])
 }
 
 moved {
@@ -74,12 +61,19 @@ moved {
   to   = keycloak_role.manager
 }
 
-locals {
-  role_ids = {
-    DEVELOPER = keycloak_role.developer.id
-    MANAGER   = keycloak_role.manager.id
-    ADMIN     = keycloak_role.admin.id
-  }
+moved {
+  from = keycloak_role.developer
+  to   = keycloak_role.role["DEVELOPER"]
+}
+
+moved {
+  from = keycloak_role.manager
+  to   = keycloak_role.role["MANAGER"]
+}
+
+moved {
+  from = keycloak_role.admin
+  to   = keycloak_role.role["ADMIN"]
 }
 
 resource "random_password" "bootstrap" {
@@ -112,7 +106,7 @@ resource "keycloak_user_roles" "bootstrap" {
   for_each   = var.bootstrap_accounts
   realm_id   = keycloak_realm.infra.id
   user_id    = keycloak_user.bootstrap[each.key].id
-  role_ids   = [local.role_ids[each.value.role]]
+  role_ids   = [for role in each.value.roles : keycloak_role.role[role].id]
   exhaustive = false
 }
 
@@ -132,6 +126,26 @@ removed {
   lifecycle {
     destroy = false
   }
+}
+
+moved {
+  from = random_password.bootstrap["platform_admin"]
+  to   = random_password.bootstrap["bookstore_admin"]
+}
+
+moved {
+  from = keycloak_user.bootstrap["platform_admin"]
+  to   = keycloak_user.bootstrap["bookstore_admin"]
+}
+
+moved {
+  from = keycloak_user_roles.bootstrap["platform_admin"]
+  to   = keycloak_user_roles.bootstrap["bookstore_admin"]
+}
+
+moved {
+  from = vault_kv_secret_v2.credentials["platform_admin"]
+  to   = vault_kv_secret_v2.credentials["bookstore_admin"]
 }
 
 moved {

@@ -5,11 +5,7 @@ output "realm_id" {
 
 output "role_ids" {
   description = "IDs of the platform realm roles, keyed by role name"
-  value = {
-    DEVELOPER = keycloak_role.developer.id
-    MANAGER   = keycloak_role.manager.id
-    ADMIN     = keycloak_role.admin.id
-  }
+  value       = { for name, role in keycloak_role.role : name => role.id }
 }
 
 output "groups_scope_name" {

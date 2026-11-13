@@ -92,19 +92,35 @@ module "temporal_worker_clients" {
   }
 }
 
+locals {
+  temporal_permission = module.temporal_oidc.permission_role_ids
+}
+
 module "infra_realm" {
   source             = "./modules/infra-realm"
   realm_name         = var.infra_realm_name
   bootstrap_accounts = var.infra_bootstrap_accounts
   roles = {
-    DEVELOPER = "Developer: develop, commit and deploy applications and view monitoring; no infrastructure changes"
-    MANAGER   = "Platform manager: may change infrastructure"
-    ADMIN     = "Platform administrator: full control of infrastructure tools"
+    DEVELOPER        = "Developer: develop, commit and deploy applications and view monitoring; no infrastructure changes"
+    MANAGER          = "Platform manager: may change infrastructure"
+    ADMIN            = "Platform administrator: full control of infrastructure tools"
+    PLATFORM_ADMIN   = "Platform administrator: full control of every infrastructure tool"
+    PLATFORM_DEVOPS  = "Platform operations: change infrastructure and operate every project"
+    PLATFORM_DEV     = "Platform developer: develop and deploy every project and view monitoring; no infrastructure changes"
+    BOOKSTORE_ADMIN  = "Bookstore project administrator: full control of the bookstore project in every tool"
+    BOOKSTORE_DEVOPS = "Bookstore project operations: deploy and operate the bookstore project"
+    BOOKSTORE_DEV    = "Bookstore project developer: develop and deploy the bookstore project and view its monitoring"
   }
   role_composites = {
-    DEVELOPER = [module.temporal_oidc.permission_role_ids["bookstore:read"], module.temporal_oidc.permission_role_ids["temporal-system:read"]]
-    MANAGER   = [module.temporal_oidc.permission_role_ids["bookstore:write"], module.temporal_oidc.permission_role_ids["temporal-system:read"]]
-    ADMIN     = [module.temporal_oidc.permission_role_ids["temporal-system:admin"]]
+    DEVELOPER        = [local.temporal_permission["bookstore:read"], local.temporal_permission["temporal-system:read"]]
+    MANAGER          = [local.temporal_permission["bookstore:write"], local.temporal_permission["temporal-system:read"]]
+    ADMIN            = [local.temporal_permission["temporal-system:admin"]]
+    PLATFORM_ADMIN   = [local.temporal_permission["temporal-system:admin"]]
+    PLATFORM_DEVOPS  = [local.temporal_permission["bookstore:write"], local.temporal_permission["temporal-system:read"]]
+    PLATFORM_DEV     = [local.temporal_permission["bookstore:read"], local.temporal_permission["temporal-system:read"]]
+    BOOKSTORE_ADMIN  = [local.temporal_permission["bookstore:admin"]]
+    BOOKSTORE_DEVOPS = [local.temporal_permission["bookstore:write"]]
+    BOOKSTORE_DEV    = [local.temporal_permission["bookstore:read"]]
   }
   providers = {
     keycloak = keycloak

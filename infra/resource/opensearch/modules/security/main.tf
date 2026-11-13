@@ -218,23 +218,56 @@ locals {
   role_mappings = {
     all_access = {
       description   = "Maps admin to all_access"
-      backend_roles = ["admin", "ADMIN"]
+      backend_roles = ["admin", "ADMIN", "PLATFORM_ADMIN"]
     }
     security_rest_api_access = {
       description   = null
-      backend_roles = ["ADMIN"]
+      backend_roles = ["ADMIN", "PLATFORM_ADMIN"]
     }
     kibana_user = {
       description   = "Maps kibanauser to kibana_user"
-      backend_roles = ["kibanauser", "DEVELOPER", "MANAGER", "ADMIN"]
+      backend_roles = ["kibanauser", "DEVELOPER", "MANAGER", "ADMIN", "PLATFORM_ADMIN", "PLATFORM_DEVOPS", "PLATFORM_DEV", "BOOKSTORE_ADMIN", "BOOKSTORE_DEVOPS", "BOOKSTORE_DEV"]
     }
     readall = {
       description   = null
-      backend_roles = ["readall", "DEVELOPER"]
+      backend_roles = ["readall", "DEVELOPER", "PLATFORM_DEV"]
     }
     platform_manager = {
       description   = null
-      backend_roles = ["MANAGER"]
+      backend_roles = ["MANAGER", "PLATFORM_DEVOPS"]
+    }
+    bookstore_admin = {
+      description   = null
+      backend_roles = ["BOOKSTORE_ADMIN"]
+    }
+    bookstore_devops = {
+      description   = null
+      backend_roles = ["BOOKSTORE_DEVOPS"]
+    }
+    bookstore_dev = {
+      description   = null
+      backend_roles = ["BOOKSTORE_DEV"]
+    }
+  }
+
+  project_roles = {
+    bookstore_admin = {
+      description         = "Bookstore project administrator: manage the bookstore indices"
+      cluster_permissions = ["cluster_monitor", "cluster_composite_ops"]
+      index_actions       = ["crud", "create_index", "manage", "indices_monitor"]
+      tenant_actions      = ["kibana_all_write"]
+    }
+    bookstore_devops = {
+      description         = "Bookstore project operations: read and write the bookstore indices"
+      cluster_permissions = ["cluster_monitor", "cluster_composite_ops"]
+      index_actions       = ["crud", "indices_monitor"]
+      tenant_actions      = ["kibana_all_write"]
+    }
+    bookstore_dev = {
+      description         = "Bookstore project developer: read the bookstore indices"
+      cluster_permissions = ["cluster_composite_ops_ro"]
+      index_actions       = ["read", "indices_monitor"]
+      tenant_actions      = ["kibana_all_read"]
     }
   }
 }
@@ -279,10 +312,27 @@ resource "opensearch_role" "platform_manager" {
   }
 }
 
+resource "opensearch_role" "project" {
+  for_each            = local.project_roles
+  role_name           = each.key
+  description         = each.value.description
+  cluster_permissions = each.value.cluster_permissions
+
+  index_permissions {
+    index_patterns  = var.project_index_patterns
+    allowed_actions = each.value.index_actions
+  }
+
+  tenant_permissions {
+    tenant_patterns = ["global_tenant"]
+    allowed_actions = each.value.tenant_actions
+  }
+}
+
 resource "opensearch_roles_mapping" "platform" {
   for_each      = local.role_mappings
   role_name     = each.key
   description   = each.value.description
   backend_roles = each.value.backend_roles
-  depends_on    = [opensearch_role.platform_manager]
+  depends_on    = [opensearch_role.platform_manager, opensearch_role.project]
 }

@@ -21,7 +21,7 @@ variable "groups_scope_name" {
 variable "permissions" {
   description = "Temporal server permissions (namespace:role) created as client roles on the Temporal client"
   type        = list(string)
-  default     = ["bookstore:read", "bookstore:write", "temporal-system:read", "temporal-system:admin"]
+  default     = ["bookstore:read", "bookstore:write", "bookstore:admin", "temporal-system:read", "temporal-system:admin"]
 }
 
 variable "permissions_claim_name" {

@@ -35,27 +35,30 @@ inputs = {
   master_admin_username = "master-admin"
   master_admin_email    = "master-admin@example.com"
 
-  realm_name       = "bookstore"
+  realm_name = "bookstore"
 
-  infra_realm_name        = "platform-infra"
+  infra_realm_name = "platform-infra"
   infra_bootstrap_accounts = {
-    platform_admin = { username = "bookstore-admin", email = "bookstore-admin@example.com", first_name = "Bookstore", last_name = "Admin", role = "ADMIN", store_in_vault = true }
-    operator       = { username = "devops-admin", email = "devops-admin@example.com", first_name = "DevOps", last_name = "Admin", role = "ADMIN" }
-    developer      = { username = "dev-admin", email = "dev-admin@example.com", first_name = "Dev", last_name = "Admin", role = "DEVELOPER" }
+    administrator       = { username = "platform-admin", email = "platform-admin@example.com", first_name = "Platform", last_name = "Admin", roles = ["ADMIN", "PLATFORM_ADMIN"], store_in_vault = true }
+    operator            = { username = "devops-admin", email = "devops-admin@example.com", first_name = "DevOps", last_name = "Admin", roles = ["ADMIN", "PLATFORM_DEVOPS"] }
+    developer           = { username = "dev-admin", email = "dev-admin@example.com", first_name = "Dev", last_name = "Admin", roles = ["DEVELOPER", "PLATFORM_DEV"] }
+    bookstore_admin     = { username = "bookstore-admin", email = "bookstore-admin@example.com", first_name = "Bookstore", last_name = "Admin", roles = ["ADMIN", "BOOKSTORE_ADMIN"], store_in_vault = true }
+    bookstore_operator  = { username = "bookstore-devops", email = "bookstore-devops@example.com", first_name = "Bookstore", last_name = "DevOps", roles = ["BOOKSTORE_DEVOPS"] }
+    bookstore_developer = { username = "bookstore-dev", email = "bookstore-dev@example.com", first_name = "Bookstore", last_name = "Dev", roles = ["BOOKSTORE_DEV"] }
   }
-  argocd_url       = "https://argocd.example.com"
-  argocd_namespace = "argocd"
-  kiali_url        = "https://kiali.example.com"
-  kiali_namespace  = "istio-system"
-  grafana_url       = "https://grafana.example.com"
-  harbor_url         = "https://harbor.example.com"
-  gitea_url          = "https://git.example.com"
-  gitea_namespace    = "gitea"
-  temporal_url       = "https://temporal.example.com"
-  temporal_namespace = "temporal"
+  argocd_url           = "https://argocd.example.com"
+  argocd_namespace     = "argocd"
+  kiali_url            = "https://kiali.example.com"
+  kiali_namespace      = "istio-system"
+  grafana_url          = "https://grafana.example.com"
+  harbor_url           = "https://harbor.example.com"
+  gitea_url            = "https://git.example.com"
+  gitea_namespace      = "gitea"
+  temporal_url         = "https://temporal.example.com"
+  temporal_namespace   = "temporal"
   opensearch_url       = "https://opensearch.example.com"
   opensearch_namespace = "opensearch"
-  grafana_namespace = "grafana"
+  grafana_namespace    = "grafana"
 
   web_root_url                        = "http://localhost:5173"
   web_valid_redirect_uris             = ["http://localhost:5173/*", "https://bookstore.example.com/*"]
@@ -65,6 +68,7 @@ inputs = {
   bookstore_admin_accounts = {
     devopsadmin = { username = "devopsadmin@example.com", email = "devopsadmin@example.com", first_name = "DevOps", last_name = "Admin", role = "MANAGER" }
     devadmin    = { username = "devadmin@example.com", email = "devadmin@example.com", first_name = "Dev", last_name = "Admin", role = "MANAGER" }
+    manager     = { username = "bookstore-manager", email = "bookstore-manager@example.com", first_name = "Bookstore", last_name = "Manager", role = "MANAGER" }
   }
 
   mobile_valid_redirect_uris = [
