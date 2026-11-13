@@ -148,13 +148,14 @@ variable "harbor_url" {
 }
 
 variable "infra_bootstrap_accounts" {
-  description = "Terraform-managed break-glass accounts in the infra realm, keyed by a stable account key"
+  description = "Terraform-managed accounts in the infra realm, keyed by a stable account key; only store_in_vault accounts have their password stored in Vault"
   type = map(object({
-    username   = string
-    email      = string
-    first_name = string
-    last_name  = string
-    role       = string
+    username       = string
+    email          = string
+    first_name     = string
+    last_name      = string
+    role           = string
+    store_in_vault = optional(bool, false)
   }))
 }
 

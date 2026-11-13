@@ -114,7 +114,6 @@ locals {
     ]
     keycloak-config = [
       { path = "kv-infra/data/keycloak/*", capabilities = ["create", "read", "update", "list"] },
-      { path = "kv-bookstore/data/admin/*", capabilities = ["create", "read", "update", "list"] },
       { path = "kv-bookstore/data/keycloak/admin/credentials", capabilities = ["create", "read", "update", "list"] },
       { path = "kv-bookstore/data/oauth2-proxy/*", capabilities = ["create", "read", "update", "list"] },
       { path = "kv-bookstore/data/order/temporal", capabilities = ["create", "read", "update", "list"] },
