@@ -17,5 +17,5 @@ variable "oidc_client_secret" {
 variable "oidc_admin_group" {
   description = "Group claim value whose members become Harbor system administrators"
   type        = string
-  default     = "ADMIN"
+  default     = "PLATFORM_ADMIN"
 }
