@@ -23,21 +23,21 @@ class OrderGrpcServer(
         request: ListOrdersRequest,
         responseObserver: StreamObserver<ListOrdersResponse>,
     ) {
-        val actor = currentGrpcActor()
-        val statusFilter = request.status
-            .takeIf { it != OrderStatus.ORDER_STATUS_UNSPECIFIED }
-            ?.let { it.toDomainStatus().value }
-        val userUidFilter = if (actor.isAdmin) {
-            request.userUid.takeIf { it.isNotEmpty() }?.let { UUID.fromString(it) }
-        } else {
-            actor.uid
-        }
-        val option = OrderQueryOption(userUid = userUidFilter, status = statusFilter)
-        val page = request.pageToken.takeIf { it.isNotBlank() }?.toIntOrNull() ?: 0
-        val pageable = buildPageRequest(request.pageSize, page, request.orderBy)
-        val context = ActorContext(actorId = 0L, ActorType.USER)
-
         try {
+            val actor = currentGrpcActor()
+            val statusFilter = request.status
+                .takeIf { it != OrderStatus.ORDER_STATUS_UNSPECIFIED }
+                ?.let { it.toDomainStatus().value }
+            val userUidFilter = if (actor.isAdmin) {
+                request.userUid.takeIf { it.isNotEmpty() }?.let { UUID.fromString(it) }
+            } else {
+                actor.uid
+            }
+            val option = OrderQueryOption(userUid = userUidFilter, status = statusFilter)
+            val page = request.pageToken.takeIf { it.isNotBlank() }?.toIntOrNull() ?: 0
+            val pageable = buildPageRequest(request.pageSize, page, request.orderBy)
+            val context = ActorContext(actorId = 0L, ActorType.USER)
+
             val orders = orderUseCase.findAllOrders(option, pageable, context)
             val responseBuilder = ListOrdersResponse.newBuilder()
                 .addAllOrders(orders.content.map { it.toOrderProto() })
@@ -124,6 +124,6 @@ class OrderGrpcServer(
             OrderStatus.ORDER_STATUS_CANCELLED -> DomainOrderStatus.CANCELLED
             OrderStatus.ORDER_STATUS_REFUNDED -> DomainOrderStatus.REFUNDED
             OrderStatus.ORDER_STATUS_UNSPECIFIED, OrderStatus.UNRECOGNIZED ->
-                error("invalid status: $this")
+                throw IllegalArgumentException("invalid status: $this")
         }
 }

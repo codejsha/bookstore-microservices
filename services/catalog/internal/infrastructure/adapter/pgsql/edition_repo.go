@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
 
@@ -61,7 +60,7 @@ func (r *editionRepository) FindAll(ctx context.Context, opt option.EditionQuery
 		LeftJoin(p, p.Id.EqCol(e.PublisherId), p.DeletedAt.IsNull())
 
 	if v := opt.Title(); v != nil && *v != "" {
-		q = q.Where(gen.Cond(gorm.Expr("edition.title ILIKE ?", "%"+*v+"%"))...)
+		q = q.Where(containsFold(e.Title, *v))
 	}
 	if uid := opt.WorkUid(); uid != nil && *uid != "" {
 		q = q.Where(w.Uid.Eq(*uid))
@@ -70,8 +69,7 @@ func (r *editionRepository) FindAll(ctx context.Context, opt option.EditionQuery
 		q = q.Where(p.Uid.Eq(*uid))
 	}
 	if v := opt.Isbn(); v != nil && *v != "" {
-		isbn := "%" + *v + "%"
-		q = q.Where(gen.Cond(gorm.Expr("(edition.isbn10 ILIKE ? OR edition.isbn13 ILIKE ?)", isbn, isbn))...)
+		q = q.Where(field.Or(containsFold(e.Isbn10, *v), containsFold(e.Isbn13, *v)))
 	}
 	if v := opt.OlKey(); v != nil && *v != "" {
 		q = q.Where(e.OlKey.Eq(*v))
@@ -81,7 +79,7 @@ func (r *editionRepository) FindAll(ctx context.Context, opt option.EditionQuery
 		if err != nil {
 			return 0, nil, err
 		}
-		q = q.Where(gen.Cond(gorm.Expr("edition.languages @> ?::jsonb", string(langJSON)))...)
+		q = q.Where(field.NewUnsafeFieldRaw("edition.languages @> ?::jsonb", string(langJSON)))
 	}
 
 	q = q.Select(r.editionSelectExprs()...)
