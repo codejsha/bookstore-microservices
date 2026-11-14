@@ -141,27 +141,6 @@ resource "vault_kubernetes_auth_backend_role" "wildcard_issuer" {
   depends_on                       = [module.kube, module.pki]
 }
 
-resource "random_password" "temporal_mysql_root" {
-  length  = 32
-  special = false
-}
-
-resource "random_password" "temporal_mysql_user" {
-  length  = 32
-  special = false
-}
-
-resource "vault_kv_secret_v2" "temporal_mysql" {
-  mount = "kv-infra"
-  name  = "temporal/mysql"
-  data_json = jsonencode({
-    root_password = random_password.temporal_mysql_root.result
-    username      = "temporal"
-    password      = random_password.temporal_mysql_user.result
-  })
-  depends_on = [module.kv]
-}
-
 resource "random_password" "seaweedfs_s3_access_key" {
   length  = 20
   special = false

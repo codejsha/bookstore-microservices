@@ -77,9 +77,6 @@ locals {
     kafka = [
       { path = "kv-infra/data/harbor/robots/pull/credentials", capabilities = ["read"] },
     ]
-    temporal = [
-      { path = "kv-infra/data/temporal/mysql", capabilities = ["read"] },
-    ]
     flink             = []
     foundation-alerts = []
     argo-rollouts     = []
@@ -126,7 +123,6 @@ locals {
     ]
     harbor-config = [
       { path = "kv-infra/data/harbor/admin/credentials", capabilities = ["read"] },
-      { path = "kv-infra/data/harbor/users/*", capabilities = ["create", "read", "update", "list"] },
       { path = "kv-infra/data/harbor/robots/*", capabilities = ["create", "read", "update", "list"] },
       { path = "kv-infra/data/harbor/ci/*", capabilities = ["create", "read", "update", "list"] },
       { path = "kv-infra/data/keycloak/harbor-oidc/client-secret", capabilities = ["read"] },
