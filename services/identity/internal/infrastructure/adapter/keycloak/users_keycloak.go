@@ -39,7 +39,7 @@ func NewUsersClient(
 }
 
 func (c *usersClient) authHeaders() (map[string]string, error) {
-	token, _, err := c.tokenHelper.GetTokens()
+	token, err := c.tokenHelper.AccessToken()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get token: %w", err)
 	}
