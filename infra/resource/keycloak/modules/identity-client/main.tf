@@ -6,9 +6,6 @@ terraform {
     vault = {
       source = "hashicorp/vault"
     }
-    random = {
-      source = "hashicorp/random"
-    }
   }
 }
 
@@ -27,44 +24,12 @@ resource "keycloak_openid_client" "identity" {
   service_accounts_enabled     = true
 }
 
-resource "random_password" "identity_admin" {
-  length  = 32
-  special = false
-}
-
-resource "keycloak_user" "identity_admin" {
-  realm_id       = var.realm_id
-  username       = var.identity_admin_username
-  email          = var.identity_admin_email
-  email_verified = true
-  first_name     = "Identity"
-  last_name      = "Service"
-  enabled        = true
-
-  initial_password {
-    value     = random_password.identity_admin.result
-    temporary = false
-  }
-}
-
-resource "keycloak_user_roles" "identity_admin" {
-  realm_id = var.realm_id
-  user_id  = keycloak_user.identity_admin.id
-  role_ids = [data.keycloak_role.realm_admin.id]
-}
-
 resource "keycloak_openid_client_service_account_role" "identity" {
   for_each                = toset(var.service_account_roles)
   realm_id                = var.realm_id
   service_account_user_id = keycloak_openid_client.identity.service_account_user_id
   client_id               = data.keycloak_openid_client.realm_management.id
   role                    = each.value
-}
-
-data "keycloak_role" "realm_admin" {
-  realm_id  = var.realm_id
-  name      = "realm-admin"
-  client_id = data.keycloak_openid_client.realm_management.id
 }
 
 data "keycloak_openid_client" "realm_management" {
@@ -76,9 +41,7 @@ resource "vault_kv_secret_v2" "keycloak_admin" {
   mount = "kv-bookstore"
   name  = "keycloak/admin/credentials"
   data_json = jsonencode({
-    client_id      = keycloak_openid_client.identity.client_id
-    client_secret  = keycloak_openid_client.identity.client_secret
-    admin_username = keycloak_user.identity_admin.username
-    admin_password = random_password.identity_admin.result
+    client_id     = keycloak_openid_client.identity.client_id
+    client_secret = keycloak_openid_client.identity.client_secret
   })
 }
