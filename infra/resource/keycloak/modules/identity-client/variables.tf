@@ -14,3 +14,9 @@ variable "identity_admin_email" {
   type        = string
   default     = "bookstore-identity@example.com"
 }
+
+variable "service_account_roles" {
+  description = "realm-management client roles granted to the identity client service account"
+  type        = list(string)
+  default     = ["manage-users", "view-users"]
+}
