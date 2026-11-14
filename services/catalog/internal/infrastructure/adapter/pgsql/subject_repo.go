@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
 
@@ -34,7 +33,7 @@ func (r *subjectRepository) FindAll(ctx context.Context, opt option.SubjectQuery
 	q := s.WithContext(ctx)
 
 	if v := opt.Name(); v != nil && *v != "" {
-		q = q.Where(gen.Cond(gorm.Expr("subject.name ILIKE ?", "%"+*v+"%"))...)
+		q = q.Where(containsFold(s.Name, *v))
 	}
 
 	q = q.Order(buildOrderExprs(opt.Page().GetSort(), map[string]field.OrderExpr{

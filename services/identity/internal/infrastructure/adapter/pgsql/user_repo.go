@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -85,7 +86,11 @@ func (r userRepository) buildWhereScope(q *dao.Query, opt option.UserQueryOption
 		conds = append(conds, q.UsersEntity.Email.Eq(*v))
 	}
 	if v := opt.Name(); v != nil && *v != "" {
-		conds = append(conds, gen.Cond(gorm.Expr("(users.first_name ILIKE ? OR users.last_name ILIKE ?)", "%"+*v+"%", "%"+*v+"%"))...)
+		pattern := "%" + strings.ToLower(*v) + "%"
+		conds = append(conds, field.Or(
+			q.UsersEntity.FirstName.Lower().Like(pattern),
+			q.UsersEntity.LastName.Lower().Like(pattern),
+		))
 	}
 	if v := opt.Phone(); v != nil && *v != "" {
 		conds = append(conds, q.UsersEntity.Phone.Eq(*v))

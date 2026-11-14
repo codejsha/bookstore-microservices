@@ -5,9 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gen"
 	"gorm.io/gen/field"
-	"gorm.io/gorm"
 
 	"github.com/codejsha/shared-library-go/pkg/database"
 
@@ -33,7 +31,7 @@ func (r *publisherRepository) FindAll(ctx context.Context, opt option.PublisherQ
 	q := p.WithContext(ctx)
 
 	if v := opt.Name(); v != nil && *v != "" {
-		q = q.Where(gen.Cond(gorm.Expr("publisher.name ILIKE ?", "%"+*v+"%"))...)
+		q = q.Where(containsFold(p.Name, *v))
 	}
 	if v := opt.OlKey(); v != nil && *v != "" {
 		q = q.Where(p.OlKey.Eq(*v))

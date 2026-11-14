@@ -3,6 +3,7 @@ package keycloak
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -58,6 +59,29 @@ type tokenResponse struct {
 	RefreshToken     string `json:"refresh_token"`
 	ExpiresIn        int64  `json:"expires_in"`
 	RefreshExpiresIn int64  `json:"refresh_expires_in"`
+}
+
+type tokenErrorResponse struct {
+	Error            string `json:"error"`
+	ErrorDescription string `json:"error_description"`
+}
+
+type tokenGrantError struct {
+	op          string
+	status      int
+	code        string
+	description string
+}
+
+func (e *tokenGrantError) Error() string {
+	if e.code == "" {
+		return fmt.Sprintf("failed to %s: status %d", e.op, e.status)
+	}
+	return fmt.Sprintf("failed to %s: status %d: %s: %s", e.op, e.status, e.code, e.description)
+}
+
+func (e *tokenGrantError) clientFault() bool {
+	return e.status >= http.StatusBadRequest && e.status < http.StatusInternalServerError
 }
 
 const (
@@ -143,12 +167,16 @@ func (h *AdminTokenHelper) GetTokens() (string, string, error) {
 	)
 	if time.Now().Before(h.refreshExpiresAt) {
 		accessToken, refreshToken, expiresAt, refreshExpiresAt, err = h.exchangeTokens()
+		var rejected *tokenGrantError
+		if errors.As(err, &rejected) && rejected.clientFault() {
+			accessToken, refreshToken, expiresAt, refreshExpiresAt, err = h.fetchTokens()
+		}
 	} else {
 		accessToken, refreshToken, expiresAt, refreshExpiresAt, err = h.fetchTokens()
 	}
 
 	if err != nil {
-		return "", "", fmt.Errorf("failed to refresh tokens: %v", err)
+		return "", "", fmt.Errorf("failed to refresh tokens: %w", err)
 	}
 
 	h.accessToken = accessToken
@@ -235,48 +263,27 @@ func (h *AdminTokenHelper) releaseRefreshLock(token string) {
 }
 
 func (h *AdminTokenHelper) fetchTokens() (string, string, time.Time, time.Time, error) {
-	data := map[string]string{
+	return h.requestTokens("fetch tokens", map[string]string{
 		"client_id":     h.cfg.Keycloak.ClientId,
 		"client_secret": h.cfg.Keycloak.ClientSecret,
 		"grant_type":    "password",
 		"username":      h.cfg.Keycloak.RealmAdminUsername,
 		"password":      h.cfg.Keycloak.RealmAdminPassword,
 		"scope":         "openid profile email",
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), tokenRequestTimeout)
-	defer cancel()
-	restyResp, err := h.restyClient.R().
-		SetContext(ctx).
-		SetDebug(h.cfg.App.Logging.IsDebugEnabled).
-		SetHeader("Content-Type", "application/x-www-form-urlencoded").
-		SetFormData(data).
-		Post(h.cfg.Keycloak.Url + fmt.Sprintf("/realms/%s/protocol/openid-connect/token", h.cfg.Keycloak.Realm))
-	if err != nil {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to fetch tokens: %v", err)
-	}
-
-	var response tokenResponse
-	err = json.Unmarshal(restyResp.Body(), &response)
-	if err != nil {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to unmarshal token exchange response: %v", err)
-	}
-
-	now := time.Now()
-	accessToken := response.AccessToken
-	refreshToken := response.RefreshToken
-	expiresAt := now.Add(time.Duration(response.ExpiresIn) * time.Second)
-	refreshExpiresAt := now.Add(time.Duration(response.RefreshExpiresIn) * time.Second)
-	return accessToken, refreshToken, expiresAt, refreshExpiresAt, nil
+	})
 }
 
 func (h *AdminTokenHelper) exchangeTokens() (string, string, time.Time, time.Time, error) {
-	data := map[string]string{
+	return h.requestTokens("exchange tokens", map[string]string{
 		"client_id":     h.cfg.Keycloak.ClientId,
 		"client_secret": h.cfg.Keycloak.ClientSecret,
 		"grant_type":    "refresh_token",
 		"refresh_token": h.refreshToken,
 		"scope":         "openid profile email",
-	}
+	})
+}
+
+func (h *AdminTokenHelper) requestTokens(op string, data map[string]string) (string, string, time.Time, time.Time, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), tokenRequestTimeout)
 	defer cancel()
 	restyResp, err := h.restyClient.R().
@@ -286,19 +293,30 @@ func (h *AdminTokenHelper) exchangeTokens() (string, string, time.Time, time.Tim
 		SetFormData(data).
 		Post(h.cfg.Keycloak.Url + fmt.Sprintf("/realms/%s/protocol/openid-connect/token", h.cfg.Keycloak.Realm))
 	if err != nil {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to exchange tokens: %v", err)
+		return "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to %s: %v", op, err)
+	}
+	if restyResp.IsError() {
+		var rejection tokenErrorResponse
+		_ = json.Unmarshal(restyResp.Body(), &rejection)
+		return "", "", time.Time{}, time.Time{}, &tokenGrantError{
+			op:          op,
+			status:      restyResp.StatusCode(),
+			code:        rejection.Error,
+			description: rejection.ErrorDescription,
+		}
 	}
 
 	var response tokenResponse
 	err = json.Unmarshal(restyResp.Body(), &response)
 	if err != nil {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to unmarshal token exchange response: %v", err)
+		return "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to unmarshal %s response: %v", op, err)
+	}
+	if response.AccessToken == "" {
+		return "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to %s: response carries no access token", op)
 	}
 
 	now := time.Now()
-	accessToken := response.AccessToken
-	refreshToken := response.RefreshToken
 	expiresAt := now.Add(time.Duration(response.ExpiresIn) * time.Second)
 	refreshExpiresAt := now.Add(time.Duration(response.RefreshExpiresIn) * time.Second)
-	return accessToken, refreshToken, expiresAt, refreshExpiresAt, nil
+	return response.AccessToken, response.RefreshToken, expiresAt, refreshExpiresAt, nil
 }

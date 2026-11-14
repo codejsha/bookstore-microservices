@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
 
@@ -67,7 +66,7 @@ func (r *workRepository) FindAll(ctx context.Context, opt option.WorkQueryOption
 		q = q.Where(w.Columns(w.Id).In(sub))
 	}
 	if v := opt.Title(); v != nil && *v != "" {
-		q = q.Where(gen.Cond(gorm.Expr("work.title ILIKE ?", "%"+*v+"%"))...)
+		q = q.Where(containsFold(w.Title, *v))
 	}
 	if v := opt.OlKey(); v != nil && *v != "" {
 		q = q.Where(w.OlKey.Eq(*v))

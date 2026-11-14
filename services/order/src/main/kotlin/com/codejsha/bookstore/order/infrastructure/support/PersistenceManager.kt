@@ -9,6 +9,8 @@ import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import org.jooq.impl.DataSourceConnectionProvider
 import org.jooq.impl.DefaultConfiguration
+import org.jooq.impl.DefaultExecuteListenerProvider
+import org.springframework.boot.jooq.autoconfigure.ExceptionTranslatorExecuteListener
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -40,6 +42,7 @@ class PersistenceManager {
             .set(SQLDialect.POSTGRES)
             .set(settings)
             .set(connectionProvider)
+            .set(DefaultExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT))
     }
 
     @Bean

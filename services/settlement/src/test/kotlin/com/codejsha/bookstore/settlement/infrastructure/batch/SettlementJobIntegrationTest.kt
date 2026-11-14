@@ -4,26 +4,17 @@ import com.codejsha.bookstore.settlement.application.SettlementRunConflictExcept
 import com.codejsha.bookstore.settlement.application.port.SettlementRunLock
 import com.codejsha.bookstore.settlement.application.usecase.TriggerSettlementRunUseCase
 import com.codejsha.bookstore.settlement.domain.model.command.TriggerSettlementRunCommand
+import com.codejsha.bookstore.settlement.support.SettlementPostgresIntegrationTest
 import com.codejsha.platform.shared.data.ActorContext
 import com.codejsha.platform.shared.data.ActorType
-import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.job.parameters.JobParametersBuilder
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.infrastructure.item.ExecutionContext
 import org.springframework.batch.test.JobLauncherTestUtils
-import org.springframework.batch.test.context.SpringBatchTest
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.datasource.DriverManagerDataSource
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
-import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -32,20 +23,8 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
 import kotlin.test.assertFailsWith
-import javax.sql.DataSource
 
-@SpringBootTest(
-    properties = [
-        "spring.cloud.config.enabled=false",
-        "spring.cloud.config.import-check.enabled=false",
-        "spring.flyway.enabled=false",
-        "spring.batch.job.enabled=false",
-        "management.otlp.metrics.export.enabled=false",
-    ],
-)
-@SpringBatchTest
-@Testcontainers(disabledWithoutDocker = true)
-class SettlementJobIntegrationTest {
+class SettlementJobIntegrationTest : SettlementPostgresIntegrationTest() {
 
     @Autowired
     private lateinit var jobLauncherTestUtils: JobLauncherTestUtils
@@ -57,26 +36,14 @@ class SettlementJobIntegrationTest {
     private lateinit var staleExecutionRecovery: StaleExecutionRecovery
 
     @Autowired
-    private lateinit var dataSource: DataSource
-
-    @Autowired
     private lateinit var runLock: SettlementRunLock
 
     @Autowired
     private lateinit var triggerSettlementRunUseCase: TriggerSettlementRunUseCase
 
-    private val settlementJdbc: JdbcTemplate by lazy { JdbcTemplate(dataSource) }
-
     private val actorContext = ActorContext(actorId = 0L, actorType = ActorType.USER)
 
     private val kst = ZoneId.of("Asia/Seoul")
-
-    @BeforeEach
-    fun cleanTables() {
-        listOf("settlement_detail", "daily_settlement", "settlement_job_run", "settlement_run_lock")
-            .forEach { settlementJdbc.execute("DELETE FROM $it") }
-        listOf("payments", "refunds").forEach { paymentJdbc.execute("DELETE FROM $it") }
-    }
 
     // ─── Tests ─────────────────────────────────────────────────────────────────
 
@@ -492,74 +459,4 @@ class SettlementJobIntegrationTest {
         val refundCount: Int,
         val status: String,
     )
-
-    companion object {
-        private const val PAYMENT_DB = "payment_db"
-
-        private const val DB_USER = "postgres"
-        private const val DB_PASSWORD = "test"
-        private const val DRIVER = "org.postgresql.Driver"
-
-        @JvmStatic
-        private val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16")
-            .withDatabaseName("settlement_db")
-            .withUsername(DB_USER)
-            .withPassword(DB_PASSWORD)
-            .also { it.start() }
-
-        private val paymentJdbcUrl: String
-            get() = "jdbc:postgresql://${postgres.host}:${postgres.getMappedPort(5432)}/$PAYMENT_DB?sslmode=disable"
-
-        @JvmStatic
-        private val paymentJdbc: JdbcTemplate = JdbcTemplate(
-            DriverManagerDataSource(paymentJdbcUrl, DB_USER, DB_PASSWORD).apply { setDriverClassName(DRIVER) },
-        )
-
-        @JvmStatic
-        private var migrated = false
-
-        private fun migrateOnce() {
-            if (migrated) return
-            JdbcTemplate(
-                DriverManagerDataSource(postgres.jdbcUrl, DB_USER, DB_PASSWORD).apply { setDriverClassName(DRIVER) },
-            ).execute("CREATE DATABASE $PAYMENT_DB")
-
-            Flyway.configure()
-                .dataSource(postgres.jdbcUrl, DB_USER, DB_PASSWORD)
-                .locations("filesystem:db/migrations")
-                .load()
-                .migrate()
-
-            Flyway.configure()
-                .dataSource(paymentJdbcUrl, DB_USER, DB_PASSWORD)
-                .locations("classpath:payment-fixture")
-                .load()
-                .migrate()
-
-            migrated = true
-        }
-
-        @JvmStatic
-        @DynamicPropertySource
-        fun properties(registry: DynamicPropertyRegistry) {
-            migrateOnce()
-
-            registry.add("spring.datasource.url") { postgres.jdbcUrl }
-            registry.add("spring.datasource.username") { DB_USER }
-            registry.add("spring.datasource.password") { DB_PASSWORD }
-            registry.add("spring.datasource.driver-class-name") { DRIVER }
-
-            registry.add("settlement.timezone") { "Asia/Seoul" }
-            registry.add("settlement.chunk-size") { 2 }
-            registry.add("settlement.stale-execution-timeout") { "PT5M" }
-            registry.add("settlement.lock.ttl") { "PT5M" }
-            registry.add("settlement.lock.heartbeat-interval") { "PT1H" }
-            registry.add("settlement.payment-db.host") { postgres.host }
-            registry.add("settlement.payment-db.port") { postgres.getMappedPort(5432) }
-            registry.add("settlement.payment-db.params") { "sslmode=disable" }
-            registry.add("payment.db.username") { DB_USER }
-            registry.add("payment.db.password") { DB_PASSWORD }
-            registry.add("payment.db.name") { PAYMENT_DB }
-        }
-    }
 }

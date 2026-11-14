@@ -58,6 +58,13 @@ func idpStatusError(op string, status int, body string) error {
 	return fmt.Errorf("failed to %s: status %d: %s", op, status, body)
 }
 
+func idpRealmStatusError(op string, status int, body string) error {
+	if status == http.StatusNotFound {
+		return fmt.Errorf("failed to %s: status %d: %s", op, status, body)
+	}
+	return idpStatusError(op, status, body)
+}
+
 func (c *usersClient) ListUsers(ctx context.Context, realm, email string) ([]idp.UserRepresentation, error) {
 	headers, err := c.authHeaders()
 	if err != nil {
@@ -78,7 +85,7 @@ func (c *usersClient) ListUsers(ctx context.Context, realm, email string) ([]idp
 		return nil, fmt.Errorf("failed to list users: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, idpStatusError("list users", resp.StatusCode(), resp.String())
+		return nil, idpRealmStatusError("list users", resp.StatusCode(), resp.String())
 	}
 
 	var users []idp.UserRepresentation
@@ -119,7 +126,7 @@ func (c *usersClient) CreateUser(ctx context.Context, realm string, req idp.User
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 	if resp.StatusCode() != 201 {
-		return idpStatusError("create user", resp.StatusCode(), resp.String())
+		return idpRealmStatusError("create user", resp.StatusCode(), resp.String())
 	}
 	return nil
 }
@@ -309,7 +316,7 @@ func (c *usersClient) listRealmRoles(ctx context.Context, realm string) (map[str
 		return nil, fmt.Errorf("failed to list realm roles: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, idpStatusError("list realm roles", resp.StatusCode(), resp.String())
+		return nil, idpRealmStatusError("list realm roles", resp.StatusCode(), resp.String())
 	}
 
 	var roles []idp.RoleRepresentation
