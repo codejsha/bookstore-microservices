@@ -3,7 +3,6 @@ package keycloak
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -55,10 +54,8 @@ func redactBody(body string) string {
 }
 
 type tokenResponse struct {
-	AccessToken      string `json:"access_token"`
-	RefreshToken     string `json:"refresh_token"`
-	ExpiresIn        int64  `json:"expires_in"`
-	RefreshExpiresIn int64  `json:"refresh_expires_in"`
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int64  `json:"expires_in"`
 }
 
 type tokenErrorResponse struct {
@@ -78,10 +75,6 @@ func (e *tokenGrantError) Error() string {
 		return fmt.Sprintf("failed to %s: status %d", e.op, e.status)
 	}
 	return fmt.Sprintf("failed to %s: status %d: %s: %s", e.op, e.status, e.code, e.description)
-}
-
-func (e *tokenGrantError) clientFault() bool {
-	return e.status >= http.StatusBadRequest && e.status < http.StatusInternalServerError
 }
 
 const (
@@ -110,21 +103,17 @@ type TokenCache interface {
 }
 
 type cachedAdminToken struct {
-	AccessToken      string    `json:"access_token"`
-	RefreshToken     string    `json:"refresh_token"`
-	ExpiresAt        time.Time `json:"expires_at"`
-	RefreshExpiresAt time.Time `json:"refresh_expires_at"`
+	AccessToken string    `json:"access_token"`
+	ExpiresAt   time.Time `json:"expires_at"`
 }
 
 type AdminTokenHelper struct {
-	cfg              *config.Config
-	restyClient      *resty.Client
-	tokenCache       TokenCache
-	accessToken      string
-	refreshToken     string
-	expiresAt        time.Time
-	refreshExpiresAt time.Time
-	mu               sync.Mutex
+	cfg         *config.Config
+	restyClient *resty.Client
+	tokenCache  TokenCache
+	accessToken string
+	expiresAt   time.Time
+	mu          sync.Mutex
 }
 
 func NewAdminTokenHelper(
@@ -140,16 +129,16 @@ func NewAdminTokenHelper(
 	}
 }
 
-func (h *AdminTokenHelper) GetTokens() (string, string, error) {
+func (h *AdminTokenHelper) AccessToken() (string, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
 	if fresh(h.expiresAt) {
-		return h.accessToken, h.refreshToken, nil
+		return h.accessToken, nil
 	}
 	h.loadFromCache()
 	if fresh(h.expiresAt) {
-		return h.accessToken, h.refreshToken, nil
+		return h.accessToken, nil
 	}
 	lockToken := h.acquireRefreshLock()
 	if lockToken != "" {
@@ -157,34 +146,18 @@ func (h *AdminTokenHelper) GetTokens() (string, string, error) {
 		h.loadFromCache()
 	}
 	if fresh(h.expiresAt) {
-		return h.accessToken, h.refreshToken, nil
+		return h.accessToken, nil
 	}
 
-	var (
-		accessToken, refreshToken   string
-		expiresAt, refreshExpiresAt time.Time
-		err                         error
-	)
-	if time.Now().Before(h.refreshExpiresAt) {
-		accessToken, refreshToken, expiresAt, refreshExpiresAt, err = h.exchangeTokens()
-		var rejected *tokenGrantError
-		if errors.As(err, &rejected) && rejected.clientFault() {
-			accessToken, refreshToken, expiresAt, refreshExpiresAt, err = h.fetchTokens()
-		}
-	} else {
-		accessToken, refreshToken, expiresAt, refreshExpiresAt, err = h.fetchTokens()
-	}
-
+	accessToken, expiresAt, err := h.requestToken()
 	if err != nil {
-		return "", "", fmt.Errorf("failed to refresh tokens: %w", err)
+		return "", fmt.Errorf("failed to refresh token: %w", err)
 	}
 
 	h.accessToken = accessToken
-	h.refreshToken = refreshToken
 	h.expiresAt = expiresAt
-	h.refreshExpiresAt = refreshExpiresAt
 	h.storeToCache()
-	return h.accessToken, h.refreshToken, nil
+	return h.accessToken, nil
 }
 
 func (h *AdminTokenHelper) loadFromCache() {
@@ -198,10 +171,6 @@ func (h *AdminTokenHelper) loadFromCache() {
 	if err := h.tokenCache.Get(ctx, adminTokenCacheKey, &cached); err != nil {
 		return
 	}
-	if time.Now().Before(cached.RefreshExpiresAt) {
-		h.refreshToken = cached.RefreshToken
-		h.refreshExpiresAt = cached.RefreshExpiresAt
-	}
 	if fresh(cached.ExpiresAt) {
 		h.accessToken = cached.AccessToken
 		h.expiresAt = cached.ExpiresAt
@@ -212,7 +181,7 @@ func (h *AdminTokenHelper) storeToCache() {
 	if h.tokenCache == nil {
 		return
 	}
-	ttl := time.Until(h.refreshExpiresAt)
+	ttl := time.Until(h.expiresAt)
 	if ttl <= 0 {
 		return
 	}
@@ -220,10 +189,8 @@ func (h *AdminTokenHelper) storeToCache() {
 	defer cancel()
 
 	_ = h.tokenCache.Set(ctx, adminTokenCacheKey, cachedAdminToken{
-		AccessToken:      h.accessToken,
-		RefreshToken:     h.refreshToken,
-		ExpiresAt:        h.expiresAt,
-		RefreshExpiresAt: h.refreshExpiresAt,
+		AccessToken: h.accessToken,
+		ExpiresAt:   h.expiresAt,
 	}, ttl)
 }
 
@@ -262,43 +229,27 @@ func (h *AdminTokenHelper) releaseRefreshLock(token string) {
 	_ = h.tokenCache.Unlock(ctx, adminTokenLockKey, token)
 }
 
-func (h *AdminTokenHelper) fetchTokens() (string, string, time.Time, time.Time, error) {
-	return h.requestTokens("fetch tokens", map[string]string{
-		"client_id":     h.cfg.Keycloak.ClientId,
-		"client_secret": h.cfg.Keycloak.ClientSecret,
-		"grant_type":    "password",
-		"username":      h.cfg.Keycloak.RealmAdminUsername,
-		"password":      h.cfg.Keycloak.RealmAdminPassword,
-		"scope":         "openid profile email",
-	})
-}
-
-func (h *AdminTokenHelper) exchangeTokens() (string, string, time.Time, time.Time, error) {
-	return h.requestTokens("exchange tokens", map[string]string{
-		"client_id":     h.cfg.Keycloak.ClientId,
-		"client_secret": h.cfg.Keycloak.ClientSecret,
-		"grant_type":    "refresh_token",
-		"refresh_token": h.refreshToken,
-		"scope":         "openid profile email",
-	})
-}
-
-func (h *AdminTokenHelper) requestTokens(op string, data map[string]string) (string, string, time.Time, time.Time, error) {
+func (h *AdminTokenHelper) requestToken() (string, time.Time, error) {
+	const op = "request client credentials token"
 	ctx, cancel := context.WithTimeout(context.Background(), tokenRequestTimeout)
 	defer cancel()
 	restyResp, err := h.restyClient.R().
 		SetContext(ctx).
 		SetDebug(h.cfg.App.Logging.IsDebugEnabled).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
-		SetFormData(data).
+		SetFormData(map[string]string{
+			"grant_type":    "client_credentials",
+			"client_id":     h.cfg.Keycloak.ClientId,
+			"client_secret": h.cfg.Keycloak.ClientSecret,
+		}).
 		Post(h.cfg.Keycloak.Url + fmt.Sprintf("/realms/%s/protocol/openid-connect/token", h.cfg.Keycloak.Realm))
 	if err != nil {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to %s: %v", op, err)
+		return "", time.Time{}, fmt.Errorf("failed to %s: %v", op, err)
 	}
 	if restyResp.IsError() {
 		var rejection tokenErrorResponse
 		_ = json.Unmarshal(restyResp.Body(), &rejection)
-		return "", "", time.Time{}, time.Time{}, &tokenGrantError{
+		return "", time.Time{}, &tokenGrantError{
 			op:          op,
 			status:      restyResp.StatusCode(),
 			code:        rejection.Error,
@@ -307,16 +258,11 @@ func (h *AdminTokenHelper) requestTokens(op string, data map[string]string) (str
 	}
 
 	var response tokenResponse
-	err = json.Unmarshal(restyResp.Body(), &response)
-	if err != nil {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to unmarshal %s response: %v", op, err)
+	if err := json.Unmarshal(restyResp.Body(), &response); err != nil {
+		return "", time.Time{}, fmt.Errorf("failed to unmarshal %s response: %v", op, err)
 	}
 	if response.AccessToken == "" {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to %s: response carries no access token", op)
+		return "", time.Time{}, fmt.Errorf("failed to %s: response carries no access token", op)
 	}
-
-	now := time.Now()
-	expiresAt := now.Add(time.Duration(response.ExpiresIn) * time.Second)
-	refreshExpiresAt := now.Add(time.Duration(response.RefreshExpiresIn) * time.Second)
-	return response.AccessToken, response.RefreshToken, expiresAt, refreshExpiresAt, nil
+	return response.AccessToken, time.Now().Add(time.Duration(response.ExpiresIn) * time.Second), nil
 }

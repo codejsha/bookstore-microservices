@@ -16,9 +16,8 @@ import (
 )
 
 const (
-	tokenPath        = "/realms/test/protocol/openid-connect/token"
-	tokenGrantBody   = `{"access_token":"new-access","refresh_token":"new-refresh","expires_in":300,"refresh_expires_in":1800}`
-	wantGrantedScope = "openid profile email"
+	tokenPath      = "/realms/test/protocol/openid-connect/token"
+	tokenGrantBody = `{"access_token":"new-access","expires_in":300,"token_type":"Bearer"}`
 )
 
 type scriptedTokenCache struct {
@@ -57,18 +56,18 @@ func (s *scriptedTokenCache) Unlock(_ context.Context, _, token string) error {
 	return nil
 }
 
-func TestAdminTokenHelperGetTokens_noSession_requestsPasswordGrantAndPublishesSession(t *testing.T) {
+func TestAdminTokenHelperAccessToken_noSession_requestsClientCredentialsGrantAndPublishesIt(t *testing.T) {
 	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusOK, tokenGrantBody)
 	cache := &scriptedTokenCache{}
 	h := NewAdminTokenHelper(stubConfig(stub.URL), &client.RestyClient{Client: newStubRestyClient()}, cache)
 
-	access, refresh, err := h.GetTokens()
+	access, err := h.AccessToken()
 	if err != nil {
-		t.Fatalf("get tokens: %v", err)
+		t.Fatalf("access token: %v", err)
 	}
 
-	if access != "new-access" || refresh != "new-refresh" {
-		t.Fatalf("tokens = (%q, %q), want the granted pair", access, refresh)
+	if access != "new-access" {
+		t.Fatalf("access = %q, want the granted token", access)
 	}
 	req := stub.only(t)
 	if req.Method != http.MethodPost || req.Path != tokenPath {
@@ -79,131 +78,105 @@ func TestAdminTokenHelperGetTokens_noSession_requestsPasswordGrantAndPublishesSe
 	}
 	form := req.form(t)
 	want := map[string]string{
-		"grant_type":    "password",
+		"grant_type":    "client_credentials",
 		"client_id":     stubClientID,
 		"client_secret": stubClientSecret,
-		"username":      stubAdminUser,
-		"password":      stubAdminPass,
-		"scope":         wantGrantedScope,
 	}
 	for key, value := range want {
 		if form.Get(key) != value {
 			t.Errorf("form[%s] = %q, want %q", key, form.Get(key), value)
 		}
 	}
-	if form.Has("refresh_token") {
-		t.Errorf("form = %v, want no refresh_token on a password grant", form)
+	for _, key := range []string{"username", "password", "refresh_token"} {
+		if form.Has(key) {
+			t.Errorf("form = %v, want no %s on a client credentials grant", form, key)
+		}
 	}
-	if len(cache.stored) != 1 {
-		t.Fatalf("published sessions = %+v, want 1", cache.stored)
+	if len(cache.stored) != 1 || cache.stored[0].AccessToken != "new-access" {
+		t.Fatalf("published tokens = %+v, want the granted token once", cache.stored)
 	}
-	if cache.stored[0].AccessToken != "new-access" || cache.stored[0].RefreshToken != "new-refresh" {
-		t.Errorf("published session = %+v, want the granted pair", cache.stored[0])
-	}
-	if cache.ttls[0] <= 29*time.Minute || cache.ttls[0] > 30*time.Minute {
-		t.Errorf("published ttl = %v, want ~refresh_expires_in (30m)", cache.ttls[0])
+	if cache.ttls[0] <= 4*time.Minute || cache.ttls[0] > 5*time.Minute {
+		t.Errorf("published ttl = %v, want ~expires_in (5m)", cache.ttls[0])
 	}
 	if lifetime := time.Until(cache.stored[0].ExpiresAt); lifetime <= 4*time.Minute || lifetime > 5*time.Minute {
-		t.Errorf("published access expiry in %v, want ~expires_in (5m)", lifetime)
+		t.Errorf("published expiry in %v, want ~expires_in (5m)", lifetime)
 	}
 	if len(cache.unlocks) != 1 || cache.unlocks[0] != "lock-owner" {
 		t.Errorf("unlocks = %v, want the acquired lock released by its owner token", cache.unlocks)
 	}
 }
 
-func TestAdminTokenHelperGetTokens_sessionStillFresh_reusesItWithoutAnotherGrant(t *testing.T) {
+func TestAdminTokenHelperAccessToken_tokenStillFresh_reusesItWithoutAnotherGrant(t *testing.T) {
 	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusOK, tokenGrantBody)
 	h := NewAdminTokenHelper(stubConfig(stub.URL), &client.RestyClient{Client: newStubRestyClient()}, nil)
 
-	if _, _, err := h.GetTokens(); err != nil {
-		t.Fatalf("first get tokens: %v", err)
+	if _, err := h.AccessToken(); err != nil {
+		t.Fatalf("first access token: %v", err)
 	}
-	access, refresh, err := h.GetTokens()
+	access, err := h.AccessToken()
 	if err != nil {
-		t.Fatalf("second get tokens: %v", err)
+		t.Fatalf("second access token: %v", err)
 	}
 
-	if access != "new-access" || refresh != "new-refresh" {
-		t.Fatalf("tokens = (%q, %q), want the granted pair", access, refresh)
+	if access != "new-access" {
+		t.Fatalf("access = %q, want the granted token", access)
 	}
 	if requests := stub.recorded(); len(requests) != 1 {
 		t.Fatalf("token requests = %d, want 1", len(requests))
 	}
 }
 
-func TestAdminTokenHelperGetTokens_accessExpiredRefreshValid_requestsRefreshGrant(t *testing.T) {
+func TestAdminTokenHelperAccessToken_tokenExpired_requestsANewClientCredentialsGrant(t *testing.T) {
 	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusOK, tokenGrantBody)
 	h := &AdminTokenHelper{
-		cfg:              stubConfig(stub.URL),
-		restyClient:      newStubRestyClient(),
-		accessToken:      "old-access",
-		refreshToken:     "old-refresh",
-		expiresAt:        time.Now().Add(-time.Minute),
-		refreshExpiresAt: time.Now().Add(10 * time.Minute),
+		cfg:         stubConfig(stub.URL),
+		restyClient: newStubRestyClient(),
+		accessToken: "old-access",
+		expiresAt:   time.Now().Add(-time.Minute),
 	}
 
-	access, refresh, err := h.GetTokens()
+	access, err := h.AccessToken()
 	if err != nil {
-		t.Fatalf("get tokens: %v", err)
-	}
-
-	if access != "new-access" || refresh != "new-refresh" {
-		t.Fatalf("tokens = (%q, %q), want the rotated pair", access, refresh)
-	}
-	req := stub.only(t)
-	if req.Path != tokenPath {
-		t.Errorf("path = %s, want %s", req.Path, tokenPath)
-	}
-	form := req.form(t)
-	want := map[string]string{
-		"grant_type":    "refresh_token",
-		"refresh_token": "old-refresh",
-		"client_id":     stubClientID,
-		"client_secret": stubClientSecret,
-		"scope":         wantGrantedScope,
-	}
-	for key, value := range want {
-		if form.Get(key) != value {
-			t.Errorf("form[%s] = %q, want %q", key, form.Get(key), value)
-		}
-	}
-	if form.Has("username") || form.Has("password") {
-		t.Errorf("form = %v, want no admin credentials on a refresh grant", form)
-	}
-}
-
-func TestAdminTokenHelperGetTokens_cachedAccessExpiredRefreshValid_exchangesTheCachedRefreshToken(t *testing.T) {
-	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusOK, tokenGrantBody)
-	cache := &scriptedTokenCache{entry: &cachedAdminToken{
-		AccessToken:      "peer-access",
-		RefreshToken:     "peer-refresh",
-		ExpiresAt:        time.Now().Add(-time.Minute),
-		RefreshExpiresAt: time.Now().Add(10 * time.Minute),
-	}}
-	h := &AdminTokenHelper{cfg: stubConfig(stub.URL), restyClient: newStubRestyClient(), tokenCache: cache}
-
-	access, _, err := h.GetTokens()
-	if err != nil {
-		t.Fatalf("get tokens: %v", err)
+		t.Fatalf("access token: %v", err)
 	}
 
 	if access != "new-access" {
-		t.Fatalf("access = %q, want the rotated token instead of the expired cached one", access)
+		t.Fatalf("access = %q, want the new token", access)
 	}
-	form := stub.only(t).form(t)
-	if form.Get("grant_type") != "refresh_token" || form.Get("refresh_token") != "peer-refresh" {
-		t.Errorf("form = %v, want a refresh grant with the cached refresh token", form)
+	if got := stub.only(t).form(t).Get("grant_type"); got != "client_credentials" {
+		t.Errorf("grant_type = %q, want client_credentials", got)
 	}
 }
 
-func TestAdminTokenHelperGetTokens_lockBackendFails_refreshesWithoutHoldingALock(t *testing.T) {
+func TestAdminTokenHelperAccessToken_cachedTokenExpired_requestsANewGrant(t *testing.T) {
+	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusOK, tokenGrantBody)
+	cache := &scriptedTokenCache{entry: &cachedAdminToken{
+		AccessToken: "peer-access",
+		ExpiresAt:   time.Now().Add(-time.Minute),
+	}}
+	h := &AdminTokenHelper{cfg: stubConfig(stub.URL), restyClient: newStubRestyClient(), tokenCache: cache}
+
+	access, err := h.AccessToken()
+	if err != nil {
+		t.Fatalf("access token: %v", err)
+	}
+
+	if access != "new-access" {
+		t.Fatalf("access = %q, want the new token instead of the expired cached one", access)
+	}
+	if got := len(stub.recorded()); got != 1 {
+		t.Errorf("token requests = %d, want 1", got)
+	}
+}
+
+func TestAdminTokenHelperAccessToken_lockBackendFails_requestsWithoutHoldingALock(t *testing.T) {
 	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusOK, tokenGrantBody)
 	cache := &scriptedTokenCache{lockErr: errors.New("valkey down")}
 	h := &AdminTokenHelper{cfg: stubConfig(stub.URL), restyClient: newStubRestyClient(), tokenCache: cache}
 
-	access, _, err := h.GetTokens()
+	access, err := h.AccessToken()
 	if err != nil {
-		t.Fatalf("get tokens: %v", err)
+		t.Fatalf("access token: %v", err)
 	}
 
 	if access != "new-access" {
@@ -217,152 +190,70 @@ func TestAdminTokenHelperGetTokens_lockBackendFails_refreshesWithoutHoldingALock
 	}
 }
 
-func TestAdminTokenHelperGetTokens_malformedPasswordGrantBody_reportsError(t *testing.T) {
+func TestAdminTokenHelperAccessToken_malformedGrantBody_reportsErrorAndKeepsOldToken(t *testing.T) {
 	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusOK, `<html>gateway</html>`)
-	h := &AdminTokenHelper{cfg: stubConfig(stub.URL), restyClient: newStubRestyClient()}
+	expired := time.Now().Add(-time.Minute)
+	h := &AdminTokenHelper{
+		cfg:         stubConfig(stub.URL),
+		restyClient: newStubRestyClient(),
+		accessToken: "old-access",
+		expiresAt:   expired,
+	}
 
-	access, refresh, err := h.GetTokens()
+	access, err := h.AccessToken()
 
 	if err == nil {
 		t.Fatal("err = nil, want a decode error")
 	}
-	if access != "" || refresh != "" {
-		t.Errorf("tokens = (%q, %q), want none", access, refresh)
+	if access != "" {
+		t.Errorf("access = %q, want none", access)
+	}
+	if h.accessToken != "old-access" || !h.expiresAt.Equal(expired) {
+		t.Errorf("token = (%q, %v), want the previous one untouched", h.accessToken, h.expiresAt)
 	}
 }
 
-func TestAdminTokenHelperGetTokens_malformedRefreshGrantBody_reportsErrorAndKeepsOldSession(t *testing.T) {
-	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusOK, `<html>gateway</html>`)
-	h := &AdminTokenHelper{
-		cfg:              stubConfig(stub.URL),
-		restyClient:      newStubRestyClient(),
-		refreshToken:     "old-refresh",
-		refreshExpiresAt: time.Now().Add(10 * time.Minute),
-	}
+func TestAdminTokenHelperAccessToken_keycloakUnreachable_reportsError(t *testing.T) {
+	h := &AdminTokenHelper{cfg: stubConfig(unreachableKeycloakURL(t)), restyClient: newStubRestyClient()}
 
-	_, _, err := h.GetTokens()
+	_, err := h.AccessToken()
 
-	if err == nil {
-		t.Fatal("err = nil, want a decode error")
-	}
-	if h.refreshToken != "old-refresh" {
-		t.Errorf("refresh token = %q, want the previous one kept for the next attempt", h.refreshToken)
-	}
-}
-
-func TestAdminTokenHelperGetTokens_keycloakUnreachableOnRefreshGrant_reportsError(t *testing.T) {
-	h := &AdminTokenHelper{
-		cfg:              stubConfig(unreachableKeycloakURL(t)),
-		restyClient:      newStubRestyClient(),
-		refreshToken:     "old-refresh",
-		refreshExpiresAt: time.Now().Add(10 * time.Minute),
-	}
-
-	_, _, err := h.GetTokens()
-
-	if err == nil || !strings.Contains(err.Error(), "failed to refresh tokens") {
+	if err == nil || !strings.Contains(err.Error(), "failed to refresh token") {
 		t.Fatalf("err = %v, want the refresh failure reported", err)
 	}
 }
 
-func TestAdminTokenHelperGetTokens_passwordGrantRejected_reportsStatusAndOAuthErrorCode(t *testing.T) {
+func TestAdminTokenHelperAccessToken_grantRejected_reportsStatusAndOAuthErrorCode(t *testing.T) {
 	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusUnauthorized,
-		`{"error":"invalid_grant","error_description":"Invalid user credentials"}`)
+		`{"error":"unauthorized_client","error_description":"Invalid client or Invalid client credentials"}`)
 	h := &AdminTokenHelper{cfg: stubConfig(stub.URL), restyClient: newStubRestyClient()}
 
-	access, refresh, err := h.GetTokens()
+	access, err := h.AccessToken()
 
 	if err == nil {
 		t.Fatal("err = nil, want the rejected grant reported")
 	}
-	for _, want := range []string{"401", "invalid_grant", "Invalid user credentials"} {
+	for _, want := range []string{"401", "unauthorized_client", "Invalid client credentials"} {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("err = %v, want it to mention %q", err, want)
 		}
 	}
-	if access != "" || refresh != "" {
-		t.Errorf("tokens = (%q, %q), want none", access, refresh)
+	if access != "" {
+		t.Errorf("access = %q, want none", access)
 	}
 	if h.accessToken != "" || !h.expiresAt.IsZero() {
-		t.Errorf("session = (%q, %v), want it left empty", h.accessToken, h.expiresAt)
-	}
-}
-
-func TestAdminTokenHelperGetTokens_refreshGrantRejected_fallsBackToPasswordGrant(t *testing.T) {
-	stub := newKeycloakStub(t)
-	stub.respond = func(r stubRequest) *stubReply {
-		if strings.Contains(r.Body, "grant_type=refresh_token") {
-			return &stubReply{Status: http.StatusBadRequest, Body: `{"error":"invalid_grant","error_description":"Token is not active"}`}
-		}
-		return &stubReply{Status: http.StatusOK, Body: tokenGrantBody}
-	}
-	h := &AdminTokenHelper{
-		cfg:              stubConfig(stub.URL),
-		restyClient:      newStubRestyClient(),
-		refreshToken:     "revoked-refresh",
-		refreshExpiresAt: time.Now().Add(10 * time.Minute),
-	}
-
-	access, refresh, err := h.GetTokens()
-	if err != nil {
-		t.Fatalf("get tokens: %v", err)
-	}
-
-	if access != "new-access" || refresh != "new-refresh" {
-		t.Fatalf("tokens = (%q, %q), want the pair from the password grant", access, refresh)
-	}
-	requests := stub.recorded()
-	if len(requests) != 2 {
-		t.Fatalf("requests = %d, want the refresh grant then the password grant", len(requests))
-	}
-	if got := requests[1].form(t).Get("grant_type"); got != "password" {
-		t.Errorf("second grant_type = %q, want password", got)
-	}
-}
-
-func TestAdminTokenHelperGetTokens_refreshAndPasswordGrantsRejected_reportsErrorAndKeepsOldSession(t *testing.T) {
-	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusUnauthorized, `{"error":"invalid_grant"}`)
-	h := &AdminTokenHelper{
-		cfg:              stubConfig(stub.URL),
-		restyClient:      newStubRestyClient(),
-		refreshToken:     "old-refresh",
-		refreshExpiresAt: time.Now().Add(10 * time.Minute),
-	}
-
-	_, _, err := h.GetTokens()
-
-	if err == nil || !strings.Contains(err.Error(), "fetch tokens") {
-		t.Fatalf("err = %v, want the password grant failure reported", err)
-	}
-	if h.refreshToken != "old-refresh" {
-		t.Errorf("refresh token = %q, want the previous one kept", h.refreshToken)
-	}
-}
-
-func TestAdminTokenHelperGetTokens_refreshGrantServerError_reportsErrorWithoutPasswordGrant(t *testing.T) {
-	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusServiceUnavailable, `unavailable`)
-	h := &AdminTokenHelper{
-		cfg:              stubConfig(stub.URL),
-		restyClient:      newStubRestyClient(),
-		refreshToken:     "old-refresh",
-		refreshExpiresAt: time.Now().Add(10 * time.Minute),
-	}
-
-	_, _, err := h.GetTokens()
-
-	if err == nil || !strings.Contains(err.Error(), "503") {
-		t.Fatalf("err = %v, want the 503 reported", err)
+		t.Errorf("token = (%q, %v), want it left empty", h.accessToken, h.expiresAt)
 	}
 	if got := len(stub.recorded()); got != 1 {
-		t.Errorf("requests = %d, want only the refresh grant", got)
+		t.Errorf("token requests = %d, want a single grant attempt", got)
 	}
 }
 
-func TestAdminTokenHelperGetTokens_successBodyWithoutAccessToken_reportsError(t *testing.T) {
+func TestAdminTokenHelperAccessToken_successBodyWithoutAccessToken_reportsError(t *testing.T) {
 	stub := newKeycloakStub(t).on(http.MethodPost, tokenPath, http.StatusOK, `{}`)
 	h := &AdminTokenHelper{cfg: stubConfig(stub.URL), restyClient: newStubRestyClient()}
 
-	_, _, err := h.GetTokens()
+	_, err := h.AccessToken()
 
 	if err == nil || !strings.Contains(err.Error(), "no access token") {
 		t.Fatalf("err = %v, want the missing access token reported", err)
@@ -409,7 +300,7 @@ func TestAdminTokenHelper_debugLoggingEnabled_keepsCredentialsAndTokensOutOfTheL
 	if !strings.Contains(out, tokenPath) || !strings.Contains(out, userPath) {
 		t.Fatalf("debug log = %q, want both round trips logged", out)
 	}
-	for _, secret := range []string{stubClientSecret, stubAdminPass, "new-access", "new-refresh"} {
+	for _, secret := range []string{stubClientSecret, "new-access"} {
 		if strings.Contains(out, secret) {
 			t.Errorf("debug log leaks %q", secret)
 		}

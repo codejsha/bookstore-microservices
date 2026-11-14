@@ -20,8 +20,6 @@ const (
 	stubRealm        = "test"
 	stubClientID     = "identity-client"
 	stubClientSecret = "s3cr3t-client"
-	stubAdminUser    = "realm-admin"
-	stubAdminPass    = "s3cr3t-password"
 	stubAccessToken  = "stub-access-token"
 )
 
@@ -127,12 +125,10 @@ func stubConfig(baseURL string) *config.Config {
 	return &config.Config{
 		App: &sharedconfig.AppConfig{},
 		Keycloak: &sharedconfig.KeycloakConfig{
-			Url:                baseURL,
-			Realm:              stubRealm,
-			ClientId:           stubClientID,
-			ClientSecret:       stubClientSecret,
-			RealmAdminUsername: stubAdminUser,
-			RealmAdminPassword: stubAdminPass,
+			Url:          baseURL,
+			Realm:        stubRealm,
+			ClientId:     stubClientID,
+			ClientSecret: stubClientSecret,
 		},
 	}
 }

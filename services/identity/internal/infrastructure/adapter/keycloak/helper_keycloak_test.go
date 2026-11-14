@@ -54,42 +54,24 @@ func (f *fakeTokenCache) Unlock(_ context.Context, _, _ string) error {
 	return nil
 }
 
-func TestGetTokens_WhenCachedSessionFresh_AdoptsIt(t *testing.T) {
-	now := time.Now()
+func TestAdminTokenHelperAccessToken_cachedTokenFresh_adoptsIt(t *testing.T) {
 	cache := &fakeTokenCache{entry: &cachedAdminToken{
-		AccessToken:      "cached-access",
-		RefreshToken:     "cached-refresh",
-		ExpiresAt:        now.Add(1 * time.Minute),
-		RefreshExpiresAt: now.Add(10 * time.Minute),
+		AccessToken: "cached-access",
+		ExpiresAt:   time.Now().Add(1 * time.Minute),
 	}}
 	h := &AdminTokenHelper{tokenCache: cache}
 
-	access, refresh, err := h.GetTokens()
+	access, err := h.AccessToken()
 	if err != nil {
-		t.Fatalf("GetTokens: %v", err)
+		t.Fatalf("access token: %v", err)
 	}
-	if access != "cached-access" || refresh != "cached-refresh" {
-		t.Fatalf("got (%q, %q), want cached tokens", access, refresh)
-	}
-}
-
-func TestGetTokens_WhenCacheFails_FallsThroughToKeycloak(t *testing.T) {
-	h := &AdminTokenHelper{
-		tokenCache:  &fakeTokenCache{getErr: errors.New("cache miss")},
-		restyClient: resty.New().SetTimeout(200 * time.Millisecond),
-		cfg: &config.Config{
-			App:      &sharedconfig.AppConfig{},
-			Keycloak: &sharedconfig.KeycloakConfig{Url: "http://127.0.0.1:1", Realm: "test"},
-		},
-	}
-	if _, _, err := h.GetTokens(); err == nil {
-		t.Fatal("expected the Keycloak path (error), got a cached session")
+	if access != "cached-access" {
+		t.Fatalf("access = %q, want the cached token", access)
 	}
 }
 
-func TestGetTokens_WhenLockAcquired_ReleasesItAfterTheRoundTrip(t *testing.T) {
-	cache := &fakeTokenCache{getErr: errors.New("cache miss")}
-	h := &AdminTokenHelper{
+func unreachableHelper(cache TokenCache) *AdminTokenHelper {
+	return &AdminTokenHelper{
 		tokenCache:  cache,
 		restyClient: resty.New().SetTimeout(200 * time.Millisecond),
 		cfg: &config.Config{
@@ -97,8 +79,20 @@ func TestGetTokens_WhenLockAcquired_ReleasesItAfterTheRoundTrip(t *testing.T) {
 			Keycloak: &sharedconfig.KeycloakConfig{Url: "http://127.0.0.1:1", Realm: "test"},
 		},
 	}
+}
 
-	if _, _, err := h.GetTokens(); err == nil {
+func TestAdminTokenHelperAccessToken_cacheFails_fallsThroughToKeycloak(t *testing.T) {
+	h := unreachableHelper(&fakeTokenCache{getErr: errors.New("cache miss")})
+	if _, err := h.AccessToken(); err == nil {
+		t.Fatal("expected the Keycloak path (error), got a cached token")
+	}
+}
+
+func TestAdminTokenHelperAccessToken_lockAcquired_releasesItAfterTheRoundTrip(t *testing.T) {
+	cache := &fakeTokenCache{getErr: errors.New("cache miss")}
+	h := unreachableHelper(cache)
+
+	if _, err := h.AccessToken(); err == nil {
 		t.Fatal("expected the Keycloak path (error)")
 	}
 	if cache.tryLocks != 1 {
@@ -130,37 +124,29 @@ func (f *flakyCache) TryLock(context.Context, string, time.Duration) (string, er
 }
 func (f *flakyCache) Unlock(context.Context, string, string) error { return nil }
 
-func TestGetTokens_WhenLockHeldByAnotherReplica_AdoptsThePublishedSession(t *testing.T) {
+func TestAdminTokenHelperAccessToken_lockHeldByAnotherReplica_adoptsThePublishedToken(t *testing.T) {
 	now := time.Now()
 	cache := &flakyCache{
-		stale: &cachedAdminToken{ExpiresAt: now.Add(-1 * time.Minute), RefreshExpiresAt: now.Add(-1 * time.Minute)},
-		fresh: &cachedAdminToken{
-			AccessToken:      "winner-access",
-			RefreshToken:     "winner-refresh",
-			ExpiresAt:        now.Add(1 * time.Minute),
-			RefreshExpiresAt: now.Add(10 * time.Minute),
-		},
+		stale: &cachedAdminToken{ExpiresAt: now.Add(-1 * time.Minute)},
+		fresh: &cachedAdminToken{AccessToken: "winner-access", ExpiresAt: now.Add(1 * time.Minute)},
 	}
 	h := &AdminTokenHelper{tokenCache: cache}
 
-	access, refresh, err := h.GetTokens()
+	access, err := h.AccessToken()
 	if err != nil {
-		t.Fatalf("GetTokens: %v", err)
+		t.Fatalf("access token: %v", err)
 	}
-	if access != "winner-access" || refresh != "winner-refresh" {
-		t.Fatalf("got (%q, %q), want the winner's published session", access, refresh)
+	if access != "winner-access" {
+		t.Fatalf("access = %q, want the winner's published token", access)
 	}
 }
 
-func TestStoreToCache_WhenSessionFresh_WritesItWithRefreshTtl(t *testing.T) {
-	now := time.Now()
+func TestStoreToCache_tokenFresh_writesItWithAccessTtl(t *testing.T) {
 	cache := &fakeTokenCache{}
 	h := &AdminTokenHelper{
-		tokenCache:       cache,
-		accessToken:      "a",
-		refreshToken:     "r",
-		expiresAt:        now.Add(1 * time.Minute),
-		refreshExpiresAt: now.Add(10 * time.Minute),
+		tokenCache:  cache,
+		accessToken: "a",
+		expiresAt:   time.Now().Add(5 * time.Minute),
 	}
 
 	h.storeToCache()
@@ -171,23 +157,23 @@ func TestStoreToCache_WhenSessionFresh_WritesItWithRefreshTtl(t *testing.T) {
 	if cache.setKey != adminTokenCacheKey {
 		t.Fatalf("key = %q, want %q", cache.setKey, adminTokenCacheKey)
 	}
-	if cache.setVal.AccessToken != "a" || cache.setVal.RefreshToken != "r" {
-		t.Fatalf("cached value = %+v, want in-memory session", cache.setVal)
+	if cache.setVal.AccessToken != "a" {
+		t.Fatalf("cached value = %+v, want the in-memory token", cache.setVal)
 	}
-	if cache.setTTL <= 9*time.Minute || cache.setTTL > 10*time.Minute {
-		t.Fatalf("ttl = %v, want ~refresh expiry (10m)", cache.setTTL)
+	if cache.setTTL <= 4*time.Minute || cache.setTTL > 5*time.Minute {
+		t.Fatalf("ttl = %v, want ~access expiry (5m)", cache.setTTL)
 	}
 }
 
-func TestFresh_WhenExpiryWithinSkew_ReturnsFalse(t *testing.T) {
+func TestFresh_expiryWithinSkew_isNotFresh(t *testing.T) {
 	now := time.Now()
 	cases := map[string]struct {
 		expiresAt time.Time
 		want      bool
 	}{
-		"whenExpiryComfortablyAhead_returnsTrue": {now.Add(2 * expirySkew), true},
-		"whenExpiryWithinSkew_returnsFalse":      {now.Add(expirySkew / 2), false},
-		"whenAlreadyExpired_returnsFalse":        {now.Add(-time.Second), false},
+		"expiryComfortablyAhead_isFresh": {now.Add(2 * expirySkew), true},
+		"expiryWithinSkew_isNotFresh":    {now.Add(expirySkew / 2), false},
+		"alreadyExpired_isNotFresh":      {now.Add(-time.Second), false},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -198,37 +184,23 @@ func TestFresh_WhenExpiryWithinSkew_ReturnsFalse(t *testing.T) {
 	}
 }
 
-func TestGetTokens_WhenCachedTokenNearExpiry_FallsThroughToKeycloak(t *testing.T) {
-	now := time.Now()
+func TestAdminTokenHelperAccessToken_cachedTokenNearExpiry_fallsThroughToKeycloak(t *testing.T) {
 	cache := &fakeTokenCache{entry: &cachedAdminToken{
-		AccessToken:      "near-expiry-access",
-		RefreshToken:     "",
-		ExpiresAt:        now.Add(expirySkew / 2),
-		RefreshExpiresAt: now.Add(-time.Minute),
+		AccessToken: "near-expiry-access",
+		ExpiresAt:   time.Now().Add(expirySkew / 2),
 	}}
-	h := &AdminTokenHelper{
-		tokenCache:  cache,
-		restyClient: resty.New().SetTimeout(200 * time.Millisecond),
-		cfg: &config.Config{
-			App:      &sharedconfig.AppConfig{},
-			Keycloak: &sharedconfig.KeycloakConfig{Url: "http://127.0.0.1:1", Realm: "test"},
-		},
-	}
-	if _, _, err := h.GetTokens(); err == nil {
+	if _, err := unreachableHelper(cache).AccessToken(); err == nil {
 		t.Fatal("expected a Keycloak round-trip (error); a near-expiry cached token must not be adopted")
 	}
 }
 
-func TestStoreToCache_WhenSessionExpired_SkipsTheWrite(t *testing.T) {
+func TestStoreToCache_tokenExpired_skipsTheWrite(t *testing.T) {
 	cache := &fakeTokenCache{}
-	h := &AdminTokenHelper{
-		tokenCache:       cache,
-		refreshExpiresAt: time.Now().Add(-1 * time.Minute),
-	}
+	h := &AdminTokenHelper{tokenCache: cache, expiresAt: time.Now().Add(-1 * time.Minute)}
 
 	h.storeToCache()
 
 	if cache.sets != 0 {
-		t.Fatalf("sets = %d, want 0 for an already-expired session", cache.sets)
+		t.Fatalf("sets = %d, want 0 for an already-expired token", cache.sets)
 	}
 }

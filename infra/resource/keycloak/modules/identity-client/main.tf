@@ -53,6 +53,14 @@ resource "keycloak_user_roles" "identity_admin" {
   role_ids = [data.keycloak_role.realm_admin.id]
 }
 
+resource "keycloak_openid_client_service_account_role" "identity" {
+  for_each                = toset(var.service_account_roles)
+  realm_id                = var.realm_id
+  service_account_user_id = keycloak_openid_client.identity.service_account_user_id
+  client_id               = data.keycloak_openid_client.realm_management.id
+  role                    = each.value
+}
+
 data "keycloak_role" "realm_admin" {
   realm_id  = var.realm_id
   name      = "realm-admin"
