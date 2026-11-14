@@ -6,11 +6,11 @@ variable "realm_id" {
 variable "identity_admin_username" {
   description = "Realm-admin service user the identity service authenticates with for Keycloak user administration"
   type        = string
-  default     = "identity-admin"
+  default     = "bookstore-identity"
 }
 
 variable "identity_admin_email" {
   description = "Email of the identity service realm-admin user"
   type        = string
-  default     = "identity-admin@example.com"
+  default     = "bookstore-identity@example.com"
 }
