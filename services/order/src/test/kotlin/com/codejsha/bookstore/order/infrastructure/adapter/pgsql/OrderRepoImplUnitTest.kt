@@ -119,13 +119,12 @@ class OrderRepoImplUnitTest {
         )
         val defaultZone = TimeZone.getDefault()
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"))
-        try {
+        val createdAt = try {
             runCatching { repo.create(command, ctx) }
+            capture.bindings.first().filterIsInstance<Timestamp>().single().toLocalDateTime()
         } finally {
             TimeZone.setDefault(defaultZone)
         }
-
-        val createdAt = capture.bindings.first().filterIsInstance<Timestamp>().single().toLocalDateTime()
         val drift = Duration.between(LocalDateTime.now(ZoneOffset.UTC), createdAt).abs()
         assertTrue(drift < Duration.ofMinutes(1), "created_at must be UTC, got $createdAt")
     }
