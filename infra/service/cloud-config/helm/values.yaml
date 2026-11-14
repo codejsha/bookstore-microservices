@@ -39,8 +39,9 @@ gatewayApi:
 resources: {}
 livenessProbe:
   httpGet:
-    path: /actuator/health
+    path: /actuator/health/liveness
     port: http
+  timeoutSeconds: 3
 readinessProbe:
   httpGet:
     path: /actuator/health
