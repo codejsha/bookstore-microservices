@@ -56,26 +56,6 @@ resource "keycloak_role" "role" {
   composite_roles = lookup(var.role_composites, each.key, [])
 }
 
-moved {
-  from = keycloak_role.operator
-  to   = keycloak_role.manager
-}
-
-moved {
-  from = keycloak_role.developer
-  to   = keycloak_role.role["DEVELOPER"]
-}
-
-moved {
-  from = keycloak_role.manager
-  to   = keycloak_role.role["MANAGER"]
-}
-
-moved {
-  from = keycloak_role.admin
-  to   = keycloak_role.role["ADMIN"]
-}
-
 resource "random_password" "bootstrap" {
   for_each = var.bootstrap_accounts
   length   = 32

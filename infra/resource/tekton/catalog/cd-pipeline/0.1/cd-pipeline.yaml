@@ -237,9 +237,9 @@ spec:
             value: task/git-cli/0.4/git-cli.yaml
       params:
         - name: GIT_USER_NAME
-          value: devopsadmin
+          value: tekton-cd
         - name: GIT_USER_EMAIL
-          value: devopsadmin@example.com
+          value: tekton-cd@example.com
         - name: GIT_SCRIPT
           value: |
             git config --global --add safe.directory "`pwd`"
