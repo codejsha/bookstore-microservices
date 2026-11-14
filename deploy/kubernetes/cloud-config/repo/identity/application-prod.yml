@@ -20,8 +20,6 @@ keycloak:
   realm: bookstore
   client_id: ${KEYCLOAK_CLIENT_ID}
   client_secret: ${KEYCLOAK_CLIENT_SECRET}
-  realm_admin_username: ${KEYCLOAK_ADMIN_USERNAME}
-  realm_admin_password: ${KEYCLOAK_ADMIN_PASSWORD}
 
 kafka:
   broker:

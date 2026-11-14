@@ -37,8 +37,6 @@ podAnnotations:
     {{- with secret "kv-bookstore/data/keycloak/admin/credentials" -}}
     export KEYCLOAK_CLIENT_ID="{{ .Data.data.client_id }}"
     export KEYCLOAK_CLIENT_SECRET="{{ .Data.data.client_secret }}"
-    export KEYCLOAK_ADMIN_USERNAME="{{ .Data.data.admin_username }}"
-    export KEYCLOAK_ADMIN_PASSWORD="{{ .Data.data.admin_password }}"
     {{- end -}}
 command:
   - /bin/sh
