@@ -10,7 +10,7 @@ resource "helm_release" "istio_base" {
   upgrade_install = true
   namespace       = var.namespace
   name            = "istio-base"
-  repository      = "https://istio-release.storage.googleapis.com/charts"
+  repository      = "https://blob.istio.io/istio-release/charts"
   chart           = "base"
   version         = var.istio_version
 }
@@ -20,7 +20,7 @@ resource "helm_release" "istio_istiod" {
   depends_on      = [helm_release.istio_base]
   namespace       = var.namespace
   name            = "istio-istiod"
-  repository      = "https://istio-release.storage.googleapis.com/charts"
+  repository      = "https://blob.istio.io/istio-release/charts"
   chart           = "istiod"
   version         = var.istio_version
   values = [
@@ -36,7 +36,7 @@ resource "helm_release" "istio_cni" {
   depends_on      = [helm_release.istio_istiod]
   namespace       = var.namespace
   name            = "istio-cni"
-  repository      = "https://istio-release.storage.googleapis.com/charts"
+  repository      = "https://blob.istio.io/istio-release/charts"
   chart           = "cni"
   version         = var.istio_version
   set = [
@@ -50,7 +50,7 @@ resource "helm_release" "istio_ztunnel" {
   depends_on      = [helm_release.istio_cni]
   namespace       = var.namespace
   name            = "istio-ztunnel"
-  repository      = "https://istio-release.storage.googleapis.com/charts"
+  repository      = "https://blob.istio.io/istio-release/charts"
   chart           = "ztunnel"
   version         = var.istio_version
 }
