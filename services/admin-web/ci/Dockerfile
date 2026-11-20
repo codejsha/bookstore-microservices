@@ -1,6 +1,6 @@
 FROM nginx:1.27-alpine
 
-ENV TZ="Asia/Seoul"
+ENV TZ="UTC"
 
 ARG IMAGE_VERSION=1.0.0
 ARG IMAGE_REVISION

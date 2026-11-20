@@ -12,7 +12,7 @@ RUN uv sync --frozen --no-dev
 
 FROM python:3.14-slim AS runtime
 
-ENV TZ="Asia/Seoul"
+ENV TZ="UTC"
 
 ARG IMAGE_VERSION=1.0.0
 ARG IMAGE_REVISION

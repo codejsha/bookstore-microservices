@@ -508,6 +508,7 @@ def build_dashboard(svc: dict) -> dict:
         "editable": True,
         "graphTooltip": 1,
         "time": {"from": "now-6h", "to": "now"},
+        "timezone": "browser",
         "timepicker": {},
         "refresh": "30s",
         "annotations": {"list": []},
@@ -606,6 +607,7 @@ def build_overview() -> dict:
         "editable": True,
         "graphTooltip": 1,
         "time": {"from": "now-6h", "to": "now"},
+        "timezone": "browser",
         "refresh": "30s",
         "annotations": {"list": []},
         "templating": {

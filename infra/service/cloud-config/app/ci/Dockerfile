@@ -2,7 +2,7 @@ FROM eclipse-temurin:25-jdk-alpine AS runtime
 
 ARG SERVICE_NAME
 ENV SERVICE_NAME=${SERVICE_NAME}
-ENV TZ="Asia/Seoul"
+ENV TZ="UTC"
 
 RUN addgroup -g 65532 nonroot \
     && adduser -u 65532 -G nonroot -D nonroot
