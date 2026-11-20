@@ -1,0 +1,17 @@
+{
+  "title": "ほしい物リスト",
+  "count_other": "({{count}}冊)",
+  "empty": "ほしい物リストは空です",
+  "browseBooks": "書籍をさがす",
+  "listLabel": "ほしい物リストの書籍",
+  "actions": {
+    "add": "ほしい物リストに追加",
+    "remove": "ほしい物リストから削除",
+    "removeItem": "{{title}}をほしい物リストから削除"
+  },
+  "toast": {
+    "added": "ほしい物リストに追加しました",
+    "removed": "ほしい物リストから削除しました",
+    "updateFailed": "ほしい物リストを更新できませんでした"
+  }
+}

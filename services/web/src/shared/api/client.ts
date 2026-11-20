@@ -1,4 +1,6 @@
+import { signinState } from "@/shared/auth/signinState";
 import { getAccessToken, userManager } from "@/shared/auth/userManager";
+import { currentLocale } from "@/shared/i18n/i18n";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -58,7 +60,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     if (res.status === 401) {
       const user = await userManager.getUser();
       if (user) {
-        void userManager.signinRedirect();
+        void userManager.signinRedirect({
+          state: signinState(currentLocale()),
+        });
       }
     }
 

@@ -9,58 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./routes/__root"
-import { Route as WishlistRouteImport } from "./routes/wishlist"
-import { Route as SignupRouteImport } from "./routes/signup"
-import { Route as OrdersRouteImport } from "./routes/orders"
-import { Route as LoginRouteImport } from "./routes/login"
-import { Route as CartRouteImport } from "./routes/cart"
 import { Route as CallbackRouteImport } from "./routes/callback"
-import { Route as BooksRouteImport } from "./routes/books"
-import { Route as AccountRouteImport } from "./routes/account"
+import { Route as LocaleRouteRouteImport } from "./routes/$locale/route"
 import { Route as IndexRouteImport } from "./routes/index"
-import { Route as OrdersIndexRouteImport } from "./routes/orders/index"
-import { Route as BooksIndexRouteImport } from "./routes/books/index"
-import { Route as OrdersUidRouteImport } from "./routes/orders/$uid"
-import { Route as BooksUidRouteImport } from "./routes/books/$uid"
+import { Route as LocaleIndexRouteImport } from "./routes/$locale/index"
+import { Route as LocaleWishlistRouteImport } from "./routes/$locale/wishlist"
+import { Route as LocaleSignupRouteImport } from "./routes/$locale/signup"
+import { Route as LocaleOrdersRouteImport } from "./routes/$locale/orders"
+import { Route as LocaleLoginRouteImport } from "./routes/$locale/login"
+import { Route as LocaleCartRouteImport } from "./routes/$locale/cart"
+import { Route as LocaleBooksRouteImport } from "./routes/$locale/books"
+import { Route as LocaleAccountRouteImport } from "./routes/$locale/account"
+import { Route as LocaleSplatRouteImport } from "./routes/$locale/$"
+import { Route as LocaleOrdersIndexRouteImport } from "./routes/$locale/orders/index"
+import { Route as LocaleBooksIndexRouteImport } from "./routes/$locale/books/index"
+import { Route as LocaleOrdersUidRouteImport } from "./routes/$locale/orders/$uid"
+import { Route as LocaleBooksUidRouteImport } from "./routes/$locale/books/$uid"
 
-const WishlistRoute = WishlistRouteImport.update({
-  id: "/wishlist",
-  path: "/wishlist",
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignupRoute = SignupRouteImport.update({
-  id: "/signup",
-  path: "/signup",
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrdersRoute = OrdersRouteImport.update({
-  id: "/orders",
-  path: "/orders",
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: "/login",
-  path: "/login",
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CartRoute = CartRouteImport.update({
-  id: "/cart",
-  path: "/cart",
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CallbackRoute = CallbackRouteImport.update({
   id: "/callback",
   path: "/callback",
   getParentRoute: () => rootRouteImport,
 } as any)
-const BooksRoute = BooksRouteImport.update({
-  id: "/books",
-  path: "/books",
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AccountRoute = AccountRouteImport.update({
-  id: "/account",
-  path: "/account",
+const LocaleRouteRoute = LocaleRouteRouteImport.update({
+  id: "/$locale",
+  path: "/$locale",
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -68,166 +41,186 @@ const IndexRoute = IndexRouteImport.update({
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any)
-const OrdersIndexRoute = OrdersIndexRouteImport.update({
+const LocaleIndexRoute = LocaleIndexRouteImport.update({
   id: "/",
   path: "/",
-  getParentRoute: () => OrdersRoute,
+  getParentRoute: () => LocaleRouteRoute,
 } as any)
-const BooksIndexRoute = BooksIndexRouteImport.update({
+const LocaleWishlistRoute = LocaleWishlistRouteImport.update({
+  id: "/wishlist",
+  path: "/wishlist",
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleSignupRoute = LocaleSignupRouteImport.update({
+  id: "/signup",
+  path: "/signup",
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleOrdersRoute = LocaleOrdersRouteImport.update({
+  id: "/orders",
+  path: "/orders",
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleLoginRoute = LocaleLoginRouteImport.update({
+  id: "/login",
+  path: "/login",
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleCartRoute = LocaleCartRouteImport.update({
+  id: "/cart",
+  path: "/cart",
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleBooksRoute = LocaleBooksRouteImport.update({
+  id: "/books",
+  path: "/books",
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleAccountRoute = LocaleAccountRouteImport.update({
+  id: "/account",
+  path: "/account",
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleSplatRoute = LocaleSplatRouteImport.update({
+  id: "/$",
+  path: "/$",
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleOrdersIndexRoute = LocaleOrdersIndexRouteImport.update({
   id: "/",
   path: "/",
-  getParentRoute: () => BooksRoute,
+  getParentRoute: () => LocaleOrdersRoute,
 } as any)
-const OrdersUidRoute = OrdersUidRouteImport.update({
+const LocaleBooksIndexRoute = LocaleBooksIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => LocaleBooksRoute,
+} as any)
+const LocaleOrdersUidRoute = LocaleOrdersUidRouteImport.update({
   id: "/$uid",
   path: "/$uid",
-  getParentRoute: () => OrdersRoute,
+  getParentRoute: () => LocaleOrdersRoute,
 } as any)
-const BooksUidRoute = BooksUidRouteImport.update({
+const LocaleBooksUidRoute = LocaleBooksUidRouteImport.update({
   id: "/$uid",
   path: "/$uid",
-  getParentRoute: () => BooksRoute,
+  getParentRoute: () => LocaleBooksRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
-  "/account": typeof AccountRoute
-  "/books": typeof BooksRouteWithChildren
+  "/$locale": typeof LocaleRouteRouteWithChildren
   "/callback": typeof CallbackRoute
-  "/cart": typeof CartRoute
-  "/login": typeof LoginRoute
-  "/orders": typeof OrdersRouteWithChildren
-  "/signup": typeof SignupRoute
-  "/wishlist": typeof WishlistRoute
-  "/books/$uid": typeof BooksUidRoute
-  "/orders/$uid": typeof OrdersUidRoute
-  "/books/": typeof BooksIndexRoute
-  "/orders/": typeof OrdersIndexRoute
+  "/$locale/$": typeof LocaleSplatRoute
+  "/$locale/account": typeof LocaleAccountRoute
+  "/$locale/books": typeof LocaleBooksRouteWithChildren
+  "/$locale/cart": typeof LocaleCartRoute
+  "/$locale/login": typeof LocaleLoginRoute
+  "/$locale/orders": typeof LocaleOrdersRouteWithChildren
+  "/$locale/signup": typeof LocaleSignupRoute
+  "/$locale/wishlist": typeof LocaleWishlistRoute
+  "/$locale/": typeof LocaleIndexRoute
+  "/$locale/books/$uid": typeof LocaleBooksUidRoute
+  "/$locale/orders/$uid": typeof LocaleOrdersUidRoute
+  "/$locale/books/": typeof LocaleBooksIndexRoute
+  "/$locale/orders/": typeof LocaleOrdersIndexRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
-  "/account": typeof AccountRoute
   "/callback": typeof CallbackRoute
-  "/cart": typeof CartRoute
-  "/login": typeof LoginRoute
-  "/signup": typeof SignupRoute
-  "/wishlist": typeof WishlistRoute
-  "/books/$uid": typeof BooksUidRoute
-  "/orders/$uid": typeof OrdersUidRoute
-  "/books": typeof BooksIndexRoute
-  "/orders": typeof OrdersIndexRoute
+  "/$locale/$": typeof LocaleSplatRoute
+  "/$locale/account": typeof LocaleAccountRoute
+  "/$locale/cart": typeof LocaleCartRoute
+  "/$locale/login": typeof LocaleLoginRoute
+  "/$locale/signup": typeof LocaleSignupRoute
+  "/$locale/wishlist": typeof LocaleWishlistRoute
+  "/$locale": typeof LocaleIndexRoute
+  "/$locale/books/$uid": typeof LocaleBooksUidRoute
+  "/$locale/orders/$uid": typeof LocaleOrdersUidRoute
+  "/$locale/books": typeof LocaleBooksIndexRoute
+  "/$locale/orders": typeof LocaleOrdersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/": typeof IndexRoute
-  "/account": typeof AccountRoute
-  "/books": typeof BooksRouteWithChildren
+  "/$locale": typeof LocaleRouteRouteWithChildren
   "/callback": typeof CallbackRoute
-  "/cart": typeof CartRoute
-  "/login": typeof LoginRoute
-  "/orders": typeof OrdersRouteWithChildren
-  "/signup": typeof SignupRoute
-  "/wishlist": typeof WishlistRoute
-  "/books/$uid": typeof BooksUidRoute
-  "/orders/$uid": typeof OrdersUidRoute
-  "/books/": typeof BooksIndexRoute
-  "/orders/": typeof OrdersIndexRoute
+  "/$locale/$": typeof LocaleSplatRoute
+  "/$locale/account": typeof LocaleAccountRoute
+  "/$locale/books": typeof LocaleBooksRouteWithChildren
+  "/$locale/cart": typeof LocaleCartRoute
+  "/$locale/login": typeof LocaleLoginRoute
+  "/$locale/orders": typeof LocaleOrdersRouteWithChildren
+  "/$locale/signup": typeof LocaleSignupRoute
+  "/$locale/wishlist": typeof LocaleWishlistRoute
+  "/$locale/": typeof LocaleIndexRoute
+  "/$locale/books/$uid": typeof LocaleBooksUidRoute
+  "/$locale/orders/$uid": typeof LocaleOrdersUidRoute
+  "/$locale/books/": typeof LocaleBooksIndexRoute
+  "/$locale/orders/": typeof LocaleOrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | "/"
-    | "/account"
-    | "/books"
+    | "/$locale"
     | "/callback"
-    | "/cart"
-    | "/login"
-    | "/orders"
-    | "/signup"
-    | "/wishlist"
-    | "/books/$uid"
-    | "/orders/$uid"
-    | "/books/"
-    | "/orders/"
+    | "/$locale/$"
+    | "/$locale/account"
+    | "/$locale/books"
+    | "/$locale/cart"
+    | "/$locale/login"
+    | "/$locale/orders"
+    | "/$locale/signup"
+    | "/$locale/wishlist"
+    | "/$locale/"
+    | "/$locale/books/$uid"
+    | "/$locale/orders/$uid"
+    | "/$locale/books/"
+    | "/$locale/orders/"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
-    | "/account"
     | "/callback"
-    | "/cart"
-    | "/login"
-    | "/signup"
-    | "/wishlist"
-    | "/books/$uid"
-    | "/orders/$uid"
-    | "/books"
-    | "/orders"
+    | "/$locale/$"
+    | "/$locale/account"
+    | "/$locale/cart"
+    | "/$locale/login"
+    | "/$locale/signup"
+    | "/$locale/wishlist"
+    | "/$locale"
+    | "/$locale/books/$uid"
+    | "/$locale/orders/$uid"
+    | "/$locale/books"
+    | "/$locale/orders"
   id:
     | "__root__"
     | "/"
-    | "/account"
-    | "/books"
+    | "/$locale"
     | "/callback"
-    | "/cart"
-    | "/login"
-    | "/orders"
-    | "/signup"
-    | "/wishlist"
-    | "/books/$uid"
-    | "/orders/$uid"
-    | "/books/"
-    | "/orders/"
+    | "/$locale/$"
+    | "/$locale/account"
+    | "/$locale/books"
+    | "/$locale/cart"
+    | "/$locale/login"
+    | "/$locale/orders"
+    | "/$locale/signup"
+    | "/$locale/wishlist"
+    | "/$locale/"
+    | "/$locale/books/$uid"
+    | "/$locale/orders/$uid"
+    | "/$locale/books/"
+    | "/$locale/orders/"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AccountRoute: typeof AccountRoute
-  BooksRoute: typeof BooksRouteWithChildren
+  LocaleRouteRoute: typeof LocaleRouteRouteWithChildren
   CallbackRoute: typeof CallbackRoute
-  CartRoute: typeof CartRoute
-  LoginRoute: typeof LoginRoute
-  OrdersRoute: typeof OrdersRouteWithChildren
-  SignupRoute: typeof SignupRoute
-  WishlistRoute: typeof WishlistRoute
 }
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    "/wishlist": {
-      id: "/wishlist"
-      path: "/wishlist"
-      fullPath: "/wishlist"
-      preLoaderRoute: typeof WishlistRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/signup": {
-      id: "/signup"
-      path: "/signup"
-      fullPath: "/signup"
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/orders": {
-      id: "/orders"
-      path: "/orders"
-      fullPath: "/orders"
-      preLoaderRoute: typeof OrdersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/login": {
-      id: "/login"
-      path: "/login"
-      fullPath: "/login"
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/cart": {
-      id: "/cart"
-      path: "/cart"
-      fullPath: "/cart"
-      preLoaderRoute: typeof CartRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     "/callback": {
       id: "/callback"
       path: "/callback"
@@ -235,18 +228,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof CallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/books": {
-      id: "/books"
-      path: "/books"
-      fullPath: "/books"
-      preLoaderRoute: typeof BooksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/account": {
-      id: "/account"
-      path: "/account"
-      fullPath: "/account"
-      preLoaderRoute: typeof AccountRouteImport
+    "/$locale": {
+      id: "/$locale"
+      path: "/$locale"
+      fullPath: "/$locale"
+      preLoaderRoute: typeof LocaleRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/": {
@@ -256,72 +242,160 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/orders/": {
-      id: "/orders/"
+    "/$locale/": {
+      id: "/$locale/"
       path: "/"
-      fullPath: "/orders/"
-      preLoaderRoute: typeof OrdersIndexRouteImport
-      parentRoute: typeof OrdersRoute
+      fullPath: "/$locale/"
+      preLoaderRoute: typeof LocaleIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
     }
-    "/books/": {
-      id: "/books/"
+    "/$locale/wishlist": {
+      id: "/$locale/wishlist"
+      path: "/wishlist"
+      fullPath: "/$locale/wishlist"
+      preLoaderRoute: typeof LocaleWishlistRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    "/$locale/signup": {
+      id: "/$locale/signup"
+      path: "/signup"
+      fullPath: "/$locale/signup"
+      preLoaderRoute: typeof LocaleSignupRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    "/$locale/orders": {
+      id: "/$locale/orders"
+      path: "/orders"
+      fullPath: "/$locale/orders"
+      preLoaderRoute: typeof LocaleOrdersRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    "/$locale/login": {
+      id: "/$locale/login"
+      path: "/login"
+      fullPath: "/$locale/login"
+      preLoaderRoute: typeof LocaleLoginRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    "/$locale/cart": {
+      id: "/$locale/cart"
+      path: "/cart"
+      fullPath: "/$locale/cart"
+      preLoaderRoute: typeof LocaleCartRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    "/$locale/books": {
+      id: "/$locale/books"
+      path: "/books"
+      fullPath: "/$locale/books"
+      preLoaderRoute: typeof LocaleBooksRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    "/$locale/account": {
+      id: "/$locale/account"
+      path: "/account"
+      fullPath: "/$locale/account"
+      preLoaderRoute: typeof LocaleAccountRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    "/$locale/$": {
+      id: "/$locale/$"
+      path: "/$"
+      fullPath: "/$locale/$"
+      preLoaderRoute: typeof LocaleSplatRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    "/$locale/orders/": {
+      id: "/$locale/orders/"
       path: "/"
-      fullPath: "/books/"
-      preLoaderRoute: typeof BooksIndexRouteImport
-      parentRoute: typeof BooksRoute
+      fullPath: "/$locale/orders/"
+      preLoaderRoute: typeof LocaleOrdersIndexRouteImport
+      parentRoute: typeof LocaleOrdersRoute
     }
-    "/orders/$uid": {
-      id: "/orders/$uid"
-      path: "/$uid"
-      fullPath: "/orders/$uid"
-      preLoaderRoute: typeof OrdersUidRouteImport
-      parentRoute: typeof OrdersRoute
+    "/$locale/books/": {
+      id: "/$locale/books/"
+      path: "/"
+      fullPath: "/$locale/books/"
+      preLoaderRoute: typeof LocaleBooksIndexRouteImport
+      parentRoute: typeof LocaleBooksRoute
     }
-    "/books/$uid": {
-      id: "/books/$uid"
+    "/$locale/orders/$uid": {
+      id: "/$locale/orders/$uid"
       path: "/$uid"
-      fullPath: "/books/$uid"
-      preLoaderRoute: typeof BooksUidRouteImport
-      parentRoute: typeof BooksRoute
+      fullPath: "/$locale/orders/$uid"
+      preLoaderRoute: typeof LocaleOrdersUidRouteImport
+      parentRoute: typeof LocaleOrdersRoute
+    }
+    "/$locale/books/$uid": {
+      id: "/$locale/books/$uid"
+      path: "/$uid"
+      fullPath: "/$locale/books/$uid"
+      preLoaderRoute: typeof LocaleBooksUidRouteImport
+      parentRoute: typeof LocaleBooksRoute
     }
   }
 }
 
-interface BooksRouteChildren {
-  BooksUidRoute: typeof BooksUidRoute
-  BooksIndexRoute: typeof BooksIndexRoute
+interface LocaleBooksRouteChildren {
+  LocaleBooksUidRoute: typeof LocaleBooksUidRoute
+  LocaleBooksIndexRoute: typeof LocaleBooksIndexRoute
 }
 
-const BooksRouteChildren: BooksRouteChildren = {
-  BooksUidRoute: BooksUidRoute,
-  BooksIndexRoute: BooksIndexRoute,
+const LocaleBooksRouteChildren: LocaleBooksRouteChildren = {
+  LocaleBooksUidRoute: LocaleBooksUidRoute,
+  LocaleBooksIndexRoute: LocaleBooksIndexRoute,
 }
 
-const BooksRouteWithChildren = BooksRoute._addFileChildren(BooksRouteChildren)
+const LocaleBooksRouteWithChildren = LocaleBooksRoute._addFileChildren(
+  LocaleBooksRouteChildren,
+)
 
-interface OrdersRouteChildren {
-  OrdersUidRoute: typeof OrdersUidRoute
-  OrdersIndexRoute: typeof OrdersIndexRoute
+interface LocaleOrdersRouteChildren {
+  LocaleOrdersUidRoute: typeof LocaleOrdersUidRoute
+  LocaleOrdersIndexRoute: typeof LocaleOrdersIndexRoute
 }
 
-const OrdersRouteChildren: OrdersRouteChildren = {
-  OrdersUidRoute: OrdersUidRoute,
-  OrdersIndexRoute: OrdersIndexRoute,
+const LocaleOrdersRouteChildren: LocaleOrdersRouteChildren = {
+  LocaleOrdersUidRoute: LocaleOrdersUidRoute,
+  LocaleOrdersIndexRoute: LocaleOrdersIndexRoute,
 }
 
-const OrdersRouteWithChildren =
-  OrdersRoute._addFileChildren(OrdersRouteChildren)
+const LocaleOrdersRouteWithChildren = LocaleOrdersRoute._addFileChildren(
+  LocaleOrdersRouteChildren,
+)
+
+interface LocaleRouteRouteChildren {
+  LocaleSplatRoute: typeof LocaleSplatRoute
+  LocaleAccountRoute: typeof LocaleAccountRoute
+  LocaleBooksRoute: typeof LocaleBooksRouteWithChildren
+  LocaleCartRoute: typeof LocaleCartRoute
+  LocaleLoginRoute: typeof LocaleLoginRoute
+  LocaleOrdersRoute: typeof LocaleOrdersRouteWithChildren
+  LocaleSignupRoute: typeof LocaleSignupRoute
+  LocaleWishlistRoute: typeof LocaleWishlistRoute
+  LocaleIndexRoute: typeof LocaleIndexRoute
+}
+
+const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
+  LocaleSplatRoute: LocaleSplatRoute,
+  LocaleAccountRoute: LocaleAccountRoute,
+  LocaleBooksRoute: LocaleBooksRouteWithChildren,
+  LocaleCartRoute: LocaleCartRoute,
+  LocaleLoginRoute: LocaleLoginRoute,
+  LocaleOrdersRoute: LocaleOrdersRouteWithChildren,
+  LocaleSignupRoute: LocaleSignupRoute,
+  LocaleWishlistRoute: LocaleWishlistRoute,
+  LocaleIndexRoute: LocaleIndexRoute,
+}
+
+const LocaleRouteRouteWithChildren = LocaleRouteRoute._addFileChildren(
+  LocaleRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AccountRoute: AccountRoute,
-  BooksRoute: BooksRouteWithChildren,
+  LocaleRouteRoute: LocaleRouteRouteWithChildren,
   CallbackRoute: CallbackRoute,
-  CartRoute: CartRoute,
-  LoginRoute: LoginRoute,
-  OrdersRoute: OrdersRouteWithChildren,
-  SignupRoute: SignupRoute,
-  WishlistRoute: WishlistRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

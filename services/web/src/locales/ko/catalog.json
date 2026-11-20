@@ -1,0 +1,57 @@
+{
+  "hero": {
+    "title": "다음에 읽을 좋은 책을 만나보세요",
+    "subtitle": "모든 장르를 아우르는 엄선된 도서를 둘러보세요. 시대를 초월한 고전부터 최신 출간작까지, 나에게 꼭 맞는 책을 찾을 수 있습니다.",
+    "browseBooks": "도서 둘러보기",
+    "createAccount": "회원가입",
+    "imageAlt": "책 일러스트"
+  },
+  "trending": {
+    "title": "지금 인기 있는 책",
+    "subtitle": "많은 분들이 찾는 도서를 모았습니다",
+    "viewAll": "전체 보기",
+    "listLabel": "인기 도서"
+  },
+  "list": {
+    "title": "도서",
+    "resultCount_other": "도서 {{count}}권을 찾았습니다",
+    "allSubjects": "전체",
+    "searchLabel": "제목으로 검색",
+    "searchPlaceholder": "제목으로 검색...",
+    "sortLabel": "정렬 기준",
+    "sort": {
+      "titleAsc": "제목 오름차순",
+      "titleDesc": "제목 내림차순",
+      "newest": "최신 등록순",
+      "recentlyPublished": "최근 출간순"
+    },
+    "gridView": "격자 보기",
+    "listView": "목록 보기",
+    "listLabel": "도서",
+    "errorTitle": "도서를 불러오지 못했습니다",
+    "errorMessage": "도서 목록을 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+    "emptyTitle": "검색된 도서가 없습니다",
+    "emptyMessage": "검색어나 필터를 변경해 보세요.",
+    "allLoaded": "도서 {{total}}권을 모두 불러왔습니다"
+  },
+  "detail": {
+    "backToBooks": "도서 목록으로",
+    "byAuthors": "{{authors}} 지음",
+    "firstPublished": "{{year}}년 초판 출간",
+    "description": "책 소개",
+    "aboutAuthor_other": "저자 소개"
+  },
+  "editions": {
+    "title": "판본",
+    "titleWithTotal": "판본 ({{total}})",
+    "empty": "아직 등록된 판본이 없습니다.",
+    "isbn13": "ISBN-13 {{isbn}}",
+    "isbn10": "ISBN-10 {{isbn}}",
+    "pages": "{{pages}}쪽",
+    "addToCart": "장바구니 담기"
+  },
+  "toast": {
+    "addedToCart": "장바구니에 담았습니다",
+    "addToCartFailed": "장바구니에 담지 못했습니다"
+  }
+}

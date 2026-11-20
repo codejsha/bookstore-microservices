@@ -19,16 +19,19 @@ import {
   UserPlus,
 } from "lucide-react";
 import { Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "react-oidc-context";
 import { cartQueryOptions } from "@/domains/cart";
 import {
   HoverStripSidebar,
   StripRow,
 } from "@/shared/components/HoverStripSidebar";
+import { LanguageSwitcher } from "@/shared/components/LanguageSwitcher";
 import { NotFoundState } from "@/shared/components/NotFoundState";
 import { RouteError } from "@/shared/components/RouteError";
 import { ThemeToggle } from "@/shared/components/ThemeToggle";
 import { ToastProvider } from "@/shared/components/toast";
+import { useLocale } from "@/shared/i18n/useLocale";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -81,22 +84,36 @@ const navLinkClass =
   "flex items-center rounded-md px-2 mx-2 py-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground [&.active]:text-foreground [&.active]:bg-muted";
 
 function LeftSidebar() {
+  const { t } = useTranslation();
+  const locale = useLocale();
+
   return (
-    <HoverStripSidebar side="left" label="Browse">
-      <Link to="/books" className={navLinkClass}>
-        <StripRow icon={<LayoutGrid className="size-5" />} label="Books" />
+    <HoverStripSidebar side="left" label={t("nav.browse")}>
+      <Link to="/$locale/books" params={{ locale }} className={navLinkClass}>
+        <StripRow
+          icon={<LayoutGrid className="size-5" />}
+          label={t("nav.books")}
+        />
       </Link>
-      <Link to="/orders" className={navLinkClass}>
-        <StripRow icon={<Package className="size-5" />} label="Orders" />
+      <Link to="/$locale/orders" params={{ locale }} className={navLinkClass}>
+        <StripRow
+          icon={<Package className="size-5" />}
+          label={t("nav.orders")}
+        />
       </Link>
-      <Link to="/wishlist" className={navLinkClass}>
-        <StripRow icon={<Heart className="size-5" />} label="Wishlist" />
+      <Link to="/$locale/wishlist" params={{ locale }} className={navLinkClass}>
+        <StripRow
+          icon={<Heart className="size-5" />}
+          label={t("nav.wishlist")}
+        />
       </Link>
     </HoverStripSidebar>
   );
 }
 
 function RightSidebar() {
+  const { t } = useTranslation();
+  const locale = useLocale();
   const auth = useAuth();
   const { data: cart } = useQuery({
     ...cartQueryOptions(),
@@ -112,19 +129,20 @@ function RightSidebar() {
   const cartCount = cart?.total_items ?? 0;
 
   return (
-    <HoverStripSidebar side="right" label="Account">
+    <HoverStripSidebar side="right" label={t("nav.account")}>
       <Link
-        to="/cart"
+        to="/$locale/cart"
+        params={{ locale }}
         className={navLinkClass}
         aria-label={
           cartCount > 0
-            ? `Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`
-            : "Cart"
+            ? t("nav.cartWithCount", { count: cartCount })
+            : t("nav.cart")
         }
       >
         <StripRow
           icon={<ShoppingCart className="size-5" />}
-          label="Cart"
+          label={t("nav.cart")}
           badge={
             cartCount > 0 ? (
               <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
@@ -134,34 +152,49 @@ function RightSidebar() {
           }
         />
       </Link>
-      <Link to="/account" className={navLinkClass}>
-        <StripRow icon={<User className="size-5" />} label="Account" />
+      <Link to="/$locale/account" params={{ locale }} className={navLinkClass}>
+        <StripRow icon={<User className="size-5" />} label={t("nav.account")} />
       </Link>
-      <Link to="/login" className={navLinkClass}>
-        <StripRow icon={<LogIn className="size-5" />} label="Login" />
+      <Link to="/$locale/login" params={{ locale }} className={navLinkClass}>
+        <StripRow icon={<LogIn className="size-5" />} label={t("nav.login")} />
       </Link>
-      <Link to="/signup" className={navLinkClass}>
-        <StripRow icon={<UserPlus className="size-5" />} label="Sign up" />
+      <Link to="/$locale/signup" params={{ locale }} className={navLinkClass}>
+        <StripRow
+          icon={<UserPlus className="size-5" />}
+          label={t("nav.signUp")}
+        />
       </Link>
     </HoverStripSidebar>
   );
 }
 
 function Header() {
+  const locale = useLocale();
+
   return (
     <header className="sticky top-0 z-50 border-b bg-muted">
       <div className="flex h-14 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2 text-lg font-bold">
+        <Link
+          to="/$locale"
+          params={{ locale }}
+          className="flex items-center gap-2 text-lg font-bold"
+        >
           <BookOpen className="size-5" />
           Bookstore
         </Link>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );
 }
 
 function Footer() {
+  const { t } = useTranslation();
+  const locale = useLocale();
+
   return (
     <footer className="border-t">
       <div className="container mx-auto px-4 py-8">
@@ -172,65 +205,72 @@ function Footer() {
               Bookstore
             </h3>
             <p className="text-sm text-muted-foreground">
-              Discover, browse, and find your next great read.
+              {t("footer.tagline")}
             </p>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold">Browse</h4>
-            <nav aria-label="Browse" className="flex flex-col gap-1">
+            <h4 className="text-sm font-semibold">{t("nav.browse")}</h4>
+            <nav aria-label={t("nav.browse")} className="flex flex-col gap-1">
               <Link
-                to="/books"
+                to="/$locale/books"
+                params={{ locale }}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                Books
+                {t("nav.books")}
               </Link>
               <Link
-                to="/wishlist"
+                to="/$locale/wishlist"
+                params={{ locale }}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                Wishlist
+                {t("nav.wishlist")}
               </Link>
               <Link
-                to="/cart"
+                to="/$locale/cart"
+                params={{ locale }}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                Cart
+                {t("nav.cart")}
               </Link>
             </nav>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold">Account</h4>
-            <nav aria-label="Account" className="flex flex-col gap-1">
+            <h4 className="text-sm font-semibold">{t("nav.account")}</h4>
+            <nav aria-label={t("nav.account")} className="flex flex-col gap-1">
               <Link
-                to="/account"
+                to="/$locale/account"
+                params={{ locale }}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                My account
+                {t("nav.myAccount")}
               </Link>
               <Link
-                to="/orders"
+                to="/$locale/orders"
+                params={{ locale }}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                Orders
+                {t("nav.orders")}
               </Link>
               <Link
-                to="/login"
+                to="/$locale/login"
+                params={{ locale }}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                Login
+                {t("nav.login")}
               </Link>
               <Link
-                to="/signup"
+                to="/$locale/signup"
+                params={{ locale }}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                Sign up
+                {t("nav.signUp")}
               </Link>
             </nav>
           </div>
         </div>
         <Separator className="my-6" />
         <p className="text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Bookstore. All rights reserved.
+          {t("footer.copyright", { year: new Date().getFullYear() })}
         </p>
       </div>
     </footer>

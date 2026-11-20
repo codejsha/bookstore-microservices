@@ -1,0 +1,22 @@
+{
+  "title": "Reviews ({{total}})",
+  "write": "Write a Review",
+  "cancel": "Cancel",
+  "average": "{{rating}} out of 5",
+  "empty": "No reviews yet. Be the first to review this book!",
+  "author": "User {{id}}",
+  "rating": {
+    "label": "{{rating}} out of 5 stars",
+    "rate_one": "Rate {{count}} star",
+    "rate_other": "Rate {{count}} stars",
+    "yours": "Your rating"
+  },
+  "form": {
+    "titleLabel": "Review title",
+    "titlePlaceholder": "Review title (optional)",
+    "contentLabel": "Review content",
+    "contentPlaceholder": "Write your review...",
+    "submit": "Submit Review",
+    "submitting": "Submitting..."
+  }
+}

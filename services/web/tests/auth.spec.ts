@@ -1,10 +1,11 @@
 import { expect, test } from "./fixtures";
+import { localePath } from "./support/paths";
 
 const PROTECTED_ROUTES = ["/cart", "/orders", "/wishlist", "/account"];
 
 test.describe("authentication", () => {
   test("login page offers the Keycloak sign-in", async ({ page }) => {
-    await page.goto("/login");
+    await page.goto(localePath("/login"));
     const main = page.getByRole("main");
 
     await expect(main.getByText("Login", { exact: true })).toBeVisible();
@@ -17,11 +18,11 @@ test.describe("authentication", () => {
 
     await main.getByRole("link", { name: "Back to home" }).click();
 
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(localePath("/"));
   });
 
   test("signup page links back to login", async ({ page }) => {
-    await page.goto("/signup");
+    await page.goto(localePath("/signup"));
     const main = page.getByRole("main");
 
     await expect(main.getByText("Create account")).toBeVisible();
@@ -33,14 +34,14 @@ test.describe("authentication", () => {
       .getByRole("link", { name: "Already have an account? Login" })
       .click();
 
-    await expect(page).toHaveURL("/login");
+    await expect(page).toHaveURL(localePath("/login"));
   });
 
   for (const route of PROTECTED_ROUTES) {
     test(`${route} redirects anonymous visitors to login`, async ({ page }) => {
-      await page.goto(route);
+      await page.goto(localePath(route));
 
-      await expect(page).toHaveURL("/login");
+      await expect(page).toHaveURL(localePath("/login"));
       await expect(
         page.getByRole("button", { name: "Continue with Keycloak" }),
       ).toBeVisible();
@@ -53,9 +54,9 @@ test.describe("authentication for signed-in users", () => {
 
   for (const route of PROTECTED_ROUTES) {
     test(`${route} stays on the page`, async ({ page }) => {
-      await page.goto(route);
+      await page.goto(localePath(route));
 
-      await expect(page).toHaveURL(route);
+      await expect(page).toHaveURL(localePath(route));
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     });
   }

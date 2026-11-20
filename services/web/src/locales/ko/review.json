@@ -1,0 +1,21 @@
+{
+  "title": "리뷰 ({{total}})",
+  "write": "리뷰 작성",
+  "cancel": "취소",
+  "average": "5점 만점에 {{rating}}점",
+  "empty": "아직 리뷰가 없습니다. 첫 번째 리뷰를 남겨 보세요!",
+  "author": "사용자 {{id}}",
+  "rating": {
+    "label": "별점 5점 만점에 {{rating}}점",
+    "rate_other": "별점 {{count}}점 주기",
+    "yours": "내 별점"
+  },
+  "form": {
+    "titleLabel": "리뷰 제목",
+    "titlePlaceholder": "리뷰 제목 (선택)",
+    "contentLabel": "리뷰 내용",
+    "contentPlaceholder": "리뷰를 작성해 주세요...",
+    "submit": "리뷰 등록",
+    "submitting": "등록 중..."
+  }
+}

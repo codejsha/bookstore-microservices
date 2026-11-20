@@ -8,6 +8,7 @@ import {
 } from "@bookstore/design/ui/card";
 import { Link } from "@tanstack/react-router";
 import { BookOpen, Calendar } from "lucide-react";
+import { useLocale } from "@/shared/i18n/useLocale";
 import type { WorkItem } from "../types";
 
 interface WorkCardProps {
@@ -15,13 +16,18 @@ interface WorkCardProps {
 }
 
 export function WorkCard({ work }: WorkCardProps) {
+  const locale = useLocale();
   const subjects = work.subjects ?? [];
   const year = work.first_publish_date
     ? work.first_publish_date.slice(0, 4)
     : undefined;
 
   return (
-    <Link to="/books/$uid" params={{ uid: work.uid }} className="block h-full">
+    <Link
+      to="/$locale/books/$uid"
+      params={{ locale, uid: work.uid }}
+      className="block h-full"
+    >
       <Card className="flex flex-col h-full min-h-[240px] transition-shadow hover:shadow-md">
         <CardHeader>
           <div className="flex items-start gap-3">

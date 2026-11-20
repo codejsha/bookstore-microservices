@@ -1,0 +1,44 @@
+{
+  "title": "My Account",
+  "subtitle": "Manage your profile, rewards, and activity.",
+  "tabs": {
+    "profile": "Profile",
+    "points": "Points",
+    "history": "History"
+  },
+  "profile": {
+    "title": "Profile",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "phone": "Phone",
+    "save": "Save changes",
+    "saving": "Saving...",
+    "errorTitle": "Couldn't load your profile",
+    "errorMessage": "There was a problem loading your account details."
+  },
+  "points": {
+    "title": "Reward points",
+    "currentBalance": "Current balance",
+    "amount": "{{amount}} pt",
+    "earnInfo": "Earn 1 point for every $1 spent. Points apply automatically at checkout.",
+    "errorTitle": "Couldn't load points",
+    "errorMessage": "There was a problem loading your reward balance."
+  },
+  "history": {
+    "title": "Points history",
+    "empty": "No history yet.",
+    "errorTitle": "Couldn't load history",
+    "errorMessage": "There was a problem loading your points history.",
+    "changeType": {
+      "earn": "EARN",
+      "spend": "SPEND",
+      "adjust": "ADJUST",
+      "expire": "EXPIRE"
+    }
+  },
+  "toast": {
+    "profileSaved": "Profile saved",
+    "profileSaveFailed": "Couldn't save profile"
+  }
+}

@@ -1,5 +1,6 @@
 import { CheckCircle2, Info, X, XCircle } from "lucide-react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import type { ToastItem, ToastVariant } from "./toast-context";
 
 const variantConfig: Record<
@@ -18,6 +19,8 @@ export function ToastViewport({
   toasts: ToastItem[];
   onDismiss: (id: string) => void;
 }) {
+  const { t } = useTranslation();
+
   if (typeof document === "undefined") return null;
 
   return createPortal(
@@ -42,7 +45,7 @@ export function ToastViewport({
             </div>
             <button
               type="button"
-              aria-label="Dismiss"
+              aria-label={t("toast.dismiss")}
               onClick={() => onDismiss(toast.id)}
               className="shrink-0 rounded-md p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >

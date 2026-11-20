@@ -1,0 +1,35 @@
+{
+  "title": "Shopping Cart",
+  "itemCount_one": "({{count}} item)",
+  "itemCount_other": "({{count}} items)",
+  "empty": "Your cart is empty",
+  "browseBooks": "Browse Books",
+  "listLabel": "Cart items",
+  "item": {
+    "priceEach": "{{price}} each",
+    "decreaseQuantity": "Decrease quantity of {{name}}",
+    "increaseQuantity": "Increase quantity of {{name}}",
+    "remove": "Remove {{name}}"
+  },
+  "summary": {
+    "totalItems": "Total items: {{total}}"
+  },
+  "actions": {
+    "clear": "Clear Cart",
+    "checkout": "Checkout",
+    "processing": "Processing..."
+  },
+  "error": {
+    "title": "Couldn't load your cart",
+    "message": "There was a problem loading your cart. Please try again."
+  },
+  "toast": {
+    "itemRemoved": "Item removed",
+    "removeFailed": "Couldn't remove item",
+    "updateFailed": "Couldn't update quantity",
+    "cleared": "Cart cleared",
+    "clearFailed": "Couldn't clear cart",
+    "orderPlaced": "Order placed",
+    "checkoutFailed": "Checkout failed"
+  }
+}

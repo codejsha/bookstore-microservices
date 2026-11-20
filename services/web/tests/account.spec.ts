@@ -1,11 +1,12 @@
 import { expect, test } from "./fixtures";
 import { toast } from "./support/locators";
+import { localePath } from "./support/paths";
 
 test.use({ authenticated: true });
 
 test.describe("account", () => {
   test("profile tab shows the customer details", async ({ page }) => {
-    await page.goto("/account");
+    await page.goto(localePath("/account"));
 
     await expect(
       page.getByRole("heading", { level: 1, name: "My Account" }),
@@ -21,7 +22,7 @@ test.describe("account", () => {
   });
 
   test("saving the profile persists the change", async ({ page }) => {
-    await page.goto("/account");
+    await page.goto(localePath("/account"));
     const firstName = page.getByLabel("First name");
     await expect(firstName).toHaveValue("John");
 
@@ -46,7 +47,7 @@ test.describe("account", () => {
   });
 
   test("email is read-only", async ({ page }) => {
-    await page.goto("/account");
+    await page.goto(localePath("/account"));
     const email = page.getByLabel("Email");
 
     await expect(email).toHaveValue("john.doe@example.com");
@@ -54,7 +55,7 @@ test.describe("account", () => {
   });
 
   test("points tab shows the balance", async ({ page }) => {
-    await page.goto("/account");
+    await page.goto(localePath("/account"));
 
     await page.getByRole("tab", { name: "Points" }).click();
 
@@ -63,7 +64,7 @@ test.describe("account", () => {
   });
 
   test("history tab lists point changes", async ({ page }) => {
-    await page.goto("/account");
+    await page.goto(localePath("/account"));
 
     await page.getByRole("tab", { name: "History" }).click();
 

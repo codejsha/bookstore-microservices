@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { WorkList } from "@/domains/catalog";
 
-export const Route = createFileRoute("/books/")({
+export const Route = createFileRoute("/$locale/books/")({
   component: BooksPage,
 });
 

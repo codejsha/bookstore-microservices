@@ -1,9 +1,10 @@
 import { expect, test } from "./fixtures";
 import { accountSidebar, toast } from "./support/locators";
+import { localePath } from "./support/paths";
 
 test.describe("book detail", () => {
   test("renders bibliographic data, editions and reviews", async ({ page }) => {
-    await page.goto("/books/work-1");
+    await page.goto(localePath("/books/work-1"));
 
     await expect(
       page.getByRole("heading", { level: 1, name: "Clean Architecture" }),
@@ -41,15 +42,15 @@ test.describe("book detail", () => {
   });
 
   test("back link returns to the listing", async ({ page }) => {
-    await page.goto("/books/work-1");
+    await page.goto(localePath("/books/work-1"));
 
     await page.getByRole("link", { name: "Back to books" }).click();
 
-    await expect(page).toHaveURL("/books");
+    await expect(page).toHaveURL(localePath("/books"));
   });
 
   test("unknown book shows the page error state", async ({ page }) => {
-    await page.goto("/books/does-not-exist");
+    await page.goto(localePath("/books/does-not-exist"));
 
     await expect(page.getByText("Page not found")).toBeVisible({
       timeout: 15_000,
@@ -61,7 +62,7 @@ test.describe("book detail", () => {
   test("wishlist and review submission stay disabled for anonymous visitors", async ({
     page,
   }) => {
-    await page.goto("/books/work-1");
+    await page.goto(localePath("/books/work-1"));
 
     await expect(
       page.getByRole("button", { name: "Add to wishlist" }),
@@ -83,7 +84,7 @@ test.describe("book detail for signed-in users", () => {
   test.use({ authenticated: true });
 
   test("adding an edition to the cart updates the badge", async ({ page }) => {
-    await page.goto("/books/work-1");
+    await page.goto(localePath("/books/work-1"));
     await expect(
       accountSidebar(page).getByRole("link", { name: "Cart, 3 items" }),
     ).toBeVisible();
@@ -99,7 +100,7 @@ test.describe("book detail for signed-in users", () => {
   });
 
   test("wishlist button toggles membership", async ({ page }) => {
-    await page.goto("/books/work-1");
+    await page.goto(localePath("/books/work-1"));
     const add = page.getByRole("button", { name: "Add to wishlist" });
     const remove = page.getByRole("button", { name: "Remove from wishlist" });
 
@@ -117,7 +118,7 @@ test.describe("book detail for signed-in users", () => {
   test("already wished book starts with the remove action", async ({
     page,
   }) => {
-    await page.goto("/books/work-2");
+    await page.goto(localePath("/books/work-2"));
 
     await expect(
       page.getByRole("button", { name: "Remove from wishlist" }),
@@ -125,7 +126,7 @@ test.describe("book detail for signed-in users", () => {
   });
 
   test("submitting a review appends it to the list", async ({ page }) => {
-    await page.goto("/books/work-1");
+    await page.goto(localePath("/books/work-1"));
     await expect(page.getByText("Reviews (3)")).toBeVisible();
 
     await page.getByRole("button", { name: "Write a Review" }).click();

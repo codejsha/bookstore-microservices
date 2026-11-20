@@ -13,6 +13,7 @@ import {
   Layers,
   ShoppingCart,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAddToCart } from "@/domains/cart";
 import { BookReviews } from "@/domains/review";
 import {
@@ -21,6 +22,8 @@ import {
   wishlistQueryOptions,
 } from "@/domains/wishlist";
 import { useToast } from "@/shared/components/toast";
+import { useFormat } from "@/shared/hooks/useFormat";
+import { useLocale } from "@/shared/i18n/useLocale";
 import { useCurrentUserUid } from "@/shared/lib/currentUser";
 import { numericIdFromUid, syntheticPrice } from "../catalog-utils";
 import type { Edition } from "../types";
@@ -29,11 +32,15 @@ import {
   workEditionsQueryOptions,
 } from "./work-queries";
 
+const EDITION_CURRENCY = "USD";
+
 interface WorkDetailProps {
   uid: string;
 }
 
 export function WorkDetail({ uid }: WorkDetailProps) {
+  const { t } = useTranslation(["catalog", "wishlist"]);
+  const locale = useLocale();
   const { data: work } = useSuspenseQuery(workDetailQueryOptions(uid));
   const { data: editionData } = useQuery(workEditionsQueryOptions(uid));
   const toast = useToast();
@@ -54,16 +61,16 @@ export function WorkDetail({ uid }: WorkDetailProps) {
       removeFromWishlist.mutate(
         { book_uids: [uid] },
         {
-          onSuccess: () => toast.success("Removed from wishlist"),
-          onError: () => toast.error("Couldn't update wishlist"),
+          onSuccess: () => toast.success(t("wishlist:toast.removed")),
+          onError: () => toast.error(t("wishlist:toast.updateFailed")),
         },
       );
     } else {
       addToWishlist.mutate(
         { book_uids: [uid] },
         {
-          onSuccess: () => toast.success("Added to wishlist"),
-          onError: () => toast.error("Couldn't update wishlist"),
+          onSuccess: () => toast.success(t("wishlist:toast.added")),
+          onError: () => toast.error(t("wishlist:toast.updateFailed")),
         },
       );
     }
@@ -75,9 +82,13 @@ export function WorkDetail({ uid }: WorkDetailProps) {
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-8 space-y-8">
-      <Button variant="ghost" size="sm" render={<Link to="/books" />}>
+      <Button
+        variant="ghost"
+        size="sm"
+        render={<Link to="/$locale/books" params={{ locale }} />}
+      >
         <ArrowLeft className="size-4 mr-1" />
-        Back to books
+        {t("detail.backToBooks")}
       </Button>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -104,13 +115,15 @@ export function WorkDetail({ uid }: WorkDetailProps) {
             </h1>
 
             <p className="text-lg text-muted-foreground">
-              by {work.authors.map((a) => a.name).join(", ")}
+              {t("detail.byAuthors", {
+                authors: work.authors.map((a) => a.name).join(", "),
+              })}
             </p>
 
             {year && (
               <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Calendar className="size-3.5" />
-                First published {year}
+                {t("detail.firstPublished", { year })}
               </p>
             )}
           </div>
@@ -119,7 +132,11 @@ export function WorkDetail({ uid }: WorkDetailProps) {
             <Button
               variant="outline"
               size="icon"
-              aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
+              aria-label={
+                isWished
+                  ? t("wishlist:actions.remove")
+                  : t("wishlist:actions.add")
+              }
               disabled={wishlistPending || !currentUserUid}
               onClick={handleToggleWishlist}
             >
@@ -133,7 +150,9 @@ export function WorkDetail({ uid }: WorkDetailProps) {
 
           {work.description && (
             <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Description</h2>
+              <h2 className="text-lg font-semibold">
+                {t("detail.description")}
+              </h2>
               <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                 {work.description}
               </p>
@@ -143,7 +162,7 @@ export function WorkDetail({ uid }: WorkDetailProps) {
           {work.authors.some((a) => a.bio) && (
             <div className="space-y-3">
               <h2 className="text-lg font-semibold">
-                About the Author{work.authors.length > 1 ? "s" : ""}
+                {t("detail.aboutAuthor", { count: work.authors.length })}
               </h2>
               {work.authors.map(
                 (author) =>
@@ -166,13 +185,13 @@ export function WorkDetail({ uid }: WorkDetailProps) {
         <div className="flex items-center gap-2">
           <Layers className="size-5" />
           <h2 className="text-xl font-semibold">
-            Editions{editions.length > 0 ? ` (${editions.length})` : ""}
+            {editions.length > 0
+              ? t("editions.titleWithTotal", { total: editions.length })
+              : t("editions.title")}
           </h2>
         </div>
         {editions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No editions available for this work yet.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("editions.empty")}</p>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {editions.map((edition) => (
@@ -189,6 +208,8 @@ export function WorkDetail({ uid }: WorkDetailProps) {
 }
 
 function EditionRow({ edition }: { edition: Edition }) {
+  const { t } = useTranslation("catalog");
+  const format = useFormat();
   const addToCart = useAddToCart();
   const toast = useToast();
   const price = syntheticPrice(edition.uid);
@@ -199,13 +220,13 @@ function EditionRow({ edition }: { edition: Edition }) {
         product_id: String(numericIdFromUid(edition.uid)),
         product_name: edition.title,
         quantity: 1,
-        currency: "USD",
+        currency: EDITION_CURRENCY,
         price,
       },
       {
         onSuccess: () =>
-          toast.success("Added to cart", { description: edition.title }),
-        onError: () => toast.error("Couldn't add to cart"),
+          toast.success(t("toast.addedToCart"), { description: edition.title }),
+        onError: () => toast.error(t("toast.addToCartFailed")),
       },
     );
   };
@@ -230,17 +251,19 @@ function EditionRow({ edition }: { edition: Edition }) {
           {edition.isbn13 && (
             <span className="inline-flex items-center gap-1.5">
               <Hash className="size-3" />
-              ISBN-13 {edition.isbn13}
+              {t("editions.isbn13", { isbn: edition.isbn13 })}
             </span>
           )}
           {edition.isbn10 && (
             <span className="inline-flex items-center gap-1.5">
               <Hash className="size-3" />
-              ISBN-10 {edition.isbn10}
+              {t("editions.isbn10", { isbn: edition.isbn10 })}
             </span>
           )}
           {edition.number_of_pages != null && (
-            <span>{edition.number_of_pages} pages</span>
+            <span>
+              {t("editions.pages", { pages: edition.number_of_pages })}
+            </span>
           )}
           {edition.languages && edition.languages.length > 0 && (
             <span>{edition.languages.join(", ")}</span>
@@ -248,14 +271,16 @@ function EditionRow({ edition }: { edition: Edition }) {
         </div>
 
         <div className="flex items-center justify-between pt-1">
-          <span className="text-lg font-bold">${price.toFixed(2)}</span>
+          <span className="text-lg font-bold">
+            {format.price(price, EDITION_CURRENCY)}
+          </span>
           <Button
             size="sm"
             disabled={addToCart.isPending}
             onClick={handleAddToCart}
           >
             <ShoppingCart className="size-4 mr-1.5" />
-            Add to Cart
+            {t("editions.addToCart")}
           </Button>
         </div>
       </CardContent>

@@ -10,20 +10,24 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Package, ShoppingCart } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ErrorState } from "@/shared/components/ErrorState";
+import { useFormat } from "@/shared/hooks/useFormat";
+import { useLocale } from "@/shared/i18n/useLocale";
 import { orderListQueryOptions } from "./order-queries";
+import { useOrderStatusLabel } from "./order-status";
 import type { Order } from "./types";
 import { OrderStatus } from "./types";
 
 const PAGE_SIZE = 10;
 
 const STATUS_FILTERS = [
-  { label: "All", value: undefined },
-  { label: "Pending", value: "PENDING" },
-  { label: "Paid", value: "PAID" },
-  { label: "Shipped", value: "SHIPPED" },
-  { label: "Delivered", value: "DELIVERED" },
-  { label: "Cancelled", value: "CANCELLED" },
+  { labelKey: "list.filter.all", value: undefined },
+  { labelKey: "list.filter.pending", value: "PENDING" },
+  { labelKey: "list.filter.paid", value: "PAID" },
+  { labelKey: "list.filter.shipped", value: "SHIPPED" },
+  { labelKey: "list.filter.delivered", value: "DELIVERED" },
+  { labelKey: "list.filter.cancelled", value: "CANCELLED" },
 ] as const;
 
 function statusColor(status: OrderStatus): string {
@@ -46,8 +50,13 @@ function statusColor(status: OrderStatus): string {
 }
 
 function OrderCard({ order }: { order: Order }) {
+  const { t } = useTranslation("order");
+  const format = useFormat();
+  const locale = useLocale();
+  const statusLabel = useOrderStatusLabel();
+
   return (
-    <Link to="/orders/$uid" params={{ uid: order.uid }}>
+    <Link to="/$locale/orders/$uid" params={{ locale, uid: order.uid }}>
       <Card className="transition-colors hover:bg-muted/50">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -60,21 +69,22 @@ function OrderCard({ order }: { order: Order }) {
                   {order.order_number}
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(order.created_at).toLocaleDateString()}
+                  {format.date(order.created_at)}
                 </p>
               </div>
             </div>
-            <Badge className={statusColor(order.status)}>{order.status}</Badge>
+            <Badge className={statusColor(order.status)}>
+              {statusLabel(order.status)}
+            </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
-              {order.items?.length ?? 0} item
-              {(order.items?.length ?? 0) !== 1 ? "s" : ""}
+              {t("list.itemCount", { count: order.items?.length ?? 0 })}
             </span>
             <span className="font-semibold">
-              {order.currency} {order.total_amount.toFixed(2)}
+              {format.money(order.total_amount, order.currency)}
             </span>
           </div>
         </CardContent>
@@ -115,6 +125,7 @@ function OrderCardSkeleton() {
 }
 
 export function OrderList() {
+  const { t } = useTranslation("order");
   const [status, setStatus] = useState<string | undefined>();
   const [page, setPage] = useState(0);
 
@@ -134,9 +145,11 @@ export function OrderList() {
     <div className="container mx-auto space-y-6 px-4 py-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t("list.title")}
+          </h1>
           <p className="text-sm text-muted-foreground min-h-5">
-            {total > 0 && `${total} order${total !== 1 ? "s" : ""}`}
+            {total > 0 && t("list.count", { count: total })}
           </p>
         </div>
       </div>
@@ -144,7 +157,7 @@ export function OrderList() {
       <div className="flex flex-wrap gap-2">
         {STATUS_FILTERS.map((f) => (
           <button
-            key={f.label}
+            key={f.labelKey}
             type="button"
             aria-pressed={status === f.value}
             onClick={() => {
@@ -157,7 +170,7 @@ export function OrderList() {
                 : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
           >
-            {f.label}
+            {t(f.labelKey)}
           </button>
         ))}
       </div>
@@ -174,8 +187,8 @@ export function OrderList() {
 
         {!isLoading && isError && (
           <ErrorState
-            title="Couldn't load orders"
-            message="There was a problem loading your orders. Please try again."
+            title={t("list.errorTitle")}
+            message={t("list.errorMessage")}
             onRetry={() => refetch()}
             showHome={false}
           />
@@ -188,11 +201,9 @@ export function OrderList() {
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-300">
                 <ShoppingCart className="size-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium">No orders found</p>
+                <p className="text-lg font-medium">{t("list.emptyTitle")}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {status
-                    ? "Try a different filter."
-                    : "You haven't placed any orders yet."}
+                  {status ? t("list.emptyFiltered") : t("list.emptyAll")}
                 </p>
               </div>
             ) : (
@@ -211,19 +222,19 @@ export function OrderList() {
           <Button
             variant="outline"
             size="icon-sm"
-            aria-label="Previous page"
+            aria-label={t("list.previousPage")}
             disabled={page === 0}
             onClick={() => setPage((p) => p - 1)}
           >
             <ChevronLeft />
           </Button>
           <span className="text-sm text-muted-foreground">
-            Page {page + 1} of {totalPages}
+            {t("list.pageOf", { page: page + 1, totalPages })}
           </span>
           <Button
             variant="outline"
             size="icon-sm"
-            aria-label="Next page"
+            aria-label={t("list.nextPage")}
             disabled={page >= totalPages - 1}
             onClick={() => setPage((p) => p + 1)}
           >

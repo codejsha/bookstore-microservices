@@ -1,0 +1,57 @@
+{
+  "status": {
+    "pending": "支払い待ち",
+    "paid": "支払い済み",
+    "shipped": "発送済み",
+    "delivered": "配達完了",
+    "cancelled": "キャンセル済み",
+    "refunded": "返金済み"
+  },
+  "list": {
+    "title": "注文履歴",
+    "count_other": "注文{{count}}件",
+    "filter": {
+      "all": "すべて",
+      "pending": "支払い待ち",
+      "paid": "支払い済み",
+      "shipped": "発送済み",
+      "delivered": "配達完了",
+      "cancelled": "キャンセル済み"
+    },
+    "itemCount_other": "商品{{count}}点",
+    "errorTitle": "注文履歴を読み込めませんでした",
+    "errorMessage": "注文履歴の読み込み中に問題が発生しました。もう一度お試しください。",
+    "emptyTitle": "注文が見つかりませんでした",
+    "emptyFiltered": "別の絞り込み条件をお試しください。",
+    "emptyAll": "まだご注文はありません。",
+    "previousPage": "前のページ",
+    "nextPage": "次のページ",
+    "pageOf": "{{page}} / {{totalPages}} ページ"
+  },
+  "detail": {
+    "backToOrders": "注文履歴へ戻る",
+    "placedOn": "注文日 {{date}}",
+    "itemsTitle": "注文商品 ({{total}})",
+    "lineItem": "{{quantity}} x {{price}}",
+    "lineItemWithSku": "{{quantity}} x {{price}} (SKU: {{sku}})",
+    "noItems": "注文商品がありません",
+    "cancel": "注文をキャンセル",
+    "cancelling": "キャンセル中..."
+  },
+  "summary": {
+    "title": "お支払い金額",
+    "items": "商品小計",
+    "discount": "割引",
+    "shipping": "配送料",
+    "tax": "税",
+    "total": "合計"
+  },
+  "shipping": {
+    "title": "お届け先",
+    "method": "配送方法: {{method}}"
+  },
+  "toast": {
+    "cancelled": "注文をキャンセルしました",
+    "cancelFailed": "注文をキャンセルできませんでした"
+  }
+}

@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 import { toast } from "./support/locators";
 import { buildOrders } from "./support/orders";
+import { localePath } from "./support/paths";
 
 const ORDERS_URL = /\/api\/v1\/orders(\?|$)/;
 
@@ -8,7 +9,7 @@ test.use({ authenticated: true });
 
 test.describe("orders listing", () => {
   test("lists orders with status and totals", async ({ page }) => {
-    await page.goto("/orders");
+    await page.goto(localePath("/orders"));
 
     await expect(
       page.getByRole("heading", { level: 1, name: "Orders" }),
@@ -27,7 +28,7 @@ test.describe("orders listing", () => {
   });
 
   test("status filter narrows the list", async ({ page }) => {
-    await page.goto("/orders");
+    await page.goto(localePath("/orders"));
     const pending = page.getByRole("button", { name: "Pending" });
 
     await pending.click();
@@ -60,7 +61,7 @@ test.describe("orders listing", () => {
         },
       });
     });
-    await page.goto("/orders");
+    await page.goto(localePath("/orders"));
     const previous = page.getByRole("button", { name: "Previous page" });
     const next = page.getByRole("button", { name: "Next page" });
 
@@ -86,11 +87,11 @@ test.describe("orders listing", () => {
   });
 
   test("order card opens the detail page", async ({ page }) => {
-    await page.goto("/orders");
+    await page.goto(localePath("/orders"));
 
     await page.getByRole("link", { name: /ORD-2024-0002/ }).click();
 
-    await expect(page).toHaveURL("/orders/ord-2");
+    await expect(page).toHaveURL(localePath("/orders/ord-2"));
     await expect(
       page.getByRole("heading", { level: 1, name: "ORD-2024-0002" }),
     ).toBeVisible();
@@ -101,7 +102,7 @@ test.describe("order detail", () => {
   test("pending order shows items, summary, shipping and can be cancelled", async ({
     page,
   }) => {
-    await page.goto("/orders/ord-1");
+    await page.goto(localePath("/orders/ord-1"));
     const main = page.getByRole("main");
 
     await expect(
@@ -131,7 +132,7 @@ test.describe("order detail", () => {
   test("delivered order shows the discount and no cancel action", async ({
     page,
   }) => {
-    await page.goto("/orders/ord-2");
+    await page.goto(localePath("/orders/ord-2"));
 
     await expect(page.getByText("-USD 5.00")).toBeVisible();
     await expect(page.getByText("USD 22.88")).toBeVisible();
@@ -142,15 +143,15 @@ test.describe("order detail", () => {
   });
 
   test("back link returns to the listing", async ({ page }) => {
-    await page.goto("/orders/ord-1");
+    await page.goto(localePath("/orders/ord-1"));
 
     await page.getByRole("link", { name: "Back to orders" }).click();
 
-    await expect(page).toHaveURL("/orders");
+    await expect(page).toHaveURL(localePath("/orders"));
   });
 
   test("unknown order shows the page error state", async ({ page }) => {
-    await page.goto("/orders/does-not-exist");
+    await page.goto(localePath("/orders/does-not-exist"));
 
     await expect(page.getByText("Page not found")).toBeVisible({
       timeout: 15_000,

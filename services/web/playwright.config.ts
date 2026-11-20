@@ -19,6 +19,7 @@ export default defineConfig({
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
     baseURL,
+    locale: "en-US",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     serviceWorkers: "block",

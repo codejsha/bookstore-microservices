@@ -1,0 +1,59 @@
+{
+  "status": {
+    "pending": "PENDING",
+    "paid": "PAID",
+    "shipped": "SHIPPED",
+    "delivered": "DELIVERED",
+    "cancelled": "CANCELLED",
+    "refunded": "REFUNDED"
+  },
+  "list": {
+    "title": "Orders",
+    "count_one": "{{count}} order",
+    "count_other": "{{count}} orders",
+    "filter": {
+      "all": "All",
+      "pending": "Pending",
+      "paid": "Paid",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "errorTitle": "Couldn't load orders",
+    "errorMessage": "There was a problem loading your orders. Please try again.",
+    "emptyTitle": "No orders found",
+    "emptyFiltered": "Try a different filter.",
+    "emptyAll": "You haven't placed any orders yet.",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageOf": "Page {{page}} of {{totalPages}}"
+  },
+  "detail": {
+    "backToOrders": "Back to orders",
+    "placedOn": "Placed on {{date}}",
+    "itemsTitle": "Items ({{total}})",
+    "lineItem": "{{quantity}} x {{price}}",
+    "lineItemWithSku": "{{quantity}} x {{price}} (SKU: {{sku}})",
+    "noItems": "No items",
+    "cancel": "Cancel Order",
+    "cancelling": "Cancelling..."
+  },
+  "summary": {
+    "title": "Summary",
+    "items": "Items",
+    "discount": "Discount",
+    "shipping": "Shipping",
+    "tax": "Tax",
+    "total": "Total"
+  },
+  "shipping": {
+    "title": "Shipping",
+    "method": "Method: {{method}}"
+  },
+  "toast": {
+    "cancelled": "Order cancelled",
+    "cancelFailed": "Couldn't cancel order"
+  }
+}
