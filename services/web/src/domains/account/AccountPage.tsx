@@ -17,8 +17,10 @@ import {
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { Coins, History, Loader2, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ErrorState } from "@/shared/components/ErrorState";
 import { useToast } from "@/shared/components/toast";
+import { useFormat } from "@/shared/hooks/useFormat";
 import { useCurrentUserUid } from "@/shared/lib/currentUser";
 import { HistorySkeleton, PointsSkeleton } from "./AccountSkeleton";
 import { useUpdateCustomer } from "./account-mutations";
@@ -27,29 +29,37 @@ import {
   pointBalanceQueryOptions,
   pointHistoryQueryOptions,
 } from "./account-queries";
+import type { PointHistoryItem } from "./types";
 
 const HISTORY_PAGE_SIZE = 20;
 
+const CHANGE_TYPE_KEYS = {
+  EARN: "history.changeType.earn",
+  SPEND: "history.changeType.spend",
+  ADJUST: "history.changeType.adjust",
+  EXPIRE: "history.changeType.expire",
+} as const satisfies Record<PointHistoryItem["change_type"], string>;
+
 export function AccountPage() {
+  const { t } = useTranslation("account");
+
   return (
     <div className="container mx-auto max-w-3xl space-y-6 px-4 py-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">My Account</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage your profile, rewards, and activity.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <Tabs defaultValue="profile">
         <TabsList>
           <TabsTrigger value="profile">
-            <User className="size-4" /> Profile
+            <User className="size-4" /> {t("tabs.profile")}
           </TabsTrigger>
           <TabsTrigger value="points">
-            <Coins className="size-4" /> Points
+            <Coins className="size-4" /> {t("tabs.points")}
           </TabsTrigger>
           <TabsTrigger value="history">
-            <History className="size-4" /> History
+            <History className="size-4" /> {t("tabs.history")}
           </TabsTrigger>
         </TabsList>
 
@@ -68,6 +78,7 @@ export function AccountPage() {
 }
 
 function ProfileSection() {
+  const { t } = useTranslation("account");
   const uid = useCurrentUserUid();
   const {
     data: customer,
@@ -87,9 +98,9 @@ function ProfileSection() {
     onSubmit: async ({ value }) => {
       try {
         await update.mutateAsync(value);
-        toast.success("Profile saved");
+        toast.success(t("toast.profileSaved"));
       } catch {
-        toast.error("Couldn't save profile");
+        toast.error(t("toast.profileSaveFailed"));
       }
     },
   });
@@ -105,8 +116,8 @@ function ProfileSection() {
   if (isError) {
     return (
       <ErrorState
-        title="Couldn't load your profile"
-        message="There was a problem loading your account details."
+        title={t("profile.errorTitle")}
+        message={t("profile.errorMessage")}
         onRetry={() => refetch()}
         showHome={false}
       />
@@ -116,7 +127,7 @@ function ProfileSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Profile</CardTitle>
+        <CardTitle>{t("profile.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <form
@@ -131,7 +142,7 @@ function ProfileSection() {
             <form.Field name="first_name">
               {(field) => (
                 <div className="space-y-2">
-                  <Label htmlFor={field.name}>First name</Label>
+                  <Label htmlFor={field.name}>{t("profile.firstName")}</Label>
                   <Input
                     id={field.name}
                     value={field.state.value}
@@ -143,7 +154,7 @@ function ProfileSection() {
             <form.Field name="last_name">
               {(field) => (
                 <div className="space-y-2">
-                  <Label htmlFor={field.name}>Last name</Label>
+                  <Label htmlFor={field.name}>{t("profile.lastName")}</Label>
                   <Input
                     id={field.name}
                     value={field.state.value}
@@ -155,7 +166,7 @@ function ProfileSection() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("profile.email")}</Label>
             <Input
               id="email"
               type="email"
@@ -167,7 +178,7 @@ function ProfileSection() {
           <form.Field name="phone">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Phone</Label>
+                <Label htmlFor={field.name}>{t("profile.phone")}</Label>
                 <Input
                   id={field.name}
                   value={field.state.value}
@@ -183,7 +194,7 @@ function ProfileSection() {
             <form.Subscribe selector={(state) => state.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Saving..." : "Save changes"}
+                  {isSubmitting ? t("profile.saving") : t("profile.save")}
                 </Button>
               )}
             </form.Subscribe>
@@ -195,6 +206,8 @@ function ProfileSection() {
 }
 
 function PointsSection() {
+  const { t } = useTranslation("account");
+  const format = useFormat();
   const uid = useCurrentUserUid();
   const { data, isLoading, isError, refetch } = useQuery(
     pointBalanceQueryOptions(uid),
@@ -203,15 +216,15 @@ function PointsSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Reward points</CardTitle>
+        <CardTitle>{t("points.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <PointsSkeleton />
         ) : isError ? (
           <ErrorState
-            title="Couldn't load points"
-            message="There was a problem loading your reward balance."
+            title={t("points.errorTitle")}
+            message={t("points.errorMessage")}
             onRetry={() => refetch()}
             showHome={false}
           />
@@ -221,16 +234,19 @@ function PointsSection() {
               <Coins className="size-6" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Current balance</p>
+              <p className="text-sm text-muted-foreground">
+                {t("points.currentBalance")}
+              </p>
               <p className="text-3xl font-bold">
-                {(data?.balance ?? 0).toLocaleString()} pt
+                {t("points.amount", {
+                  amount: format.number(data?.balance ?? 0),
+                })}
               </p>
             </div>
           </div>
         )}
         <p className="mt-4 text-sm text-muted-foreground">
-          Earn 1 point for every $1 spent. Points apply automatically at
-          checkout.
+          {t("points.earnInfo")}
         </p>
       </CardContent>
     </Card>
@@ -238,6 +254,8 @@ function PointsSection() {
 }
 
 function HistorySection() {
+  const { t } = useTranslation("account");
+  const format = useFormat();
   const uid = useCurrentUserUid();
   const { data, isLoading, isError, refetch } = useQuery(
     pointHistoryQueryOptions(uid, {
@@ -249,21 +267,21 @@ function HistorySection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Points history</CardTitle>
+        <CardTitle>{t("history.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <HistorySkeleton />
         ) : isError ? (
           <ErrorState
-            title="Couldn't load history"
-            message="There was a problem loading your points history."
+            title={t("history.errorTitle")}
+            message={t("history.errorMessage")}
             onRetry={() => refetch()}
             showHome={false}
           />
         ) : !data?.items?.length ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
-            No history yet.
+            {t("history.empty")}
           </p>
         ) : (
           <ul className="divide-y">
@@ -274,10 +292,13 @@ function HistorySection() {
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium">
-                    {item.reason ?? item.change_type}
+                    {item.reason ??
+                      (CHANGE_TYPE_KEYS[item.change_type]
+                        ? t(CHANGE_TYPE_KEYS[item.change_type])
+                        : item.change_type)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(item.created_at).toLocaleString()}
+                    {format.dateTime(item.created_at)}
                   </p>
                 </div>
                 <span
@@ -287,8 +308,11 @@ function HistorySection() {
                       : "text-sm font-semibold text-destructive"
                   }
                 >
-                  {item.amount >= 0 ? "+" : ""}
-                  {item.amount.toLocaleString()} pt
+                  {t("points.amount", {
+                    amount: format.number(item.amount, {
+                      signDisplay: "always",
+                    }),
+                  })}
                 </span>
               </li>
             ))}

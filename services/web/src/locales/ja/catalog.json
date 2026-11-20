@@ -1,0 +1,57 @@
+{
+  "hero": {
+    "title": "次に読みたい一冊を見つけましょう",
+    "subtitle": "あらゆるジャンルから厳選した書籍をご覧ください。不朽の名作から最新刊まで、あなたにぴったりの一冊が見つかります。",
+    "browseBooks": "書籍をさがす",
+    "createAccount": "会員登録",
+    "imageAlt": "本のイラスト"
+  },
+  "trending": {
+    "title": "いま人気の本",
+    "subtitle": "多くの方に選ばれている書籍です",
+    "viewAll": "すべて見る",
+    "listLabel": "人気の書籍"
+  },
+  "list": {
+    "title": "書籍",
+    "resultCount_other": "{{count}}冊の書籍が見つかりました",
+    "allSubjects": "すべて",
+    "searchLabel": "タイトルで検索",
+    "searchPlaceholder": "タイトルで検索...",
+    "sortLabel": "並び替え",
+    "sort": {
+      "titleAsc": "タイトル昇順",
+      "titleDesc": "タイトル降順",
+      "newest": "新着順",
+      "recentlyPublished": "出版日が新しい順"
+    },
+    "gridView": "グリッド表示",
+    "listView": "リスト表示",
+    "listLabel": "書籍",
+    "errorTitle": "書籍を読み込めませんでした",
+    "errorMessage": "書籍一覧の読み込み中に問題が発生しました。もう一度お試しください。",
+    "emptyTitle": "書籍が見つかりませんでした",
+    "emptyMessage": "検索キーワードや絞り込み条件を変更してみてください。",
+    "allLoaded": "全{{total}}冊を表示しました"
+  },
+  "detail": {
+    "backToBooks": "書籍一覧へ戻る",
+    "byAuthors": "{{authors}} 著",
+    "firstPublished": "初版 {{year}}年",
+    "description": "内容紹介",
+    "aboutAuthor_other": "著者について"
+  },
+  "editions": {
+    "title": "エディション",
+    "titleWithTotal": "エディション ({{total}})",
+    "empty": "この作品のエディションはまだ登録されていません。",
+    "isbn13": "ISBN-13 {{isbn}}",
+    "isbn10": "ISBN-10 {{isbn}}",
+    "pages": "{{pages}}ページ",
+    "addToCart": "カートに入れる"
+  },
+  "toast": {
+    "addedToCart": "カートに追加しました",
+    "addToCartFailed": "カートに追加できませんでした"
+  }
+}

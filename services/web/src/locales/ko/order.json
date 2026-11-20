@@ -1,0 +1,57 @@
+{
+  "status": {
+    "pending": "결제 대기",
+    "paid": "결제 완료",
+    "shipped": "배송 중",
+    "delivered": "배송 완료",
+    "cancelled": "주문 취소",
+    "refunded": "환불 완료"
+  },
+  "list": {
+    "title": "주문 내역",
+    "count_other": "주문 {{count}}건",
+    "filter": {
+      "all": "전체",
+      "pending": "결제 대기",
+      "paid": "결제 완료",
+      "shipped": "배송 중",
+      "delivered": "배송 완료",
+      "cancelled": "주문 취소"
+    },
+    "itemCount_other": "상품 {{count}}개",
+    "errorTitle": "주문 내역을 불러오지 못했습니다",
+    "errorMessage": "주문 내역을 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+    "emptyTitle": "주문 내역이 없습니다",
+    "emptyFiltered": "다른 필터를 선택해 보세요.",
+    "emptyAll": "아직 주문하신 내역이 없습니다.",
+    "previousPage": "이전 페이지",
+    "nextPage": "다음 페이지",
+    "pageOf": "{{page}} / {{totalPages}} 페이지"
+  },
+  "detail": {
+    "backToOrders": "주문 내역으로",
+    "placedOn": "주문일 {{date}}",
+    "itemsTitle": "주문 상품 ({{total}})",
+    "lineItem": "{{quantity}} x {{price}}",
+    "lineItemWithSku": "{{quantity}} x {{price}} (SKU: {{sku}})",
+    "noItems": "주문 상품이 없습니다",
+    "cancel": "주문 취소",
+    "cancelling": "취소하는 중..."
+  },
+  "summary": {
+    "title": "결제 정보",
+    "items": "상품 금액",
+    "discount": "할인",
+    "shipping": "배송비",
+    "tax": "세금",
+    "total": "총 결제 금액"
+  },
+  "shipping": {
+    "title": "배송 정보",
+    "method": "배송 방법: {{method}}"
+  },
+  "toast": {
+    "cancelled": "주문을 취소했습니다",
+    "cancelFailed": "주문을 취소하지 못했습니다"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "title": "マイアカウント",
+  "subtitle": "プロフィール、ポイント、ご利用履歴を管理できます。",
+  "tabs": {
+    "profile": "プロフィール",
+    "points": "ポイント",
+    "history": "履歴"
+  },
+  "profile": {
+    "title": "プロフィール",
+    "firstName": "名",
+    "lastName": "姓",
+    "email": "メールアドレス",
+    "phone": "電話番号",
+    "save": "変更を保存",
+    "saving": "保存中...",
+    "errorTitle": "プロフィールを読み込めませんでした",
+    "errorMessage": "アカウント情報の読み込み中に問題が発生しました。"
+  },
+  "points": {
+    "title": "ポイント",
+    "currentBalance": "保有ポイント",
+    "amount": "{{amount}} pt",
+    "earnInfo": "ご購入金額$1につき1ポイントが貯まります。ポイントはお支払い時に自動で適用されます。",
+    "errorTitle": "ポイントを読み込めませんでした",
+    "errorMessage": "保有ポイントの読み込み中に問題が発生しました。"
+  },
+  "history": {
+    "title": "ポイント履歴",
+    "empty": "履歴はまだありません。",
+    "errorTitle": "履歴を読み込めませんでした",
+    "errorMessage": "ポイント履歴の読み込み中に問題が発生しました。",
+    "changeType": {
+      "earn": "獲得",
+      "spend": "利用",
+      "adjust": "調整",
+      "expire": "失効"
+    }
+  },
+  "toast": {
+    "profileSaved": "プロフィールを保存しました",
+    "profileSaveFailed": "プロフィールを保存できませんでした"
+  }
+}

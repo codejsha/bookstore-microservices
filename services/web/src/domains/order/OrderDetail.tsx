@@ -10,9 +10,13 @@ import { Separator } from "@bookstore/design/ui/separator";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, MapPin, Package, Truck } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useToast } from "@/shared/components/toast";
+import { useFormat } from "@/shared/hooks/useFormat";
+import { useLocale } from "@/shared/i18n/useLocale";
 import { useCancelOrder } from "./order-mutations";
 import { orderDetailQueryOptions } from "./order-queries";
+import { useOrderStatusLabel } from "./order-status";
 import { OrderStatus } from "./types";
 
 function statusColor(status: OrderStatus): string {
@@ -35,6 +39,10 @@ function statusColor(status: OrderStatus): string {
 }
 
 export function OrderDetail({ uid }: { uid: string }) {
+  const { t } = useTranslation(["order", "common"]);
+  const format = useFormat();
+  const locale = useLocale();
+  const statusLabel = useOrderStatusLabel();
   const { data: order } = useSuspenseQuery(orderDetailQueryOptions(uid));
   const cancelMutation = useCancelOrder();
   const toast = useToast();
@@ -44,11 +52,12 @@ export function OrderDetail({ uid }: { uid: string }) {
   return (
     <div className="container mx-auto max-w-3xl space-y-6 px-4 py-8">
       <Link
-        to="/orders"
+        to="/$locale/orders"
+        params={{ locale }}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
-        Back to orders
+        {t("detail.backToOrders")}
       </Link>
 
       <div className="flex items-start justify-between">
@@ -57,17 +66,19 @@ export function OrderDetail({ uid }: { uid: string }) {
             {order.order_number}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Placed on {new Date(order.created_at).toLocaleDateString()}
+            {t("detail.placedOn", { date: format.date(order.created_at) })}
           </p>
         </div>
-        <Badge className={statusColor(order.status)}>{order.status}</Badge>
+        <Badge className={statusColor(order.status)}>
+          {statusLabel(order.status)}
+        </Badge>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Package className="size-4" />
-            Items ({order.items?.length ?? 0})
+            {t("detail.itemsTitle", { total: order.items?.length ?? 0 })}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -75,58 +86,67 @@ export function OrderDetail({ uid }: { uid: string }) {
             <div key={item.uid} className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">
-                  {item.product_name ?? `Product #${item.product_id}`}
+                  {item.product_name ??
+                    t("common:product.fallbackName", { id: item.product_id })}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {item.quantity} x {item.currency} {item.price.toFixed(2)}
-                  {item.sku && ` (SKU: ${item.sku})`}
+                  {item.sku
+                    ? t("detail.lineItemWithSku", {
+                        quantity: item.quantity,
+                        price: format.money(item.price, item.currency),
+                        sku: item.sku,
+                      })
+                    : t("detail.lineItem", {
+                        quantity: item.quantity,
+                        price: format.money(item.price, item.currency),
+                      })}
                 </p>
               </div>
               <span className="text-sm font-semibold">
-                {item.currency} {item.subtotal.toFixed(2)}
+                {format.money(item.subtotal, item.currency)}
               </span>
             </div>
-          )) ?? <p className="text-sm text-muted-foreground">No items</p>}
+          )) ?? (
+            <p className="text-sm text-muted-foreground">
+              {t("detail.noItems")}
+            </p>
+          )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Summary</CardTitle>
+          <CardTitle className="text-base">{t("summary.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Items</span>
-            <span>
-              {order.currency} {order.items_amount.toFixed(2)}
-            </span>
+            <span className="text-muted-foreground">{t("summary.items")}</span>
+            <span>{format.money(order.items_amount, order.currency)}</span>
           </div>
           {order.discount_amount > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Discount</span>
+              <span className="text-muted-foreground">
+                {t("summary.discount")}
+              </span>
               <span className="text-green-600">
-                -{order.currency} {order.discount_amount.toFixed(2)}
+                {format.money(-order.discount_amount, order.currency)}
               </span>
             </div>
           )}
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Shipping</span>
-            <span>
-              {order.currency} {order.shipping_amount.toFixed(2)}
+            <span className="text-muted-foreground">
+              {t("summary.shipping")}
             </span>
+            <span>{format.money(order.shipping_amount, order.currency)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Tax</span>
-            <span>
-              {order.currency} {order.tax_amount.toFixed(2)}
-            </span>
+            <span className="text-muted-foreground">{t("summary.tax")}</span>
+            <span>{format.money(order.tax_amount, order.currency)}</span>
           </div>
           <Separator />
           <div className="flex justify-between font-semibold">
-            <span>Total</span>
-            <span>
-              {order.currency} {order.total_amount.toFixed(2)}
-            </span>
+            <span>{t("summary.total")}</span>
+            <span>{format.money(order.total_amount, order.currency)}</span>
           </div>
         </CardContent>
       </Card>
@@ -138,12 +158,14 @@ export function OrderDetail({ uid }: { uid: string }) {
           disabled={cancelMutation.isPending}
           onClick={() =>
             cancelMutation.mutate(uid, {
-              onSuccess: () => toast.success("Order cancelled"),
-              onError: () => toast.error("Couldn't cancel order"),
+              onSuccess: () => toast.success(t("toast.cancelled")),
+              onError: () => toast.error(t("toast.cancelFailed")),
             })
           }
         >
-          {cancelMutation.isPending ? "Cancelling..." : "Cancel Order"}
+          {cancelMutation.isPending
+            ? t("detail.cancelling")
+            : t("detail.cancel")}
         </Button>
       )}
 
@@ -152,7 +174,7 @@ export function OrderDetail({ uid }: { uid: string }) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Truck className="size-4" />
-              Shipping
+              {t("shipping.title")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -176,7 +198,9 @@ export function OrderDetail({ uid }: { uid: string }) {
                   {order.shipping.country}
                 </p>
                 <p className="mt-1 text-xs">
-                  Method: {order.shipping.shipping_method}
+                  {t("shipping.method", {
+                    method: order.shipping.shipping_method,
+                  })}
                 </p>
               </div>
             </div>

@@ -1,0 +1,44 @@
+{
+  "title": "내 계정",
+  "subtitle": "프로필, 포인트, 이용 내역을 관리하세요.",
+  "tabs": {
+    "profile": "프로필",
+    "points": "포인트",
+    "history": "내역"
+  },
+  "profile": {
+    "title": "프로필",
+    "firstName": "이름",
+    "lastName": "성",
+    "email": "이메일",
+    "phone": "전화번호",
+    "save": "변경 사항 저장",
+    "saving": "저장 중...",
+    "errorTitle": "프로필을 불러오지 못했습니다",
+    "errorMessage": "계정 정보를 불러오는 중 문제가 발생했습니다."
+  },
+  "points": {
+    "title": "적립 포인트",
+    "currentBalance": "보유 포인트",
+    "amount": "{{amount}}P",
+    "earnInfo": "결제 금액 $1당 1포인트가 적립됩니다. 포인트는 결제 시 자동으로 적용됩니다.",
+    "errorTitle": "포인트를 불러오지 못했습니다",
+    "errorMessage": "보유 포인트를 불러오는 중 문제가 발생했습니다."
+  },
+  "history": {
+    "title": "포인트 내역",
+    "empty": "아직 내역이 없습니다.",
+    "errorTitle": "내역을 불러오지 못했습니다",
+    "errorMessage": "포인트 내역을 불러오는 중 문제가 발생했습니다.",
+    "changeType": {
+      "earn": "적립",
+      "spend": "사용",
+      "adjust": "조정",
+      "expire": "소멸"
+    }
+  },
+  "toast": {
+    "profileSaved": "프로필을 저장했습니다",
+    "profileSaveFailed": "프로필을 저장하지 못했습니다"
+  }
+}

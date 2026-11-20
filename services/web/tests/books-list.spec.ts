@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
 import { bookItems } from "./support/locators";
+import { localePath } from "./support/paths";
 import { apiQuery, serverError } from "./support/requests";
 
 const WORKS_PATH = "/api/v1/works";
@@ -9,7 +10,7 @@ test.describe("books listing", () => {
   test("shows the first page with filter, search and sort controls", async ({
     page,
   }) => {
-    await page.goto("/books");
+    await page.goto(localePath("/books"));
 
     await expect(
       page.getByRole("heading", { level: 1, name: "Books" }),
@@ -44,7 +45,7 @@ test.describe("books listing", () => {
   test("search filters by title through a single debounced request", async ({
     page,
   }) => {
-    await page.goto("/books");
+    await page.goto(localePath("/books"));
     await expect(bookItems(page)).toHaveCount(12);
     const titleQueries: string[] = [];
     page.on("request", (request) => {
@@ -64,7 +65,7 @@ test.describe("books listing", () => {
   });
 
   test("search without matches shows the empty state", async ({ page }) => {
-    await page.goto("/books");
+    await page.goto(localePath("/books"));
     await expect(bookItems(page)).toHaveCount(12);
 
     await page.getByRole("textbox", { name: "Search by title" }).fill("zzzz");
@@ -79,7 +80,7 @@ test.describe("books listing", () => {
   test("subject filter narrows the list and resets with All", async ({
     page,
   }) => {
-    await page.goto("/books");
+    await page.goto(localePath("/books"));
     await expect(bookItems(page)).toHaveCount(12);
     const fiction = page.getByRole("button", { name: "Fiction", exact: true });
     const all = page.getByRole("button", { name: "All", exact: true });
@@ -103,7 +104,7 @@ test.describe("books listing", () => {
   });
 
   test("sort selection reorders the list", async ({ page }) => {
-    await page.goto("/books");
+    await page.goto(localePath("/books"));
     await expect(bookItems(page).first()).toContainText(
       "A Philosophy of Software Design",
     );
@@ -118,7 +119,7 @@ test.describe("books listing", () => {
   });
 
   test("view toggle switches between grid and list", async ({ page }) => {
-    await page.goto("/books");
+    await page.goto(localePath("/books"));
     const grid = page.getByRole("button", { name: "Grid view" });
     const list = page.getByRole("button", { name: "List view" });
     await expect(bookItems(page)).toHaveCount(12);
@@ -138,7 +139,7 @@ test.describe("books listing", () => {
   });
 
   test("scrolling to the end loads the remaining books", async ({ page }) => {
-    await page.goto("/books");
+    await page.goto(localePath("/books"));
     await expect(bookItems(page)).toHaveCount(12);
 
     await bookItems(page).last().scrollIntoViewIfNeeded();
@@ -148,7 +149,7 @@ test.describe("books listing", () => {
   });
 
   test("book card opens the detail page", async ({ page }) => {
-    await page.goto("/books");
+    await page.goto(localePath("/books"));
 
     await bookItems(page).first().getByRole("link").click();
 
@@ -162,7 +163,7 @@ test.describe("books listing", () => {
     page,
   }) => {
     await page.route(WORKS_URL, (route) => route.fulfill(serverError()));
-    await page.goto("/books");
+    await page.goto(localePath("/books"));
 
     await expect(page.getByText("Couldn't load books")).toBeVisible({
       timeout: 15_000,

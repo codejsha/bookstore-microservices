@@ -1,0 +1,21 @@
+{
+  "title": "レビュー ({{total}})",
+  "write": "レビューを書く",
+  "cancel": "キャンセル",
+  "average": "5点中{{rating}}点",
+  "empty": "レビューはまだありません。最初のレビューを書いてみませんか。",
+  "author": "ユーザー {{id}}",
+  "rating": {
+    "label": "星5つ中{{rating}}",
+    "rate_other": "星{{count}}つで評価する",
+    "yours": "あなたの評価"
+  },
+  "form": {
+    "titleLabel": "レビューのタイトル",
+    "titlePlaceholder": "レビューのタイトル (任意)",
+    "contentLabel": "レビューの内容",
+    "contentPlaceholder": "レビューを入力してください...",
+    "submit": "レビューを投稿",
+    "submitting": "投稿中..."
+  }
+}

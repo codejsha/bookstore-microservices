@@ -1,12 +1,13 @@
 import { expect, test } from "./fixtures";
 import { accountSidebar, bookItems, cartItem, toast } from "./support/locators";
+import { localePath } from "./support/paths";
 
 test.use({ authenticated: true });
 
 test("browse, add to cart, check out and cancel the new order", async ({
   page,
 }) => {
-  await page.goto("/books");
+  await page.goto(localePath("/books"));
   await page.getByRole("textbox", { name: "Search by title" }).fill("clean");
   await bookItems(page)
     .filter({ hasText: "Clean Architecture" })
@@ -26,13 +27,13 @@ test("browse, add to cart, check out and cancel the new order", async ({
   await expect(cartLink).toBeVisible();
 
   await cartLink.click();
-  await expect(page).toHaveURL("/cart");
+  await expect(page).toHaveURL(localePath("/cart"));
   await expect(cartItem(page, "Clean Architecture (Hardcover)")).toContainText(
     "$16.49 each",
   );
 
   await page.getByRole("button", { name: "Checkout" }).click();
-  await expect(page).toHaveURL("/orders");
+  await expect(page).toHaveURL(localePath("/orders"));
   await expect(toast(page, "Order placed")).toBeVisible();
   const newOrder = page.getByRole("link", { name: /ORD-\d{13}/ });
   await expect(newOrder).toContainText("PENDING");

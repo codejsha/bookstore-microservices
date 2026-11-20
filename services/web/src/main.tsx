@@ -8,6 +8,7 @@ import "./index.css";
 import { queryClient } from "@/shared/api/queryClient";
 import { userManager } from "@/shared/auth/userManager";
 import { RouteError } from "@/shared/components/RouteError";
+import { initI18n } from "@/shared/i18n/i18n";
 import { routeTree } from "./routeTree.gen";
 
 const router = createRouter({
@@ -50,6 +51,8 @@ async function bootstrap() {
   } catch (e) {
     console.warn("[Faro] Failed to initialize Faro:", e);
   }
+
+  await initI18n();
 
   const rootElement = document.getElementById("root");
   if (rootElement && !rootElement.innerHTML) {

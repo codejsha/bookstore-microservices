@@ -10,6 +10,7 @@ import {
   Search,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ErrorState } from "@/shared/components/ErrorState";
 import { subjectListQueryOptions } from "../subject/subject-queries";
 import { WorkCard } from "./WorkCard";
@@ -18,10 +19,10 @@ import { WorkListItem } from "./WorkListItem";
 import { workListInfiniteQueryOptions } from "./work-queries";
 
 const SORT_OPTIONS = [
-  { value: "title,asc", label: "Title A-Z", icon: ArrowDownAZ },
-  { value: "title,desc", label: "Title Z-A", icon: ArrowUpAZ },
-  { value: "createdAt,desc", label: "Newest" },
-  { value: "firstPublishDate,desc", label: "Recently published" },
+  { value: "title,asc", labelKey: "list.sort.titleAsc", icon: ArrowDownAZ },
+  { value: "title,desc", labelKey: "list.sort.titleDesc", icon: ArrowUpAZ },
+  { value: "createdAt,desc", labelKey: "list.sort.newest" },
+  { value: "firstPublishDate,desc", labelKey: "list.sort.recentlyPublished" },
 ] as const;
 
 const PAGE_SIZE = 12;
@@ -29,6 +30,7 @@ const PAGE_SIZE = 12;
 type ViewMode = "card" | "list";
 
 export function WorkList() {
+  const { t } = useTranslation("catalog");
   const [title, setTitle] = useState("");
   const [debouncedTitle, setDebouncedTitle] = useState("");
   const [subjectUid, setSubjectUid] = useState<string | undefined>();
@@ -97,36 +99,38 @@ export function WorkList() {
   return (
     <div className="container mx-auto space-y-6 px-4 py-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Books</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("list.title")}</h1>
         <p className="text-sm text-muted-foreground min-h-5">
-          {total > 0 && `${total} book${total !== 1 ? "s" : ""} found`}
+          {total > 0 && t("list.resultCount", { count: total })}
         </p>
       </div>
 
       <div className="space-y-3">
         <div className="flex flex-wrap gap-1.5">
-          {[{ uid: undefined, name: "All" }, ...subjects].map((subject) => (
-            <button
-              key={subject.uid ?? "all"}
-              type="button"
-              aria-pressed={subjectUid === subject.uid}
-              onClick={() => setSubjectUid(subject.uid)}
-              className={`inline-flex h-8 items-center rounded-md border px-3 text-sm font-medium transition-colors ${
-                subjectUid === subject.uid
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-transparent bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {subject.name}
-            </button>
-          ))}
+          {[{ uid: undefined, name: t("list.allSubjects") }, ...subjects].map(
+            (subject) => (
+              <button
+                key={subject.uid ?? "all"}
+                type="button"
+                aria-pressed={subjectUid === subject.uid}
+                onClick={() => setSubjectUid(subject.uid)}
+                className={`inline-flex h-8 items-center rounded-md border px-3 text-sm font-medium transition-colors ${
+                  subjectUid === subject.uid
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-transparent bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {subject.name}
+              </button>
+            ),
+          )}
         </div>
         <div className="flex items-center justify-between gap-2">
           <div className="relative w-80">
             <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Search by title"
-              placeholder="Search by title..."
+              aria-label={t("list.searchLabel")}
+              placeholder={t("list.searchPlaceholder")}
               value={title}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-8 h-8"
@@ -134,14 +138,14 @@ export function WorkList() {
           </div>
           <div className="flex items-center gap-2">
             <select
-              aria-label="Sort by"
+              aria-label={t("list.sortLabel")}
               value={sort}
               onChange={(e) => setSort(e.target.value)}
               className="h-8 rounded-md border bg-background px-2 text-sm text-foreground outline-none"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {t(opt.labelKey)}
                 </option>
               ))}
             </select>
@@ -149,7 +153,7 @@ export function WorkList() {
               <Button
                 variant={viewMode === "card" ? "secondary" : "ghost"}
                 size="icon-sm"
-                aria-label="Grid view"
+                aria-label={t("list.gridView")}
                 aria-pressed={viewMode === "card"}
                 onClick={() => setViewMode("card")}
               >
@@ -158,7 +162,7 @@ export function WorkList() {
               <Button
                 variant={viewMode === "list" ? "secondary" : "ghost"}
                 size="icon-sm"
-                aria-label="List view"
+                aria-label={t("list.listView")}
                 aria-pressed={viewMode === "list"}
                 onClick={() => setViewMode("list")}
               >
@@ -181,8 +185,8 @@ export function WorkList() {
 
         {!isLoading && isError && (
           <ErrorState
-            title="Couldn't load books"
-            message="There was a problem loading the catalog. Please try again."
+            title={t("list.errorTitle")}
+            message={t("list.errorMessage")}
             onRetry={() => refetch()}
             showHome={false}
           />
@@ -194,14 +198,14 @@ export function WorkList() {
           >
             {allWorks.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-300">
-                <p className="text-lg font-medium">No books found</p>
+                <p className="text-lg font-medium">{t("list.emptyTitle")}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Try adjusting your search or filters.
+                  {t("list.emptyMessage")}
                 </p>
               </div>
             ) : viewMode === "card" ? (
               <ul
-                aria-label="Books"
+                aria-label={t("list.listLabel")}
                 className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-in fade-in duration-300"
               >
                 {allWorks.map((work) => (
@@ -212,7 +216,7 @@ export function WorkList() {
               </ul>
             ) : (
               <ul
-                aria-label="Books"
+                aria-label={t("list.listLabel")}
                 className="space-y-2 animate-in fade-in duration-300"
               >
                 {allWorks.map((work) => (
@@ -232,7 +236,7 @@ export function WorkList() {
         )}
         {!hasNextPage && allWorks.length > 0 && (
           <p className="text-sm text-muted-foreground">
-            All {total} books loaded
+            {t("list.allLoaded", { total })}
           </p>
         )}
       </div>

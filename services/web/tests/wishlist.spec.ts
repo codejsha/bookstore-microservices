@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
 import { toast, wishlistItems } from "./support/locators";
+import { localePath } from "./support/paths";
 
 const WISHLIST_URL = /\/api\/v1\/customers\/[^/]+\/wishlist$/;
 
@@ -7,7 +8,7 @@ test.use({ authenticated: true });
 
 test.describe("wishlist", () => {
   test("lists the wished books", async ({ page }) => {
-    await page.goto("/wishlist");
+    await page.goto(localePath("/wishlist"));
 
     await expect(
       page.getByRole("heading", { level: 1, name: "My Wishlist" }),
@@ -27,7 +28,7 @@ test.describe("wishlist", () => {
   });
 
   test("removing a book updates the list", async ({ page }) => {
-    await page.goto("/wishlist");
+    await page.goto(localePath("/wishlist"));
 
     await page
       .getByRole("button", { name: "Remove Refactoring from wishlist" })
@@ -42,23 +43,23 @@ test.describe("wishlist", () => {
   });
 
   test("book title opens the detail page", async ({ page }) => {
-    await page.goto("/wishlist");
+    await page.goto(localePath("/wishlist"));
 
     await page.getByRole("link", { name: "Domain-Driven Design" }).click();
 
-    await expect(page).toHaveURL("/books/work-2");
+    await expect(page).toHaveURL(localePath("/books/work-2"));
   });
 
   test("empty wishlist shows the empty state", async ({ page }) => {
     await page.route(WISHLIST_URL, (route) =>
       route.fulfill({ json: { book_uids: [] } }),
     );
-    await page.goto("/wishlist");
+    await page.goto(localePath("/wishlist"));
 
     await expect(page.getByText("Your wishlist is empty")).toBeVisible();
 
     await page.getByRole("link", { name: "Browse Books" }).click();
 
-    await expect(page).toHaveURL("/books");
+    await expect(page).toHaveURL(localePath("/books"));
   });
 });

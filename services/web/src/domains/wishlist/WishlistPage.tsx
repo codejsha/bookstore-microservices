@@ -3,13 +3,17 @@ import { Card, CardContent } from "@bookstore/design/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { BookOpen, Heart, Loader2, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { workListQueryOptions } from "@/domains/catalog";
 import { useToast } from "@/shared/components/toast";
+import { useLocale } from "@/shared/i18n/useLocale";
 import { useCurrentUserUid } from "@/shared/lib/currentUser";
 import { useRemoveFromWishlist } from "./wishlist-mutations";
 import { wishlistQueryOptions } from "./wishlist-queries";
 
 export function WishlistPage() {
+  const { t } = useTranslation("wishlist");
+  const locale = useLocale();
   const currentUserUid = useCurrentUserUid();
   const { data: wishlist, isLoading } = useQuery(
     wishlistQueryOptions(currentUserUid),
@@ -36,10 +40,10 @@ export function WishlistPage() {
     <div className="container mx-auto max-w-4xl space-y-8 px-4 py-8">
       <div className="flex items-center gap-3">
         <Heart className="size-7" />
-        <h1 className="text-3xl font-bold tracking-tight">My Wishlist</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
         {!isEmpty && (
           <span className="text-lg text-muted-foreground">
-            ({bookUids.length} {bookUids.length === 1 ? "book" : "books"})
+            {t("count", { count: bookUids.length })}
           </span>
         )}
       </div>
@@ -49,14 +53,16 @@ export function WishlistPage() {
           <CardContent className="flex flex-col items-center justify-center space-y-4 py-16">
             <Heart className="size-16 text-muted-foreground" />
             <p className="text-xl font-medium text-muted-foreground">
-              Your wishlist is empty
+              {t("empty")}
             </p>
-            <Button render={<Link to="/books" />}>Browse Books</Button>
+            <Button render={<Link to="/$locale/books" params={{ locale }} />}>
+              {t("browseBooks")}
+            </Button>
           </CardContent>
         </Card>
       ) : (
         <ul
-          aria-label="Wishlist items"
+          aria-label={t("listLabel")}
           className="grid grid-cols-1 gap-4 sm:grid-cols-2"
         >
           {wishlistWorks.map((work) => (
@@ -68,8 +74,8 @@ export function WishlistPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <Link
-                      to="/books/$uid"
-                      params={{ uid: work.uid }}
+                      to="/$locale/books/$uid"
+                      params={{ locale, uid: work.uid }}
                       className="line-clamp-2 font-medium hover:underline"
                     >
                       {work.title}
@@ -82,16 +88,14 @@ export function WishlistPage() {
                     variant="ghost"
                     size="icon"
                     className="size-8 text-destructive hover:text-destructive"
-                    aria-label={`Remove ${work.title} from wishlist`}
+                    aria-label={t("actions.removeItem", { title: work.title })}
                     disabled={remove.isPending}
                     onClick={() =>
                       remove.mutate(
                         { book_uids: [work.uid] },
                         {
-                          onSuccess: () =>
-                            toast.success("Removed from wishlist"),
-                          onError: () =>
-                            toast.error("Couldn't update wishlist"),
+                          onSuccess: () => toast.success(t("toast.removed")),
+                          onError: () => toast.error(t("toast.updateFailed")),
                         },
                       )
                     }

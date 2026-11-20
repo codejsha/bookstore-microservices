@@ -1,0 +1,42 @@
+{
+  "nav": {
+    "browse": "Browse",
+    "account": "Account",
+    "books": "Books",
+    "orders": "Orders",
+    "wishlist": "Wishlist",
+    "cart": "Cart",
+    "cartWithCount_one": "Cart, {{count}} item",
+    "cartWithCount_other": "Cart, {{count}} items",
+    "myAccount": "My account",
+    "login": "Login",
+    "signUp": "Sign up"
+  },
+  "footer": {
+    "tagline": "Discover, browse, and find your next great read.",
+    "copyright": "© {{year}} Bookstore. All rights reserved."
+  },
+  "theme": {
+    "switchToLight": "Switch to light theme",
+    "switchToDark": "Switch to dark theme"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "error": {
+    "defaultTitle": "Something went wrong",
+    "defaultMessage": "We couldn't load this content. Please try again.",
+    "retry": "Try again",
+    "goHome": "Go home",
+    "notFoundTitle": "Page not found",
+    "notFoundMessage": "The page you're looking for doesn't exist or has moved.",
+    "routeTitle": "Unable to load this page",
+    "routeMessage": "An unexpected error occurred. Please try again or head back home."
+  },
+  "toast": {
+    "dismiss": "Dismiss"
+  },
+  "product": {
+    "fallbackName": "Product #{{id}}"
+  }
+}

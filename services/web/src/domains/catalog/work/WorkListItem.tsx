@@ -1,9 +1,11 @@
 import { Badge } from "@bookstore/design/ui/badge";
 import { Link } from "@tanstack/react-router";
 import { Calendar } from "lucide-react";
+import { useLocale } from "@/shared/i18n/useLocale";
 import type { WorkItem } from "../types";
 
 export function WorkListItem({ work }: { work: WorkItem }) {
+  const locale = useLocale();
   const subjects = work.subjects ?? [];
   const year = work.first_publish_date
     ? work.first_publish_date.slice(0, 4)
@@ -11,8 +13,8 @@ export function WorkListItem({ work }: { work: WorkItem }) {
 
   return (
     <Link
-      to="/books/$uid"
-      params={{ uid: work.uid }}
+      to="/$locale/books/$uid"
+      params={{ locale, uid: work.uid }}
       className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50"
     >
       <div className="flex h-16 w-12 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-bold text-muted-foreground">

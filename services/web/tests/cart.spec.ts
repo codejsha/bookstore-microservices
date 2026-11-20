@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
 import { accountSidebar, cartItem, cartItems, toast } from "./support/locators";
+import { localePath } from "./support/paths";
 import { serverError } from "./support/requests";
 
 const CART_URL = /\/api\/v1\/cart$/;
@@ -9,7 +10,7 @@ test.use({ authenticated: true });
 
 test.describe("cart", () => {
   test("lists items with prices and totals", async ({ page }) => {
-    await page.goto("/cart");
+    await page.goto(localePath("/cart"));
 
     await expect(
       page.getByRole("heading", { level: 1, name: "Shopping Cart" }),
@@ -29,7 +30,7 @@ test.describe("cart", () => {
   test("increasing a quantity updates subtotals and the badge", async ({
     page,
   }) => {
-    await page.goto("/cart");
+    await page.goto(localePath("/cart"));
     const item = cartItem(page, "Designing Data-Intensive Applications");
 
     await item
@@ -47,7 +48,7 @@ test.describe("cart", () => {
   });
 
   test("decreasing a single item removes it", async ({ page }) => {
-    await page.goto("/cart");
+    await page.goto(localePath("/cart"));
 
     await cartItem(page, "Clean Architecture")
       .getByRole("button", { name: "Decrease quantity of Clean Architecture" })
@@ -59,7 +60,7 @@ test.describe("cart", () => {
   });
 
   test("remove action deletes the item", async ({ page }) => {
-    await page.goto("/cart");
+    await page.goto(localePath("/cart"));
 
     await cartItem(page, "Designing Data-Intensive Applications")
       .getByRole("button", {
@@ -73,7 +74,7 @@ test.describe("cart", () => {
   });
 
   test("clearing the cart shows the empty state", async ({ page }) => {
-    await page.goto("/cart");
+    await page.goto(localePath("/cart"));
 
     await page.getByRole("button", { name: "Clear Cart" }).click();
 
@@ -85,11 +86,11 @@ test.describe("cart", () => {
 
     await page.getByRole("link", { name: "Browse Books" }).click();
 
-    await expect(page).toHaveURL("/books");
+    await expect(page).toHaveURL(localePath("/books"));
   });
 
   test("checkout places an order with an idempotency key", async ({ page }) => {
-    await page.goto("/cart");
+    await page.goto(localePath("/cart"));
     const checkoutRequest = page.waitForRequest(
       (request) =>
         request.method() === "POST" &&
@@ -104,7 +105,7 @@ test.describe("cart", () => {
     };
     expect(body.currency).toBe("USD");
     expect(body.idempotency_key).toMatch(UUID);
-    await expect(page).toHaveURL("/orders");
+    await expect(page).toHaveURL(localePath("/orders"));
     await expect(toast(page, "Order placed")).toBeVisible();
     await expect(page.getByText("4 orders")).toBeVisible();
     await expect(page.getByRole("link", { name: /ORD-\d{13}/ })).toBeVisible();
@@ -122,7 +123,7 @@ test.describe("cart", () => {
         },
       }),
     );
-    await page.goto("/cart");
+    await page.goto(localePath("/cart"));
 
     await expect(page.getByText("Your cart is empty")).toBeVisible();
     await expect(cartItems(page)).toHaveCount(0);
@@ -130,7 +131,7 @@ test.describe("cart", () => {
 
   test("server failure shows an error state", async ({ page }) => {
     await page.route(CART_URL, (route) => route.fulfill(serverError()));
-    await page.goto("/cart");
+    await page.goto(localePath("/cart"));
 
     await expect(page.getByText("Couldn't load your cart")).toBeVisible({
       timeout: 15_000,

@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "browse": "さがす",
+    "account": "アカウント",
+    "books": "書籍",
+    "orders": "注文履歴",
+    "wishlist": "ほしい物リスト",
+    "cart": "カート",
+    "cartWithCount_other": "カート、商品{{count}}点",
+    "myAccount": "マイアカウント",
+    "login": "ログイン",
+    "signUp": "会員登録"
+  },
+  "footer": {
+    "tagline": "次に読みたい一冊を見つけましょう。",
+    "copyright": "© {{year}} Bookstore. All rights reserved."
+  },
+  "theme": {
+    "switchToLight": "ライトテーマに切り替える",
+    "switchToDark": "ダークテーマに切り替える"
+  },
+  "language": {
+    "label": "言語"
+  },
+  "error": {
+    "defaultTitle": "問題が発生しました",
+    "defaultMessage": "コンテンツを読み込めませんでした。もう一度お試しください。",
+    "retry": "再試行",
+    "goHome": "ホームへ戻る",
+    "notFoundTitle": "ページが見つかりません",
+    "notFoundMessage": "お探しのページは存在しないか、移動した可能性があります。",
+    "routeTitle": "ページを読み込めません",
+    "routeMessage": "予期しないエラーが発生しました。もう一度お試しいただくか、ホームへお戻りください。"
+  },
+  "toast": {
+    "dismiss": "閉じる"
+  },
+  "product": {
+    "fallbackName": "商品 #{{id}}"
+  }
+}

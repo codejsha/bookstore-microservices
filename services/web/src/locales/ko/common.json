@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "browse": "둘러보기",
+    "account": "계정",
+    "books": "도서",
+    "orders": "주문 내역",
+    "wishlist": "위시리스트",
+    "cart": "장바구니",
+    "cartWithCount_other": "장바구니, 상품 {{count}}개",
+    "myAccount": "내 계정",
+    "login": "로그인",
+    "signUp": "회원가입"
+  },
+  "footer": {
+    "tagline": "다음에 읽을 좋은 책을 찾아보세요.",
+    "copyright": "© {{year}} Bookstore. All rights reserved."
+  },
+  "theme": {
+    "switchToLight": "라이트 테마로 전환",
+    "switchToDark": "다크 테마로 전환"
+  },
+  "language": {
+    "label": "언어"
+  },
+  "error": {
+    "defaultTitle": "문제가 발생했습니다",
+    "defaultMessage": "콘텐츠를 불러오지 못했습니다. 다시 시도해 주세요.",
+    "retry": "다시 시도",
+    "goHome": "홈으로 이동",
+    "notFoundTitle": "페이지를 찾을 수 없습니다",
+    "notFoundMessage": "찾으시는 페이지가 없거나 다른 곳으로 이동되었습니다.",
+    "routeTitle": "페이지를 불러올 수 없습니다",
+    "routeMessage": "예기치 않은 오류가 발생했습니다. 다시 시도하거나 홈으로 돌아가 주세요."
+  },
+  "toast": {
+    "dismiss": "닫기"
+  },
+  "product": {
+    "fallbackName": "상품 #{{id}}"
+  }
+}

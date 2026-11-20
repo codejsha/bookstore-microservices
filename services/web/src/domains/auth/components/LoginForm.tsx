@@ -6,31 +6,39 @@ import {
   CardTitle,
 } from "@bookstore/design/ui/card";
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "react-oidc-context";
+import { signinState } from "@/shared/auth/signinState";
+import { useLocale } from "@/shared/i18n/useLocale";
 
 export function LoginForm() {
+  const { t } = useTranslation("auth");
   const auth = useAuth();
+  const locale = useLocale();
 
   const signIn = () => {
-    auth.signinRedirect();
+    auth.signinRedirect({ state: signinState(locale) });
   };
 
   const signUp = () => {
-    auth.signinRedirect({ extraQueryParams: { kc_action: "register" } });
+    auth.signinRedirect({
+      extraQueryParams: { kc_action: "register" },
+      state: signinState(locale),
+    });
   };
 
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">{t("login.title")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <Button onClick={signIn} disabled={auth.isLoading}>
-            Continue with Keycloak
+            {t("login.continue")}
           </Button>
           <Button variant="outline" onClick={signUp} disabled={auth.isLoading}>
-            Create an account
+            {t("login.createAccount")}
           </Button>
           {auth.error && (
             <p className="text-sm text-destructive">{auth.error.message}</p>
@@ -38,8 +46,12 @@ export function LoginForm() {
         </CardContent>
       </Card>
       <div className="mt-4 flex items-center justify-center gap-4 text-sm">
-        <Link to="/" className="text-muted-foreground hover:text-foreground">
-          Back to home
+        <Link
+          to="/$locale"
+          params={{ locale }}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          {t("login.backToHome")}
         </Link>
       </div>
     </div>

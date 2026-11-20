@@ -1,0 +1,59 @@
+{
+  "hero": {
+    "title": "Discover Your Next Great Read",
+    "subtitle": "Browse our curated catalog of books across every genre. From timeless classics to the latest releases, find your perfect match.",
+    "browseBooks": "Browse Books",
+    "createAccount": "Create Account",
+    "imageAlt": "Books illustration"
+  },
+  "trending": {
+    "title": "Trending Now",
+    "subtitle": "Popular picks from our catalog",
+    "viewAll": "View all",
+    "listLabel": "Trending books"
+  },
+  "list": {
+    "title": "Books",
+    "resultCount_one": "{{count}} book found",
+    "resultCount_other": "{{count}} books found",
+    "allSubjects": "All",
+    "searchLabel": "Search by title",
+    "searchPlaceholder": "Search by title...",
+    "sortLabel": "Sort by",
+    "sort": {
+      "titleAsc": "Title A-Z",
+      "titleDesc": "Title Z-A",
+      "newest": "Newest",
+      "recentlyPublished": "Recently published"
+    },
+    "gridView": "Grid view",
+    "listView": "List view",
+    "listLabel": "Books",
+    "errorTitle": "Couldn't load books",
+    "errorMessage": "There was a problem loading the catalog. Please try again.",
+    "emptyTitle": "No books found",
+    "emptyMessage": "Try adjusting your search or filters.",
+    "allLoaded": "All {{total}} books loaded"
+  },
+  "detail": {
+    "backToBooks": "Back to books",
+    "byAuthors": "by {{authors}}",
+    "firstPublished": "First published {{year}}",
+    "description": "Description",
+    "aboutAuthor_one": "About the Author",
+    "aboutAuthor_other": "About the Authors"
+  },
+  "editions": {
+    "title": "Editions",
+    "titleWithTotal": "Editions ({{total}})",
+    "empty": "No editions available for this work yet.",
+    "isbn13": "ISBN-13 {{isbn}}",
+    "isbn10": "ISBN-10 {{isbn}}",
+    "pages": "{{pages}} pages",
+    "addToCart": "Add to Cart"
+  },
+  "toast": {
+    "addedToCart": "Added to cart",
+    "addToCartFailed": "Couldn't add to cart"
+  }
+}

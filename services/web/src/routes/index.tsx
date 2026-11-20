@@ -1,10 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { HeroSection } from "@/domains/catalog";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { DEFAULT_LOCALE } from "@/shared/i18n/locales";
 
 export const Route = createFileRoute("/")({
-  component: HomePage,
+  beforeLoad: ({ location }) => {
+    throw redirect({
+      to: "/$locale",
+      params: { locale: DEFAULT_LOCALE },
+      search: location.search,
+      hash: location.hash,
+      replace: true,
+    });
+  },
 });
-
-function HomePage() {
-  return <HeroSection />;
-}

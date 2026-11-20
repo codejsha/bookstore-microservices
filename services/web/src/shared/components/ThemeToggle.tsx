@@ -1,8 +1,10 @@
 import { Button } from "@bookstore/design/ui/button";
 import { Moon, Sun } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@/shared/hooks/useTheme";
 
 export function ThemeToggle() {
+  const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
 
   const resolved =
@@ -17,7 +19,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon-sm"
       aria-label={
-        resolved === "dark" ? "Switch to light theme" : "Switch to dark theme"
+        resolved === "dark" ? t("theme.switchToLight") : t("theme.switchToDark")
       }
       onClick={() => setTheme(resolved === "dark" ? "light" : "dark")}
     >

@@ -11,6 +11,8 @@ import { Textarea } from "@bookstore/design/ui/textarea";
 import { useQuery } from "@tanstack/react-query";
 import { MessageSquare, Star, User } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useFormat } from "@/shared/hooks/useFormat";
 import { useCurrentUserUid } from "@/shared/lib/currentUser";
 import { useWriteReview } from "./review-mutations";
 import { bookReviewsQueryOptions } from "./review-queries";
@@ -25,12 +27,13 @@ function StarRating({
   onRate?: (r: number) => void;
   interactive?: boolean;
 }) {
+  const { t } = useTranslation("review");
   const stars = [1, 2, 3, 4, 5].map((star) => (
     <button
       key={star}
       type="button"
       disabled={!interactive}
-      aria-label={`Rate ${star} star${star === 1 ? "" : "s"}`}
+      aria-label={t("rating.rate", { count: star })}
       aria-pressed={interactive ? star === rating : undefined}
       onClick={() => onRate?.(star)}
       className={interactive ? "cursor-pointer" : "cursor-default"}
@@ -49,7 +52,7 @@ function StarRating({
     return (
       <div
         role="img"
-        aria-label={`${rating} out of 5 stars`}
+        aria-label={t("rating.label", { rating })}
         className="flex gap-0.5"
       >
         {stars}
@@ -58,13 +61,16 @@ function StarRating({
   }
 
   return (
-    <fieldset aria-label="Your rating" className="flex gap-0.5">
+    <fieldset aria-label={t("rating.yours")} className="flex gap-0.5">
       {stars}
     </fieldset>
   );
 }
 
 function ReviewCard({ review }: { review: Review }) {
+  const { t } = useTranslation("review");
+  const format = useFormat();
+
   return (
     <div className="space-y-2 py-4">
       <div className="flex items-center justify-between">
@@ -74,10 +80,10 @@ function ReviewCard({ review }: { review: Review }) {
           </div>
           <div>
             <p className="text-sm font-medium">
-              User {review.user_uid.slice(0, 8)}
+              {t("author", { id: review.user_uid.slice(0, 8) })}
             </p>
             <p className="text-xs text-muted-foreground">
-              {new Date(review.created_at).toLocaleDateString()}
+              {format.date(review.created_at)}
             </p>
           </div>
         </div>
@@ -98,6 +104,7 @@ function ReviewForm({
   bookUid: string;
   onSuccess: () => void;
 }) {
+  const { t } = useTranslation("review");
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -128,18 +135,18 @@ function ReviewForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div className="space-y-1">
-        <p className="text-sm font-medium">Your rating</p>
+        <p className="text-sm font-medium">{t("rating.yours")}</p>
         <StarRating rating={rating} onRate={setRating} interactive />
       </div>
       <Input
-        aria-label="Review title"
-        placeholder="Review title (optional)"
+        aria-label={t("form.titleLabel")}
+        placeholder={t("form.titlePlaceholder")}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
       <Textarea
-        aria-label="Review content"
-        placeholder="Write your review..."
+        aria-label={t("form.contentLabel")}
+        placeholder={t("form.contentPlaceholder")}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={3}
@@ -149,13 +156,15 @@ function ReviewForm({
         size="sm"
         disabled={rating === 0 || mutation.isPending || !uid}
       >
-        {mutation.isPending ? "Submitting..." : "Submit Review"}
+        {mutation.isPending ? t("form.submitting") : t("form.submit")}
       </Button>
     </form>
   );
 }
 
 export function BookReviews({ bookUid }: { bookUid: string }) {
+  const { t } = useTranslation("review");
+  const format = useFormat();
   const { data, refetch } = useQuery(bookReviewsQueryOptions(bookUid));
   const [showForm, setShowForm] = useState(false);
 
@@ -171,21 +180,26 @@ export function BookReviews({ bookUid }: { bookUid: string }) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <MessageSquare className="size-4" />
-            Reviews ({data?.total ?? 0})
+            {t("title", { total: data?.total ?? 0 })}
           </CardTitle>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowForm(!showForm)}
           >
-            {showForm ? "Cancel" : "Write a Review"}
+            {showForm ? t("cancel") : t("write")}
           </Button>
         </div>
         {reviews.length > 0 && (
           <div className="flex items-center gap-2 mt-1">
             <StarRating rating={Math.round(avgRating)} />
             <span className="text-sm text-muted-foreground">
-              {avgRating.toFixed(1)} out of 5
+              {t("average", {
+                rating: format.number(avgRating, {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                }),
+              })}
             </span>
           </div>
         )}
@@ -206,7 +220,7 @@ export function BookReviews({ bookUid }: { bookUid: string }) {
 
         {reviews.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">
-            No reviews yet. Be the first to review this book!
+            {t("empty")}
           </p>
         ) : (
           <div className="divide-y">

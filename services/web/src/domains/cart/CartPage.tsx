@@ -11,8 +11,11 @@ import {
   ShoppingCart,
   Trash2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ErrorState } from "@/shared/components/ErrorState";
 import { useToast } from "@/shared/components/toast";
+import { useFormat } from "@/shared/hooks/useFormat";
+import { useLocale } from "@/shared/i18n/useLocale";
 import {
   useCheckout,
   useClearCart,
@@ -21,7 +24,12 @@ import {
 } from "./cart-mutations";
 import { cartQueryOptions } from "./cart-queries";
 
+const CART_CURRENCY = "USD";
+
 export function CartPage() {
+  const { t } = useTranslation(["cart", "common"]);
+  const format = useFormat();
+  const locale = useLocale();
   const {
     data: cart,
     isLoading,
@@ -48,8 +56,8 @@ export function CartPage() {
     return (
       <div className="container mx-auto max-w-4xl px-4">
         <ErrorState
-          title="Couldn't load your cart"
-          message="There was a problem loading your cart. Please try again."
+          title={t("error.title")}
+          message={t("error.message")}
           onRetry={() => refetch()}
         />
       </div>
@@ -65,10 +73,10 @@ export function CartPage() {
     <div className="container mx-auto max-w-4xl px-4 py-8 space-y-8">
       <div className="flex items-center gap-3">
         <ShoppingCart className="size-7" />
-        <h1 className="text-3xl font-bold tracking-tight">Shopping Cart</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
         {!isEmpty && (
           <span className="text-muted-foreground text-lg">
-            ({totalItems} {totalItems === 1 ? "item" : "items"})
+            {t("itemCount", { count: totalItems })}
           </span>
         )}
       </div>
@@ -78,16 +86,20 @@ export function CartPage() {
           <CardContent className="flex flex-col items-center justify-center py-16 space-y-4">
             <ShoppingCart className="size-16 text-muted-foreground" />
             <p className="text-xl font-medium text-muted-foreground">
-              Your cart is empty
+              {t("empty")}
             </p>
-            <Button render={<Link to="/books" />}>Browse Books</Button>
+            <Button render={<Link to="/$locale/books" params={{ locale }} />}>
+              {t("browseBooks")}
+            </Button>
           </CardContent>
         </Card>
       ) : (
         <>
-          <ul aria-label="Cart items" className="space-y-4">
+          <ul aria-label={t("listLabel")} className="space-y-4">
             {items.map((item) => {
-              const name = item.product_name ?? `Product #${item.product_id}`;
+              const name =
+                item.product_name ??
+                t("common:product.fallbackName", { id: item.product_id });
               return (
                 <li key={item.uid}>
                   <Card>
@@ -99,7 +111,9 @@ export function CartPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{name}</p>
                         <p className="text-sm text-muted-foreground">
-                          ${item.price.toFixed(2)} each
+                          {t("item.priceEach", {
+                            price: format.price(item.price, CART_CURRENCY),
+                          })}
                         </p>
                       </div>
 
@@ -108,15 +122,15 @@ export function CartPage() {
                           variant="outline"
                           size="icon"
                           className="size-8"
-                          aria-label={`Decrease quantity of ${name}`}
+                          aria-label={t("item.decreaseQuantity", { name })}
                           disabled={updateItem.isPending}
                           onClick={() =>
                             item.quantity <= 1
                               ? removeItem.mutate(item.uid, {
                                   onSuccess: () =>
-                                    toast.success("Item removed"),
+                                    toast.success(t("toast.itemRemoved")),
                                   onError: () =>
-                                    toast.error("Couldn't remove item"),
+                                    toast.error(t("toast.removeFailed")),
                                 })
                               : updateItem.mutate(
                                   {
@@ -125,7 +139,7 @@ export function CartPage() {
                                   },
                                   {
                                     onError: () =>
-                                      toast.error("Couldn't update quantity"),
+                                      toast.error(t("toast.updateFailed")),
                                   },
                                 )
                           }
@@ -139,7 +153,7 @@ export function CartPage() {
                           variant="outline"
                           size="icon"
                           className="size-8"
-                          aria-label={`Increase quantity of ${name}`}
+                          aria-label={t("item.increaseQuantity", { name })}
                           disabled={updateItem.isPending}
                           onClick={() =>
                             updateItem.mutate(
@@ -149,7 +163,7 @@ export function CartPage() {
                               },
                               {
                                 onError: () =>
-                                  toast.error("Couldn't update quantity"),
+                                  toast.error(t("toast.updateFailed")),
                               },
                             )
                           }
@@ -159,19 +173,20 @@ export function CartPage() {
                       </div>
 
                       <div className="w-24 text-right font-medium">
-                        ${item.subtotal.toFixed(2)}
+                        {format.price(item.subtotal, CART_CURRENCY)}
                       </div>
 
                       <Button
                         variant="ghost"
                         size="icon"
                         className="size-8 text-destructive hover:text-destructive"
-                        aria-label={`Remove ${name}`}
+                        aria-label={t("item.remove", { name })}
                         disabled={removeItem.isPending}
                         onClick={() =>
                           removeItem.mutate(item.uid, {
-                            onSuccess: () => toast.success("Item removed"),
-                            onError: () => toast.error("Couldn't remove item"),
+                            onSuccess: () =>
+                              toast.success(t("toast.itemRemoved")),
+                            onError: () => toast.error(t("toast.removeFailed")),
                           })
                         }
                       >
@@ -188,9 +203,11 @@ export function CartPage() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">
-                Total items: {totalItems}
+                {t("summary.totalItems", { total: totalItems })}
               </p>
-              <p className="text-2xl font-bold">${totalAmount.toFixed(2)}</p>
+              <p className="text-2xl font-bold">
+                {format.price(totalAmount, CART_CURRENCY)}
+              </p>
             </div>
           </div>
 
@@ -200,29 +217,34 @@ export function CartPage() {
               disabled={clearCart.isPending}
               onClick={() =>
                 clearCart.mutate(undefined, {
-                  onSuccess: () => toast.success("Cart cleared"),
-                  onError: () => toast.error("Couldn't clear cart"),
+                  onSuccess: () => toast.success(t("toast.cleared")),
+                  onError: () => toast.error(t("toast.clearFailed")),
                 })
               }
             >
-              Clear Cart
+              {t("actions.clear")}
             </Button>
             <Button
               disabled={checkout.isPending}
               onClick={() =>
                 checkout.mutate(
-                  { currency: "USD", idempotency_key: crypto.randomUUID() },
+                  {
+                    currency: CART_CURRENCY,
+                    idempotency_key: crypto.randomUUID(),
+                  },
                   {
                     onSuccess: () => {
-                      toast.success("Order placed");
-                      navigate({ to: "/orders" });
+                      toast.success(t("toast.orderPlaced"));
+                      navigate({ to: "/$locale/orders", params: { locale } });
                     },
-                    onError: () => toast.error("Checkout failed"),
+                    onError: () => toast.error(t("toast.checkoutFailed")),
                   },
                 )
               }
             >
-              {checkout.isPending ? "Processing..." : "Checkout"}
+              {checkout.isPending
+                ? t("actions.processing")
+                : t("actions.checkout")}
             </Button>
           </div>
         </>
