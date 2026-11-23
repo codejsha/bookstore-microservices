@@ -30,7 +30,6 @@ var Module = fx.Module("customer",
 		config.ProvideGrpcConfig,
 		config.ProvideKafkaConfig,
 
-		pkgconfig.NewCloudConfigHelper,
 		client.NewRestyClient,
 		logging.NewLogHelper,
 

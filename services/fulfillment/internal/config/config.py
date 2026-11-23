@@ -1,9 +1,7 @@
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 
-from internal.config.cloud_config import CloudConfigSettingsSource
-
-CLOUD_CONFIG_APP_NAME = "fulfillment"
+from internal.config.file_config import YamlFileSettingsSource
 
 
 class AppConfig(BaseModel):
@@ -87,7 +85,7 @@ class Settings(BaseSettings):
             init_settings,
             env_settings,
             dotenv_settings,
-            CloudConfigSettingsSource(settings_cls, CLOUD_CONFIG_APP_NAME),
+            YamlFileSettingsSource(settings_cls),
             file_secret_settings,
         )
 

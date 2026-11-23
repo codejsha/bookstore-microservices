@@ -26,16 +26,10 @@ func Execute() {
 func init() {
 	rootCmd.AddCommand(runCmd)
 	runCmd.Flags().StringP("profile", "p", string(config.ProfileLocal), "set config profile")
-	runCmd.Flags().StringP("label", "l", "", "set config label")
-	runCmd.Flags().StringP("config-server", "c", "configserver:http://localhost:8888", "set cloud config import")
 
 	viper.AutomaticEnv()
 	_ = viper.BindEnv("profile", "APP_CONFIG_PROFILE")
-	_ = viper.BindEnv("label", "APP_CONFIG_LABEL")
-	_ = viper.BindEnv("config-server", "APP_CONFIG_SERVER")
 	_ = viper.BindPFlag("profile", runCmd.Flags().Lookup("profile"))
-	_ = viper.BindPFlag("label", runCmd.Flags().Lookup("label"))
-	_ = viper.BindPFlag("config-server", runCmd.Flags().Lookup("config-server"))
 
 	logrus.SetFormatter(&logrus.JSONFormatter{DisableHTMLEscape: true})
 	logrus.SetOutput(os.Stdout)
@@ -54,14 +48,10 @@ var runCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		logrus.Infof("%s\n", metadata())
 		profile := viper.GetString("profile")
-		label := viper.GetString("label")
-		configServer := viper.GetString("config-server")
 
 		preConfig := &config.PreConfig{
-			ServiceName:      serviceName,
-			Profile:          config.Profile(profile),
-			Label:            label,
-			ConfigServerAddr: configServer,
+			ServiceName: serviceName,
+			Profile:     config.Profile(profile),
 		}
 		di.NewApp(preConfig, meta).Run()
 	},

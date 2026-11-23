@@ -32,7 +32,6 @@ var Module = fx.Module("identity",
 		config.ProvideCacheConfig,
 		config.ProvideKafkaConfig,
 
-		pkgconfig.NewCloudConfigHelper,
 		client.NewRestyClient,
 		logging.NewLogHelper,
 
