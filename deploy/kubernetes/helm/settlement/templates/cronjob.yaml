@@ -26,6 +26,7 @@ spec:
       template:
         metadata:
           annotations:
+            checksum/app-config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
             vault.hashicorp.com/agent-pre-populate-only: "true"
             {{- with .Values.podAnnotations }}
             {{- toYaml . | nindent 12 }}
@@ -67,14 +68,20 @@ spec:
               resources:
                 {{- toYaml . | nindent 16 }}
               {{- end }}
-              {{- with .Values.volumeMounts }}
               volumeMounts:
+                - name: app-config
+                  mountPath: /app/config
+                  readOnly: true
+                {{- with .Values.volumeMounts }}
                 {{- toYaml . | nindent 16 }}
-              {{- end }}
-          {{- with .Values.volumes }}
+                {{- end }}
           volumes:
+            - name: app-config
+              configMap:
+                name: {{ include "settlement.fullname" . }}-config
+            {{- with .Values.volumes }}
             {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- end }}
           {{- with .Values.nodeSelector }}
           nodeSelector:
             {{- toYaml . | nindent 12 }}

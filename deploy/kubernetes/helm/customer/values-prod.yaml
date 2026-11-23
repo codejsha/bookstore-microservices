@@ -4,8 +4,6 @@ image:
 env:
   - name: APP_CONFIG_PROFILE
     value: prod
-  - name: APP_CONFIG_SERVER
-    value: "configserver:http://config-server.cloud-config.svc.cluster.local:8888"
   - name: PYROSCOPE_APPLICATION_NAME
     value: customer
   - name: PYROSCOPE_SERVER_ADDRESS
@@ -24,3 +22,12 @@ gatewayApi:
   storefront:
     enabled: true
     host: "bookstore.example.com"
+
+appConfig:
+  server:
+    mode: release
+  telemetry:
+    resource:
+      environment: prod
+
+appConfigProfiles: {}

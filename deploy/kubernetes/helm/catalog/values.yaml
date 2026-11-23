@@ -148,3 +148,49 @@ rollout:
       successRateThreshold: "0.99"
       latencyP99ThresholdMs: "1000"
       prometheusAddress: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
+
+appConfig:
+  server:
+    port: 8080
+  app:
+    logging:
+      level: info
+  cache:
+    host: catalog-valkey-headless.bookstore.svc.cluster.local
+    port: 6379
+    password: ""
+  opensearch:
+    scheme: http
+    host: opensearch-cluster-master.opensearch.svc.cluster.local
+    port: 9200
+    username: ${OPENSEARCH_USERNAME}
+    password: ${OPENSEARCH_PASSWORD}
+    index: books
+    insecure: true
+  kafka:
+    broker:
+      bootstrap_servers:
+        - bookstore-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093
+    schema_registry:
+      url: http://schemaregistry.kafka.svc.cluster.local:8081
+  database:
+    datasource:
+      driver: postgres
+      host: catalog-postgres-rw.bookstore.svc.cluster.local
+      port: 5432
+      db_name: catalog_db
+      params:
+        - sslmode=disable
+        - connect_timeout=5
+        - statement_timeout=15000
+  telemetry:
+    collector:
+      traceUrl: alloy-gateway.grafana.svc.cluster.local:4317
+    profiling:
+      serverAddress: http://alloy-agent.grafana.svc.cluster.local:9095
+    resource:
+      namespace: bookstore
+    sampling:
+      ratio: 0.1
+
+appConfigProfiles: {}

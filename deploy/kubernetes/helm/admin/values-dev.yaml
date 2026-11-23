@@ -4,8 +4,6 @@ image:
 extraEnv:
   - name: SPRING_PROFILES_ACTIVE
     value: dev
-  - name: SPRING_CONFIG_IMPORT
-    value: "configserver:http://config-server.cloud-config.svc.cluster.local:8888"
 
 mesh:
   waypoint: "bookstore-waypoint"
@@ -16,3 +14,7 @@ gatewayApi:
   directApi:
     enabled: true
     host: "bookstore-admin-api.example.com"
+
+appConfig: {}
+
+appConfigProfiles: {}

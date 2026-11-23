@@ -171,3 +171,73 @@ gatewayApi:
   host: "example.com"
   gatewayName: "bookstore-gateway"
   gatewayNamespace: "istio-system"
+
+appConfig:
+  server:
+    port: 8080
+  spring:
+    threads:
+      virtual:
+        enabled: true
+    flyway:
+      enabled: false
+    batch:
+      job:
+        enabled: false
+    datasource:
+      driver-class-name: org.postgresql.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      url: jdbc:postgresql://settlement-postgres-rw.bookstore.svc.cluster.local:5432/settlement_db?sslmode=disable
+      username: ${db.username}
+      password: ${db.password}
+      hikari:
+        minimum-idle: 30
+        maximum-pool-size: 30
+        connection-timeout: 10000
+        validation-timeout: 5000
+        leak-detection-threshold: 60000
+        auto-commit: true
+        max-lifetime: 1800000
+  settlement:
+    payment-db:
+      host: payment-postgres-rw.bookstore.svc.cluster.local
+      port: 5432
+  management:
+    otlp:
+      metrics:
+        export:
+          url: http://alloy-gateway.grafana.svc.cluster.local:4318/v1/metrics
+          step: 60s
+          base-time-unit: seconds
+    opentelemetry:
+      resource-attributes:
+        '[service.name]': settlement-app
+    metrics:
+      distribution:
+        percentiles-histogram:
+          '[http.server.requests]': true
+    endpoints:
+      web:
+        exposure:
+          include: ""
+
+appConfigProfiles:
+  batch:
+    spring:
+      datasource:
+        hikari:
+          minimum-idle: 1
+          maximum-pool-size: 5
+    management:
+      otlp:
+        metrics:
+          export:
+            step: 10s
+            base-time-unit: seconds
+      opentelemetry:
+        resource-attributes:
+          '[service.name]': settlement-app
+      metrics:
+        distribution:
+          percentiles-histogram:
+            '[http.server.requests]': true
