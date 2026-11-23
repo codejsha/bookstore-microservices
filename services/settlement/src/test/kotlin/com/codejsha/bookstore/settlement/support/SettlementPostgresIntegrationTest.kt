@@ -15,8 +15,6 @@ import javax.sql.DataSource
 
 @SpringBootTest(
     properties = [
-        "spring.cloud.config.enabled=false",
-        "spring.cloud.config.import-check.enabled=false",
         "spring.flyway.enabled=false",
         "spring.batch.job.enabled=false",
         "management.otlp.metrics.export.enabled=false",

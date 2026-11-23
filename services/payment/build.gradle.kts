@@ -68,7 +68,6 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.1.0")
         mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.24.0")
         mavenBom("io.micrometer:micrometer-bom:1.16.2")
         mavenBom("org.testcontainers:testcontainers-bom:2.0.3")
@@ -106,7 +105,6 @@ dependencies {
     implementation("com.google.protobuf:protobuf-java")
 
     // integration
-    implementation("org.springframework.cloud:spring-cloud-starter-config")
     compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.24.0")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-otlp")

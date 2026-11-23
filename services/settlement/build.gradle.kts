@@ -68,7 +68,6 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.1.0")
         mavenBom("org.testcontainers:testcontainers-bom:2.0.3")
     }
 }
@@ -97,7 +96,6 @@ dependencies {
     testImplementation("org.springframework.batch:spring-batch-test")
 
     // integration
-    implementation("org.springframework.cloud:spring-cloud-starter-config")
     compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.24.0")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-otlp")

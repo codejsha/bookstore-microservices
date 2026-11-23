@@ -60,12 +60,6 @@ repositories {
     }
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.1.0")
-    }
-}
-
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
@@ -80,7 +74,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-data-commons")
 
     // integration
-    implementation("org.springframework.cloud:spring-cloud-starter-config")
     compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.24.0")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-otlp")
