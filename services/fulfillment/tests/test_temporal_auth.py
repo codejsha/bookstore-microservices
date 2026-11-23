@@ -234,7 +234,7 @@ class TestTemporalAuthSettings:
     def test_settings_temporal_env_file_sets_auth_credentials(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.delenv("APP_CONFIG_SERVER", raising=False)
+        monkeypatch.setenv("APP_CONFIG_FILE", str(tmp_path / "absent.yaml"))
         temporal_env = tmp_path / "temporal.env"
         temporal_env.write_text(
             f"{ENV_PREFIX}TEMPORAL__AUTH__CLIENT_ID=temporal-worker\n{ENV_PREFIX}TEMPORAL__AUTH__CLIENT_SECRET=s3cret\n",

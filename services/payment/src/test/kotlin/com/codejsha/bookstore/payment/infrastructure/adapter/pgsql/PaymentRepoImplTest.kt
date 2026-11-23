@@ -31,12 +31,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-@JooqTest(
-    properties = [
-        "spring.cloud.config.enabled=false",
-        "spring.cloud.config.import-check.enabled=false",
-    ],
-)
+@JooqTest
 @Import(PersistenceManager::class, PaymentRepoImpl::class, RefundRepoImpl::class, WebhookEventRepoImpl::class)
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class PaymentRepoImplTest : AbstractPostgresTestSupport() {

@@ -35,12 +35,7 @@ import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.UUID
 
-@JooqTest(
-    properties = [
-        "spring.cloud.config.enabled=false",
-        "spring.cloud.config.import-check.enabled=false",
-    ],
-)
+@JooqTest
 @Import(
     PersistenceManager::class,
     JooqTransactionRunner::class,

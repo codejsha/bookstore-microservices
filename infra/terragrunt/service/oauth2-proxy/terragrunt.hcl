@@ -57,8 +57,6 @@ inputs = {
 
   admin_app_host         = "bookstore-admin.example.com"
   admin_web_service_name = "admin-web"
-
-  protected_hosts = ["cloud-config.example.com"]
 }
 
 terraform {

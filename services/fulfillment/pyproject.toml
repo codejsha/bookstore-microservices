@@ -25,6 +25,7 @@ dependencies = [
     "structlog>=25.1",
     "opentelemetry-instrumentation-system-metrics>=0.54b0",
     "opentelemetry-instrumentation-grpc>=0.54b0",
+    "pyyaml>=6.0",
 ]
 
 [dependency-groups]

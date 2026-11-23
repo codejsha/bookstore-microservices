@@ -83,17 +83,14 @@ inputs = {
   oauth2_proxy_valid_redirect_uris = [
     "https://bookstore.example.com/oauth2/callback",
     "https://bookstore-admin.example.com/oauth2/callback",
-    "https://cloud-config.example.com/oauth2/callback",
   ]
   oauth2_proxy_valid_post_logout_redirect_uris = [
     "https://bookstore.example.com/",
     "https://bookstore-admin.example.com/",
-    "https://cloud-config.example.com/",
   ]
   oauth2_proxy_web_origins = [
     "https://bookstore.example.com",
     "https://bookstore-admin.example.com",
-    "https://cloud-config.example.com",
   ]
 }
 

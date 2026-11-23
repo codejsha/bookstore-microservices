@@ -29,17 +29,6 @@ variable "gitea_http_url" {
   type        = string
 }
 
-variable "cloud_config_repo" {
-  description = "Gitea repo name for the Spring Cloud Config content"
-  type        = string
-  default     = "cloud-config"
-}
-
-variable "cloud_config_dir" {
-  description = "Absolute path to deploy/kubernetes/cloud-config/repo"
-  type        = string
-}
-
 variable "app_repos" {
   description = "List of <svc>-helm repos to push charts for (must match the argocd unit's app_repos)"
   type        = list(string)

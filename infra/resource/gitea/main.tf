@@ -81,15 +81,6 @@ module "repo_ssh" {
   }
 }
 
-module "config_server_access" {
-  source          = "./modules/config-server-access"
-  namespace       = "cloud-config"
-  service_account = "config-server"
-  providers = {
-    vault = vault
-  }
-}
-
 module "repos" {
   depends_on       = [module.organization]
   for_each         = toset(concat(var.dev_repos, var.devops_repos))

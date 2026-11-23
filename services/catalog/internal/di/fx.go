@@ -31,7 +31,6 @@ var Module = fx.Module("catalog",
 		config.ProvideKafkaConfig,
 		config.ProvideCacheConfig,
 
-		pkgconfig.NewCloudConfigHelper,
 		client.NewRestyClient,
 		logging.NewLogHelper,
 

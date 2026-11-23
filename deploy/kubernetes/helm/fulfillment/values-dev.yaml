@@ -4,8 +4,6 @@ image:
 env:
   - name: APP_CONFIG_PROFILE
     value: dev
-  - name: APP_CONFIG_SERVER
-    value: "configserver:http://config-server.cloud-config.svc.cluster.local:8888"
 
 service:
   grpc:
@@ -18,3 +16,9 @@ mesh:
 gatewayApi:
   enabled: true
   host: "fulfillment-api.example.com"
+
+appConfig:
+  server:
+    mode: dev
+
+appConfigProfiles: {}

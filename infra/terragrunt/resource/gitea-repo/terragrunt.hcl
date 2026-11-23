@@ -29,9 +29,6 @@ inputs = {
   gitea_api_url  = "https://git.example.com/api/v1"
   gitea_http_url = "https://git.example.com"
 
-  cloud_config_repo = "cloud-config"
-  cloud_config_dir  = "${get_repo_root()}/deploy/kubernetes/cloud-config/repo"
-
   helm_dir = "${get_repo_root()}/deploy/kubernetes/helm"
   app_repos = [
     "catalog-helm", "customer-helm", "identity-helm",
