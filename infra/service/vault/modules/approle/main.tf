@@ -94,8 +94,6 @@ locals {
       { path = "kv-infra/data/gitea/*", capabilities = ["create", "read", "update", "list"] },
       { path = "sys/policies/acl/gitea-ssh", capabilities = ["create", "read", "update", "delete"] },
       { path = "auth/kubernetes/role/gitea-ssh-role", capabilities = ["create", "read", "update", "delete"] },
-      { path = "sys/policies/acl/config-server-gitea", capabilities = ["create", "read", "update", "delete"] },
-      { path = "auth/kubernetes/role/config-server-gitea-role", capabilities = ["create", "read", "update", "delete"] },
     ]
     gitea-repo-config = [
       { path = "kv-infra/data/gitea/admin/credentials", capabilities = ["read"] },

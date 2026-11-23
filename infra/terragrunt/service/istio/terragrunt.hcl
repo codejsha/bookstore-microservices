@@ -43,7 +43,6 @@ inputs = {
     "bookstore-admin.example.com"     = ["bookstore"]
     "bookstore-admin-api.example.com" = ["bookstore"]
     "catalog-api.example.com"         = ["bookstore"]
-    "cloud-config.example.com"        = ["cloud-config", "bookstore"]
     "customer-api.example.com"        = ["bookstore"]
     "fulfillment-api.example.com"     = ["bookstore"]
     "git.example.com"                 = ["gitea"]

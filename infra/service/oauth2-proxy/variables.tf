@@ -109,7 +109,7 @@ variable "admin_web_service_name" {
 }
 
 variable "protected_hosts" {
-  description = "Additional edge hostnames placed behind the oauth2-proxy session gate. Each gets the /oauth2 HTTPRoute attached to its listener plus a gateway-attached CUSTOM ext_authz covering every path except /oauth2/*. Use for infrastructure UIs that ship no authentication of their own (e.g. config-server)."
+  description = "Additional edge hostnames placed behind the oauth2-proxy session gate. Each gets the /oauth2 HTTPRoute attached to its listener plus a gateway-attached CUSTOM ext_authz covering every path except /oauth2/*. Use for infrastructure UIs that ship no authentication of their own."
   type        = list(string)
   default     = []
 }

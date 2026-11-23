@@ -20,17 +20,6 @@ data "vault_kv_secret_v2" "gitea_admin" {
   name  = "gitea/admin/credentials"
 }
 
-module "cloud_config" {
-  source         = "./modules/cloud-config"
-  org_name       = var.org_name
-  gitea_api_url  = var.gitea_api_url
-  gitea_http_url = var.gitea_http_url
-  repo_name      = var.cloud_config_repo
-  content_dir    = var.cloud_config_dir
-  gitea_username = data.vault_kv_secret_v2.gitea_admin.data["username"]
-  gitea_password = data.vault_kv_secret_v2.gitea_admin.data["password"]
-}
-
 module "helm_chart" {
   source         = "./modules/helm-chart"
   app_repos      = var.app_repos
