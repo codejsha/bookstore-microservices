@@ -13,3 +13,5 @@ resources:
 serviceAccount:
   create: false
   name: confluent-operator
+
+imagePullSecretRef: ""
