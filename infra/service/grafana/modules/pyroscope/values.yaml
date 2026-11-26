@@ -1,6 +1,9 @@
 pyroscope:
   replicaCount: 1
 
+  extraArgs:
+    log.level: info
+
   structuredConfig:
     storage:
       backend: s3
